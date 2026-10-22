@@ -1,0 +1,68 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Omochice/pele/diagrams/er"
+
+// Values
+pub fn tokenize(String) -> Tokens
+
+// Errors
+
+// Types and methods
+pub(all) enum Tok {
+  End
+  Error
+  ErDiagram
+  Eof
+  Newline
+  Colon
+  StyleSeparator
+  BlockStart
+  BlockStop
+  Sqs
+  Sqe
+  AccTitle
+  AccTitleValue
+  AccDescr
+  AccDescrValue
+  AccDescrMultilineValue
+  EndKw
+  Subgraph
+  DirectionTb
+  DirectionBt
+  DirectionRl
+  DirectionLr
+  ClassDef
+  UnicodeText
+  StyleText
+  Comma
+  Class
+  Style
+  Semi
+  Num
+  Brkt
+  EntityName
+  DecimalNum
+  EntityOne
+  AttributeWord
+  AttributeKey
+  Comment
+  ZeroOrOne
+  ZeroOrMore
+  OneOrMore
+  OnlyOne
+  MdParent
+  NonIdentifying
+  Identifying
+  Word
+  Char
+}
+pub fn Tok::name(Self) -> String
+
+pub(all) struct Tokens {
+  types : Array[Tok]
+  texts : Array[String]
+  starts : Array[Int32]
+}
+
+// Type aliases
+
+// Traits
