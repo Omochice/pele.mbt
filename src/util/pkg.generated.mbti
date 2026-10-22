@@ -30,6 +30,8 @@ pub fn last_index_of(String, String, from? : Int32) -> Int32
 
 pub fn normalize_line_breaks(String) -> String
 
+pub fn parse_float(String) -> Double
+
 pub fn parse_yaml(String) -> Json raise YamlError
 
 pub fn slice(String, Int32, end? : Int32) -> String
@@ -37,6 +39,8 @@ pub fn slice(String, Int32, end? : Int32) -> String
 pub fn starts_with_at(String, String, Int32) -> Bool
 
 pub fn to_fixed0(Double) -> String
+
+pub fn to_number(String) -> Double
 
 pub fn trim(String) -> String
 
