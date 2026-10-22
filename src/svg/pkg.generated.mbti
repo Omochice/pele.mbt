@@ -28,6 +28,8 @@ pub fn esc_text(String) -> String
 
 pub fn font_style(Double, String?, String?) -> String
 
+pub fn inset_route(Array[Double], Int32, @layout.CNode, shape~ : String, w~ : Double, h~ : Double) -> Unit
+
 pub fn label_svg(@text.Label, Double, Double, String) -> String
 
 pub fn num(Double) -> String

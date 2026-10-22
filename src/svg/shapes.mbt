@@ -942,3 +942,30 @@ pub fn end_side(route : Array[Double], at : Int32, c : @layout.CNode) -> Int32 {
   }
   -1
 }
+
+///|
+/// Moves the route point at `at` from the side of a node's layout box `c` onto the outline of the
+/// `shape` drawn `w` by `h` in it.
+/// Groups and points off every side are left where they are.
+pub fn inset_route(
+  route : Array[Double],
+  at : Int32,
+  c : @layout.CNode,
+  shape~ : String,
+  w~ : Double,
+  h~ : Double,
+) -> Unit {
+  if c.is_group {
+    return
+  }
+  let side = end_side(route, at, c)
+  if side == 0 || side == 2 {
+    let amount = shape_inset(shape, w, h, side, t=route[at] - c.x) +
+      (c.h - h) / 2
+    route[at + 1] += if side == 0 { amount } else { -amount }
+  } else if side >= 0 {
+    let amount = shape_inset(shape, w, h, side, t=route[at + 1] - c.y) +
+      (c.w - w) / 2
+    route[at] += if side == 3 { amount } else { -amount }
+  }
+}
