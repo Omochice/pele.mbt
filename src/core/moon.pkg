@@ -2,3 +2,8 @@ import {
   "Omochice/pele/errors",
   "Omochice/pele/types",
 }
+
+import {
+  "Omochice/pele/errors",
+  "Omochice/pele/types",
+} for "test"

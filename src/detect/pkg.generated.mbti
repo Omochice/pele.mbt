@@ -1,0 +1,17 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Omochice/pele/detect"
+
+// Values
+pub fn detect_diagram(String) -> Detected?
+
+// Errors
+
+// Types and methods
+pub(all) struct Detected {
+  kind : String
+  mermaid_type : String
+}
+
+// Type aliases
+
+// Traits
