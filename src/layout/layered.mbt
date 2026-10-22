@@ -585,12 +585,27 @@ pub fn layered(
     }
     return { width: 0, height: 0, crossings, declared, }
   }
-  ignore(efk)
-  ignore(etk)
-  ignore(first_seg)
-  ignore(last_seg)
+  if spans {
+    spread(g, nodes, efk, etk)
+  }
   let xs = position(g, opt)
   let empty = empty_ranks(g)
+  if spans {
+    let free = free_ends(g, efk, etk)
+    align_labels(g, nodes, xs, free, opt, empty)
+    settle(g, nodes, xs, efk, etk, free, empty)
+    snap(g, xs, empty, opt)
+    for ei in 0..<m {
+      if direct[ei] {
+        continue
+      }
+      let e = edges[ei]
+      let a_dx = efd[first_seg[ei]]
+      let b_dx = etd[last_seg[ei]]
+      e.tail_dx = if e.reversed { b_dx } else { a_dx }
+      e.head_dx = if e.reversed { a_dx } else { b_dx }
+    }
+  }
 
   // A rank that holds nothing but the bends of edges is only there because some other edge has a label or a twin.
   // Its bends move onto the straight line between the ends of their edges, and one that gets there is left out of the route, so that the edge is drawn as a single curve.
@@ -612,6 +627,70 @@ pub fn layered(
   }
   if !opt.tracks {
     past_labels(g, xs, first_dummy, span, opt.edge_sep, on_line)
+  }
+  // An edge is cut where it passes a rank that holds something, and each piece crosses one gap.
+  // With `tracks`, every piece that does not run straight gets a track to run across on at right angles.
+  // Otherwise, where edges spread along their nodes, a piece gets one only if it needs a level to turn onto.
+  // `piece_start` gives every edge's run of pieces.
+  let piece_start = FixedArray::make(m + 1, 0)
+  let pieces : Pieces? = if opt.tracks || (spans && !opt.straight) {
+    Some({
+      from: [],
+      to: [],
+      rank: [],
+      lower: [],
+      track: [],
+      levels: [],
+      wide: [],
+    })
+  } else {
+    None
+  }
+  let track_count = FixedArray::make(max_rank + 1, 0)
+  let is_empty = fn(r : Int32) {
+    match empty {
+      Some(empty) => empty[r]
+      None => false
+    }
+  }
+  if pieces is Some(pieces) {
+    for ei in 0..<m {
+      piece_start[ei] = pieces.from.length()
+      if direct[ei] {
+        continue
+      }
+      let d0 = first_dummy[ei]
+      let end = if d0 < 0 { d0 } else { d0 + span[ei] - 1 }
+      // An edge that keeps a bend to stay clear of its twin is drawn through the bend, as it is.
+      // So is one that has a bend left out in a rank of labels: its curve crosses that rank.
+      let mut twin = false
+      for d = d0; d < end; d = d + 1 {
+        if !opt.tracks && is_empty(rank[d]) != on_line[d] {
+          twin = true
+        }
+      }
+      if twin {
+        continue
+      }
+      let mut x = xs[ef[first_seg[ei]]] + efd[first_seg[ei]]
+      let mut at_rank = rank[ef[first_seg[ei]]]
+      for d = d0; d < end; d = d + 1 {
+        if is_empty(rank[d]) {
+          continue
+        }
+        pieces.from.push(x)
+        pieces.to.push(xs[d])
+        pieces.rank.push(at_rank)
+        pieces.lower.push(d)
+        x = xs[d]
+        at_rank = rank[d]
+      }
+      pieces.from.push(x)
+      pieces.to.push(xs[et[last_seg[ei]]] + etd[last_seg[ei]])
+      pieces.rank.push(at_rank)
+      pieces.lower.push(-1)
+    }
+    piece_start[m] = pieces.from.length()
   }
 
   // Ranks that hold only border ports or their pass-through dummies need little room of their own.
@@ -651,10 +730,14 @@ pub fn layered(
   // Edges that are not cut into pieces need more where they run far across.
   let gap_under = FixedArray::make(max_rank + 1, 0.0)
   for r in 0..<max_rank {
-    gap_under[r] = jmax(
-      usual(r),
-      jmin(max_gap * opt.rank_sep / step.to_double(), run[r] * min_slope),
-    )
+    gap_under[r] = if pieces is Some(_) {
+      usual(r)
+    } else {
+      jmax(
+        usual(r),
+        jmin(max_gap * opt.rank_sep / step.to_double(), run[r] * min_slope),
+      )
+    }
   }
   // A rank between two ranks of nodes, which holds labels and bends only.
   let between = FixedArray::make(max_rank + 1, true)
@@ -681,6 +764,45 @@ pub fn layered(
       0.0
     }
   }
+  // The rank that the pieces leaving each rank arrive at, past any that hold only bends, and the room between the two, which grows to hold the gap's tracks or levels.
+  // These keep `margin` from the ranks, and between `least_pitch` and `most_pitch` from each other.
+  let margin = if opt.tracks { track_margin } else { level_margin }
+  let least_pitch = if opt.tracks { track_pitch } else { level_pitch }
+  let most_pitch = if opt.tracks { track_spread } else { level_pitch }
+  let below = FixedArray::make(max_rank + 1, 0)
+  if pieces is Some(pieces) {
+    let room = FixedArray::make(max_rank + 1, 0.0)
+    for r in 0..<max_rank {
+      if is_empty(r) {
+        continue
+      }
+      let mut next = r + 1
+      room[r] = gap_under[r]
+      while next < max_rank && is_empty(next) {
+        room[r] += gap_under[next]
+        next += 1
+      }
+      below[r] = next
+    }
+    for k in 0..<pieces.from.length() {
+      pieces.wide.push(
+        (pieces.from[k] - pieces.to[k]).abs() >
+        level_wide * room[pieces.rank[k]],
+      )
+    }
+    let tall = FixedArray::make(max_rank + 1, 0.0)
+    assign_tracks(pieces, track_count, !opt.tracks, room, tall)
+    for r in 0..<max_rank {
+      if track_count[r] > 0 {
+        gap_under[r] += jmax(
+          0,
+          2 * margin + (track_count[r] - 1).to_double() * least_pitch - room[r],
+        )
+      } else if tall[r] > 0 {
+        gap_under[r] += jmax(0, jmin(max_gap * opt.rank_sep, tall[r]) - room[r])
+      }
+    }
+  }
   let mut y = 0.0
   for r in 0..<=max_rank {
     let mut tallest = 0.0
@@ -694,6 +816,20 @@ pub fn layered(
     y += tallest + gap_under[r]
   }
   let height = y
+  // Where a piece runs across its gap, or would on another track of its group: its tracks sit in the middle of the gap, the first at the top.
+  let track_y = fn(pieces : Pieces, piece : Int32, on_track : Int32) {
+    let r = pieces.rank[piece]
+    let top = band_bottom[r]
+    let bottom = band_top[below[r]]
+    let count = if opt.tracks { track_count[r] } else { pieces.levels[piece] }
+    let pitch = if count > 1 {
+      jmin(most_pitch, (bottom - top - 2 * margin) / (count - 1).to_double())
+    } else {
+      0.0
+    }
+    (top + bottom) / 2 +
+    (on_track.to_double() - (count - 1).to_double() / 2) * pitch
+  }
   let mut min_x = @double.infinity
   let mut max_x = @double.neg_infinity
   for i in 0..<n {
@@ -705,11 +841,32 @@ pub fn layered(
       max_x = xs[i] + half
     }
   }
+  // Where edges spread along their nodes, a rank whose nodes only send edges on stands on one line, and a rank whose nodes only receive them hangs from one, so that the edges of nodes of different heights set out from, or arrive at, the same level.
+  // In any other rank the nodes are centered.
+  let arrives = FixedArray::make(max_rank + 1, false)
+  let leaves = FixedArray::make(max_rank + 1, false)
+  for i in 0..<real {
+    if !(kind[i] is Node) || !spans {
+      continue
+    }
+    if pred_start[i + 1] > pred_start[i] {
+      arrives[rank[i]] = true
+    }
+    if succ_start[i + 1] > succ_start[i] {
+      leaves[rank[i]] = true
+    }
+  }
   for i in 0..<real {
     let node = nodes[i]
     let r = node.rank
     node.x = xs[i] - min_x
-    node.y = (band_top[r] + band_bottom[r]) / 2
+    node.y = if kind[i] is Node && leaves[r] && !arrives[r] {
+      band_bottom[r] - node.h / 2
+    } else if kind[i] is Node && arrives[r] && !leaves[r] {
+      band_top[r] + node.h / 2
+    } else {
+      (band_top[r] + band_bottom[r]) / 2
+    }
   }
   for ei in 0..<m {
     let e = edges[ei]
@@ -720,7 +877,31 @@ pub fn layered(
       first.y + first.h / 2,
     ]
     let d0 = first_dummy[ei]
-    if d0 >= 0 {
+    if pieces is Some(pieces) && piece_start[ei + 1] > piece_start[ei] {
+      for k in piece_start[ei]..<piece_start[ei + 1] {
+        if pieces.track[k] >= 0 && (opt.tracks || pieces.wide[k]) {
+          let across = track_y(pieces, k, pieces.track[k])
+          pts.push(pieces.from[k] - min_x)
+          pts.push(across)
+          pts.push(pieces.to[k] - min_x)
+          pts.push(across)
+        } else if pieces.track[k] > 0 {
+          // A short piece among levels runs straight until it is past the level before its own, and turns in one S from there, so that it crosses none of them.
+          pts.push(pieces.from[k] - min_x)
+          pts.push(track_y(pieces, k, pieces.track[k] - 1))
+        }
+        let d = pieces.lower[k]
+        if d < 0 {
+          continue
+        }
+        pts.push(xs[d] - min_x)
+        pts.push(band_top[rank[d]] + inset(d))
+        if band_bottom[rank[d]] > band_top[rank[d]] {
+          pts.push(xs[d] - min_x)
+          pts.push(band_bottom[rank[d]] - inset(d))
+        }
+      }
+    } else if d0 >= 0 {
       for d in d0..<(d0 + span[ei] - 1) {
         if on_line[d] {
           continue
