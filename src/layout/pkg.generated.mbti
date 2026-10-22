@@ -6,6 +6,12 @@ pub fn cnode(Double, Double, parent? : Int32) -> CNode
 
 pub fn ease(Double, Double) -> Double
 
+pub fn layered(Array[LNode], Array[LEdge], LayeredOptions) -> LayeredResult
+
+pub fn ledge(Int32, Int32, minlen? : Int32, label_w? : Double, label_h? : Double) -> LEdge
+
+pub fn lnode(Double, Double, kind? : Kind) -> LNode
+
 pub fn route_crossings(Array[CNode], Array[CEdge], style? : Style) -> Int32
 
 // Errors
@@ -43,6 +49,69 @@ pub(all) enum Dir {
   BT
   LR
   RL
+}
+
+pub(all) enum Kind {
+  Node
+  Dummy
+  Label
+  StartPort
+  EndPort
+}
+
+pub(all) struct LEdge {
+  mut tail : Int32
+  mut head : Int32
+  mut minlen : Int32
+  mut label_w : Double
+  mut label_h : Double
+  mut tail_dx : Double
+  mut head_dx : Double
+  mut tail_fixed : Bool
+  mut head_fixed : Bool
+  mut reversed : Bool
+  mut points : Array[Double]
+  mut label_x : Double
+  mut label_y : Double
+}
+
+pub(all) struct LNode {
+  mut w : Double
+  mut h : Double
+  mut kind : Kind
+  mut pin : Int32
+  mut hint : Double
+  mut key : Double
+  mut span : Double
+  mut x : Double
+  mut y : Double
+  mut rank : Int32
+}
+
+pub(all) struct LayeredGroups {
+  of : Array[Int32]
+  parent : Array[Int32]
+}
+
+pub(all) struct LayeredOptions {
+  node_sep : Double
+  edge_sep : Double
+  rank_sep : Double
+  port_sep : Double
+  tracks : Bool
+  straight : Bool
+  apart : Bool
+  head_room : Double
+  groups : LayeredGroups?
+  order_only : Bool
+}
+pub fn LayeredOptions::new(node_sep~ : Double, edge_sep~ : Double, rank_sep~ : Double, port_sep~ : Double, tracks? : Bool, straight? : Bool, apart? : Bool, head_room? : Double, groups? : LayeredGroups, order_only? : Bool) -> Self
+
+pub(all) struct LayeredResult {
+  width : Double
+  height : Double
+  crossings : Int32
+  declared : Int32
 }
 
 pub(all) enum Style {
