@@ -129,7 +129,7 @@ pub fn build_flow_graph(model : FlowDb, default_curve? : String) -> FlowGraph {
       current = subgraph_parent.get(c)
     }
     let mut result = match current {
-      Some(c) => outermost.get(c).flatten()
+      Some(c) => outermost.get(c).bind(x => x)
       None => None
     }
     for i = chain.length() - 1; i >= 0; i = i - 1 {
