@@ -334,14 +334,40 @@ fn draw(
       SHAPE_ATTRS + view.style.shape,
       LINE_ATTRS + view.style.line,
     )
-    let text = @svg.label_svg(
+    let mut text = @svg.label_svg(
       view.label,
       0,
       view.dy,
       " class=\"pele-label\"\{view.style.text}",
     )
+    if (classes + " ").contains(" internal-link ") &&
+      node.label is Some(note) &&
+      note != "" &&
+      options.links != Some(false) {
+      // The label is a note name, but it still ends up in an href, so it gets the same check as a URL.
+      let name = @text.decode_entities(note)
+      let target = @svg.esc(name)
+      let href = if @url.link_url(@url.sanitize_url(name), options) is Some(_) {
+        " href=\"\{target}\"\{@url.rel_attr(options)}"
+      } else {
+        ""
+      }
+      text = "<a class=\"internal-link\"\{href} data-href=\"\{target}\">\{text}</a>"
+      links.push({ id: node.id, href: name, internal: true, })
+    }
+    let mut body = inner + text
+    if node.tooltip is Some(tooltip) && tooltip != "" {
+      body = "<title>\{@svg.esc_text(tooltip)}</title>" + body
+    }
+    if node.link is Some(link) && link != "" {
+      let attrs = match node.link_target {
+        Some(target) if target != "" => " target=\"\{@svg.esc(target)}\""
+        _ => ""
+      }
+      body = @url.linked(body, link, node.id, links, options, attrs~)
+    }
     nodes_out.write_string(
-      "<g class=\"pele-node pele-shape-\{view.shape}\{classes}\" data-id=\"\{id}\" transform=\"translate(\{@svg.num(c.x)},\{@svg.num(c.y)})\">\{inner}\{text}</g>",
+      "<g class=\"pele-node pele-shape-\{view.shape}\{classes}\" data-id=\"\{id}\" transform=\"translate(\{@svg.num(c.x)},\{@svg.num(c.y)})\">\{body}</g>",
     )
   }
   let reach = @svg.SideReach::new()
