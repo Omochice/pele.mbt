@@ -53,6 +53,8 @@ pub fn turn_to_fit(@types.RenderOptions, (Bool) -> @types.Rendered) -> @types.Re
 
 pub let whitespace : TokenType
 
+pub fn word_at(String, Int32, String) -> Bool
+
 pub let yaml : TokenType
 
 // Errors
