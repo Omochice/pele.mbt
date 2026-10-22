@@ -1,0 +1,31 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Omochice/pele/diagrams/treeview"
+
+import {
+  "Omochice/pele/errors",
+}
+
+// Values
+pub fn parse_treeview(String) -> TreeViewAst raise @errors.PeleError
+
+// Errors
+
+// Types and methods
+pub(all) struct TreeNodeAst {
+  indent : Int32?
+  name : String
+  class_annotation : String?
+  icon_annotation : String?
+  desc_annotation : String?
+}
+
+pub(all) struct TreeViewAst {
+  title : String?
+  acc_title : String?
+  acc_descr : String?
+  nodes : Array[TreeNodeAst]
+}
+
+// Type aliases
+
+// Traits
