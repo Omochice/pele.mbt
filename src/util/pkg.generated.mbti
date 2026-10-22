@@ -20,6 +20,8 @@ pub fn is_line_end(Int32) -> Bool
 
 pub fn is_space(Int32) -> Bool
 
+pub fn is_unicode_letter(Int32) -> Bool
+
 pub fn is_word(Int32) -> Bool
 
 pub fn js_max(Double, Double) -> Double
