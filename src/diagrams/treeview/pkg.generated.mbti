@@ -33,6 +33,8 @@ pub fn remap_error_lines(String, Map[Int32, Int32]) -> String
 
 pub fn render_treeview(TreeViewModel, Map[String, Json], @types.RenderOptions) -> @types.Rendered
 
+pub fn tree_settings(Map[String, Json]) -> TreeSettings
+
 pub let treeview : @types.Diagram
 
 // Errors
@@ -72,6 +74,13 @@ pub(all) struct TreeNodeAst {
   class_annotation : String?
   icon_annotation : String?
   desc_annotation : String?
+}
+
+pub(all) struct TreeSettings {
+  padding_x : Double
+  padding_y : Double
+  row_indent : Double
+  line_thickness : Double
 }
 
 pub(all) struct TreeViewAst {
