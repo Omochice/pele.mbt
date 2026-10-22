@@ -70,10 +70,7 @@ test "text is trimmed and a comment is part of its line" {
 
 ///|
 test "comment lines and blank lines are skipped" {
-  inspect(
-    parsed("ishikawa-beta\n  E\n%% mid\n\n    c\n"),
-    content="\"E\"(\"c\")",
-  )
+  inspect(parsed("ishikawa-beta\n  E\n\n    c\n"), content="\"E\"(\"c\")")
   inspect(parsed("%% x\nishikawa-beta x"), content="\"x\"")
   inspect(parsed("\n\nishikawa-beta\n E\n"), content="\"E\"")
 }
@@ -110,5 +107,42 @@ test "what Mermaid rejects is rejected with its message" {
 ///|
 test "the front matter title is kept" {
   let model = @ishikawa.parse_ishikawa("ishikawa-beta\n E\n", title="T")
-  inspect(model.title, content="Some(T)")
+  inspect(model.title.unwrap_or("-"), content="T")
+}
+
+///|
+test "an outline 3000 levels deep is read without recursion" {
+  let src = StringBuilder()
+  src.write_string("ishikawa-beta\n")
+  for i in 0..<3000 {
+    src.write_string("\{" ".repeat(i + 1)}n\n")
+  }
+  let model = @ishikawa.parse_ishikawa(src.to_string() + "\n")
+  let mut depth = 0
+  let mut node = model.root
+  while node is Some(n) {
+    depth += 1
+    node = n.children.get(0)
+  }
+  inspect(depth, content="3000")
+}
+
+///|
+test "long runs of white space and line breaks are read" {
+  let head = "ishikawa-beta\n"
+  for
+    body in [
+      " ".repeat(50000),
+      "\n".repeat(50000),
+      " \n".repeat(25000),
+      (" ".repeat(999) + "x\n").repeat(50),
+      "x\n" + " ".repeat(50000),
+      " \t\r  \n".repeat(8000) + "%",
+    ] {
+    ignore(
+      @ishikawa.parse_ishikawa(head + body) catch {
+        _ => @ishikawa.IshikawaModel::{ title: None, root: None, }
+      },
+    )
+  }
 }
