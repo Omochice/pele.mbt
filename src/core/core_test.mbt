@@ -1,7 +1,7 @@
 ///|
 fn failure_of(text : String) -> String {
   try {
-    @core.render(text, @types.RenderOptions::default()) |> ignore
+    @core.render([], text, @types.RenderOptions::default()) |> ignore
     "rendered"
   } catch {
     @errors.PeleError(failure) =>
@@ -22,7 +22,7 @@ test "text longer than the limit is rejected before detection" {
   let options = { ..@types.RenderOptions::default(), limit: Some(3), }
   inspect(
     try {
-      @core.render("pie\n", options) |> ignore
+      @core.render([], "pie\n", options) |> ignore
       "rendered"
     } catch {
       @errors.PeleError(failure) =>

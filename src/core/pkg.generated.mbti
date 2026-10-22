@@ -7,7 +7,7 @@ import {
 }
 
 // Values
-pub fn render(String, @types.RenderOptions) -> @types.RenderResult raise @errors.PeleError
+pub fn render(ArrayView[@types.Diagram], String, @types.RenderOptions) -> @types.RenderResult raise @errors.PeleError
 
 // Errors
 

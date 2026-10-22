@@ -3,9 +3,10 @@
 const DEFAULT_LIMIT : Double = 50000
 
 ///|
-/// Renders Mermaid text to SVG.
+/// Renders Mermaid text to SVG with the given diagram types.
 /// Raises `PeleError` for text pele rejects.
 pub fn render(
+  diagrams : ArrayView[@types.Diagram],
   source : String,
   options : @types.RenderOptions,
 ) -> @types.RenderResult raise @errors.PeleError {
@@ -21,6 +22,14 @@ pub fn render(
     raise @errors.pele_error(
       "No diagram type detected for the given text.",
       code=UnsupportedDiagram,
+    )
+  }
+  guard diagrams.iter().find_first(d => d.kind == found.kind) is Some(_) else {
+    raise @errors.pele_error(
+      "Diagram type \"\{found.kind}\" is not supported yet.",
+      code=UnsupportedDiagram,
+      kind=found.kind,
+      mermaid_type=found.mermaid_type,
     )
   }
   raise @errors.pele_error(
