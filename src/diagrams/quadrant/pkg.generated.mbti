@@ -1,0 +1,60 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Omochice/pele/diagrams/quadrant"
+
+import {
+  "Omochice/pele/errors",
+}
+
+// Values
+pub fn parse_styles(Array[String]) -> PointStyle raise @errors.PeleError
+
+// Errors
+
+// Types and methods
+pub(all) struct PointStyle {
+  radius : Double?
+  color : String?
+  stroke_color : String?
+  stroke_width : String?
+}
+
+pub(all) struct QuadrantDb {
+  mut title : String?
+  mut acc_title : String?
+  mut acc_descr : String?
+  quadrants : Array[QuadrantText?]
+  mut x_axis_left : QuadrantText?
+  mut x_axis_right : QuadrantText?
+  mut y_axis_bottom : QuadrantText?
+  mut y_axis_top : QuadrantText?
+  points : Array[QuadrantPoint]
+  classes : Map[String, PointStyle]
+}
+pub fn QuadrantDb::add_class(Self, String, Array[String]) -> Unit raise @errors.PeleError
+pub fn QuadrantDb::add_point(Self, QuadrantText, String, String, String, Array[String]) -> Unit raise @errors.PeleError
+pub fn QuadrantDb::new(String?) -> Self
+pub fn QuadrantDb::set_acc_description(Self, String) -> Unit
+pub fn QuadrantDb::set_acc_title(Self, String) -> Unit
+pub fn QuadrantDb::set_diagram_title(Self, String) -> Unit
+pub fn QuadrantDb::set_quadrant_text(Self, Int32, QuadrantText) -> Unit
+pub fn QuadrantDb::set_x_axis_left_text(Self, QuadrantText) -> Unit
+pub fn QuadrantDb::set_x_axis_right_text(Self, QuadrantText) -> Unit
+pub fn QuadrantDb::set_y_axis_bottom_text(Self, QuadrantText) -> Unit
+pub fn QuadrantDb::set_y_axis_top_text(Self, QuadrantText) -> Unit
+
+pub(all) struct QuadrantPoint {
+  x : Double
+  y : Double
+  text : QuadrantText
+  class_name : String
+  style : PointStyle
+}
+
+pub(all) struct QuadrantText {
+  text : String
+  markdown : Bool
+}
+
+// Type aliases
+
+// Traits
