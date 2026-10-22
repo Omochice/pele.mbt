@@ -1,0 +1,73 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Omochice/pele/diagrams/git"
+
+import {
+  "Omochice/pele/errors",
+}
+
+// Values
+pub fn parse_git(String) -> GitGraphAst raise @errors.PeleError
+
+// Errors
+
+// Types and methods
+pub(all) struct BranchAst {
+  name : String
+  order : Double?
+}
+
+pub(all) struct CheckoutAst {
+  branch : String
+}
+
+pub(all) struct CherryPickingAst {
+  id : String?
+  tags : Array[String]
+  parent : String?
+}
+
+pub(all) struct CommitAst {
+  id : String?
+  message : String?
+  tags : Array[String]
+  commit_type : CommitTypeName?
+}
+
+pub(all) enum CommitTypeName {
+  Normal
+  Reverse
+  Highlight
+}
+
+pub(all) enum GitDirection {
+  LR
+  TB
+  BT
+}
+
+pub(all) struct GitGraphAst {
+  dir : GitDirection?
+  title : String?
+  acc_title : String?
+  acc_descr : String?
+  statements : Array[StatementAst]
+}
+
+pub(all) struct MergeAst {
+  branch : String
+  id : String?
+  tags : Array[String]
+  commit_type : CommitTypeName?
+}
+
+pub(all) enum StatementAst {
+  Commit(CommitAst)
+  Branch(BranchAst)
+  Merge(MergeAst)
+  Checkout(CheckoutAst)
+  CherryPicking(CherryPickingAst)
+}
+
+// Type aliases
+
+// Traits
