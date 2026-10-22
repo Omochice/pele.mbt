@@ -1,0 +1,18 @@
+import {
+  "Omochice/pele/diagrams/common",
+  "Omochice/pele/errors",
+  "Omochice/pele/svg",
+  "Omochice/pele/text",
+  "Omochice/pele/types",
+  "Omochice/pele/util",
+  "moonbitlang/core/cmp",
+  "moonbitlang/core/double",
+  "moonbitlang/core/math",
+  "moonbitlang/core/string",
+}
+
+import {
+  "Omochice/pele/core",
+  "Omochice/pele/errors",
+  "Omochice/pele/types",
+} for "test"
