@@ -1,0 +1,78 @@
+///|
+fn dump(db : @timeline.TimelineDb) -> String {
+  let periods = db.periods.map(p => {
+    let events = p.events.map(e => e.escape()).join(",")
+    "\{p.text.escape()}/\{events}/\{p.section.escape()}/\{p.section_index}"
+  })
+  let sections = db.sections.map(s => s.escape()).join(",")
+  "sections=\{sections} periods=\{periods.join(";")}"
+}
+
+///|
+test "a period belongs to the section declared before it" {
+  let db = @timeline.TimelineDb::new()
+  db.add_task("First")
+  db.add_section("S")
+  db.add_task("2001 ")
+  db.add_section("T")
+  db.add_task("2002")
+  inspect(
+    dump(db),
+    content="sections=\"S\",\"T\" periods=\"First\"//\"\"/-1;\"2001 \"//\"S\"/0;\"2002\"//\"T\"/1",
+  )
+}
+
+///|
+test "a section declared twice is listed twice" {
+  let db = @timeline.TimelineDb::new()
+  db.add_section("Same")
+  db.add_section("Same")
+  db.add_task("B")
+  inspect(
+    dump(db),
+    content="sections=\"Same\",\"Same\" periods=\"B\"//\"Same\"/1",
+  )
+}
+
+///|
+test "an event is added to the last period, even after a section header" {
+  let db = @timeline.TimelineDb::new()
+  db.add_task("2001 ")
+  db.add_event("a ")
+  db.add_section("S")
+  db.add_event("b")
+  inspect(
+    dump(db),
+    content="sections=\"S\" periods=\"2001 \"/\"a \",\"b\"/\"\"/-1",
+  )
+}
+
+///|
+test "an event with no period before it is a semantic error" {
+  let db = @timeline.TimelineDb::new()
+  let failure = try db.add_event("orphan") catch {
+    @errors.PeleError(failure) => failure
+  } noraise {
+    _ => fail("no error")
+  }
+  inspect(failure.message, content="An event needs a time period before it.")
+  assert_eq(failure.code.to_string(), "semantic")
+  assert_eq(failure.kind, Some("timeline"))
+}
+
+///|
+test "the accessible title loses leading whitespace and the description its indentation" {
+  let db = @timeline.TimelineDb::new()
+  db.set_acc_title("  \n Name")
+  db.set_acc_description("A longer\n   description\n\t\n x")
+  assert_eq(db.acc_title, Some("Name"))
+  assert_eq(db.acc_descr, Some("A longer\ndescription\nx"))
+}
+
+///|
+test "the direction defaults to LR and can be set" {
+  let db = @timeline.TimelineDb::new()
+  inspect(db.direction, content="LR")
+  db.set_direction("TD")
+  inspect(db.direction, content="TD")
+}

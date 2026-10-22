@@ -1,0 +1,39 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Omochice/pele/diagrams/timeline"
+
+import {
+  "Omochice/pele/errors",
+}
+
+// Values
+
+// Errors
+
+// Types and methods
+pub struct TimelineDb {
+  mut title : String?
+  mut acc_title : String?
+  mut acc_descr : String?
+  mut direction : String
+  sections : Array[String]
+  periods : Array[TimelinePeriod]
+  mut current_section : String
+}
+pub fn TimelineDb::add_event(Self, String) -> Unit raise @errors.PeleError
+pub fn TimelineDb::add_section(Self, String) -> Unit
+pub fn TimelineDb::add_task(Self, String) -> Unit
+pub fn TimelineDb::new() -> Self
+pub fn TimelineDb::set_acc_description(Self, String) -> Unit
+pub fn TimelineDb::set_acc_title(Self, String) -> Unit
+pub fn TimelineDb::set_direction(Self, String) -> Unit
+
+pub(all) struct TimelinePeriod {
+  text : String
+  events : Array[String]
+  section : String
+  section_index : Int32
+}
+
+// Type aliases
+
+// Traits
