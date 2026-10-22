@@ -6,6 +6,8 @@ import {
 }
 
 // Values
+pub fn build_radar(RadarAst, String?) -> RadarModel raise @errors.PeleError
+
 pub fn parse_radar(String) -> RadarAst raise @errors.PeleError
 
 // Errors
@@ -45,6 +47,34 @@ pub(all) struct RadarAst {
   axes : Array[AxisAst]
   curves : Array[CurveAst]
   options : Array[OptionAst]
+}
+
+pub(all) struct RadarAxis {
+  name : String
+  label : String
+}
+
+pub(all) struct RadarCurve {
+  name : String
+  label : String
+  entries : Array[Double]
+}
+
+pub(all) struct RadarModel {
+  title : String?
+  acc_title : String?
+  acc_descr : String?
+  axes : Array[RadarAxis]
+  curves : Array[RadarCurve]
+  options : RadarOptions
+}
+
+pub(all) struct RadarOptions {
+  show_legend : Bool
+  ticks : Double
+  max : Double?
+  min : Double
+  graticule : String
 }
 
 // Type aliases
