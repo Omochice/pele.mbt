@@ -33,3 +33,10 @@ pub fn js_truthy(value : Json) -> Bool {
     _ => true
   }
 }
+
+///|
+/// The value as JavaScript's `Number()` converts it.
+pub fn js_number(value : Json) -> Double {
+  ignore(value)
+  0
+}
