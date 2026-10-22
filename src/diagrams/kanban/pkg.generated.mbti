@@ -1,0 +1,33 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Omochice/pele/diagrams/kanban"
+
+import {
+  "Omochice/pele/errors",
+}
+
+// Values
+pub fn parse_kanban(String, String?) -> KanbanModel raise @errors.PeleError
+
+// Errors
+
+// Types and methods
+pub(all) struct KanbanModel {
+  title : String?
+  sections : Array[KanbanNode]
+}
+
+pub(all) struct KanbanNode {
+  id : String
+  level : Int32
+  mut label : String
+  mut icon : String?
+  mut assigned : String?
+  mut ticket : String?
+  mut priority : String?
+  mut css_classes : String?
+  items : Array[KanbanNode]
+}
+
+// Type aliases
+
+// Traits
