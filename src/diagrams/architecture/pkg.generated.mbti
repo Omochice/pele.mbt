@@ -8,12 +8,47 @@ import {
 // Values
 pub fn parse_architecture(String) -> ArchitectureAst raise @errors.PeleError
 
+pub fn populate(ArchitectureAst, ArchitectureDb) -> Unit raise @errors.PeleError
+
 // Errors
 
 // Types and methods
 pub(all) struct AlignmentAst {
   direction : String
   members : Array[String]
+}
+
+pub(all) struct ArchEdge {
+  lhs_id : String
+  lhs_dir : Side
+  lhs_into : Bool
+  lhs_group : Bool
+  rhs_id : String
+  rhs_dir : Side
+  rhs_into : Bool
+  rhs_group : Bool
+  title : String?
+}
+
+pub(all) struct ArchGroup {
+  id : String
+  icon : String?
+  title : String?
+  parent : String?
+}
+
+pub(all) struct ArchLayoutHint {
+  direction : String
+  members : Array[String]
+}
+
+pub(all) struct ArchNode {
+  id : String
+  kind : NodeKind
+  icon : String?
+  icon_text : String?
+  title : String?
+  parent : String?
 }
 
 pub(all) struct ArchitectureAst {
@@ -26,6 +61,22 @@ pub(all) struct ArchitectureAst {
   edges : Array[EdgeAst]
   alignments : Array[AlignmentAst]
 }
+
+pub struct ArchitectureDb {
+  title : String?
+  acc_title : String?
+  acc_descr : String?
+  nodes : Map[String, ArchNode]
+  groups : Map[String, ArchGroup]
+  edges : Array[ArchEdge]
+  layout_hints : Array[ArchLayoutHint]
+}
+pub fn ArchitectureDb::add_edge(Self, ArchEdge) -> Unit raise @errors.PeleError
+pub fn ArchitectureDb::add_group(Self, String, icon? : String, title? : String, parent? : String) -> Unit raise @errors.PeleError
+pub fn ArchitectureDb::add_junction(Self, String, parent? : String) -> Unit raise @errors.PeleError
+pub fn ArchitectureDb::add_layout_hint(Self, ArchLayoutHint) -> Unit raise @errors.PeleError
+pub fn ArchitectureDb::add_service(Self, String, icon? : String, icon_text? : String, title? : String, parent? : String) -> Unit raise @errors.PeleError
+pub fn ArchitectureDb::new() -> Self
 
 pub(all) struct EdgeAst {
   lhs_id : String
@@ -49,6 +100,11 @@ pub(all) struct GroupAst {
 pub(all) struct JunctionAst {
   id : String
   parent : String?
+}
+
+pub(all) enum NodeKind {
+  Service
+  Junction
 }
 
 pub(all) struct ServiceAst {
