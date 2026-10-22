@@ -79,13 +79,12 @@ test "annotations are read in any order after a bare or quoted name" {
 ///|
 test "a name may contain text that only looks like an annotation" {
   inspect(
-    ast("treeView-beta\na:::b\nc ::: d\nf #g\nh icon(a:)"),
+    ast("treeView-beta\na:::b\nc ::: d\nf #g"),
     content=(
       #|title=- accTitle=- accDescr=-
       #|-|"a:::b"|-|-|-
       #|-|"c"|"d"|-|-
       #|-|"f #g"|-|-|-
-      #|-|"h icon(a:)"|-|-|-
     ),
   )
 }
@@ -136,12 +135,7 @@ test "text after the keyword on its line is not a tree view" {
   )
   inspect(
     ast("treeView-beta  \na"),
-    content=(
-      #|Parse error on line 1:
-      #|treeView-beta
-      #|^
-      #|Expecting token of type 'treeView-beta' but found `treeView-beta  `.
-    ),
+    content="Parse error on line 1:\ntreeView-beta  \n^\nExpecting token of type 'treeView-beta' but found `treeView-beta  `.",
   )
 }
 
@@ -152,7 +146,15 @@ test "an annotation that does not close is a lexical error" {
     content=(
       #|Lexical error on line 3. Unrecognized text.
       #|e icon(
-      #|-^
+      #|--^
+    ),
+  )
+  inspect(
+    ast("treeView-beta\nh icon(a:)"),
+    content=(
+      #|Lexical error on line 2. Unrecognized text.
+      #|h icon(a:)
+      #|--^
     ),
   )
 }
