@@ -6,6 +6,7 @@ import {
 }
 
 import {
+  "Omochice/pele/diagrams/pie",
   "Omochice/pele/errors",
   "Omochice/pele/types",
 } for "test"

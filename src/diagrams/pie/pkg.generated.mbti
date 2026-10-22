@@ -1,0 +1,42 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Omochice/pele/diagrams/pie"
+
+import {
+  "Omochice/pele/errors",
+  "Omochice/pele/types",
+}
+
+// Values
+pub fn build_pie(PieAst, String?) -> PieModel raise @errors.PeleError
+
+pub fn parse_pie(String) -> PieAst raise @errors.PeleError
+
+pub let pie : @types.Diagram
+
+// Errors
+
+// Types and methods
+pub(all) struct PieAst {
+  show_data : Bool
+  title : String?
+  acc_title : String?
+  acc_descr : String?
+  sections : Array[PieSection]
+}
+
+pub(all) struct PieModel {
+  title : String?
+  acc_title : String?
+  acc_descr : String?
+  show_data : Bool
+  sections : Array[(String, Double)]
+}
+
+pub(all) struct PieSection {
+  label : String
+  value : Double
+}
+
+// Type aliases
+
+// Traits
