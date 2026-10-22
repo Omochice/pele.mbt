@@ -10,6 +10,6 @@ pub let sankey : @types.Diagram = {
       db.title = title
     }
     parse_sankey(prepare_text_for_parsing(source), db)
-    { render: (_, _) => { svg: "", width: 0, height: 0, links: [], }, }
+    { render: (config, options) => render_sankey(db, config, options), }
   },
 }

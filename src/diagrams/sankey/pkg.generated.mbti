@@ -13,6 +13,8 @@ pub fn parse_sankey(String, SankeyDb) -> Unit raise @errors.PeleError
 
 pub fn prepare_text_for_parsing(String) -> String
 
+pub fn render_sankey(SankeyDb, Map[String, Json], @types.RenderOptions) -> @types.Rendered raise @errors.PeleError
+
 pub let sankey : @types.Diagram
 
 pub fn tokenize(String) -> Tokens
