@@ -64,3 +64,25 @@ test "series colors cycle through eight tokens" {
   inspect(@svg.series_color(9), content="var(--pele-series-2,#f58518)")
   inspect(@svg.series_color(-1), content="var(--pele-series-8,#9d755d)")
 }
+
+///|
+test "rounded corners are appended when there is no style attribute" {
+  inspect(@svg.rounded(""), content=" style=\"rx:var(--_r)\"")
+  inspect(
+    @svg.rounded(" fill=\"red\""),
+    content=" fill=\"red\" style=\"rx:var(--_r)\"",
+  )
+  inspect(@svg.ROUNDED, content=" style=\"rx:var(--_r)\"")
+}
+
+///|
+test "rounded corners come first in an existing style so it can override them" {
+  inspect(
+    @svg.rounded(" fill=\"red\" style=\"rx:2px;\" stroke=\"x\""),
+    content=" fill=\"red\" style=\"rx:var(--_r);rx:2px;\" stroke=\"x\"",
+  )
+  inspect(
+    @svg.rounded(" data-style=\"a\" style=\"b\""),
+    content=" data-style=\"a\" style=\"rx:var(--_r);b\"",
+  )
+}
