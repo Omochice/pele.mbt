@@ -276,3 +276,127 @@ test "round shapes are drawn around the origin" {
     content="<rect x=\"-50.62\" y=\"-21.6\" width=\"101.25\" height=\"43.2\" rx=\"2\" fill=\"var(--_l)\" stroke=\"var(--_l)\"/>",
   )
 }
+
+///|
+test "curved shapes leave room for their curves" {
+  inspect(size("cyl", 37.5, 19.2), content="73.5 55.2 3")
+  inspect(size("lin-cyl", 37.5, 19.2), content="73.5 63.2 7")
+  inspect(size("h-cyl", 37.5, 19.2), content="95.1 43.2 0")
+  inspect(size("delay", 37.5, 19.2), content="84.3 43.2 0")
+  inspect(size("doc", 37.5, 19.2), content="73.5 53.2 -5")
+  inspect(size("docs", 37.5, 19.2), content="81.5 61.2 -1")
+  inspect(size("tag-doc", 37.5, 19.2), content="73.5 53.2 -5")
+  inspect(size("lin-doc", 37.5, 19.2), content="81.5 53.2 -5")
+  inspect(size("flag", 37.5, 19.2), content="73.5 59.2 0")
+  inspect(size("folder", 37.5, 19.2), content="73.5 51.2 4")
+  inspect(size("bucket", 37.5, 19.2), content="93.5 53.2 3")
+  inspect(size("person", 37.5, 19.2), content="73.5 69.2 13")
+  inspect(size("cloud", 37.5, 19.2), content="105.5 67.2 0")
+  inspect(size("brace", 37.5, 19.2), content="85.5 43.2 0")
+  inspect(size("brace-r", 37.5, 19.2), content="85.5 43.2 0")
+  inspect(size("braces", 37.5, 19.2), content="97.5 43.2 0")
+  inspect(size("curv-trap", 37.5, 19.2), content="99.42 43.2 0")
+  inspect(size("bow-rect", 37.5, 19.2), content="90.78 43.2 0")
+}
+
+///|
+test "curved shapes are drawn around the origin" {
+  inspect(
+    draw("cyl"),
+    content="<path d=\"M-50.62,-14.37A50.63,7.23 0 0 1 50.63,-14.37V14.37A50.63,7.23 0 0 1 -50.62,14.37Z\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/><path d=\"M-50.62,-14.37A50.63,7.23 0 0 0 50.63,-14.37\" fill=\"none\" stroke=\"var(--_l)\"/>",
+  )
+  inspect(
+    draw("lin-cyl"),
+    content="<path d=\"M-50.62,-14.37A50.63,7.23 0 0 1 50.63,-14.37V14.37A50.63,7.23 0 0 1 -50.62,14.37Z\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/><path d=\"M-50.62,-14.37A50.63,7.23 0 0 0 50.63,-14.37M-50.62,-6.37A50.63,7.23 0 0 0 50.63,-6.37\" fill=\"none\" stroke=\"var(--_l)\"/>",
+  )
+  inspect(
+    draw("h-cyl"),
+    content="<path d=\"M-39.83,-21.6H39.83A10.8,21.6 0 0 1 39.83,21.6H-39.83A10.8,21.6 0 0 1 -39.83,-21.6Z\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/><path d=\"M39.83,-21.6A10.8,21.6 0 0 0 39.83,21.6\" fill=\"none\" stroke=\"var(--_l)\"/>",
+  )
+  inspect(
+    draw("delay"),
+    content="<path d=\"M-50.62,-21.6H29.03A21.6,21.6 0 0 1 29.03,21.6H-50.62Z\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/>",
+  )
+  inspect(
+    draw("doc"),
+    content="<path d=\"M-50.62,-21.6H50.63V11.6q-25.31,-12 -50.62,0t-50.62,0Z\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/>",
+  )
+  inspect(
+    draw("docs"),
+    content="<g transform=\"translate(4,-4)\"><path d=\"M-46.62,-17.6H46.63V7.6q-23.31,-12 -46.62,0t-46.62,0Z\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/></g><g transform=\"translate(0,0)\"><path d=\"M-46.62,-17.6H46.63V7.6q-23.31,-12 -46.62,0t-46.62,0Z\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/></g><g transform=\"translate(-4,4)\"><path d=\"M-46.62,-17.6H46.63V7.6q-23.31,-12 -46.62,0t-46.62,0Z\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/></g>",
+  )
+  inspect(
+    draw("tag-doc"),
+    content="<path d=\"M-50.62,-21.6H50.63V11.6q-25.31,-12 -50.62,0t-50.62,0Z\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/><path d=\"M38.63,7.6L50.63,-4.4\" fill=\"none\" stroke=\"var(--_l)\"/>",
+  )
+  inspect(
+    draw("lin-doc"),
+    content="<path d=\"M-50.62,-21.6H50.63V11.6q-25.31,-12 -50.62,0t-50.62,0Z\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/><path d=\"M-42.62,-21.6V15.6\" fill=\"none\" stroke=\"var(--_l)\"/>",
+  )
+  inspect(
+    draw("flag"),
+    content="<path d=\"M-50.62,-13.6q25.31,-10 50.63,0t50.63,0V13.6q-25.31,10 -50.62,0t-50.62,0Z\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/>",
+  )
+  inspect(
+    draw("folder"),
+    content="<path d=\"M-50.62,-21.6H-10.12L-2.12,-13.6H50.63V21.6H-50.62Z\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/>",
+  )
+  inspect(
+    draw("bucket"),
+    content="<path d=\"M-50.62,-16.6A50.63,5 0 0 1 50.63,-16.6L43.43,16.6A43.43,5 0 0 1 -43.42,16.6Z\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/><path d=\"M-50.62,-16.6A50.63,5 0 0 0 50.63,-16.6\" fill=\"none\" stroke=\"var(--_l)\"/>",
+  )
+  inspect(
+    draw("person"),
+    content="<rect x=\"-50.62\" y=\"4.4\" width=\"101.25\" height=\"17.2\" rx=\"12\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/><circle cy=\"-7.6\" r=\"13\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/>",
+  )
+  inspect(
+    draw("cloud"),
+    content="<path d=\"M-38.74,21.6A11.88,11.88 0 0 1 -43.5,-2.16A21.26,15.12 0 0 1 -5.06,-15.55A20.25,13.39 0 0 1 31.39,-9.07A12.47,12.47 0 0 1 38.74,21.6Z\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/>",
+  )
+  inspect(
+    draw("brace"),
+    content="<rect x=\"-50.62\" y=\"-21.6\" width=\"101.25\" height=\"43.2\" fill=\"none\" stroke=\"none\"/><path d=\"M-38.62,-21.6q-6,0 -6,6V-6q0,6 -6,6q6,0 6,6V15.6q0,6 6,6\" fill=\"none\" stroke=\"var(--_l)\"/>",
+  )
+  inspect(
+    draw("brace-r"),
+    content="<rect x=\"-50.62\" y=\"-21.6\" width=\"101.25\" height=\"43.2\" fill=\"none\" stroke=\"none\"/><path d=\"M38.63,-21.6q6,0 6,6V-6q0,6 6,6q-6,0 -6,6V15.6q0,6 -6,6\" fill=\"none\" stroke=\"var(--_l)\"/>",
+  )
+  inspect(
+    draw("braces"),
+    content="<rect x=\"-50.62\" y=\"-21.6\" width=\"101.25\" height=\"43.2\" fill=\"none\" stroke=\"none\"/><path d=\"M-38.62,-21.6q-6,0 -6,6V-6q0,6 -6,6q6,0 6,6V15.6q0,6 6,6\" fill=\"none\" stroke=\"var(--_l)\"/><path d=\"M38.63,-21.6q6,0 6,6V-6q0,6 6,6q-6,0 -6,6V15.6q0,6 -6,6\" fill=\"none\" stroke=\"var(--_l)\"/>",
+  )
+  inspect(
+    draw("curv-trap"),
+    content="<path d=\"M-37.66,-21.6H37.67A12.96,21.6 0 0 1 37.67,21.6H-37.66L-50.62,0Z\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/>",
+  )
+  inspect(
+    draw("bow-rect"),
+    content="<path d=\"M-41.98,-21.6H50.63A8.64,21.6 0 0 0 50.63,21.6H-41.98A8.64,21.6 0 0 1 -41.98,-21.6Z\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/>",
+  )
+}
+
+///|
+test "curved shapes keep their curves within bounds on small labels" {
+  inspect(size("cyl", 0, 0), content="56 36 3")
+  inspect(size("cyl", 200, 10), content="236 58 6")
+  inspect(size("lin-cyl", 0, 0), content="56 44 7")
+  inspect(size("folder", 0, 0), content="64 32 4")
+  inspect(size("person", 0, 0), content="56 50 13")
+  inspect(size("h-cyl", 10, 0), content="58 24 0")
+  inspect(
+    @svg.draw_shape("cyl", 56, 40, attrs, line),
+    content="<path d=\"M-28,-14A28,6 0 0 1 28,-14V14A28,6 0 0 1 -28,14Z\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/><path d=\"M-28,-14A28,6 0 0 0 28,-14\" fill=\"none\" stroke=\"var(--_l)\"/>",
+  )
+  inspect(
+    @svg.draw_shape("cyl", 300, 40, attrs, line),
+    content="<path d=\"M-150,-8A150,12 0 0 1 150,-8V8A150,12 0 0 1 -150,8Z\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/><path d=\"M-150,-8A150,12 0 0 0 150,-8\" fill=\"none\" stroke=\"var(--_l)\"/>",
+  )
+  inspect(
+    @svg.draw_shape("folder", 64, 30, attrs, line),
+    content="<path d=\"M-32,-15H-6.4L1.6,-7H32V15H-32Z\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/>",
+  )
+  inspect(
+    @svg.draw_shape("h-cyl", 100, 80, attrs, line),
+    content="<path d=\"M-38,-40H38A12,40 0 0 1 38,40H-38A12,40 0 0 1 -38,-40Z\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/><path d=\"M38,-40A12,40 0 0 0 38,40\" fill=\"none\" stroke=\"var(--_l)\"/>",
+  )
+}
