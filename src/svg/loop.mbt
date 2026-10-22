@@ -16,7 +16,7 @@ pub fn loop_path(
   let half = (if sideways { w } else { h }) / 2
   let spread = @util.js_min(half - 4, 8 + k.to_double() * 6)
   let reach = base + k.to_double() * 8
-  let len = or_one(@layout.hypot(reach, spread))
+  let len = or_one(@util.js_hypot(reach, spread))
   // Local frame: `out` points away from the node, `along` runs along its side.
   let at = fn(out : Double, along : Double) -> String {
     if sideways {

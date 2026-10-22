@@ -95,7 +95,10 @@ fn render_venn(
   let neighbors : Array[Array[Int32]] = circles.map(_ => [])
   for a in 0..<circles.length() {
     for b in (a + 1)..<circles.length() {
-      if hypot(circles[a].x - circles[b].x, circles[a].y - circles[b].y) <
+      if @util.js_hypot(
+          circles[a].x - circles[b].x,
+          circles[a].y - circles[b].y,
+        ) <
         circles[a].r + circles[b].r {
         neighbors[a].push(b)
         neighbors[b].push(a)
@@ -190,7 +193,7 @@ fn render_venn(
       continue
     }
     let (width, height) = text_size(region.lines)
-    let need = hypot(width, height) / 2 + 4
+    let need = @util.js_hypot(width, height) / 2 + 4
     growth = @cmp.maximum(
       growth,
       @cmp.minimum(need / (region.spot.margin * scale), MAX_GROWTH),

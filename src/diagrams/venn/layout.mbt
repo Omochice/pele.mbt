@@ -173,7 +173,7 @@ fn Search::consider(
   if !(m > self.best - r * 1.0e-9) {
     return false
   }
-  let distance = hypot(px - center.0, py - center.1)
+  let distance = @util.js_hypot(px - center.0, py - center.1)
   if m > self.best + r * 1.0e-9 || distance < self.off - r * 1.0e-9 {
     self.best = m
     self.off = distance
@@ -389,7 +389,7 @@ pub fn layout_circles(subsets : Array[VennSubset]) -> Array[Circle] {
         let apart = circles[a].r + circles[b].r + gap
         let mut ux = circles[b].x - circles[a].x
         let mut uy = circles[b].y - circles[a].y
-        let mut length = hypot(ux, uy)
+        let mut length = @util.js_hypot(ux, uy)
         if overlap is None && length >= apart {
           continue
         }
@@ -442,7 +442,9 @@ pub fn region_path(
   }
   let within = (x : Double, y : Double, skip : Int32, other : Int32) => {
     for i, c in circles {
-      if i != skip && i != other && hypot(x - c.x, y - c.y) > c.r * (1 + 1.0e-9) {
+      if i != skip &&
+        i != other &&
+        @util.js_hypot(x - c.x, y - c.y) > c.r * (1 + 1.0e-9) {
         return false
       }
     }
@@ -454,7 +456,7 @@ pub fn region_path(
     for j in (i + 1)..<circles.length() {
       let a = circles[i]
       let b = circles[j]
-      let d = hypot(b.x - a.x, b.y - a.y)
+      let d = @util.js_hypot(b.x - a.x, b.y - a.y)
       if d >= a.r + b.r || d <= (a.r - b.r).abs() || d == 0 {
         continue
       }
@@ -483,7 +485,8 @@ pub fn region_path(
     let inner = circles[smallest]
     for i, c in circles {
       if i != smallest &&
-        hypot(c.x - inner.x, c.y - inner.y) + inner.r > c.r * (1 + 1.0e-9) {
+        @util.js_hypot(c.x - inner.x, c.y - inner.y) + inner.r >
+        c.r * (1 + 1.0e-9) {
         return ""
       }
     }
@@ -532,7 +535,10 @@ pub fn region_path(
       }
       let mx = c.x + c.r * @math.cos(start + sweep / 2)
       let my = c.y + c.r * @math.sin(start + sweep / 2)
-      let width = hypot(mx - (from.x + to.x) / 2, my - (from.y + to.y) / 2)
+      let width = @util.js_hypot(
+        mx - (from.x + to.x) / 2,
+        my - (from.y + to.y) / 2,
+      )
       if width < narrowest {
         narrowest = width
         arc = index

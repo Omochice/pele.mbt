@@ -24,6 +24,8 @@ pub fn is_unicode_letter(Int32) -> Bool
 
 pub fn is_word(Int32) -> Bool
 
+pub fn js_hypot(Double, Double) -> Double
+
 pub fn js_max(Double, Double) -> Double
 
 pub fn js_min(Double, Double) -> Double

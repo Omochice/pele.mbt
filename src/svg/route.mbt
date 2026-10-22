@@ -122,7 +122,7 @@ pub fn route_path(
     if !straight(if i > j { i } else { j }) {
       return if axis == 0 { (0, way(dy)) } else { (way(dx), 0) }
     }
-    let len = or_one(@layout.hypot(dx, dy))
+    let len = or_one(@util.js_hypot(dx, dy))
     (dx / len, dy / len)
   }
   let (sdx, sdy) = unit(0, 1, at(axes, 1))

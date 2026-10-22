@@ -331,7 +331,7 @@ fn assign_tracks(
         )
         let ex = px - line[2 * j] - t * dx
         let ey = py - line[2 * j + 1] - t * dy
-        if ex * ex + ey * ey < bound && hypot(ex, ey) < limit {
+        if ex * ex + ey * ey < bound && @util.js_hypot(ex, ey) < limit {
           return true
         }
       }

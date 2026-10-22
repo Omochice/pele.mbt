@@ -313,7 +313,7 @@ pub fn route_crossings(
     } else {
       0.0
     }
-    hypot(x - x0 - t * dx, y - y0 - t * dy) < in_line
+    @util.js_hypot(x - x0 - t * dx, y - y0 - t * dy) < in_line
   }
   let mut total = 0
   for band in 0..<bands {

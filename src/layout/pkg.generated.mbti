@@ -10,8 +10,6 @@ pub fn direction(String?) -> Dir
 
 pub fn ease(Double, Double) -> Double
 
-pub fn hypot(Double, Double) -> Double
-
 pub fn layered(Array[LNode], Array[LEdge], LayeredOptions) -> LayeredResult
 
 pub fn ledge(Int32, Int32, minlen? : Int32, label_w? : Double, label_h? : Double) -> LEdge
