@@ -1,6 +1,19 @@
 ///|
+fn optional(text : String?) -> String {
+  match text {
+    Some(text) => text.escape()
+    None => "-"
+  }
+}
+
+///|
+fn quoted(texts : Array[String]) -> String {
+  "[" + texts.map(text => text.escape()).join(", ") + "]"
+}
+
+///|
 fn describe(task : @journey.JourneyTask) -> String {
-  "\{task.task.escape()} score=\{task.score} people=\{task.people} section=\{task.section.escape()}"
+  "\{task.task.escape()} score=\{task.score} people=\{quoted(task.people)} section=\{task.section.escape()}"
 }
 
 ///|
@@ -14,8 +27,11 @@ test "tasks and actors are added in order, with actors sorted" {
   db.add_task("Drive to supermarket", ":4:Dad")
   db.add_section("Do shopping")
   db.add_task("Go shopping", ":5:Mum")
-  inspect(db.acc_title, content="Some(\"Shopping\")")
-  inspect(db.acc_descr, content="Some(\"A user journey for family shopping\")")
+  inspect(optional(db.acc_title), content="\"Shopping\"")
+  inspect(
+    optional(db.acc_descr),
+    content="\"A user journey for family shopping\"",
+  )
   inspect(
     db.tasks.map(describe).join("\n"),
     content=(
@@ -26,10 +42,13 @@ test "tasks and actors are added in order, with actors sorted" {
     ),
   )
   inspect(
-    @journey.journey_actors(db.tasks),
+    quoted(@journey.journey_actors(db.tasks)),
     content="[\"Child#1\", \"Child#2\", \"Dad\", \"Mum\"]",
   )
-  inspect(db.sections, content="[\"Journey to the shops\", \"Do shopping\"]")
+  inspect(
+    quoted(db.sections),
+    content="[\"Journey to the shops\", \"Do shopping\"]",
+  )
 }
 
 ///|
@@ -57,8 +76,8 @@ test "an accessible title loses its leading blanks and a description its indenta
   let db = @journey.JourneyDb::new(None)
   db.set_acc_title("  \t The title ")
   db.set_acc_description("A longer\n    description\n\n  end")
-  inspect(db.acc_title, content="Some(\"The title \")")
-  inspect(db.acc_descr, content="Some(\"A longer\\ndescription\\nend\")")
+  inspect(optional(db.acc_title), content="\"The title \"")
+  inspect(optional(db.acc_descr), content="\"A longer\\ndescription\\nend\"")
 }
 
 ///|
@@ -66,7 +85,7 @@ test "the actors of a journey are sorted by code unit" {
   let db = @journey.JourneyDb::new(None)
   db.add_task("t", ":3:b,B,a,\u{e9},\u{1f600},\u{ff5e},A")
   inspect(
-    @journey.journey_actors(db.tasks),
+    quoted(@journey.journey_actors(db.tasks)),
     content="[\"A\", \"B\", \"a\", \"b\", \"\u{e9}\", \"\u{1f600}\", \"\u{ff5e}\"]",
   )
 }
