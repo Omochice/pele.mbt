@@ -11,6 +11,11 @@ fn size(shape : String, tw : Double, th : Double) -> String {
 }
 
 ///|
+fn draw(shape : String) -> String {
+  @svg.draw_shape(shape, 101.25, 43.2, attrs, line)
+}
+
+///|
 test "rectangular shapes pad the label" {
   inspect(size("rect", 37.5, 19.2), content="73.5 43.2 0")
   inspect(size("rounded", 37.5, 19.2), content="73.5 43.2 0")
@@ -131,5 +136,89 @@ test "rounded corners join an existing style" {
   inspect(
     @svg.draw_shape("rect", 10, 10, " style=\"fill:red;\"", line),
     content="<rect x=\"-5\" y=\"-5\" width=\"10\" height=\"10\" style=\"rx:var(--_r);fill:red;\"/>",
+  )
+}
+
+///|
+test "polygon shapes leave room for the label" {
+  inspect(size("diam", 37.5, 19.2), content="97.02000000000001 60.6375 0")
+  inspect(size("hex", 37.5, 19.2), content="95.1 43.2 0")
+  inspect(size("odd", 37.5, 19.2), content="84.3 43.2 0")
+  inspect(size("lean-r", 37.5, 19.2), content="95.1 43.2 0")
+  inspect(size("lean-l", 37.5, 19.2), content="95.1 43.2 0")
+  inspect(size("trap-b", 37.5, 19.2), content="95.1 43.2 0")
+  inspect(size("trap-t", 37.5, 19.2), content="95.1 43.2 0")
+  inspect(
+    size("tri", 37.5, 19.2),
+    content="100 53.577981651376156 7.188990825688078",
+  )
+  inspect(
+    size("flip-tri", 37.5, 19.2),
+    content="100 53.577981651376156 -7.188990825688078",
+  )
+  inspect(size("sl-rect", 37.5, 19.2), content="73.5 53.2 5")
+  inspect(size("notch-pent", 37.5, 19.2), content="73.5 43.2 0")
+  inspect(size("hourglass", 37.5, 19.2), content="32 40 0")
+  inspect(size("bolt", 37.5, 19.2), content="36 56 0")
+  inspect(size("bang", 37.5, 19.2), content="101.5 67.2 0")
+}
+
+///|
+test "polygon shapes are drawn around the origin" {
+  inspect(
+    draw("diam"),
+    content="<polygon points=\"0,-21.6 50.63,0 0,21.6 -50.62,0\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/>",
+  )
+  inspect(
+    draw("hex"),
+    content="<polygon points=\"-39.83,-21.6 39.83,-21.6 50.63,0 39.83,21.6 -39.83,21.6 -50.62,0\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/>",
+  )
+  inspect(
+    draw("odd"),
+    content="<polygon points=\"-50.62,-21.6 50.63,-21.6 50.63,21.6 -50.62,21.6 -39.83,0\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/>",
+  )
+  inspect(
+    draw("lean-r"),
+    content="<polygon points=\"-39.83,-21.6 50.63,-21.6 39.83,21.6 -50.62,21.6\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/>",
+  )
+  inspect(
+    draw("lean-l"),
+    content="<polygon points=\"-50.62,-21.6 39.83,-21.6 50.63,21.6 -39.83,21.6\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/>",
+  )
+  inspect(
+    draw("trap-b"),
+    content="<polygon points=\"-39.83,-21.6 39.83,-21.6 50.63,21.6 -50.62,21.6\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/>",
+  )
+  inspect(
+    draw("trap-t"),
+    content="<polygon points=\"-50.62,-21.6 50.63,-21.6 39.83,21.6 -39.83,21.6\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/>",
+  )
+  inspect(
+    draw("tri"),
+    content="<polygon points=\"0,-21.6 50.63,21.6 -50.62,21.6\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/>",
+  )
+  inspect(
+    draw("flip-tri"),
+    content="<polygon points=\"-50.62,-21.6 50.63,-21.6 0,21.6\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/>",
+  )
+  inspect(
+    draw("sl-rect"),
+    content="<polygon points=\"-50.62,-11.6 50.63,-21.6 50.63,21.6 -50.62,21.6\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/>",
+  )
+  inspect(
+    draw("notch-pent"),
+    content="<polygon points=\"-40.62,-21.6 40.63,-21.6 50.63,-11.6 50.63,21.6 -50.62,21.6 -50.62,-11.6\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/>",
+  )
+  inspect(
+    draw("hourglass"),
+    content="<polygon points=\"-50.62,-21.6 50.63,-21.6 -50.62,21.6 50.63,21.6\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/>",
+  )
+  inspect(
+    draw("bolt"),
+    content="<polygon points=\"15.19,-21.6 -50.62,3.46 -5.06,3.46 -15.19,21.6 50.63,-3.46 5.06,-3.46\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/>",
+  )
+  inspect(
+    draw("bang"),
+    content="<polygon points=\"0,-21.6 9.24,-17.27 21.97,-19.46 25.88,-13.85 39.58,-13.47 37.4,-7.68 49.36,-4.81 41.51,0 49.36,4.81 37.4,7.68 39.58,13.47 25.88,13.85 21.97,19.46 9.24,17.27 0,21.6 -9.24,17.27 -21.97,19.46 -25.88,13.85 -39.58,13.47 -37.4,7.68 -49.36,4.81 -41.51,0 -49.36,-4.81 -37.4,-7.68 -39.58,-13.47 -25.88,-13.85 -21.97,-19.46 -9.24,-17.27\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/>",
   )
 }
