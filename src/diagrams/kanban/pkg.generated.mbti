@@ -3,10 +3,15 @@ package "Omochice/pele/diagrams/kanban"
 
 import {
   "Omochice/pele/errors",
+  "Omochice/pele/types",
 }
 
 // Values
+pub let kanban : @types.Diagram
+
 pub fn parse_kanban(String, String?) -> KanbanModel raise @errors.PeleError
+
+pub fn render_kanban(KanbanModel, Map[String, Json], @types.RenderOptions) -> @types.Rendered
 
 // Errors
 
