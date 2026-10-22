@@ -11,6 +11,9 @@ const RANK_SEP : Double = 48
 const GROUP_PAD : Double = 20
 
 ///|
+const LOOP : Double = 26
+
+///|
 const SHAPE_ATTRS : String = " fill=\"var(--_s)\" stroke=\"var(--_b)\""
 
 ///|
@@ -213,6 +216,15 @@ fn draw(
       edge_size,
       wrap_width,
     )
+    if src == dst {
+      if flows_sideways(src) {
+        cnodes[src].h += 2 *
+          (LOOP + (if label.height > 0 { label.height + 8 } else { 0 }))
+      } else {
+        cnodes[src].w += 2 *
+          (LOOP + (if label.width > 0 { label.width + 12 } else { 0 }))
+      }
+    }
     drawn.push(edge)
     edge_labels.push(label)
     cedges.push({
@@ -352,6 +364,7 @@ fn draw(
   }
   let edges_out = StringBuilder()
   let labels_out = StringBuilder()
+  let loop_seen : Map[Int32, Int32] = Map([])
   for i, ce in cedges {
     let edge = drawn[i]
     let label = edge_labels[i]
@@ -364,42 +377,58 @@ fn draw(
     if edge.thickness != Some("invisible") {
       let start_type = edge.arrow_type_start
       let end_type = edge.arrow_type_end
-      let route = ce.route.copy()
-      let leaves = reach.of(ce.src, @svg.end_side(route, 0, cnodes[ce.src]))
-      let arrives = reach.of(
-        ce.dst,
-        @svg.end_side(route, route.length() - 3, cnodes[ce.dst]),
-      )
-      let from = views[ce.src]
-      let to = views[ce.dst]
-      @svg.inset_route(
-        route,
-        0,
-        cnodes[ce.src],
-        shape=from.shape,
-        w=from.w,
-        h=from.h,
-      )
-      @svg.inset_route(
-        route,
-        route.length() - 3,
-        cnodes[ce.dst],
-        shape=to.shape,
-        w=to.w,
-        h=to.h,
-      )
-      let curve = match edge.curve {
-        Some(String(name)) => Some(name)
-        _ => None
+      let path = if ce.src == ce.dst {
+        let view = views[ce.src]
+        let k = loop_seen.get(ce.src).unwrap_or(0)
+        loop_seen.set(ce.src, k + 1)
+        @svg.loop_path(
+          cnodes[ce.src],
+          view.w,
+          view.h,
+          k,
+          flows_sideways(ce.src),
+          LOOP,
+          @svg.marker_trim(end_type),
+          ce,
+        )
+      } else {
+        let route = ce.route.copy()
+        let leaves = reach.of(ce.src, @svg.end_side(route, 0, cnodes[ce.src]))
+        let arrives = reach.of(
+          ce.dst,
+          @svg.end_side(route, route.length() - 3, cnodes[ce.dst]),
+        )
+        let from = views[ce.src]
+        let to = views[ce.dst]
+        @svg.inset_route(
+          route,
+          0,
+          cnodes[ce.src],
+          shape=from.shape,
+          w=from.w,
+          h=from.h,
+        )
+        @svg.inset_route(
+          route,
+          route.length() - 3,
+          cnodes[ce.dst],
+          shape=to.shape,
+          w=to.w,
+          h=to.h,
+        )
+        let curve = match edge.curve {
+          Some(String(name)) => Some(name)
+          _ => None
+        }
+        @svg.route_path(
+          route,
+          curve,
+          @svg.marker_trim(start_type),
+          @svg.marker_trim(end_type),
+          start_reach=leaves,
+          end_reach=arrives,
+        )
       }
-      let path = @svg.route_path(
-        route,
-        curve,
-        @svg.marker_trim(start_type),
-        @svg.marker_trim(end_type),
-        start_reach=leaves,
-        end_reach=arrives,
-      )
       let color = match style {
         Some({ stroke: Some(stroke), .. }) if stroke != "" => @svg.esc(stroke)
         _ => "var(--_l)"
