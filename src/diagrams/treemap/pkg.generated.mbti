@@ -6,6 +6,10 @@ import {
 }
 
 // Values
+pub fn build_hierarchy(Array[TreemapItem]) -> Array[TreemapNode]
+
+pub fn build_treemap(TreemapAst, String?) -> TreemapModel
+
 pub fn formatter(String) -> (Double) -> String
 
 pub fn parse_treemap(String) -> TreemapAst raise @errors.PeleError
@@ -28,6 +32,31 @@ pub(all) struct TreemapAst {
   acc_title : String?
   acc_descr : String?
   rows : Array[RowAst]
+}
+
+pub(all) struct TreemapItem {
+  level : Int32
+  name : String
+  leaf : Bool
+  value : Double?
+  class_selector : String?
+  css_compiled_styles : Array[String]?
+}
+
+pub(all) struct TreemapModel {
+  title : String?
+  acc_title : String?
+  acc_descr : String?
+  roots : Array[TreemapNode]
+  classes : Map[String, Array[String]]
+}
+
+pub(all) struct TreemapNode {
+  name : String
+  children : Array[TreemapNode]?
+  value : Double?
+  class_selector : String?
+  css_compiled_styles : Array[String]?
 }
 
 // Type aliases
