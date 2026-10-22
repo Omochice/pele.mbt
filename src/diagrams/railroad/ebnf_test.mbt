@@ -4,10 +4,7 @@ test "EBNF is read in the W3C and ISO styles" {
   inspect(ebnf("a | \"b\" c"), content="(<a> | (\"b\" <c>))")
   inspect(ebnf("[ a ]"), content="[<a>]")
   inspect(ebnf("{ a | b }"), content="{(<a> | <b>)}0..Infinity")
-  inspect(
-    ebnf("a? b* c+"),
-    content="([<a>] {<b>}0..Infinity {<c>}1..Infinity)",
-  )
+  inspect(ebnf("a? b* c+"), content="([<a>] {<b>}0..Infinity {<c>}1..Infinity)")
   inspect(ebnf("?  any character  ?"), content="?any character?")
   inspect(definition("railroad-ebnf-beta", "r ::= a ;"), content="<a>")
 }

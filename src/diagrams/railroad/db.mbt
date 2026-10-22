@@ -92,6 +92,7 @@ pub fn parse_railroad(
   }
   let ast = match notation {
     Railroad => parse_ir(source)
+    Ebnf => parse_ebnf(source)
     _ => abort("not ported yet")
   }
   {
