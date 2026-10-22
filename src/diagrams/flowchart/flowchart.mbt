@@ -17,3 +17,15 @@ pub fn parse_model(
   parse_flowchart(source, db)
   db
 }
+
+///|
+/// The flowchart diagram type.
+pub let flowchart : @types.Diagram = {
+  kind: "flowchart",
+  section: None,
+  keep_comments: false,
+  parse: (source, config, title, _, limits) => {
+    let db = parse_model(source, config, title, limits)
+    { render: (config, options) => render_flowchart(db, config, options), }
+  },
+}

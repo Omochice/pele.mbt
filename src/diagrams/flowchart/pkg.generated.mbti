@@ -11,11 +11,15 @@ pub fn build_flow_graph(FlowDb, default_curve? : String) -> FlowGraph
 
 pub fn canonical_shape(String?) -> String
 
+pub let flowchart : @types.Diagram
+
 pub fn is_valid_shape(String) -> Bool
 
 pub fn parse_flowchart(String, FlowDb) -> Unit raise @errors.PeleError
 
 pub fn parse_model(String, Map[String, Json], String?, @types.ParseLimits) -> FlowDb raise @errors.PeleError
+
+pub fn render_flowchart(FlowDb, Map[String, Json], @types.RenderOptions) -> @types.Rendered
 
 pub let token_names : Array[String]
 
