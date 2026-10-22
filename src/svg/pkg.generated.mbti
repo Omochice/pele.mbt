@@ -21,6 +21,8 @@ pub fn label_svg(@text.Label, Double, Double, String) -> String
 
 pub fn num(Double) -> String
 
+pub fn resolve_style(Array[String]) -> ResolvedStyle
+
 pub fn series_color(Int32) -> String
 
 pub fn shared_style(@text.Label) -> Int32
@@ -34,6 +36,15 @@ pub fn text_style(String, Int32) -> String
 // Errors
 
 // Types and methods
+pub(all) struct ResolvedStyle {
+  shape : String
+  line : String
+  text : String
+  stroke : String?
+  bold : Bool
+  italic : Bool
+  font_size : Double?
+}
 
 // Type aliases
 
