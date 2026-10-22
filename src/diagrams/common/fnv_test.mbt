@@ -13,3 +13,19 @@ fn fnv1a(text : String) -> String {
   }
   out.to_string()
 }
+
+///|
+/// Every string of exactly `length` pieces drawn from `pieces`, in lexicographic order of piece indices.
+fn strings_over(pieces : Array[String], length : Int32) -> Array[String] {
+  let mut out = [""]
+  for _ in 0..<length {
+    let next = []
+    for prefix in out {
+      for piece in pieces {
+        next.push(prefix + piece)
+      }
+    }
+    out = next
+  }
+  out
+}

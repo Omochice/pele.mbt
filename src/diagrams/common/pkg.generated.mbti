@@ -29,6 +29,8 @@ pub fn literal(String, String) -> TokenType
 
 pub let newline : TokenType
 
+pub fn parse_generic_types(String) -> String
+
 pub fn pattern(String, (String, Int32) -> Int32, first? : String, hidden? : Bool) -> TokenType
 
 pub fn runs_across(String?) -> Bool
