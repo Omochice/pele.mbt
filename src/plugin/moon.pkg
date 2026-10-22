@@ -5,6 +5,7 @@ import {
   "Omochice/pele/diagrams/radar",
   "Omochice/pele/diagrams/railroad",
   "Omochice/pele/diagrams/sankey",
+  "Omochice/pele/diagrams/venn",
   "Omochice/pele/errors",
   "Omochice/pele/types",
   "moonbitlang/core/encoding/utf8",

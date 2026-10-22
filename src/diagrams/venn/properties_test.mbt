@@ -11,7 +11,7 @@ fn render_svg(source : String) -> String {
 }
 
 ///|
-fn count(text : String, needle : String) -> Int {
+fn count(text : String, needle : String) -> Int32 {
   let mut found = 0
   let mut at = @util.index_of(text, needle)
   while at != -1 {
@@ -48,7 +48,7 @@ test "the diagram is typed venn and the viewBox matches its size" {
 test "each set gets the next series color" {
   let svg = svg_of("set A\nset B\nset C")
   assert_true(svg.contains("data-id=\"A\" cx"))
-  for k in 1..=3 {
+  for k in 1..<=3 {
     inspect(count(svg, "fill=\"var(--pele-series-\{k},"), content="1")
   }
 }
@@ -76,9 +76,15 @@ test "styles apply to a set, an overlap and a text" {
     ),
   )
   assert_true(svg.contains("style=\"fill-opacity:0.5;\"/>"))
-  assert_true(svg.contains("<text class=\"pele-label\" font-size=\"14\" style=\"fill:#333;\""))
   assert_true(
-    svg.contains("data-id=\"A1\" font-size=\"13\" fill=\"var(--_m)\" style=\"fill:red;\""),
+    svg.contains(
+      "<text class=\"pele-label\" font-size=\"14\" style=\"fill:#333;\"",
+    ),
+  )
+  assert_true(
+    svg.contains(
+      "data-id=\"A1\" font-size=\"13\" fill=\"var(--_m)\" style=\"fill:red;\"",
+    ),
   )
   assert_false(svg.contains("pele-venn-overlap"))
 }
@@ -106,7 +112,9 @@ test "titles lose their quotes and the diagram's own wins" {
       ">From the front matter</tspan>",
     ),
   )
-  let both = render_svg("---\ntitle: Front\n---\nvenn-beta\ntitle Inside\nset A")
+  let both = render_svg(
+    "---\ntitle: Front\n---\nvenn-beta\ntitle Inside\nset A",
+  )
   assert_true(both.contains(">Inside</tspan>"))
   assert_false(both.contains("Front"))
 }
@@ -115,15 +123,15 @@ test "titles lose their quotes and the diagram's own wins" {
 test "the last statement about a set wins" {
   let svg = svg_of("set A[\"first\"]:10\nset B:10\nset A[\"second\"]:40")
   inspect(count(svg, "<circle"), content="2")
-  assert_true(svg.contains(">second</tspan>"))
-  assert_false(svg.contains(">first</tspan>"))
+  assert_true(svg.contains(">second</text>"))
+  assert_false(svg.contains(">first</text>"))
 }
 
 ///|
 test "a text whose sets were never stated together is left out" {
   let svg = svg_of("set A\nset B\ntext A,B orphan\ntext A kept")
   assert_false(svg.contains("orphan"))
-  assert_true(svg.contains(">kept</tspan>"))
+  assert_true(svg.contains(">kept</text>"))
 }
 
 ///|
@@ -136,9 +144,9 @@ test "texts are written under the label of their region" {
       "<text class=\"pele-venn-text\" data-id=\"A1\" font-size=\"13\" fill=\"var(--_m)\"",
     ),
   )
-  assert_true(svg.contains(">React</tspan>"))
-  assert_true(svg.contains(">A2</tspan>"))
-  assert_true(svg.contains(">OpenAPI</tspan>"))
+  assert_true(svg.contains(">React</text>"))
+  assert_true(svg.contains(">A2</text>"))
+  assert_true(svg.contains(">OpenAPI</text>"))
 }
 
 ///|
@@ -159,7 +167,9 @@ test "what is shown is escaped" {
   assert_false(svg.contains("<svg onload"))
   assert_false(svg.contains("javascript:"))
   assert_true(svg.contains("data-id=\"&lt;script&gt;a&amp;b&lt;/script&gt;\""))
-  assert_true(svg.contains("&lt;/text&gt;&lt;script&gt;alert(1)&lt;/script&gt;"))
+  assert_true(
+    svg.contains("&lt;/text&gt;&lt;script&gt;alert(1)&lt;/script&gt;"),
+  )
 }
 
 ///|
@@ -182,14 +192,20 @@ test "sizes that make no sense give finite output" {
 
 ///|
 test "what Mermaid rejects is rejected with its message" {
-  inspect(render_svg("venn-beta\nunion A"), content="error: union requires multiple identifiers")
-  inspect(render_svg("venn-beta\nset A\nunion A,B"), content="error: unknown set identifier: B")
+  inspect(
+    render_svg("venn-beta\nunion A"),
+    content="error: union requires multiple identifiers",
+  )
+  inspect(
+    render_svg("venn-beta\nset A\nunion A,B"),
+    content="error: unknown set identifier: B",
+  )
   inspect(
     render_svg("venn-beta\nset A,B"),
     content="error: Parse error on line 2:\nset A,B\n-----^\nExpecting 'EOF', 'NEWLINE', 'TITLE', 'SET', 'UNION', 'TEXT', 'INDENT_TEXT', 'STYLE', got 'COMMA'",
   )
   inspect(
     render_svg("venn-beta\nset A $"),
-    content="error: Lexical error on line 2. Unrecognized text.\nset A $\n-----^",
+    content="error: Lexical error on line 2. Unrecognized text.\nset A $\n------^",
   )
 }

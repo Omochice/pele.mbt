@@ -3,6 +3,7 @@ package "Omochice/pele/diagrams/venn"
 
 import {
   "Omochice/pele/errors",
+  "Omochice/pele/types",
   "moonbitlang/core/set",
 }
 
@@ -22,6 +23,8 @@ pub fn normalize_text(String) -> String
 pub fn parse_venn(String) -> VennDb raise @errors.PeleError
 
 pub fn region_path(Array[Circle], (Double) -> String) -> String
+
+pub let venn : @types.Diagram
 
 // Errors
 
