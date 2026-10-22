@@ -53,6 +53,12 @@ pub fn cap_width(
   least : Double,
   around~ : Double = 0,
 ) -> Double {
-  ignore((options, least, around))
-  natural
+  match options.max_width {
+    Some(available) if available > 0 =>
+      @util.js_max(
+        @util.js_min(least, natural),
+        @util.js_min(natural, available - around),
+      )
+    _ => natural
+  }
 }
