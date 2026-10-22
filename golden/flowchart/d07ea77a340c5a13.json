@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "syntax",
+    "message": "Parse error on line 3:\n      subgraph ${unsafeProp}\n----------------^\nExpecting 'SEMI', 'NEWLINE', 'EOF', 'SQS', got 'DIAMOND_START'",
+    "type": "flowchart",
+    "mermaidType": "flowchart-v2"
+  }
+}

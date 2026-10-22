@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "syntax",
+    "message": "Error parsing usecase diagram: Redundant input, expecting EOF but found: json at line 2, column 1 [13,17)",
+    "type": "usecase",
+    "mermaidType": "usecase"
+  }
+}

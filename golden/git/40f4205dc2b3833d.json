@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "semantic",
+    "message": "Trying to checkout branch which is not yet created. (Help try using \"branch testBranch\")",
+    "type": "gitGraph",
+    "mermaidType": "gitGraph"
+  }
+}

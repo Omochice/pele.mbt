@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "semantic",
+    "message": "JSON relationship 'Inspect' to 'Payload' permits only point, reversed-point, or markerless solid association at line 3, column 9 [37,48)",
+    "type": "usecase",
+    "mermaidType": "usecase"
+  }
+}

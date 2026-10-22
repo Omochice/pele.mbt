@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "syntax",
+    "message": "Parse error on line 2:\ny-axis yAxisName    45.5   -->   abc   \n---------------------------------^\nExpecting 'NUMBER_WITH_DECIMAL', got 'ALPHA'",
+    "type": "xychart",
+    "mermaidType": "xychart"
+  }
+}

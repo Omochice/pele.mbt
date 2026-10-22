@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "semantic",
+    "message": "Sankey diagrams cannot have circular links, and \"__proto__\" is part of one.",
+    "type": "sankey",
+    "mermaidType": "sankey"
+  }
+}

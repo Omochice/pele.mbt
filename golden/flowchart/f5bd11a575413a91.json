@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "syntax",
+    "message": "Parse error on line 1:\ngraph TD;style T background: ﬂ°bbb¶ß\n-----------------------------^\nExpecting 'SEMI', 'NEWLINE', 'EOF', got 'UNICODE_TEXT'",
+    "type": "flowchart",
+    "mermaidType": "flowchart-v2"
+  }
+}

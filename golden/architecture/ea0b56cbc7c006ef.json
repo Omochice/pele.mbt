@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "semantic",
+    "message": "align row references [ghost], which is not a service or junction",
+    "type": "architecture",
+    "mermaidType": "architecture"
+  }
+}

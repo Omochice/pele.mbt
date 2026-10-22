@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "semantic",
+    "message": "align row lists [a] more than once",
+    "type": "architecture",
+    "mermaidType": "architecture"
+  }
+}

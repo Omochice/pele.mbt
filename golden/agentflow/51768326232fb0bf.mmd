@@ -1,0 +1,7 @@
+agentflow-beta TB
+  flow outer["Outer"]
+    flow inner["Inner"]
+      b["Task B"]
+      b --> inner
+    end
+  end

@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "syntax",
+    "message": "Parse error on line 4:\n bar \"barTitle with space\"   [  +23 [ -45  , 56.6 ]   \n------------------------------------^\nExpecting 'SQUARE_BRACES_END', got 'SQUARE_BRACES_START'",
+    "type": "xychart",
+    "mermaidType": "xychart"
+  }
+}

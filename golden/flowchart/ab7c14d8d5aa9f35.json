@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "syntax",
+    "message": "Parse error on line 1:\ngraph TD; node[hello ) world] --> works\n---------------------^\nExpecting 'SQE', 'UNICODE_TEXT', 'TEXT', 'TAGSTART', got 'PE'",
+    "type": "flowchart",
+    "mermaidType": "flowchart-v2"
+  }
+}

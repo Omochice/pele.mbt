@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "syntax",
+    "message": "Parse error on line 1:\narchitecture diagram definitions\n^\nExpecting token of type 'architecture-beta' but found `architecture`.",
+    "type": "architecture",
+    "mermaidType": "architecture"
+  }
+}

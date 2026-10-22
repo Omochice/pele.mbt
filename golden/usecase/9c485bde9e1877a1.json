@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "semantic",
+    "message": "Note target 'Missing' is unresolved at line 9, column 10 [172,179)",
+    "type": "usecase",
+    "mermaidType": "usecase"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "syntax",
+    "message": "Parse error on line 2:\n                   note ${keyword}\n------------------------^\nExpecting 'STR', got 'PUNCTUATION'",
+    "type": "class",
+    "mermaidType": "classDiagram"
+  }
+}

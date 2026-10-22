@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "syntax",
+    "message": "Parse error on line 4:\n bar \"barTitle with space\"   [  +23 , -45  ] 56.6 ]   \n---------------------------------------------^\nExpecting 'title', 'X_AXIS', 'Y_AXIS', 'LINE', 'BAR', 'acc_title', 'acc_descr', 'acc_descr_multiline_value', got 'NUM'",
+    "type": "xychart",
+    "mermaidType": "xychart"
+  }
+}

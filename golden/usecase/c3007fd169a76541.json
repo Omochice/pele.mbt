@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "semantic",
+    "message": "Generated ID 'A_B' collides with another declaration at line 4, column 17 [54,57) (label \"A B\"); previous declaration at line 2, column 17 [29,32) (label \"A-B\")",
+    "type": "usecase",
+    "mermaidType": "usecase"
+  }
+}

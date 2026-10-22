@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "syntax",
+    "message": "Parse error on line 1:\ngraph TD;A_${keyword}_node-->B${shape.start}This node has a ${keyword} as text${shape.end};\n---------------------^\nExpecting 'SEMI', 'NEWLINE', 'EOF', got 'NODE_STRING'",
+    "type": "flowchart",
+    "mermaidType": "flowchart-v2"
+  }
+}

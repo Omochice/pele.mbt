@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "semantic",
+    "message": "Duplicate event modeling frame ID \"01\" on line 4",
+    "type": "eventmodeling",
+    "mermaidType": "eventmodeling"
+  }
+}

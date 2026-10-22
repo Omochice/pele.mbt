@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "semantic",
+    "message": "Business actor 'Icon' must use normal or hollow geometry at line 2, column 7 [19,23)",
+    "type": "usecase",
+    "mermaidType": "usecase"
+  }
+}

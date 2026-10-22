@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "unsupported-diagram",
+    "message": "No diagram type detected for the given text.",
+    "type": null,
+    "mermaidType": null
+  }
+}

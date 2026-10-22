@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "semantic",
+    "message": "Rectangular use case 'Report' cannot be a business use case at line 2, column 1 [13,19)",
+    "type": "usecase",
+    "mermaidType": "usecase"
+  }
+}

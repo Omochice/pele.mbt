@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "syntax",
+    "message": "Parse error on line 1:\ngitGraph config directives\n---------^\nExpecting a statement, a title, or a line break but found `config`.",
+    "type": "gitGraph",
+    "mermaidType": "gitGraph"
+  }
+}

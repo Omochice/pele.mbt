@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "semantic",
+    "message": "No such shape: NotAShape. Shape names should be lowercase.",
+    "type": "agentflow",
+    "mermaidType": "agentflow"
+  }
+}

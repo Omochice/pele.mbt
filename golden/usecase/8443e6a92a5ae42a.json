@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "syntax",
+    "message": "Error lexing usecase diagram: unexpected character: ->\"<- at offset: 19, skipped 1 characters. at line 2, column 7 [19,20)",
+    "type": "usecase",
+    "mermaidType": "usecase"
+  }
+}

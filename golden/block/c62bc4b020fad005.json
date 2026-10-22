@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "syntax",
+    "message": "Parse error on line 1:\nblocks mixed with compound blocks\n^\nExpecting 'BLOCK_DIAGRAM_KEY', got 'NODE_ID'",
+    "type": "block",
+    "mermaidType": "block"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "semantic",
+    "message": "Incorrect usage of \"merge\". Both branches have same head",
+    "type": "gitGraph",
+    "mermaidType": "gitGraph"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "syntax",
+    "message": "Lexical error on line 3. Unrecognized text.\n${macroName}(SystemAA, \"Internet Banking System\", \"Allows customers to view information about their bank accounts, and make payments.\")\n^",
+    "type": "c4",
+    "mermaidType": "c4"
+  }
+}

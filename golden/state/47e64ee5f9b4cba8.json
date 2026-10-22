@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "syntax",
+    "message": "Error: State name must be a single word. Found: \"invalid syntax with more than 2 words {\"",
+    "type": "state",
+    "mermaidType": "stateDiagram"
+  }
+}

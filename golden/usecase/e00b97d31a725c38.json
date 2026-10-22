@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "syntax",
+    "message": "Error parsing usecase diagram: Expecting token of type --> END <-- but found --> 'json Payload@' <-- at line 3, column 1 [33,46)",
+    "type": "usecase",
+    "mermaidType": "usecase"
+  }
+}

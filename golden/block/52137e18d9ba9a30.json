@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "syntax",
+    "message": "Lexical error on line 2. Unrecognized text.\nA; classDef ${prop} color:#ffffff,fill:#000000 class A ${prop}\n------------^",
+    "type": "block",
+    "mermaidType": "block"
+  }
+}

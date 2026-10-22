@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "semantic",
+    "message": "Invalid operation: The specified parent commit is not an immediate parent of the cherry-picked commit.",
+    "type": "gitGraph",
+    "mermaidType": "gitGraph"
+  }
+}

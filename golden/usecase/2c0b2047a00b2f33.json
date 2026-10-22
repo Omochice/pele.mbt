@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "semantic",
+    "message": "Class/style target 'missingEdge' is unresolved or anonymous at line 3, column 7 [33,44)",
+    "type": "usecase",
+    "mermaidType": "usecase"
+  }
+}

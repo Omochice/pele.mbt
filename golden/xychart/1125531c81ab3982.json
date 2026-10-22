@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "semantic",
+    "message": "No Plot to render, please provide a plot with some data",
+    "type": "xychart",
+    "mermaidType": "xychart"
+  }
+}

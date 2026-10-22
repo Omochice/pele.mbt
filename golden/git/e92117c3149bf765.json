@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "semantic",
+    "message": "Incorrect usage of \"merge\". Branch to be merged (testBranch) does not exist",
+    "type": "gitGraph",
+    "mermaidType": "gitGraph"
+  }
+}

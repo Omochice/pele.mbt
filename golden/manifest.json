@@ -1,0 +1,190 @@
+{
+  "pele": {
+    "version": "1.8.0",
+    "commit": "1dd58b7ebb0ec654fa7dc4304d50cf8fd3a65d7b"
+  },
+  "node": "v24.21.0",
+  "options": {
+    "fontFamily": "sans-serif",
+    "fontFamilyMono": "monospace",
+    "fontSize": 16,
+    "idPrefix": "pele",
+    "padding": 8,
+    "autoDirection": true,
+    "directionBreakpoint": 640,
+    "limit": 50000,
+    "outputLimit": 4000000,
+    "maxEdges": 5000,
+    "links": true,
+    "images": true,
+    "linkRel": "noopener",
+    "now": 1767225600000
+  },
+  "diagrams": {
+    "agentflow": {
+      "total": 173,
+      "ok": 164,
+      "error": 9
+    },
+    "architecture": {
+      "total": 27,
+      "ok": 20,
+      "error": 7
+    },
+    "block": {
+      "total": 84,
+      "ok": 61,
+      "error": 23
+    },
+    "c4": {
+      "total": 56,
+      "ok": 30,
+      "error": 26
+    },
+    "class": {
+      "total": 86,
+      "ok": 77,
+      "error": 9
+    },
+    "cynefin": {
+      "total": 19,
+      "ok": 19,
+      "error": 0
+    },
+    "er": {
+      "total": 142,
+      "ok": 99,
+      "error": 43
+    },
+    "eventmodeling": {
+      "total": 25,
+      "ok": 21,
+      "error": 4
+    },
+    "flowchart": {
+      "total": 445,
+      "ok": 332,
+      "error": 113
+    },
+    "gantt": {
+      "total": 33,
+      "ok": 22,
+      "error": 11
+    },
+    "git": {
+      "total": 114,
+      "ok": 81,
+      "error": 33
+    },
+    "info": {
+      "total": 8,
+      "ok": 4,
+      "error": 4
+    },
+    "ishikawa": {
+      "total": 6,
+      "ok": 4,
+      "error": 2
+    },
+    "journey": {
+      "total": 14,
+      "ok": 4,
+      "error": 10
+    },
+    "kanban": {
+      "total": 40,
+      "ok": 32,
+      "error": 8
+    },
+    "mindmap": {
+      "total": 46,
+      "ok": 37,
+      "error": 9
+    },
+    "packet": {
+      "total": 24,
+      "ok": 11,
+      "error": 13
+    },
+    "pie": {
+      "total": 30,
+      "ok": 14,
+      "error": 16
+    },
+    "quadrant": {
+      "total": 60,
+      "ok": 34,
+      "error": 26
+    },
+    "radar": {
+      "total": 23,
+      "ok": 13,
+      "error": 10
+    },
+    "railroad": {
+      "total": 96,
+      "ok": 78,
+      "error": 18
+    },
+    "requirement": {
+      "total": 14,
+      "ok": 11,
+      "error": 3
+    },
+    "sankey": {
+      "total": 19,
+      "ok": 8,
+      "error": 11
+    },
+    "sequence": {
+      "total": 200,
+      "ok": 179,
+      "error": 21
+    },
+    "state": {
+      "total": 119,
+      "ok": 113,
+      "error": 6
+    },
+    "swimlane": {
+      "total": 13,
+      "ok": 13,
+      "error": 0
+    },
+    "timeline": {
+      "total": 25,
+      "ok": 24,
+      "error": 1
+    },
+    "treemap": {
+      "total": 8,
+      "ok": 8,
+      "error": 0
+    },
+    "treeview": {
+      "total": 24,
+      "ok": 24,
+      "error": 0
+    },
+    "usecase": {
+      "total": 105,
+      "ok": 69,
+      "error": 36
+    },
+    "venn": {
+      "total": 25,
+      "ok": 22,
+      "error": 3
+    },
+    "wardley": {
+      "total": 39,
+      "ok": 39,
+      "error": 0
+    },
+    "xychart": {
+      "total": 74,
+      "ok": 26,
+      "error": 48
+    }
+  }
+}

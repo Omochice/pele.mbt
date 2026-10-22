@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "syntax",
+    "message": "Lexical error on line 2. Unrecognized text.\n      requirement ${property} {\n------------------^",
+    "type": "requirement",
+    "mermaidType": "requirement"
+  }
+}

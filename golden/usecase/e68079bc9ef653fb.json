@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "semantic",
+    "message": "Note target 'Payload' must be an actor or use case, not json at line 3, column 10 [38,45); previous declaration at line 2, column 6 [18,25)",
+    "type": "usecase",
+    "mermaidType": "usecase"
+  }
+}

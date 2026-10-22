@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "semantic",
+    "message": "Trying to create an existing branch. (Help: Either use a new name if you want create a new branch or try using \"checkout main\")",
+    "type": "gitGraph",
+    "mermaidType": "gitGraph"
+  }
+}

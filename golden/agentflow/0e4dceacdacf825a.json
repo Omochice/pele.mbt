@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "syntax",
+    "message": "Parse error on line 6:\n  c[\"C\"]\"]\n---------^\nExpecting 'COMMENT', 'SEMI', 'NEWLINE', 'EOF', got 'STR'",
+    "type": "agentflow",
+    "mermaidType": "agentflow"
+  }
+}

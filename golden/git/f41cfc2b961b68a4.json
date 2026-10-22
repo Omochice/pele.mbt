@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "semantic",
+    "message": "Incorrect usage of \"merge\". Cannot merge a branch to itself",
+    "type": "gitGraph",
+    "mermaidType": "gitGraph"
+  }
+}

@@ -1,0 +1,9 @@
+agentflow-beta TB
+  flow A["Flow A"]${viewA}
+    a1["Task A1"]
+    a1 --> B
+  end
+  flow B["Flow B"]${viewB}
+    b1["Task B1"]
+    b1 --> A
+  end

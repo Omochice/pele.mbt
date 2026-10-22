@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "semantic",
+    "message": "The service [a]'s parent does not exist. Please make sure the parent is created before this service",
+    "type": "architecture",
+    "mermaidType": "architecture"
+  }
+}

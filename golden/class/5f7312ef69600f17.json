@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "syntax",
+    "message": "Parse error on line 2:\nnamespace ${prop} {\n----------^\nExpecting 'UNICODE_TEXT', 'NUM', 'ALPHA', 'MINUS', 'BQUOTE_STR', got 'PUNCTUATION'",
+    "type": "class",
+    "mermaidType": "classDiagram"
+  }
+}

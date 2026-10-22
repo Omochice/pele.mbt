@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "syntax",
+    "message": "Lexical error on line 1. Unrecognized text.\npacket diagrams\n-------^",
+    "type": "packet",
+    "mermaidType": "packet"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "semantic",
+    "message": "unknown set identifier: Buz",
+    "type": "venn",
+    "mermaidType": "venn"
+  }
+}

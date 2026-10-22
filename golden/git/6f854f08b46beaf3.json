@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "semantic",
+    "message": "Incorrect usage of \"merge\". Branch to be merged (test1) has no commits",
+    "type": "gitGraph",
+    "mermaidType": "gitGraph"
+  }
+}

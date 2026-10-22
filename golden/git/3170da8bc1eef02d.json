@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "syntax",
+    "message": "Lexical error on line 3. Unrecognized text.\n        branch ${prop}\n---------------^",
+    "type": "gitGraph",
+    "mermaidType": "gitGraph"
+  }
+}

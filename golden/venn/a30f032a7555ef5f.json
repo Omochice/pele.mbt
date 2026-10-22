@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "semantic",
+    "message": "union requires multiple identifiers",
+    "type": "venn",
+    "mermaidType": "venn"
+  }
+}

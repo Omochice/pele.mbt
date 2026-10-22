@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "syntax",
+    "message": "Lexical error on line 2. Unrecognized text.\nA == Label =${'='.repeat(length)}= B;\n-----------^",
+    "type": "flowchart",
+    "mermaidType": "flowchart-v2"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "syntax",
+    "message": "Parse error on line 1:\neventmodeling diagrams\n--------------^\nExpecting a frame, an entity, a data block, a note, or a specification but found `diagrams`.",
+    "type": "eventmodeling",
+    "mermaidType": "eventmodeling"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "semantic",
+    "message": "No such shape: 123.",
+    "type": "agentflow",
+    "mermaidType": "agentflow"
+  }
+}

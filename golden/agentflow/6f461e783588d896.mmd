@@ -1,0 +1,12 @@
+agentflow-beta LR
+  connector github["GitHub API"]@{
+    protocol: "http",
+    endpoint: "https://api.github.com",
+    token_required: true,
+  }
+
+  query["query"]
+  query@{ shape: input }
+  fetch_issues["fetch_issues"]
+  fetch_issues@{ shape: tool, connectorRef: "github.list_issues" }
+  query --> fetch_issues

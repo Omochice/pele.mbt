@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "semantic",
+    "message": "Packet block 25 - 20 is invalid. End must be greater than start.",
+    "type": "packet",
+    "mermaidType": "packet"
+  }
+}

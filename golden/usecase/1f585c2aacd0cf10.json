@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "semantic",
+    "message": "ID 'A_B' is declared as both actor and usecase at line 3, column 2 [26,29) (label \"A B\"); previous declaration at line 2, column 8 [20,23) (label \"A-B\")",
+    "type": "usecase",
+    "mermaidType": "usecase"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "syntax",
+    "message": "Metadata of \"c\" is not valid YAML. YAML: tabs are not allowed for indentation (5:9)",
+    "type": "agentflow",
+    "mermaidType": "agentflow"
+  }
+}

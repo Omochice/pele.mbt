@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "syntax",
+    "message": "Parse error on line 2:\nA <-${'-'.repeat(length)}> B;\n--^\nExpecting 'SEMI', 'NEWLINE', 'EOF', got 'TAGSTART'",
+    "type": "flowchart",
+    "mermaidType": "flowchart-v2"
+  }
+}

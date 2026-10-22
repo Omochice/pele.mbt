@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "syntax",
+    "message": "Parse error on line 1:\ngraph TD; A[\"This is a \"()\" in text\"];\n------------------------^\nExpecting 'SQE', 'UNICODE_TEXT', 'TEXT', 'TAGSTART', got 'PS'",
+    "type": "flowchart",
+    "mermaidType": "flowchart-v2"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "type": "c4",
+  "mermaidType": "c4",
+  "width": 232,
+  "height": 132,
+  "links": [
+    {
+      "id": "customerA",
+      "href": "https://example.com/",
+      "internal": false
+    }
+  ]
+}

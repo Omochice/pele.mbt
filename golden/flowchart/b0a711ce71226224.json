@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "syntax",
+    "message": "Lexical error on line 1. Unrecognized text.\ngraph TD;A-- text including graph space --B\n----------------------------------------^",
+    "type": "flowchart",
+    "mermaidType": "flowchart-v2"
+  }
+}

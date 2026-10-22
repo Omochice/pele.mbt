@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "semantic",
+    "message": "Packet block 19 - 19 is not contiguous. It should start from 18.",
+    "type": "packet",
+    "mermaidType": "packet"
+  }
+}

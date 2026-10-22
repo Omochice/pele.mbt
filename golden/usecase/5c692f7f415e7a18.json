@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "semantic",
+    "message": "include relationship requires use-case endpoints at line 4, column 9 [45,66)",
+    "type": "usecase",
+    "mermaidType": "usecase"
+  }
+}

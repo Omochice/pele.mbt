@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "semantic",
+    "message": "No such shape: rect_left_inv_arrow. Shape names should be lowercase.",
+    "type": "flowchart",
+    "mermaidType": "flowchart-v2"
+  }
+}

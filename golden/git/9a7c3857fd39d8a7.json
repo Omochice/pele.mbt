@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "semantic",
+    "message": "Incorrect usage of \"merge\". Commit with id:1-111 already exists, use different custom id",
+    "type": "gitGraph",
+    "mermaidType": "gitGraph"
+  }
+}

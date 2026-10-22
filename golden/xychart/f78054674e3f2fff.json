@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "syntax",
+    "message": "Parse error on line 4:\n bar \"barTitle with space\"   [   ]   \n---------------------------------^\nExpecting 'NUMBER_WITH_DECIMAL', got 'SQUARE_BRACES_END'",
+    "type": "xychart",
+    "mermaidType": "xychart"
+  }
+}

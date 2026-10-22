@@ -1,0 +1,18 @@
+{
+  "type": "class",
+  "mermaidType": "classDiagram",
+  "width": 474,
+  "height": 76,
+  "links": [
+    {
+      "id": "Class02",
+      "href": "https://www.github.com/",
+      "internal": false
+    },
+    {
+      "id": "Class04",
+      "href": "https://www.github.com/",
+      "internal": false
+    }
+  ]
+}

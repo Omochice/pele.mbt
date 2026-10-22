@@ -1,0 +1,13 @@
+{
+  "type": "flowchart",
+  "mermaidType": "flowchart-v2",
+  "width": 64,
+  "height": 160,
+  "links": [
+    {
+      "id": "A",
+      "href": "click.html",
+      "internal": false
+    }
+  ]
+}

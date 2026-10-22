@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "semantic",
+    "message": "Metadata property 'fillColor' is invalid for actor 'User' at line 2, column 14 [26,35)",
+    "type": "usecase",
+    "mermaidType": "usecase"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "syntax",
+    "message": "Parse error on line 2:\nA e1@${edgeType.edgeStart}${edgeType.edgeEnd} B;\n-----^\nExpecting 'LINK', 'START_LINK', got 'NODE_STRING'",
+    "type": "flowchart",
+    "mermaidType": "flowchart-v2"
+  }
+}

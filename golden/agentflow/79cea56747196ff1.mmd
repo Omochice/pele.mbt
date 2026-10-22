@@ -1,0 +1,10 @@
+agentflow-beta TB
+  flow top["Top"]
+    flow mid["Mid"]
+      flow leafFlow["Leaf"]
+        c["Task C"]
+      end
+      m["Task M"]
+      m --> mid
+    end
+  end

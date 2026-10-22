@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "semantic",
+    "message": "Note target 'Auth' must be an actor or use case, not boundary at line 5, column 10 [52,56); previous declaration at line 2, column 16 [28,32)",
+    "type": "usecase",
+    "mermaidType": "usecase"
+  }
+}

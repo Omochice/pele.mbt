@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "syntax",
+    "message": "Lexical error on line 1. Unrecognized text.\ninfo unsupported\n-----^",
+    "type": "info",
+    "mermaidType": "info"
+  }
+}

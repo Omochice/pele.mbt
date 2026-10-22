@@ -1,0 +1,13 @@
+agentflow-beta TB
+  flow A["A"]@{ view: collapsed }
+    a1["a1"]
+    a1 --> B
+  end
+  flow B["B"]
+    b1["b1"]
+    b1 --> C
+  end
+  flow C["C"]
+    c1["c1"]
+    c1 --> A
+  end

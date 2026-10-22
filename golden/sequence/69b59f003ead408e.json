@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "syntax",
+    "message": "Parse error on line 2:\n          participant X_AutoPublishable asAAAAAAAAAAAAA:AAAAAAAAAAAAA\n----------------------^\nExpecting 'ACTOR', got 'INVALID'",
+    "type": "sequence",
+    "mermaidType": "sequence"
+  }
+}

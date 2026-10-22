@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "syntax",
+    "message": "Parse error on line 2:\nx-axis xAxisName    [  \"cat1\"  [   cat2a  ]   \n-------------------------------^\nExpecting 'SQUARE_BRACES_END', got 'SQUARE_BRACES_START'",
+    "type": "xychart",
+    "mermaidType": "xychart"
+  }
+}

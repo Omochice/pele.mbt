@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "semantic",
+    "message": "Items without section detected, found section (\"fakeRoot\")",
+    "type": "kanban",
+    "mermaidType": "kanban"
+  }
+}

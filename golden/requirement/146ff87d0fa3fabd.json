@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "syntax",
+    "message": "Parse error on line 5:\n      }\n------^\nExpecting 'NEWLINE', 'EOF', 'acc_title', 'acc_descr', 'acc_descr_multiline_value', 'direction_tb', 'direction_bt', 'direction_rl', 'direction_lr', 'REQUIREMENT', 'FUNCTIONAL_REQUIREMENT', 'INTERFACE_REQUIREMENT', 'PERFORMANCE_REQUIREMENT', 'PHYSICAL_REQUIREMENT', 'DESIGN_CONSTRAINT', 'ELEMENT', 'CLASSDEF', 'CLASS', 'STYLE', 'unqString', 'qString', got 'STRUCT_STOP'",
+    "type": "requirement",
+    "mermaidType": "requirement"
+  }
+}

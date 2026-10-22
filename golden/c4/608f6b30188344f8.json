@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "syntax",
+    "message": "Lexical error on line 2. Unrecognized text.\n${macroName}(ContainerAA, $link=\"https://github.com/mermaidjs\")\n^",
+    "type": "c4",
+    "mermaidType": "c4"
+  }
+}

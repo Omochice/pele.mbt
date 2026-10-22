@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "semantic",
+    "message": "No such shape: this-shape-does-not-exist.",
+    "type": "flowchart",
+    "mermaidType": "flowchart-v2"
+  }
+}

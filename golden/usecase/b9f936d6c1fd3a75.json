@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "semantic",
+    "message": "Metadata property 'type' is invalid for actor 'User' at line 2, column 14 [26,30)",
+    "type": "usecase",
+    "mermaidType": "usecase"
+  }
+}

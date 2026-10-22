@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "syntax",
+    "message": "Parse error on line 3:\n      [*] --> \"Order Submitted\"\n--------------^\nExpecting 'ID', 'EDGE_STATE', got 'STRING'",
+    "type": "state",
+    "mermaidType": "stateDiagram"
+  }
+}

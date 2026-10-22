@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "semantic",
+    "message": "style named fill is not supported.",
+    "type": "quadrantChart",
+    "mermaidType": "quadrantChart"
+  }
+}

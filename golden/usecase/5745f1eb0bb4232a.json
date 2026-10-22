@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "syntax",
+    "message": "Error parsing usecase diagram: Expecting: one of these possible Token sequences:\n  1. [NEWLINE]\n  2. [EOF]\nbut found: '@{' at line 2, column 28 [40,42)",
+    "type": "usecase",
+    "mermaidType": "usecase"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "semantic",
+    "message": "Trying to inactivate an inactive participant (Server)",
+    "type": "sequence",
+    "mermaidType": "sequence"
+  }
+}

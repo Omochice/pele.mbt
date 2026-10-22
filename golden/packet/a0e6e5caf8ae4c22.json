@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "semantic",
+    "message": "Packet block 0 is invalid. Cannot have a zero bit field.",
+    "type": "packet",
+    "mermaidType": "packet"
+  }
+}

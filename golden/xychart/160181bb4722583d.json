@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "syntax",
+    "message": "Parse error on line 2:\ny-axis yAxisName    [ 45.3,   33 ]   \n--------------------^\nExpecting 'title', 'X_AXIS', 'Y_AXIS', 'LINE', 'BAR', 'acc_title', 'acc_descr', 'acc_descr_multiline_value', got 'SQUARE_BRACES_START'",
+    "type": "xychart",
+    "mermaidType": "xychart"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "syntax",
+    "message": "Lexical error on line 1. Unrecognized text.\nC4Context${whitespace}\n---------^",
+    "type": "c4",
+    "mermaidType": "c4"
+  }
+}

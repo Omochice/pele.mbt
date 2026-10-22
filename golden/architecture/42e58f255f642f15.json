@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "syntax",
+    "message": "Lexical error on line 2. Unrecognized text.\n  service ${keyword}(database)[Service Using Reserved Word]\n----------^",
+    "type": "architecture",
+    "mermaidType": "architecture"
+  }
+}

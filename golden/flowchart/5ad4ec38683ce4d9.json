@@ -1,0 +1,9 @@
+{
+  "error": {
+    "name": "PeleError",
+    "code": "syntax",
+    "message": "Parse error on line 2:\nX(- My Text (\n------------^\nExpecting '-)', 'UNICODE_TEXT', 'TEXT', 'TAGSTART', got 'PS'",
+    "type": "flowchart",
+    "mermaidType": "flowchart-v2"
+  }
+}
