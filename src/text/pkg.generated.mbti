@@ -8,11 +8,30 @@ pub const STYLE_ITALIC : Int32 = 2
 
 pub const STYLE_MONO : Int32 = 4
 
+pub fn decode_entities(String) -> String
+
+pub fn layout_label(String?, Bool, TextMeasurer, Double, Double, base? : Int32) -> Label
+
 pub let metrics_measurer : TextMeasurer
 
 // Errors
 
 // Types and methods
+pub(all) struct Label {
+  lines : Array[Array[Span]]
+  widths : Array[Double]
+  width : Double
+  height : Double
+  size : Double
+  line_height : Double
+}
+
+pub(all) struct Span {
+  mut text : String
+  style : Int32
+  mut width : Double
+}
+
 pub(all) struct TextMeasurer {
   width_of : (String, Double, Int32) -> Double
 }

@@ -1,8 +1,22 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "Omochice/pele/svg"
 
+import {
+  "Omochice/pele/text",
+}
+
 // Values
+pub fn esc(String) -> String
+
+pub fn esc_text(String) -> String
+
+pub fn font_style(Double, String?, String?) -> String
+
+pub fn label_svg(@text.Label, Double, Double, String) -> String
+
 pub fn num(Double) -> String
+
+pub fn series_color(Int32) -> String
 
 // Errors
 

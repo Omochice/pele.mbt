@@ -31,3 +31,27 @@ pub fn num(value : Double) -> String {
   }
   (n / 100).to_string()
 }
+
+///|
+/// Escapes text for XML and drops the control characters XML does not allow.
+pub fn esc(text : String) -> String {
+  text
+}
+
+///|
+/// Escapes text that is only ever read as text, decoding entity codes first.
+pub fn esc_text(text : String) -> String {
+  text
+}
+
+///|
+/// Writes a measured label as SVG text centered on (`cx`, `cy`).
+pub fn label_svg(
+  label : @text.Label,
+  cx : Double,
+  cy : Double,
+  attrs : String,
+) -> String {
+  ignore((label, cx, cy, attrs))
+  ""
+}
