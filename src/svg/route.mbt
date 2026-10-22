@@ -1,4 +1,8 @@
 ///|
+/// The most a corner is rounded by in a stepped route.
+const CORNER : Double = 12
+
+///|
 /// How far the handles of a wide turn reach along its two legs.
 /// A little more than a circle's, which makes the turn fuller.
 const HANDLE : Double = 0.62
@@ -27,8 +31,8 @@ fn way(value : Double) -> Double {
 
 ///|
 /// Builds the path for a route of x, y, axis triples, where the axis is 0 for a point the edge runs into vertically and 1 horizontally.
-/// Between two points that are not in line, a route is one S that leaves and arrives along the flow.
-/// Where the route itself turns a corner, any but a linear one turns as widely as it can: the turn takes the whole of a leg that ends at a node and half of a leg it shares with the next turn.
+/// Between two points that are not in line, a route is one S that leaves and arrives along the flow, or a step in a stepped route.
+/// Where the route itself turns a corner, a stepped route rounds it a little, and any other but a linear one turns as widely as it can: the turn takes the whole of a leg that ends at a node and half of a leg it shares with the next turn.
 /// `start_trim` and `end_trim` leave room for the markers at its ends.
 /// `start_reach` and `end_reach` say how far from its nodes the edge starts to turn, where the other edges on the same side of a node need it to; by default, far enough to clear its own marker.
 pub fn route_path(
@@ -54,6 +58,10 @@ pub fn route_path(
     },
   )
   let linear = curve == Some("linear")
+  let stepped = match curve {
+    Some("step" | "stepBefore" | "stepAfter") => true
+    _ => false
+  }
   let xs : Array[Double] = []
   let ys : Array[Double] = []
   let axes : Array[Double] = []
@@ -61,9 +69,36 @@ pub fn route_path(
     (ax - bx).abs() < 0.01 && (ay - by).abs() < 0.01
   }
   for i = 0; i < route.length(); i = i + 3 {
-    xs.push(route[i])
-    ys.push(route[i + 1])
-    axes.push(route[i + 2])
+    let x = route[i]
+    let y = route[i + 1]
+    let axis = route[i + 2]
+    let last = xs.length() - 1
+    // A stepped route turns at right angles where a smooth one would curve.
+    if stepped &&
+      last >= 0 &&
+      (x - xs[last]).abs() >= 0.01 &&
+      (y - ys[last]).abs() >= 0.01 {
+      let px = xs[last]
+      let py = ys[last]
+      let (mx, my) = match curve {
+        Some("stepBefore") => (px, py)
+        Some("stepAfter") => (x, y)
+        _ => ((px + x) / 2, (py + y) / 2)
+      }
+      let turns = if axis == 0 { [px, my, x, my] } else { [mx, py, mx, y] }
+      for k in [0, 2] {
+        if near(turns[k], turns[k + 1], px, py) ||
+          near(turns[k], turns[k + 1], x, y) {
+          continue
+        }
+        xs.push(turns[k])
+        ys.push(turns[k + 1])
+        axes.push(axis)
+      }
+    }
+    xs.push(x)
+    ys.push(y)
+    axes.push(axis)
   }
   let mut last = xs.length() - 1
   let aligned = fn(i : Int32) {
@@ -181,16 +216,24 @@ pub fn route_path(
       continue
     }
     // How much of the leg before the turn and of the leg after it the turn takes: all of one that ends at a node, short of the straight run into a marker, and half of one it shares.
-    let before = if turns(i - 1) { length(i) / 2 } else { length(i) }
-    let after = if turns(i + 1) { length(i + 1) / 2 } else { length(i + 1) }
+    let mut before = if turns(i - 1) { length(i) / 2 } else { length(i) }
+    let mut after = if turns(i + 1) { length(i + 1) / 2 } else { length(i + 1) }
+    if stepped {
+      before = @util.js_min(@util.js_min(CORNER, before), after)
+      after = before
+    }
     let (ux, uy) = unit(i - 1, i, axes[i])
     let (vx, vy) = unit(i, i + 1, axes[i + 1])
     line_to(x - ux * before, y - uy * before)
     at_x = x + vx * after
     at_y = y + vy * after
-    d.write_string(
-      "C\{num(x - ux * before * (1 - HANDLE))},\{num(y - uy * before * (1 - HANDLE))} \{num(x + vx * after * (1 - HANDLE))},\{num(y + vy * after * (1 - HANDLE))} \{num(at_x)},\{num(at_y)}",
-    )
+    if stepped {
+      d.write_string("Q\{num(x)},\{num(y)} \{num(at_x)},\{num(at_y)}")
+    } else {
+      d.write_string(
+        "C\{num(x - ux * before * (1 - HANDLE))},\{num(y - uy * before * (1 - HANDLE))} \{num(x + vx * after * (1 - HANDLE))},\{num(y + vy * after * (1 - HANDLE))} \{num(at_x)},\{num(at_y)}",
+      )
+    }
   }
   { d: d.to_string(), sx, sy, sdx: -sdx, sdy: -sdy, ex, ey, edx, edy, }
 }
