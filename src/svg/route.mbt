@@ -1,6 +1,6 @@
 ///|
 /// The most a corner is rounded by in a stepped route.
-const CORNER : Double = 12
+const TURN : Double = 12
 
 ///|
 /// How far the handles of a wide turn reach along its two legs.
@@ -228,7 +228,7 @@ pub fn route_path(
     let mut before = if turns(i - 1) { length(i) / 2 } else { length(i) }
     let mut after = if turns(i + 1) { length(i + 1) / 2 } else { length(i + 1) }
     if stepped {
-      before = @util.js_min(@util.js_min(CORNER, before), after)
+      before = @util.js_min(@util.js_min(TURN, before), after)
       after = before
     }
     let (ux, uy) = unit(i - 1, i, axes[i])
