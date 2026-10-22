@@ -1,5 +1,5 @@
 ///|
-const N : Int = 50000
+const N : Int32 = 50000
 
 ///|
 /// Draws `source` without a source length limit and tells whether it was accepted.
