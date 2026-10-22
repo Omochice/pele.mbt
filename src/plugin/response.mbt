@@ -5,8 +5,8 @@ fn respond(source : String, options : String) -> (Int32, Json) {
       [
         @cynefin.cynefin, @flowchart.flowchart, @git.git, @info.info, @ishikawa.ishikawa,
         @journey.journey, @kanban.kanban, @mindmap.mindmap, @packet.packet, @pie.pie,
-        @radar.radar, @railroad.railroad, @sankey.sankey, @timeline.timeline, @treemap.treemap,
-        @treeview.treeview, @venn.venn,
+        @quadrant.quadrant, @radar.radar, @railroad.railroad, @sankey.sankey,
+        @timeline.timeline, @treemap.treemap, @treeview.treeview, @venn.venn,
       ],
       source,
       decode_options(@json.parse(options)),
