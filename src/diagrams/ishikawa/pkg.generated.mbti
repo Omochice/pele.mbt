@@ -3,10 +3,15 @@ package "Omochice/pele/diagrams/ishikawa"
 
 import {
   "Omochice/pele/errors",
+  "Omochice/pele/types",
 }
 
 // Values
+pub let ishikawa : @types.Diagram
+
 pub fn parse_ishikawa(String, title? : String) -> IshikawaModel raise @errors.PeleError
+
+pub fn render_ishikawa(IshikawaModel, @types.RenderOptions) -> @types.Rendered
 
 // Errors
 

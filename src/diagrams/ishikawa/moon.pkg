@@ -1,8 +1,15 @@
 import {
+  "Omochice/pele/diagrams/common",
   "Omochice/pele/errors",
+  "Omochice/pele/svg",
+  "Omochice/pele/text",
+  "Omochice/pele/types",
   "Omochice/pele/util",
 }
 
 import {
+  "Omochice/pele/core",
   "Omochice/pele/errors",
+  "Omochice/pele/types",
+  "Omochice/pele/util",
 } for "test"
