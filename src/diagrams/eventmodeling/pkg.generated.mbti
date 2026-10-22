@@ -1,0 +1,59 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Omochice/pele/diagrams/eventmodeling"
+
+import {
+  "Omochice/pele/errors",
+}
+
+// Values
+pub fn read_event_model(String) -> EventModelAst raise @errors.PeleError
+
+// Errors
+
+// Types and methods
+pub(all) struct EmDataEntity {
+  name : String
+  data_type : String?
+  data_block_value : String
+}
+
+pub(all) struct EmFrame {
+  reset : Bool
+  name : String
+  model_entity_type : String
+  entity_identifier : String
+  source_frames : Array[String]
+  data_reference : String?
+  data_type : String?
+  data_inline_value : String?
+  offset : Int32
+}
+
+pub(all) struct EmGwt {
+  source_frame : String
+  given : Array[String]
+  when_ : Array[String]
+  then_ : Array[String]
+}
+
+pub(all) struct EmNoteEntity {
+  source_frame : String
+  data_type : String?
+  data_block_value : String
+}
+
+pub(all) struct EventModelAst {
+  mut title : String?
+  mut acc_title : String?
+  mut acc_descr : String?
+  model_entities : Array[String]
+  frames : Array[EmFrame]
+  data_entities : Array[EmDataEntity]
+  note_entities : Array[EmNoteEntity]
+  gwt_entities : Array[EmGwt]
+  source : String
+}
+
+// Type aliases
+
+// Traits
