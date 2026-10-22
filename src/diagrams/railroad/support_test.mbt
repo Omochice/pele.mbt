@@ -16,7 +16,7 @@ fn parse(
   source : String,
   title? : String,
 ) -> @railroad.RailroadModel raise @errors.PeleError {
-  @railroad.parse_railroad(source, title)
+  @railroad.parse_railroad(source + "\n", title)
 }
 
 ///|
