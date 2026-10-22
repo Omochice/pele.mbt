@@ -175,3 +175,15 @@ pub fn break_label(
     height: lines.length().to_double() * label.line_height,
   }
 }
+
+///|
+/// Writes `label` with every line starting at `x`, the first line's top at `top`.
+pub fn left_label_svg(
+  label : @text.Label,
+  x : Double,
+  top : Double,
+  attrs : String,
+) -> String {
+  ignore((label, x, top, attrs))
+  ""
+}

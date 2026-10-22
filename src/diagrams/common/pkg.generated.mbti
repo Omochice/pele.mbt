@@ -34,6 +34,8 @@ pub fn fit_width(@types.RenderOptions, Double, Double, (Double, Bool) -> @types.
 
 pub fn keyword(String) -> TokenType
 
+pub fn left_label_svg(@text.Label, Double, Double, String) -> String
+
 pub fn line_end(String, Int32) -> Int32
 
 pub fn literal(String, String) -> TokenType

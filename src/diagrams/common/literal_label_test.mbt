@@ -138,6 +138,81 @@ test "break_label matches pele on labels of every string of up to four pieces" {
 }
 
 ///|
+test "left_label_svg anchors every line at its start and keeps its spaces" {
+  let m = @text.metrics_measurer
+  inspect(
+    @common.left_label_svg(
+      @text.layout_label(
+        Some("<b>bold</b> and <i>it</i><br>line 2 & <more>"),
+        false,
+        m,
+        16,
+        400,
+      ),
+      4,
+      10,
+      " class=\"lbl\"",
+    ),
+    content="<text class=\"lbl\" x=\"4\" y=\"27.6\" text-anchor=\"start\" xml:space=\"preserve\"><tspan font-weight=\"var(--_w)\">bold</tspan> and <tspan font-style=\"italic\">it</tspan></text><text class=\"lbl\" x=\"4\" y=\"51.6\" text-anchor=\"start\" xml:space=\"preserve\">line 2 &amp; </text>",
+  )
+  inspect(
+    @common.left_label_svg(
+      @text.layout_label(Some("<b>all bold</b>"), false, m, 16, 400),
+      0,
+      0,
+      "",
+    ),
+    content="<text font-weight=\"var(--_w)\" x=\"0\" y=\"17.6\" text-anchor=\"start\" xml:space=\"preserve\">all bold</text>",
+  )
+  inspect(
+    @common.left_label_svg(
+      @text.layout_label(Some("a<br><br>b"), false, m, 12, 400),
+      1.25,
+      0.5,
+      "",
+    ),
+    content="<text x=\"1.25\" y=\"13.7\" text-anchor=\"start\" xml:space=\"preserve\">a</text><text x=\"1.25\" y=\"49.7\" text-anchor=\"start\" xml:space=\"preserve\">b</text>",
+  )
+  inspect(
+    @common.left_label_svg(
+      @common.literal_label("  keep  spaces", m, 16, 1000),
+      0,
+      0,
+      "",
+    ),
+    content="<text x=\"0\" y=\"17.6\" text-anchor=\"start\" xml:space=\"preserve\">  keep  spaces</text>",
+  )
+}
+
+///|
+test "left_label_svg matches pele on labels of every string of up to four pieces" {
+  let pieces = ["<b>", "</b>", "<i>", "a&b", " ", "<br>", "\u{1}", "x"]
+  let expected = ["6a00f6a5", "c0addd87", "12e724b4", "ae235f44", "f411a7e3"]
+  let m = @text.metrics_measurer
+  for length, hash in expected {
+    let outputs = []
+    for raw in strings_over(pieces, length) {
+      let label = @text.layout_label(Some(raw), false, m, 16, 400)
+      for
+        attrs in [
+          "", " class=\"t\"", " font-weight=\"bold\"", " font-style=\"italic\"",
+        ] {
+        outputs.push(@common.left_label_svg(label, 10.5, 3, attrs))
+      }
+      outputs.push(
+        @common.left_label_svg(
+          @common.literal_label(raw, m, 14, 30, style=2),
+          0,
+          0,
+          "",
+        ),
+      )
+    }
+    assert_eq(fnv1a(outputs.join("\n")), hash, msg="length \{length}")
+  }
+}
+
+///|
 test "literal_label matches pele on every string of up to four pieces" {
   let pieces = [
     " ",
