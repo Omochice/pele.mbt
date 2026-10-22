@@ -86,3 +86,17 @@ test "keeps twin edges apart where their ends cannot be" {
   assert_true((a[0] - b[0]).abs() < 1.0e-5)
   assert_true(((a[3] - b[3]).abs() - 16).abs() < 1.0e-5)
 }
+
+///|
+test "survives groups that contain each other" {
+  let a = @layout.cnode(0, 0, parent=1)
+  let b = @layout.cnode(0, 0, parent=0)
+  a.is_group = true
+  b.is_group = true
+  let leaf = @layout.cnode(40, 40, parent=0)
+  let nodes = [a, b, leaf, @layout.cnode(40, 40)]
+  let edges = [edge(2, 3)]
+  let size = @layout.compound_layout(nodes, edges, TB, options())
+  assert_false(size.width.is_nan() || size.width.is_inf())
+  assert_true(edges[0].route.length() >= 6)
+}
