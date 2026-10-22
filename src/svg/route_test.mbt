@@ -66,6 +66,56 @@ test "route_path draws a straight line between two points in line" {
 }
 
 ///|
+test "route_path turns a corner of the route as widely as its legs allow" {
+  inspect(
+    bare([0, 0, 0, 0, 20, 0, 100, 20, 0, 100, 48, 0]),
+    content="M0,0C0,12.4 19,20 50,20C81,20 100,30.64 100,48 0 0 0 -1 100 48 0 1",
+  )
+  inspect(
+    bare([0, 0, 0, 0, 20, 0, 100, 20, 0, 100, 48, 0], curve="basis"),
+    content="M0,0C0,12.4 19,20 50,20C81,20 100,30.64 100,48 0 0 0 -1 100 48 0 1",
+  )
+  inspect(
+    bare([0, 0, 0, 0, 40, 0, 100, 40, 0, 100, 60, 0, 160, 60, 1, 160, 100, 0]),
+    content="M0,0C0,24.8 19,40 50,40C81,40 100,43.8 100,50C100,56.2 111.4,60 130,60C148.6,60 160,75.2 160,100 0 0 0 -1 160 100 0 1",
+  )
+}
+
+///|
+test "route_path leaves the corners of a linear route sharp" {
+  inspect(
+    bare([0, 0, 0, 0, 20, 0, 100, 20, 0, 100, 48, 0], curve="linear"),
+    content="M0,0L0,20L100,20L100,48 0 0 0 -1 100 48 0 1",
+  )
+  inspect(
+    describe_path(
+      @svg.route_path([0, 0, 0, 30, 40, 0, 30, 60, 0], Some("linear"), 0, 7),
+    ),
+    content="M0,0L30,40L30,53 0 0 -0.6 -0.8 30 60 0 1",
+  )
+  inspect(
+    describe_path(@svg.route_path([0, 0, 0, 30, 40, 0], Some("linear"), 0, 7)),
+    content="M0,0L25.8,34.4 0 0 -0.6 -0.8 30 40 0.6 0.8",
+  )
+}
+
+///|
+test "route_path drops a point part of the way along one straight run, but not where the run turns back" {
+  inspect(
+    bare([0, 0, 0, 0, 20, 0, 0, 48, 0]),
+    content="M0,0L0,48 0 0 0 -1 0 48 0 1",
+  )
+  inspect(
+    bare([0, 0, 0, 0, 48, 0, 0, 20, 0]),
+    content="M0,0L0,48L0,20 0 0 0 -1 0 20 0 -1",
+  )
+  inspect(
+    bare([0, 0, 0, 30, 40, 0, 30, 60, 0]),
+    content="M0,0C0,20 30,20 30,40L30,60 0 0 0 -1 30 60 0 1",
+  )
+}
+
+///|
 /// The path of a curve with the given trims and reaches.
 fn marked(
   route : Array[Double],
@@ -112,6 +162,30 @@ test "route_path turns as far from a node whatever marker its end carries" {
   inspect(
     marked([0, 0, 1, 100, 40, 1], 8, 4, start_reach=20, end_reach=10),
     content="M8,0L20,0C55,0 55,40 90,40L96,40 0 0 -1 0 100 40 1 0",
+  )
+}
+
+///|
+test "route_path runs straight into a marker after a corner" {
+  inspect(
+    marked([0, 0, 0, 0, 20, 0, 100, 20, 0, 100, 60, 0], 0, 7),
+    content="M0,0C0,12.4 19,20 50,20C81,20 100,30.26 100,47L100,53 0 0 0 -1 100 60 0 1",
+  )
+  inspect(
+    marked([0, 0, 0, 0, 20, 0, 100, 20, 0, 100, 60, 0], 7, 7),
+    content="M0,7L0,10.25C0,16.3 19,20 50,20C81,20 100,30.26 100,47L100,53 0 0 0 -1 100 60 0 1",
+  )
+  inspect(
+    marked(
+      [0, 0, 0, 0, 40, 0, 100, 40, 0, 100, 60, 0, 160, 60, 1, 160, 100, 0],
+      0,
+      7,
+    ),
+    content="M0,0C0,24.8 19,40 50,40C81,40 100,43.8 100,50C100,56.2 111.4,60 130,60C148.6,60 160,70.26 160,87L160,93 0 0 0 -1 160 100 0 1",
+  )
+  inspect(
+    marked([0, 0, 1, 40, 0, 1, 40, 80, 0, 120, 80, 1], 4, 8),
+    content="M4,0L10,0C28.6,0 40,15.2 40,40C40,64.8 65.08,80 106,80L112,80 0 0 -1 0 120 80 1 0",
   )
 }
 
