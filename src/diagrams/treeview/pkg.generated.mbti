@@ -3,6 +3,7 @@ package "Omochice/pele/diagrams/treeview"
 
 import {
   "Omochice/pele/errors",
+  "Omochice/pele/types",
 }
 
 // Values
@@ -29,6 +30,10 @@ pub fn preprocess_box_drawing(String) -> BoxDrawing raise @errors.PeleError
 pub fn read_treeview(String) -> TreeViewAst raise @errors.PeleError
 
 pub fn remap_error_lines(String, Map[Int32, Int32]) -> String
+
+pub fn render_treeview(TreeViewModel, Map[String, Json], @types.RenderOptions) -> @types.Rendered
+
+pub let treeview : @types.Diagram
 
 // Errors
 
