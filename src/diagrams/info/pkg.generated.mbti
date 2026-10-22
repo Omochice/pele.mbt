@@ -1,0 +1,22 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Omochice/pele/diagrams/info"
+
+import {
+  "Omochice/pele/errors",
+}
+
+// Values
+pub fn parse_info(String) -> InfoAst raise @errors.PeleError
+
+// Errors
+
+// Types and methods
+pub(all) struct InfoAst {
+  title : String?
+  acc_title : String?
+  acc_descr : String?
+}
+
+// Type aliases
+
+// Traits
