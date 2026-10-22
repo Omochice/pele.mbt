@@ -24,7 +24,8 @@ pub(all) struct FlowText {
 }
 
 ///|
-/// A node of the flowchart. `kind` is pele's `type`: the shape the syntax or node data gave it.
+/// A node of the flowchart.
+/// `kind` is pele's `type`: the shape the syntax or node data gave it.
 pub(all) struct FlowNode {
   id : String
   mut text : String?
@@ -46,7 +47,8 @@ pub(all) struct FlowNode {
 }
 
 ///|
-/// An edge of the flowchart. `kind` is pele's `type`, such as `arrow_point`.
+/// An edge of the flowchart.
+/// `kind` is pele's `type`, such as `arrow_point`.
 /// Node data can set `interpolate`, `animate` and `animation` to any YAML value, as in pele.
 pub(all) struct FlowEdge {
   start : String

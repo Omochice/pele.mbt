@@ -1,7 +1,5 @@
-// Writes src/diagrams/flowchart/golden_cases_test.mbt: for every flowchart golden source, what
-// pele's parse() makes of it under the default profile. A failure is written as its code, type
-// and message, which must match the golden's; a success as a hash of the model's dump, which
-// src/diagrams/flowchart/dump_test.mbt writes in the same form as `dump` below.
+// Writes src/diagrams/flowchart/golden_cases_test.mbt: for every flowchart golden source, what pele's parse() makes of it under the default profile.
+// A failure is written as its code, type and message, which must match the golden's; a success as a hash of the model's dump, which src/diagrams/flowchart/dump_test.mbt writes in the same form as `dump` below.
 // Sources that pele detects as another diagram type are left out.
 //
 // Usage: [PELE_ROOT=<dir>] node scripts/gen-flowchart-golden-test.mjs [--dumps <dir>]

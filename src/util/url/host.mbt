@@ -1,8 +1,6 @@
 // The host of an http URL as the WHATWG host parser writes it.
-// UTS #46 mapping is reduced to what a diagram's link plausibly holds: ASCII and the common
-// Latin, Greek and Cyrillic capitals are lowercased, fullwidth forms and ideographic full stops are
-// folded, and a soft hyphen is dropped. Other mappings and NFC are not applied, so a host that relies
-// on them is written differently from a browser.
+// UTS #46 mapping is reduced to what a diagram's link plausibly holds: ASCII and the common Latin, Greek and Cyrillic capitals are lowercased, fullwidth forms and ideographic full stops are folded, and a soft hyphen is dropped.
+// Other mappings and NFC are not applied, so a host that relies on them is written differently from a browser.
 
 ///|
 /// The bytes of `text` in UTF-8 with each `%XY` escape decoded, as the URL parser's percent-decode does.

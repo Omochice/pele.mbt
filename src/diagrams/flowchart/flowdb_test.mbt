@@ -1,5 +1,4 @@
-// Ported from the database-level specs of Mermaid's flowDb.spec.ts, as pele v1.8.0 runs them in
-// tests/compat/flowchart; the specs that parse text are covered through the golden sources.
+// Ported from the database-level specs of Mermaid's flowDb.spec.ts, as pele v1.8.0 runs them in tests/compat/flowchart; the specs that parse text are covered through the golden sources.
 
 ///|
 fn subgraph_of(nodes : Array[String]) -> @flowchart.FlowSubgraph {

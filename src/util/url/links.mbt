@@ -38,8 +38,7 @@ fn is_slash(c : Int32) -> Bool {
 }
 
 ///|
-/// Stricter than Mermaid, which lets any scheme but three through: a diagram in a shared note
-/// could otherwise open a local file, a network share, or another application.
+/// Stricter than Mermaid, which lets any scheme but three through: a diagram in a shared note could otherwise open a local file, a network share, or another application.
 fn allow(url : String, schemes : Array[String]) -> String? {
   if is_slash(@util.code_at(url, 0)) && is_slash(@util.code_at(url, 1)) {
     return None

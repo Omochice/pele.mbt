@@ -394,7 +394,8 @@ fn Parser::skip_spaces(self : Parser) -> Unit {
 }
 
 ///|
-/// One node or an `&` group of them. Node data after the last one is left in `pending_data`.
+/// One node or an `&` group of them.
+/// Node data after the last one is left in `pending_data`.
 fn Parser::node(self : Parser) -> Array[String] raise @errors.PeleError {
   let ids = [self.styled_vertex()]
   self.pending_data = None

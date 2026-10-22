@@ -1,6 +1,5 @@
 ///|
-/// Reads a flowchart as pele's flowchart diagram does before drawing it: the `flowchart` config section,
-/// the title from front matter, and the host's edge limit apply.
+/// Reads a flowchart as pele's flowchart diagram does before drawing it: the `flowchart` config section, the title from front matter, and the host's edge limit apply.
 pub fn parse_model(
   source : String,
   config : @types.Config,

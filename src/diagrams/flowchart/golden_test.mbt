@@ -15,8 +15,7 @@ fn fnv1a(text : String) -> String {
 }
 
 ///|
-/// What reading the golden source gives through the same steps as `@core.render` up to parsing,
-/// written as the generator writes pele's outcome.
+/// What reading the golden source gives through the same steps as `@core.render` up to parsing, written as the generator writes pele's outcome.
 fn golden_outcome(source : String) -> String {
   let model : Ref[@flowchart.FlowDb?] = { val: None, }
   let diagram : @types.Diagram = {

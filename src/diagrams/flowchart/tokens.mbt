@@ -1,5 +1,4 @@
-// Token types, numbered as pele's `const enum T`: the parser indexes tables by them and
-// computes a direction from its offset to DIRECTION_TB.
+// Token types, numbered as pele's `const enum T`: the parser computes a direction from its offset to DIRECTION_TB.
 
 ///|
 const END_OF_INPUT : Int32 = 0

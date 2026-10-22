@@ -24,7 +24,8 @@ pub struct FlowDb {
 }
 
 ///|
-/// An empty model. `max_edges` limits the edges, `inherit_dir` gives subgraphs the chart's direction, and `direction` stands in for a chart without one.
+/// An empty model.
+/// `max_edges` limits the edges, `inherit_dir` gives subgraphs the chart's direction, and `direction` stands in for a chart without one.
 pub fn FlowDb::new(
   max_edges? : Int32,
   inherit_dir~ : Bool = false,
@@ -183,7 +184,8 @@ fn destruct_end_link(raw : String) -> LinkInfo {
 }
 
 ///|
-/// Adds a node or updates one, as each mention of an id does. `metadata` is the text of its `@{ }` node data.
+/// Adds a node or updates one, as each mention of an id does.
+/// `metadata` is the text of its `@{ }` node data.
 /// Node data for a subgraph or an edge id goes to that subgraph or edge instead.
 pub fn FlowDb::add_vertex(
   self : FlowDb,
@@ -420,7 +422,8 @@ pub fn FlowDb::add_single_link(
 }
 
 ///|
-/// Adds an edge from each start to each end. The link's id goes to the edge from the last start to the first end.
+/// Adds an edge from each start to each end.
+/// The link's id goes to the edge from the last start to the first end.
 pub fn FlowDb::add_link(
   self : FlowDb,
   starts : Array[String],
@@ -604,7 +607,8 @@ pub fn FlowDb::set_link(
 }
 
 ///|
-/// Marks the nodes as clickable. Callbacks are never executed, as in Mermaid's strict mode.
+/// Marks the nodes as clickable.
+/// Callbacks are never executed, as in Mermaid's strict mode.
 pub fn FlowDb::set_click_event(self : FlowDb, ids : String) -> Unit {
   self.set_class(ids, "clickable")
 }

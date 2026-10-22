@@ -177,8 +177,7 @@ fn decode_or_keep(uri : String) -> String {
 }
 
 ///|
-/// The first match of `/^.+(:|&colon;)/gim`: from the start of the first line holding a colon
-/// to its last colon, `.` stopping at line terminators.
+/// The first match of `/^.+(:|&colon;)/gim`: from the start of the first line holding a colon to its last colon, `.` stopping at line terminators.
 fn scheme_match(text : String) -> String? {
   let n = text.length()
   let mut start = 0

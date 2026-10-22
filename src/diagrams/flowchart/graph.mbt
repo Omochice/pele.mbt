@@ -25,7 +25,8 @@ pub(all) struct GraphNode {
 }
 
 ///|
-/// An edge as drawn. `kind` is pele's `type`; `curve` is any YAML value node data gave it, as in pele.
+/// An edge as drawn.
+/// `kind` is pele's `type`; `curve` is any YAML value node data gave it, as in pele.
 pub(all) struct GraphEdge {
   id : String
   is_user_defined_id : Bool
