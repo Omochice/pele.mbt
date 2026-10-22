@@ -602,3 +602,36 @@ test "a side too short for its corners leaves no spread" {
   inspect(@svg.shape_span("odd", 10, 40, false), content="0")
   inspect(@svg.shape_span("hex", 20, 10, false), content="3")
 }
+
+///|
+/// A 30 by 20 layout box centered on (50, 40).
+fn layout_box(is_group~ : Bool = false) -> @layout.CNode {
+  let node = @layout.cnode(30, 20)
+  node.x = 50
+  node.y = 40
+  node.is_group = is_group
+  node
+}
+
+///|
+test "a route end lies on the side of the box it touches" {
+  let node = layout_box()
+  inspect(@svg.end_side([50, 30], 0, node), content="0")
+  inspect(@svg.end_side([65, 40], 0, node), content="1")
+  inspect(@svg.end_side([50, 50], 0, node), content="2")
+  inspect(@svg.end_side([35, 40], 0, node), content="3")
+  inspect(@svg.end_side([0, 0, 64.6, 45], 2, node), content="1")
+}
+
+///|
+test "a route end at a corner counts as on the top or bottom" {
+  inspect(@svg.end_side([35, 30], 0, layout_box()), content="0")
+}
+
+///|
+test "a route end off every side lies on none" {
+  let node = layout_box()
+  inspect(@svg.end_side([50, 40], 0, node), content="-1")
+  inspect(@svg.end_side([50, 30.4], 0, node), content="0")
+  inspect(@svg.end_side([50, 30.5], 0, node), content="-1")
+}

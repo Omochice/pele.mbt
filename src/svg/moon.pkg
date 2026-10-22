@@ -6,6 +6,7 @@ import {
 }
 
 import {
+  "Omochice/pele/layout",
   "Omochice/pele/text",
   "moonbitlang/core/double",
 } for "test"
