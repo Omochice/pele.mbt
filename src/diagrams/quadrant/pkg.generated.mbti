@@ -6,6 +6,8 @@ import {
 }
 
 // Values
+pub fn parse_quadrant(String, QuadrantDb) -> Unit raise @errors.PeleError
+
 pub fn parse_styles(Array[String]) -> PointStyle raise @errors.PeleError
 
 // Errors
