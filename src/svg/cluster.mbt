@@ -80,3 +80,39 @@ pub fn title_crossed(
   }
   false
 }
+
+///|
+/// A title that an edge runs through, to be drawn over the edges: the text, on an outline in the color of the cluster behind it, so that only the line is seen to stop short of the letters.
+/// `nodes` and `index` find how many clusters deep the title is, each of which tints the background.
+pub fn struck_title(
+  label : @text.Label,
+  x : Double,
+  y : Double,
+  attrs : String,
+  id : String,
+  nodes : Array[@layout.CNode],
+  index : Int32,
+) -> String {
+  let mut depth = 1
+  let mut p = nodes[index].parent
+  while p >= 0 && depth < 8 {
+    depth += 1
+    p = nodes[p].parent
+  }
+  // Each cluster is half its fill over what is behind it.
+  let mut behind = 1.0
+  for _ in 0..<depth {
+    behind *= 0.5
+  }
+  let fill = "color-mix(in srgb,var(--_a) \{num(100 * (1 - behind))}%,var(--_bg))"
+  // pele writes the id unescaped here, unlike on edge labels.
+  "<g class=\"pele-cluster-title\" data-id=\"\{id}\">" +
+  label_svg(
+    label,
+    x,
+    y,
+    " fill=\"none\" stroke=\"\{fill}\" stroke-width=\"5\" stroke-linejoin=\"round\"",
+  ) +
+  label_svg(label, x, y, attrs) +
+  "</g>"
+}
