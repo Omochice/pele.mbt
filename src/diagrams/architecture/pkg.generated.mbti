@@ -8,6 +8,8 @@ import {
 // Values
 pub fn parse_architecture(String) -> ArchitectureAst raise @errors.PeleError
 
+pub fn place_on_grid(Array[ArchNode], Array[ArchGroup], Array[ArchEdge], Array[ArchLayoutHint]) -> Grid
+
 pub fn populate(ArchitectureAst, ArchitectureDb) -> Unit raise @errors.PeleError
 
 // Errors
@@ -89,6 +91,18 @@ pub(all) struct EdgeAst {
   rhs_dir : Side
   rhs_id : String
   rhs_group : Bool
+}
+
+pub(all) struct Grid {
+  col : Array[Int32]
+  row : Array[Int32]
+  group_col : Array[Int32]
+  group_row : Array[Int32]
+  group_cols : Array[Int32]
+  group_rows : Array[Int32]
+  group_parent : Array[Int32]
+  group_empty : Array[Bool]
+  node_parent : Array[Int32]
 }
 
 pub(all) struct GroupAst {
