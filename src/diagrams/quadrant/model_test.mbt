@@ -122,7 +122,7 @@ test "a radius is an unsigned whole number" {
 
 ///|
 test "a radius of hundreds of digits is read as infinity" {
-  inspect(styles(["radius: " + "9".repeat(400)]), content="{radius=inf}")
+  inspect(styles(["radius: " + "9".repeat(400)]), content="{radius=Infinity}")
 }
 
 ///|
@@ -186,7 +186,7 @@ test "a point reads its coordinates as JavaScript numbers do" {
   db.add_point({ text: "C", markdown: false, }, "", "0,5", "055", [])
   inspect(
     dump(db),
-    content="title=- accTitle=- accDescr=- quadrants=-,-,-,- x=-|- y=-|- points=\"A\"::0.25:1:{},\"B\":k:5:0:{},\"C\"::NaN:55:{} classes=",
+    content="title=- accTitle=- accDescr=- quadrants=-,-,-,- x=-|- y=-|- points=\"A\":\"\":0.25:1:{},\"B\":\"k\":5:0:{},\"C\":\"\":NaN:55:{} classes=",
   )
 }
 
@@ -198,7 +198,7 @@ test "a point keeps the styles it was given" {
   ])
   inspect(
     dump(db),
-    content="title=- accTitle=- accDescr=- quadrants=-,-,-,- x=-|- y=-|- points=\"A\"::0.1:0.2:{radius=3 color=#ABC} classes=",
+    content="title=- accTitle=- accDescr=- quadrants=-,-,-,- x=-|- y=-|- points=\"A\":\"\":0.1:0.2:{radius=3 color=#ABC} classes=",
   )
 }
 

@@ -58,12 +58,122 @@ pub fn QuadrantDb::new(title : String?) -> QuadrantDb {
 }
 
 ///|
+fn invalid(style : String, value : String, kind : String) -> @errors.PeleError {
+  @errors.pele_error(
+    "value for \{style} \{value} is invalid, please use a valid \{kind}",
+    code=Semantic,
+    kind="quadrantChart",
+  )
+}
+
+///|
+/// Does what `/^\d+$/` does.
+fn is_number(value : String) -> Bool {
+  if value == "" {
+    return false
+  }
+  for i in 0..<value.length() {
+    if !@util.is_digit(@util.code_at(value, i)) {
+      return false
+    }
+  }
+  true
+}
+
+///|
+/// Does what `/^#?([\dA-Fa-f]{6}|[\dA-Fa-f]{3})$/` does.
+fn is_hex_code(value : String) -> Bool {
+  let from = if @util.code_at(value, 0) == '#'.to_int() { 1 } else { 0 }
+  let digits = value.length() - from
+  if digits != 3 && digits != 6 {
+    return false
+  }
+  for i in from..<value.length() {
+    if !@util.is_hex(@util.code_at(value, i)) {
+      return false
+    }
+  }
+  true
+}
+
+///|
+/// Does what `/^\d+px$/` does.
+fn is_pixels(value : String) -> Bool {
+  value.length() > 2 &&
+  value.has_suffix("px") &&
+  is_number(@util.slice(value, 0, end=value.length() - 2))
+}
+
+///|
+/// The first two parts of Mermaid's `style.trim().split(/\s*:\s*/)`, found in one pass.
+/// Without a colon the value is the text of `undefined`, as it is when Mermaid goes on with the missing part.
+fn key_value(style : String) -> (String, String) {
+  let trimmed = @util.trim(style)
+  let colon = @util.index_of(trimmed, ":")
+  if colon == -1 {
+    return (trimmed, "undefined")
+  }
+  let rest = @util.trim_start(@util.slice(trimmed, colon + 1))
+  let next = @util.index_of(rest, ":")
+  let value = if next == -1 {
+    rest
+  } else {
+    @util.trim_end(@util.slice(rest, 0, end=next))
+  }
+  (@util.trim_end(@util.slice(trimmed, 0, end=colon)), value)
+}
+
+///|
 /// Reads the styles of a point or a class.
 /// Raises a semantic `PeleError` with Mermaid's wording for a style it does not support or a value it rejects.
 pub fn parse_styles(
   styles : Array[String],
 ) -> PointStyle raise @errors.PeleError {
-  raise @errors.pele_error("not implemented \{styles.length()}")
+  let mut radius = None
+  let mut color = None
+  let mut stroke_color = None
+  let mut stroke_width = None
+  for style in styles {
+    let (key, value) = key_value(style)
+    match key {
+      "radius" => {
+        if !is_number(value) {
+          raise invalid(key, value, "number")
+        }
+        radius = Some(@util.parse_float(value))
+      }
+      "color" => {
+        if !is_hex_code(value) {
+          raise invalid(key, value, "hex code")
+        }
+        color = Some(value)
+      }
+      "stroke-color" => {
+        if !is_hex_code(value) {
+          raise invalid(key, value, "hex code")
+        }
+        stroke_color = Some(value)
+      }
+      "stroke-width" => {
+        if !is_pixels(value) {
+          raise invalid(key, value, "number of pixels (eg. 10px)")
+        }
+        stroke_width = Some(value)
+      }
+      _ =>
+        raise @errors.pele_error(
+          "style named \{key} is not supported.",
+          code=Semantic,
+          kind="quadrantChart",
+        )
+    }
+  }
+  { radius, color, stroke_color, stroke_width, }
+}
+
+///|
+fn trimmed(label : QuadrantText) -> QuadrantText {
+  { text: @util.trim(label.text), markdown: label.markdown, }
 }
 
 ///|
@@ -73,7 +183,7 @@ pub fn QuadrantDb::set_quadrant_text(
   number : Int32,
   label : QuadrantText,
 ) -> Unit {
-  ignore((self, number, label))
+  self.quadrants[number - 1] = Some(trimmed(label))
 }
 
 ///|
@@ -81,7 +191,7 @@ pub fn QuadrantDb::set_x_axis_left_text(
   self : QuadrantDb,
   label : QuadrantText,
 ) -> Unit {
-  ignore((self, label))
+  self.x_axis_left = Some(trimmed(label))
 }
 
 ///|
@@ -89,7 +199,7 @@ pub fn QuadrantDb::set_x_axis_right_text(
   self : QuadrantDb,
   label : QuadrantText,
 ) -> Unit {
-  ignore((self, label))
+  self.x_axis_right = Some(trimmed(label))
 }
 
 ///|
@@ -97,7 +207,7 @@ pub fn QuadrantDb::set_y_axis_bottom_text(
   self : QuadrantDb,
   label : QuadrantText,
 ) -> Unit {
-  ignore((self, label))
+  self.y_axis_bottom = Some(trimmed(label))
 }
 
 ///|
@@ -105,7 +215,7 @@ pub fn QuadrantDb::set_y_axis_top_text(
   self : QuadrantDb,
   label : QuadrantText,
 ) -> Unit {
-  ignore((self, label))
+  self.y_axis_top = Some(trimmed(label))
 }
 
 ///|
@@ -119,8 +229,13 @@ pub fn QuadrantDb::add_point(
   y : String,
   styles : Array[String],
 ) -> Unit raise @errors.PeleError {
-  ignore((self, label, class_name, x, y))
-  ignore(parse_styles(styles))
+  self.points.push({
+    x: @util.to_number(x),
+    y: @util.to_number(y),
+    text: trimmed(label),
+    class_name,
+    style: parse_styles(styles),
+  })
 }
 
 ///|
@@ -130,18 +245,37 @@ pub fn QuadrantDb::add_class(
   class_name : String,
   styles : Array[String],
 ) -> Unit raise @errors.PeleError {
-  ignore((self, class_name))
-  ignore(parse_styles(styles))
+  self.classes[class_name] = parse_styles(styles)
 }
 
 ///|
 pub fn QuadrantDb::set_diagram_title(self : QuadrantDb, text : String) -> Unit {
-  ignore((self, text))
+  self.title = Some(text)
 }
 
 ///|
 pub fn QuadrantDb::set_acc_title(self : QuadrantDb, text : String) -> Unit {
-  ignore((self, text))
+  self.acc_title = Some(@util.trim_start(text))
+}
+
+///|
+/// Does what `text.replace(/\n\s+/g, '\n')` does.
+fn join_indented_lines(text : String) -> String {
+  let out = StringBuilder()
+  let mut i = 0
+  while i < text.length() {
+    @util.write_range(out, text, i, i + 1)
+    if @util.code_at(text, i) == '\n'.to_int() &&
+      @util.is_space(@util.code_at(text, i + 1)) {
+      i += 1
+      while @util.is_space(@util.code_at(text, i)) {
+        i += 1
+      }
+    } else {
+      i += 1
+    }
+  }
+  out.to_string()
 }
 
 ///|
@@ -149,5 +283,5 @@ pub fn QuadrantDb::set_acc_description(
   self : QuadrantDb,
   text : String,
 ) -> Unit {
-  ignore((self, text))
+  self.acc_descr = Some(join_indented_lines(text))
 }
