@@ -20,7 +20,13 @@ pub fn is_space(Int32) -> Bool
 
 pub fn is_word(Int32) -> Bool
 
+pub fn js_string(Json) -> String
+
+pub fn js_truthy(Json) -> Bool
+
 pub fn last_index_of(String, String, from? : Int32) -> Int32
+
+pub fn normalize_line_breaks(String) -> String
 
 pub fn parse_yaml(String) -> Json raise YamlError
 
@@ -35,6 +41,8 @@ pub fn trim(String) -> String
 pub fn trim_end(String) -> String
 
 pub fn trim_start(String) -> String
+
+pub fn write_range(StringBuilder, String, Int32, Int32) -> Unit
 
 // Errors
 pub(all) suberror YamlError {

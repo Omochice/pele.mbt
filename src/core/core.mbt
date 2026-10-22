@@ -16,7 +16,8 @@ pub fn render(
       code=Limit,
     )
   }
-  guard @detect.detect_diagram(source) is Some(found) else {
+  let pre = @preprocess.preprocess(source)
+  guard @detect.detect_diagram(pre.text) is Some(found) else {
     raise @errors.pele_error(
       "No diagram type detected for the given text.",
       code=UnsupportedDiagram,

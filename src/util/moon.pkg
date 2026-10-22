@@ -1,5 +1,7 @@
 import {
   "moonbitlang/core/cmp",
+  "moonbitlang/core/double",
+  "moonbitlang/core/string",
 }
 
 import {

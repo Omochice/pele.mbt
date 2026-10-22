@@ -87,3 +87,36 @@ pub fn trim_end(text : String) -> String {
 pub fn trim(text : String) -> String {
   trim_start(trim_end(text))
 }
+
+///|
+/// Turns `\r\n` and lone `\r` into `\n`.
+pub fn normalize_line_breaks(text : String) -> String {
+  let out = StringBuilder()
+  let mut i = 0
+  while i < text.length() {
+    let c = code_at(text, i)
+    if c == '\r'.to_int() {
+      out.write_char('\n')
+      if code_at(text, i + 1) == '\n'.to_int() {
+        i += 1
+      }
+    } else {
+      write_range(out, text, i, i + 1)
+    }
+    i += 1
+  }
+  out.to_string()
+}
+
+///|
+/// Appends the code units of `text` from `from` to `to`.
+pub fn write_range(
+  out : StringBuilder,
+  text : String,
+  from : Int32,
+  to : Int32,
+) -> Unit {
+  if from < to {
+    out.write_view(text.view(start_offset=from, end_offset=to))
+  }
+}
