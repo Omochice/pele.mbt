@@ -7,7 +7,7 @@ fn drawn(width : Double) -> @types.Rendered {
 fn widths(max_width : Double?) -> String {
   let calls = []
   let options = { ..@types.RenderOptions::default(), max_width, }
-  tighten(options, tight => {
+  @common.tighten(options, tight => {
     calls.push(tight)
     drawn(if tight { 80 } else { 100 })
   })
@@ -33,8 +33,12 @@ test "a diagram that does not fit is drawn tightly as well" {
 ///|
 test "the narrower drawing is kept" {
   let options = { ..@types.RenderOptions::default(), max_width: Some(50), }
-  let kept = tighten(options, tight => drawn(if tight { 80 } else { 100 }))
+  let kept = @common.tighten(options, tight => {
+    drawn(if tight { 80 } else { 100 })
+  })
   inspect(kept.width, content="80")
-  let kept = tighten(options, tight => drawn(if tight { 120 } else { 100 }))
+  let kept = @common.tighten(options, tight => {
+    drawn(if tight { 120 } else { 100 })
+  })
   inspect(kept.width, content="100")
 }
