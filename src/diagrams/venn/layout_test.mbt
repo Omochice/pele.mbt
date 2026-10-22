@@ -18,7 +18,7 @@ fn spot_text(spot : @venn.Spot) -> String {
 
 ///|
 fn subset(sets : Array[String], size : Double) -> @venn.VennSubset {
-  { sets, size, label: Some("") }
+  { sets, size, label: Some(""), }
 }
 
 ///|
@@ -50,7 +50,11 @@ test "two circles are as far apart as their overlap asks" {
 ///|
 test "three circles are the corners of a triangle" {
   inspect(
-    show(layout("set A:20\nset B:14\nset C:9\nunion A,B:4\nunion B,C:2\nunion A,C:3")),
+    show(
+      layout(
+        "set A:20\nset B:14\nset C:9\nunion A,B:4\nunion B,C:2\nunion A,C:3",
+      ),
+    ),
     content="A:0,0,2.5231325220201604 B:2.994693905122728,0,2.111004122822376 C:1.5807907856008478,2.308099070405884,1.692568750643269",
   )
   inspect(
@@ -85,7 +89,9 @@ test "more circles are relaxed from a ring" {
 
 ///|
 test "sizes that make no sense still give circles" {
-  let source = "set A:0\nset B:-1000000000\nset C:\{\"9\".repeat(400)}\nset D:.\{\"0\".repeat(300)}1\nunion A,B:\{\"9\".repeat(400)}\nunion C,D:-5\nunion A,B,C,D[\"x\"]:0\n"
+  let nines = "9".repeat(400)
+  let zeros = "0".repeat(300)
+  let source = "set A:0\nset B:-1000000000\nset C:\{nines}\nset D:.\{zeros}1\nunion A,B:\{nines}\nunion C,D:-5\nunion A,B,C,D[\"x\"]:0\n"
   inspect(
     show(layout(source)),
     content="A:-3.017083560932125e-8,6.592447853437214e-8,5.352372348458314e-152 B:-7.610121191905102e-8,-5.0775765479253014e-8,5.352372348458314e-152 C:5.888258664030281e-8,-7.00172393349235e-8,5.352372348458314e-152 D:4.73894608740335e-8,5.48685263908538e-8,1.7841241161527714e-151",
@@ -114,18 +120,20 @@ test "the distance that gives two circles a wanted overlap" {
 ///|
 test "the roomiest point of a region" {
   let circles : Array[@venn.Circle] = [
-    { id: "a", x: 0, y: 0, r: 10 },
-    { id: "b", x: 12, y: 0, r: 10 },
+    { id: "a", x: 0, y: 0, r: 10, },
+    { id: "b", x: 12, y: 0, r: 10, },
   ]
   inspect(spot_text(@venn.find_spot(circles, [0], [])), content="0,0,10")
   inspect(spot_text(@venn.find_spot(circles, [0], [1])), content="-4,0,6")
   inspect(spot_text(@venn.find_spot(circles, [0, 1], [])), content="6,0,4")
   let apart : Array[@venn.Circle] = [
     circles[0],
-    { id: "c", x: 30, y: 0, r: 10 },
+    { id: "c", x: 30, y: 0, r: 10, },
   ]
   inspect(spot_text(@venn.find_spot(apart, [0, 1], [])), content="15,0,-5")
-  let three = layout("set A:20\nset B:14\nset C:9\nunion A,B:4\nunion B,C:2\nunion A,C:3")
+  let three = layout(
+    "set A:20\nset B:14\nset C:9\nunion A,B:4\nunion B,C:2\nunion A,C:3",
+  )
   inspect(
     spot_text(@venn.find_spot(three, [0], [1, 2])),
     content="-0.8022506724221594,-0.21673127297517628,1.6921209828812165",
@@ -142,21 +150,26 @@ test "the roomiest point of a region" {
 
 ///|
 test "the outline of what circles share" {
-  let a : @venn.Circle = { id: "a", x: 0, y: 0, r: 5 }
+  let a : @venn.Circle = { id: "a", x: 0, y: 0, r: 5, }
   inspect(
     @venn.region_path([a], rounded),
     content="M-5,0A5,5 0 1 1 5,0A5,5 0 1 1 -5,0Z",
   )
   inspect(
-    @venn.region_path([a, { id: "b", x: 6, y: 0, r: 5 }], rounded),
+    @venn.region_path([a, { id: "b", x: 6, y: 0, r: 5, }], rounded),
     content="M3,-4A5,5 0 0 1 3,4A5,5 0 0 1 3,-4Z",
   )
-  inspect(@venn.region_path([a, { id: "b", x: 20, y: 0, r: 5 }], rounded), content="")
   inspect(
-    @venn.region_path([a, { id: "b", x: 1, y: 0, r: 2 }], rounded),
+    @venn.region_path([a, { id: "b", x: 20, y: 0, r: 5, }], rounded),
+    content="",
+  )
+  inspect(
+    @venn.region_path([a, { id: "b", x: 1, y: 0, r: 2, }], rounded),
     content="M-1,0A2,2 0 1 1 3,0A2,2 0 1 1 -1,0Z",
   )
-  let three = layout("set A:20\nset B:14\nset C:9\nunion A,B:4\nunion B,C:2\nunion A,C:3")
+  let three = layout(
+    "set A:20\nset B:14\nset C:9\nunion A,B:4\nunion B,C:2\nunion A,C:3",
+  )
   inspect(
     @venn.region_path([three[0], three[1]], rounded),
     content="M1.82,-1.75A2.52,2.52 0 0 1 1.82,1.75A2.11,2.11 0 0 1 1.82,-1.75Z",

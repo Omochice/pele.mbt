@@ -7,13 +7,38 @@ import {
 }
 
 // Values
+pub fn distance_for_overlap(Double, Double, Double) -> Double
+
+pub fn ensure_pairwise_subsets(Array[VennSubset]) -> Array[VennSubset]
+
+pub fn find_spot(Array[Circle], Array[Int32], Array[Int32]) -> Spot
+
+pub fn layout_circles(Array[VennSubset]) -> Array[Circle]
+
+pub fn lens_area(Double, Double, Double) -> Double
+
 pub fn normalize_text(String) -> String
 
 pub fn parse_venn(String) -> VennDb raise @errors.PeleError
 
+pub fn region_path(Array[Circle], (Double) -> String) -> String
+
 // Errors
 
 // Types and methods
+pub(all) struct Circle {
+  id : String
+  mut x : Double
+  mut y : Double
+  r : Double
+}
+
+pub(all) struct Spot {
+  x : Double
+  y : Double
+  margin : Double
+}
+
 pub(all) struct VennDb {
   mut title : String?
   subsets : Array[VennSubset]
