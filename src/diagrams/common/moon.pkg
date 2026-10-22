@@ -1,5 +1,6 @@
 import {
   "Omochice/pele/errors",
+  "Omochice/pele/text",
   "Omochice/pele/types",
   "Omochice/pele/util",
 }

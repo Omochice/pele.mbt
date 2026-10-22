@@ -3,6 +3,7 @@ package "Omochice/pele/diagrams/common"
 
 import {
   "Omochice/pele/errors",
+  "Omochice/pele/text",
   "Omochice/pele/types",
 }
 
@@ -22,6 +23,8 @@ pub fn acc_title_value(String) -> String
 pub fn accessibility(Tokens, Int32, Int32) -> Int32
 
 pub let directive : TokenType
+
+pub fn fit_text(String, Double, Double, Double, @text.TextMeasurer, style? : Int32) -> Fitted?
 
 pub fn fit_width(@types.RenderOptions, Double, Double, (Double, Bool) -> @types.Rendered) -> @types.Rendered
 
@@ -68,6 +71,12 @@ pub let yaml : TokenType
 // Errors
 
 // Types and methods
+pub(all) struct Fitted {
+  text : String
+  size : Double
+  width : Double
+}
+
 pub(all) struct TokenReader {
   tokens : Tokens
   types : ArrayView[TokenType]
