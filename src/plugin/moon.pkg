@@ -10,6 +10,7 @@ import {
   "Omochice/pele/diagrams/radar",
   "Omochice/pele/diagrams/railroad",
   "Omochice/pele/diagrams/sankey",
+  "Omochice/pele/diagrams/timeline",
   "Omochice/pele/diagrams/treemap",
   "Omochice/pele/diagrams/venn",
   "Omochice/pele/errors",
