@@ -508,7 +508,7 @@ pub fn region_path(
     }
   })
   let sorted = ordered.map(entry => entry.2)
-  let d = StringBuilder::new()
+  let d = StringBuilder()
   for i in 0..<sorted.length() {
     let from = sorted[i]
     let to = sorted[(i + 1) % sorted.length()]
