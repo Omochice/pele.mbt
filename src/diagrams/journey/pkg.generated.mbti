@@ -1,0 +1,34 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Omochice/pele/diagrams/journey"
+
+// Values
+pub fn journey_actors(Array[JourneyTask]) -> Array[String]
+
+// Errors
+
+// Types and methods
+pub(all) struct JourneyDb {
+  mut title : String?
+  mut acc_title : String?
+  mut acc_descr : String?
+  sections : Array[String]
+  tasks : Array[JourneyTask]
+  mut current_section : String
+}
+pub fn JourneyDb::add_section(Self, String) -> Unit
+pub fn JourneyDb::add_task(Self, String, String) -> Unit
+pub fn JourneyDb::new(String?) -> Self
+pub fn JourneyDb::set_acc_description(Self, String) -> Unit
+pub fn JourneyDb::set_acc_title(Self, String) -> Unit
+pub fn JourneyDb::set_diagram_title(Self, String) -> Unit
+
+pub(all) struct JourneyTask {
+  task : String
+  score : Double
+  people : Array[String]
+  section : String
+}
+
+// Type aliases
+
+// Traits
