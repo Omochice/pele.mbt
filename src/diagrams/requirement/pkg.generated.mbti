@@ -1,0 +1,73 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Omochice/pele/diagrams/requirement"
+
+import {
+  "Omochice/pele/errors",
+}
+
+// Values
+
+// Errors
+
+// Types and methods
+pub(all) struct Relation {
+  kind : String
+  src : String
+  dst : String
+}
+
+pub(all) struct Requirement {
+  name : String
+  kind : String
+  requirement_id : String
+  text : String
+  risk : String
+  verify_method : String
+  css_styles : Array[String]
+  classes : Array[String]
+}
+
+pub(all) struct RequirementClass {
+  id : String
+  styles : Array[String]
+  text_styles : Array[String]
+}
+
+pub(all) struct RequirementDb {
+  mut direction : String
+  requirements : Map[String, Requirement]
+  elements : Map[String, RequirementElement]
+  relations : Array[Relation]
+  classes : Map[String, RequirementClass]
+  mut title : String?
+  mut acc_title : String?
+  mut acc_descr : String?
+}
+pub fn RequirementDb::add_element(Self, String) -> Unit
+pub fn RequirementDb::add_relationship(Self, String, String, String) -> Unit
+pub fn RequirementDb::add_requirement(Self, String, String) -> Unit
+pub fn RequirementDb::define_class(Self, Array[String], Array[String]) -> Unit raise @errors.PeleError
+pub fn RequirementDb::new() -> Self
+pub fn RequirementDb::set_acc_description(Self, String) -> Unit
+pub fn RequirementDb::set_acc_title(Self, String) -> Unit
+pub fn RequirementDb::set_class(Self, Array[String], Array[String]) -> Unit raise @errors.PeleError
+pub fn RequirementDb::set_css_style(Self, Array[String], Array[String]) -> Unit raise @errors.PeleError
+pub fn RequirementDb::set_direction(Self, String) -> Unit
+pub fn RequirementDb::set_new_element_doc_ref(Self, String) -> Unit
+pub fn RequirementDb::set_new_element_type(Self, String) -> Unit
+pub fn RequirementDb::set_new_req_id(Self, String) -> Unit
+pub fn RequirementDb::set_new_req_risk(Self, String) -> Unit
+pub fn RequirementDb::set_new_req_text(Self, String) -> Unit
+pub fn RequirementDb::set_new_req_verify_method(Self, String) -> Unit
+
+pub(all) struct RequirementElement {
+  name : String
+  kind : String
+  doc_ref : String
+  css_styles : Array[String]
+  classes : Array[String]
+}
+
+// Type aliases
+
+// Traits
