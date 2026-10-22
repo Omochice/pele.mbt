@@ -394,7 +394,7 @@ fn is_option(r : @common.TokenReader) -> Bool {
 }
 
 ///|
-fn option(r : @common.TokenReader) -> OptionAst raise @errors.PeleError {
+fn read_option(r : @common.TokenReader) -> OptionAst raise @errors.PeleError {
   let kind = r.kind()
   let name = r.take()
   let value = if kind == SHOW_LEGEND {
@@ -460,12 +460,12 @@ pub fn parse_radar(source : String) -> RadarAst raise @errors.PeleError {
         if !is_option(r) {
           r.fail("an axis, a curve, an option, a title, or a line break")
         }
-        options.push(option(r))
+        options.push(read_option(r))
         while r.accept(COMMA) {
           if !is_option(r) {
             r.fail("an option")
           }
-          options.push(option(r))
+          options.push(read_option(r))
         }
       }
     }

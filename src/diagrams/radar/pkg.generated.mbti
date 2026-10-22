@@ -3,12 +3,19 @@ package "Omochice/pele/diagrams/radar"
 
 import {
   "Omochice/pele/errors",
+  "Omochice/pele/types",
 }
 
 // Values
 pub fn build_radar(RadarAst, String?) -> RadarModel raise @errors.PeleError
 
+pub fn closed_round_curve(Array[Point], Double) -> String
+
 pub fn parse_radar(String) -> RadarAst raise @errors.PeleError
+
+pub let radar : @types.Diagram
+
+pub fn relative_radius(Double, Double, Double, Double) -> Double
 
 // Errors
 
@@ -38,6 +45,11 @@ pub(all) enum OptionValue {
   Flag(Bool)
   Number(Double)
   Name(String)
+}
+
+pub(all) struct Point {
+  x : Double
+  y : Double
 }
 
 pub(all) struct RadarAst {
