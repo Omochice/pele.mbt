@@ -24,6 +24,14 @@ fn insets(shape : String) -> String {
 }
 
 ///|
+/// The spreads along the top and bottom, then along the left and right.
+fn spans(shape : String) -> String {
+  let down = @svg.shape_span(shape, 101.25, 43.2, false)
+  let across = @svg.shape_span(shape, 101.25, 43.2, true)
+  "\{down} \{across}"
+}
+
+///|
 test "rectangular shapes pad the label" {
   inspect(size("rect", 37.5, 19.2), content="73.5 43.2 0")
   inspect(size("rounded", 37.5, 19.2), content="73.5 43.2 0")
@@ -523,4 +531,74 @@ test "a round outline falls away from the box toward the corners" {
 test "an empty round shape has no defined inset" {
   assert_true(@svg.shape_inset("circle", 0, 0, 0).is_nan())
   assert_true(@svg.shape_inset("diam", 0, 0, 0).is_nan())
+}
+
+///|
+test "edges spread along the straight part of a side" {
+  inspect(spans("rect"), content="77.25 19.200000000000003")
+  inspect(spans("rounded"), content="77.25 19.200000000000003")
+  inspect(spans("stadium"), content="58.05 25.92")
+  inspect(spans("fr-rect"), content="77.25 19.200000000000003")
+  inspect(spans("cyl"), content="60.75 7.200000000000003")
+  inspect(spans("lin-cyl"), content="60.75 0")
+  inspect(spans("circle"), content="60.75 25.92")
+  inspect(spans("dbl-circ"), content="60.75 25.92")
+  inspect(spans("ellipse"), content="60.75 25.92")
+  inspect(spans("diam"), content="60.75 25.92")
+  inspect(spans("hex"), content="67.65 21.6")
+  inspect(spans("odd"), content="77.25 0")
+  inspect(spans("lean-r"), content="55.650000000000006 0")
+  inspect(spans("lean-l"), content="55.650000000000006 0")
+  inspect(spans("trap-b"), content="55.650000000000006 0")
+  inspect(spans("trap-t"), content="55.650000000000006 0")
+  inspect(spans("text"), content="77.25 19.200000000000003")
+  inspect(spans("sm-circ"), content="60.75 25.92")
+  inspect(spans("f-circ"), content="60.75 25.92")
+  inspect(spans("fr-circ"), content="60.75 25.92")
+  inspect(spans("cross-circ"), content="60.75 25.92")
+  inspect(spans("fork"), content="93.25 35.2")
+  inspect(spans("notch-rect"), content="77.25 19.200000000000003")
+  inspect(spans("lin-rect"), content="77.25 19.200000000000003")
+  inspect(spans("div-rect"), content="77.25 19.200000000000003")
+  inspect(spans("win-pane"), content="77.25 19.200000000000003")
+  inspect(spans("notch-pent"), content="77.25 19.200000000000003")
+  inspect(spans("st-rect"), content="69.25 11.200000000000003")
+  inspect(spans("datastore"), content="77.25 19.200000000000003")
+  inspect(spans("console"), content="77.25 19.200000000000003")
+  inspect(spans("browser"), content="77.25 19.200000000000003")
+  inspect(spans("tag-rect"), content="77.25 19.200000000000003")
+}
+
+///|
+test "edges meet other shapes at the middle of a side" {
+  inspect(spans("tri"), content="0 0")
+  inspect(spans("flip-tri"), content="0 0")
+  inspect(spans("sl-rect"), content="0 0")
+  inspect(spans("hourglass"), content="0 0")
+  inspect(spans("delay"), content="0 0")
+  inspect(spans("h-cyl"), content="0 0")
+  inspect(spans("doc"), content="0 0")
+  inspect(spans("docs"), content="0 0")
+  inspect(spans("flag"), content="0 0")
+  inspect(spans("folder"), content="0 0")
+  inspect(spans("bucket"), content="0 0")
+  inspect(spans("person"), content="0 0")
+  inspect(spans("bang"), content="0 0")
+  inspect(spans("cloud"), content="0 0")
+  inspect(spans("brace"), content="0 0")
+  inspect(spans("bolt"), content="0 0")
+  inspect(spans("curv-trap"), content="0 0")
+  inspect(spans("bow-rect"), content="0 0")
+  inspect(spans("tag-doc"), content="0 0")
+  inspect(spans("lin-doc"), content="0 0")
+  inspect(spans("collapsedGroup"), content="0 0")
+  inspect(spans("nope"), content="0 0")
+  inspect(spans("constructor"), content="0 0")
+}
+
+///|
+test "a side too short for its corners leaves no spread" {
+  inspect(@svg.shape_span("rect", 10, 10, false), content="0")
+  inspect(@svg.shape_span("odd", 10, 40, false), content="0")
+  inspect(@svg.shape_span("hex", 20, 10, false), content="3")
 }
