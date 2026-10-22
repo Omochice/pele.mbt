@@ -6,9 +6,19 @@ import {
 }
 
 // Values
+pub const BUILTIN_PACK : String = "mermaid-treeview"
+
 pub fn build_treeview(TreeViewAst, String?) -> TreeViewModel
 
+pub fn detect_icon(String, Map[String, String], Map[String, String]) -> String?
+
+pub fn glyph(String) -> String?
+
+pub fn icon_config(Map[String, Json]) -> IconConfig
+
 pub fn is_box_drawing_format(Array[String]) -> Bool
+
+pub fn node_icon(String, NodeType, String?, IconConfig) -> String?
 
 pub fn parse_treeview(String) -> TreeViewAst raise @errors.PeleError
 
@@ -26,6 +36,13 @@ pub fn remap_error_lines(String, Map[Int32, Int32]) -> String
 pub(all) struct BoxDrawing {
   text : String
   line_map : Map[Int32, Int32]
+}
+
+pub(all) struct IconConfig {
+  show_icons : Bool
+  default_icon_pack : String
+  filename_icons : Map[String, String]
+  extension_icons : Map[String, String]
 }
 
 pub(all) enum NodeType {
