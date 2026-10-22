@@ -129,6 +129,26 @@ pub fn font_style(size : Double, family : String?, mono : String?) -> String {
 }
 
 ///|
+/// A class list reduced to word characters and hyphens, with a leading space unless it is empty.
+pub fn class_names(raw : String) -> String {
+  let out = StringBuilder()
+  let mut gap = true
+  for i in 0..<raw.length() {
+    let c = @util.code_at(raw, i)
+    if @util.is_word(c) || c == '-' {
+      if gap {
+        out.write_char(' ')
+      }
+      gap = false
+      @util.write_range(out, raw, i, i + 1)
+    } else {
+      gap = true
+    }
+  }
+  out.to_string()
+}
+
+///|
 let series : Array[String] = [
   "#4c78a8", "#f58518", "#54a24b", "#e45756", "#72b7b2", "#eeca3b", "#b279a2", "#9d755d",
 ]

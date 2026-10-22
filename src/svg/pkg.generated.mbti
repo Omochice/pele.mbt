@@ -22,6 +22,8 @@ pub const ROOT_STYLE : String = "--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#
 
 pub const ROUNDED : String = " style=\"rx:var(--_r)\""
 
+pub fn class_names(String) -> String
+
 pub fn cluster_title_x(@layout.CNode, Double, Crossings, Double) -> Double
 
 pub fn draw_shape(String, Double, Double, String, String) -> String
