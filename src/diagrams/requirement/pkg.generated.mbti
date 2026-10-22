@@ -42,6 +42,7 @@ pub(all) struct RequirementDb {
   mut title : String?
   mut acc_title : String?
   mut acc_descr : String?
+  // private fields
 }
 pub fn RequirementDb::add_element(Self, String) -> Unit
 pub fn RequirementDb::add_relationship(Self, String, String, String) -> Unit
