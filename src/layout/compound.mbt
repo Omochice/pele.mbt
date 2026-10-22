@@ -76,10 +76,20 @@ pub fn shift_layout(
   ox : Double,
   oy : Double,
 ) -> Unit {
-  ignore(nodes)
-  ignore(edges)
-  ignore(ox)
-  ignore(oy)
+  for c in nodes {
+    c.x += ox
+    c.y += oy
+  }
+  for e in edges {
+    let mut k = 0
+    while k < e.route.length() {
+      e.route[k] += ox
+      e.route[k + 1] += oy
+      k += 3
+    }
+    e.label_x += ox
+    e.label_y += oy
+  }
 }
 
 ///|
