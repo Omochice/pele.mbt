@@ -86,3 +86,13 @@ test "rounded corners come first in an existing style so it can override them" {
     content=" data-style=\"a\" style=\"rx:var(--_r);b\"",
   )
 }
+
+///|
+test "class names keep word characters and hyphens, one space apart" {
+  inspect(@svg.class_names(""), content="")
+  inspect(@svg.class_names("  "), content="")
+  inspect(@svg.class_names("warn"), content=" warn")
+  inspect(@svg.class_names(" a  b-c\tx_y "), content=" a b-c x_y")
+  inspect(@svg.class_names("a\"><tag>b"), content=" a tag b")
+  inspect(@svg.class_names("ä.b"), content=" b")
+}
