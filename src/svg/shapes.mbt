@@ -926,3 +926,19 @@ pub fn shape_has_label(shape : String) -> Bool {
     None => true
   }
 }
+
+///|
+/// The side of a node's layout box that the route point at `at` lies on: 0 top, 1 right, 2 bottom,
+/// 3 left, or -1 for none.
+/// A point within half a unit of a side counts as on it, and the top and bottom win at corners.
+pub fn end_side(route : Array[Double], at : Int32, c : @layout.CNode) -> Int32 {
+  let dx = route[at] - c.x
+  let dy = route[at + 1] - c.y
+  if (dy.abs() - c.h / 2).abs() < 0.5 {
+    return if dy < 0 { 0 } else { 2 }
+  }
+  if (dx.abs() - c.w / 2).abs() < 0.5 {
+    return if dx < 0 { 3 } else { 1 }
+  }
+  -1
+}

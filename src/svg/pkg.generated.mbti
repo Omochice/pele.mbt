@@ -2,6 +2,7 @@
 package "Omochice/pele/svg"
 
 import {
+  "Omochice/pele/layout",
   "Omochice/pele/text",
   "Omochice/pele/types",
 }
@@ -18,6 +19,8 @@ pub const ROOT_STYLE : String = "--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#
 pub const ROUNDED : String = " style=\"rx:var(--_r)\""
 
 pub fn draw_shape(String, Double, Double, String, String) -> String
+
+pub fn end_side(Array[Double], Int32, @layout.CNode) -> Int32
 
 pub fn esc(String) -> String
 
