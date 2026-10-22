@@ -1,3 +1,8 @@
 import {
+  "Omochice/pele/util",
+  "moonbitlang/core/string",
+}
+
+import {
   "moonbitlang/core/double",
 } for "test"
