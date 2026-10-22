@@ -8,6 +8,21 @@ fn svg(source : String, max_width? : Double) -> String {
 }
 
 ///|
+fn linked_svg(source : String) -> String {
+  let result = @core.render(
+    [@flowchart.flowchart],
+    source,
+    @types.RenderOptions::default(),
+  ) catch {
+    @errors.PeleError(failure) => return failure.message
+  }
+  let links = result.links.map(link => {
+    "\{link.id}|\{link.href}|\{link.internal}"
+  })
+  "\{result.width}x\{result.height} \{result.svg} \{links.join(" ")}"
+}
+
+///|
 test "draws nodes and the edges between them" {
   inspect(
     svg("flowchart LR\n  A --> B"),
@@ -79,5 +94,33 @@ test "grows a node's box to hold its self-loops in a flow that runs across" {
   inspect(
     svg("flowchart LR\n  A -->|loop| A\n  B -.-> B\n  A --> B"),
     content="160x174 <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-flowchart\" viewBox=\"0 0 160 174\" width=\"160\" height=\"174\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"flowchart\"><g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\"><g class=\"pele-edge\" data-id=\"L_A_A_0\"><path d=\"M24,111C16,137 48,137 42.06,117.69\"/><path class=\"pele-marker\" d=\"M40,111L45.56,117.66L39.14,119.63Z\" fill=\"var(--_l)\" stroke=\"none\"/></g><g class=\"pele-edge\" data-id=\"L_B_B_0\"><path d=\"M120,111C112,137 144,137 138.06,117.69\" stroke-dasharray=\"3 4\"/><path class=\"pele-marker\" d=\"M136,111L141.56,117.66L135.14,119.63Z\" fill=\"var(--_l)\" stroke=\"none\"/></g><g class=\"pele-edge\" data-id=\"L_A_B_0\"><path d=\"M56,87L97,87\"/><path class=\"pele-marker\" d=\"M104,87L96,90.36L96,83.64Z\" fill=\"var(--_l)\" stroke=\"none\"/></g></g><g class=\"pele-edge-labels\" font-size=\"14\"><g class=\"pele-edge-label\" data-id=\"L_A_A_0\"><rect x=\"14.77\" y=\"143\" width=\"34.46\" height=\"21\" rx=\"3\" fill=\"var(--_bg)\"/><text x=\"32\" y=\"158.4\" text-anchor=\"middle\">loop</text></g></g><g class=\"pele-nodes\"><g class=\"pele-node pele-shape-rect\" data-id=\"A\" transform=\"translate(32,87)\"><rect x=\"-24\" y=\"-24\" width=\"48\" height=\"48\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" x=\"0\" y=\"5.6\" text-anchor=\"middle\">A</text></g><g class=\"pele-node pele-shape-rect\" data-id=\"B\" transform=\"translate(128,87)\"><rect x=\"-24\" y=\"-24\" width=\"48\" height=\"48\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" x=\"0\" y=\"5.6\" text-anchor=\"middle\">B</text></g></g></svg>",
+  )
+}
+
+///|
+test "links nodes and neutralizes script URLs" {
+  inspect(
+    linked_svg(
+      "flowchart TD\n  A --> B --> C\n  click A \"https://example.com\" \"A tooltip\" _blank\n  click B \"javascript:alert(1)\"\n  click C call doSomething()",
+    ),
+    content="64x256 <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-flowchart\" viewBox=\"0 0 64 256\" width=\"64\" height=\"256\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"flowchart\"><g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\"><g class=\"pele-edge\" data-id=\"L_A_B_0\"><path d=\"M32,56L32,97\"/><path class=\"pele-marker\" d=\"M32,104L28.64,96L35.36,96Z\" fill=\"var(--_l)\" stroke=\"none\"/></g><g class=\"pele-edge\" data-id=\"L_B_C_0\"><path d=\"M32,152L32,193\"/><path class=\"pele-marker\" d=\"M32,200L28.64,192L35.36,192Z\" fill=\"var(--_l)\" stroke=\"none\"/></g></g><g class=\"pele-nodes\"><g class=\"pele-node pele-shape-rect clickable\" data-id=\"A\" transform=\"translate(32,32)\"><a href=\"https://example.com/\" target=\"_blank\" rel=\"noopener\"><title>A tooltip</title><rect x=\"-24\" y=\"-24\" width=\"48\" height=\"48\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" x=\"0\" y=\"5.6\" text-anchor=\"middle\">A</text></a></g><g class=\"pele-node pele-shape-rect clickable\" data-id=\"B\" transform=\"translate(32,128)\"><rect x=\"-24\" y=\"-24\" width=\"48\" height=\"48\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" x=\"0\" y=\"5.6\" text-anchor=\"middle\">B</text></g><g class=\"pele-node pele-shape-rect clickable\" data-id=\"C\" transform=\"translate(32,224)\"><rect x=\"-24\" y=\"-24\" width=\"48\" height=\"48\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" x=\"0\" y=\"5.6\" text-anchor=\"middle\">C</text></g></g></svg> A|https://example.com/|false",
+  )
+}
+
+///|
+test "turns internal-link nodes into Obsidian links" {
+  inspect(
+    linked_svg("flowchart TD\n  A[My note] --> B\n  class A internal-link;"),
+    content="109x160 <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-flowchart\" viewBox=\"0 0 109 160\" width=\"109\" height=\"160\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"flowchart\"><g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\"><g class=\"pele-edge\" data-id=\"L_A_B_0\"><path d=\"M54.46,56L54.46,97\"/><path class=\"pele-marker\" d=\"M54.46,104L51.1,96L57.82,96Z\" fill=\"var(--_l)\" stroke=\"none\"/></g></g><g class=\"pele-nodes\"><g class=\"pele-node pele-shape-rect internal-link\" data-id=\"A\" transform=\"translate(54.46,32)\"><rect x=\"-46.46\" y=\"-24\" width=\"92.91\" height=\"48\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><a class=\"internal-link\" href=\"My note\" rel=\"noopener\" data-href=\"My note\"><text class=\"pele-label\" x=\"0\" y=\"5.6\" text-anchor=\"middle\">My note</text></a></g><g class=\"pele-node pele-shape-rect\" data-id=\"B\" transform=\"translate(54.46,128)\"><rect x=\"-24\" y=\"-24\" width=\"48\" height=\"48\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" x=\"0\" y=\"5.6\" text-anchor=\"middle\">B</text></g></g></svg> A|My note|true",
+  )
+}
+
+///|
+test "keeps the href of an internal link that is not a safe URL out" {
+  inspect(
+    linked_svg(
+      "flowchart TD\n  A[\"javascript:alert(1)\"] --> B[\"#lt;b#gt; x\"]\n  class A,B internal-link",
+    ),
+    content="175x160 <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-flowchart\" viewBox=\"0 0 175 160\" width=\"175\" height=\"160\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"flowchart\"><g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\"><g class=\"pele-edge\" data-id=\"L_A_B_0\"><path d=\"M87.34,56L87.34,97\"/><path class=\"pele-marker\" d=\"M87.34,104L83.98,96L90.7,96Z\" fill=\"var(--_l)\" stroke=\"none\"/></g></g><g class=\"pele-nodes\"><g class=\"pele-node pele-shape-rect internal-link\" data-id=\"A\" transform=\"translate(87.34,32)\"><rect x=\"-79.34\" y=\"-24\" width=\"158.69\" height=\"48\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><a class=\"internal-link\" data-href=\"javascript:alert(1)\"><text class=\"pele-label\" x=\"0\" y=\"5.6\" text-anchor=\"middle\">javascript:alert(1)</text></a></g><g class=\"pele-node pele-shape-rect internal-link\" data-id=\"B\" transform=\"translate(87.34,128)\"><rect x=\"-38.02\" y=\"-24\" width=\"76.03\" height=\"48\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><a class=\"internal-link\" href=\"&lt;b&gt; x\" rel=\"noopener\" data-href=\"&lt;b&gt; x\"><text class=\"pele-label\" x=\"0\" y=\"5.6\" text-anchor=\"middle\">&lt;b&gt; x</text></a></g></g></svg> A|javascript:alert(1)|true B|<b> x|true",
   )
 }
