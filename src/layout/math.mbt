@@ -1,7 +1,7 @@
 ///|
 /// `Math.hypot` of two numbers as V8 computes it.
 /// V8 scales by the larger magnitude and sums the squares with Kahan compensation, which differs from `sqrt(x * x + y * y)` in the last bit for about a third of inputs, and the layout compares the result against thresholds.
-fn hypot(x : Double, y : Double) -> Double {
+pub fn hypot(x : Double, y : Double) -> Double {
   let ax = x.abs()
   let ay = y.abs()
   if ax.is_inf() || ay.is_inf() {
