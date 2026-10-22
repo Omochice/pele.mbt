@@ -22,6 +22,8 @@ pub fn acc_title_value(String) -> String
 
 pub fn accessibility(Tokens, Int32, Int32) -> Int32
 
+pub fn break_label(@text.Label, @text.TextMeasurer, Double) -> @text.Label
+
 pub let directive : TokenType
 
 pub fn fit_label(String?, @text.TextMeasurer, Double, Double, base? : Int32) -> @text.Label

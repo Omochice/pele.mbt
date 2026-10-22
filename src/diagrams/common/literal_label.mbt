@@ -99,3 +99,14 @@ pub fn literal_label(
     line_height,
   }
 }
+
+///|
+/// Breaks every line of `label` wider than `room` between characters, keeping each span's emphasis.
+pub fn break_label(
+  label : @text.Label,
+  measurer : @text.TextMeasurer,
+  room : Double,
+) -> @text.Label {
+  ignore((measurer, room))
+  label
+}

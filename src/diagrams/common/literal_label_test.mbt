@@ -64,6 +64,80 @@ test "literal_label preserves literal text and Unicode through long-word wrappin
 }
 
 ///|
+test "break_label cuts lines too wide between characters and keeps their emphasis" {
+  let m = @text.metrics_measurer
+  let styled = @text.layout_label(
+    Some("<b>Supercalifragilisticexpialidocious</b>"),
+    false,
+    m,
+    16,
+    400,
+  )
+  let wrapped = @common.break_label(styled, m, 80)
+  inspect(
+    dump_label(wrapped),
+    content="77.36 96 16 24[Supercalif/1/77.36=77.36;ragilistice/1/74.704=74.704;xpialidoci/1/73.808=73.808;ous/1/28.448=28.448]",
+  )
+  inspect(
+    dump_label(
+      @common.break_label(
+        @text.layout_label(
+          Some("plain <i>it</i> and **bold**"),
+          true,
+          m,
+          16,
+          400,
+        ),
+        m,
+        30,
+      ),
+    ),
+    content="28.448 120 16 24[plai/0/24.896=24.896;n /0/13.344|it/2/8| /0/4.448=25.792;and/0/26.688=26.688; /0/4.448|bol/1/24=28.448;d/1/9.776=9.776]",
+  )
+  inspect(
+    dump_label(
+      @common.break_label(
+        @text.layout_label(Some("a<br><br>b"), false, m, 16, 400),
+        m,
+        3,
+      ),
+    ),
+    content="8.896 72 16 24[a/0/8.896=8.896;=0;b/0/8.896=8.896]",
+  )
+}
+
+///|
+test "break_label matches pele on labels of every string of up to four pieces" {
+  let pieces = [
+    "<b>",
+    "</b>",
+    "ab",
+    "Wide",
+    " ",
+    "<br>",
+    "\u{1f408}",
+    "*",
+    String::from_array([(0xd800).unsafe_to_char()]),
+  ]
+  let expected = ["f002259d", "331af199", "e1e78ce5", "d6d4957d", "f8870691"]
+  let m = @text.metrics_measurer
+  for length, hash in expected {
+    let outputs = []
+    for raw in strings_over(pieces, length) {
+      for markdown in [false, true] {
+        for max in [400.0, 30] {
+          let label = @text.layout_label(Some(raw), markdown, m, 16, max)
+          for room in [-1.0, 0, 6, 20, 45, 1000] {
+            outputs.push(dump_label(@common.break_label(label, m, room)))
+          }
+        }
+      }
+    }
+    assert_eq(fnv1a(outputs.join("\n")), hash, msg="length \{length}")
+  }
+}
+
+///|
 test "literal_label matches pele on every string of up to four pieces" {
   let pieces = [
     " ",
