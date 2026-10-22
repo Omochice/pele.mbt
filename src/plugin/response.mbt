@@ -3,8 +3,8 @@ fn respond(source : String, options : String) -> (Int32, Json) {
   try {
     let result = @core.render(
       [
-        @flowchart.flowchart, @info.info, @kanban.kanban, @mindmap.mindmap, @packet.packet,
-        @pie.pie, @radar.radar, @railroad.railroad, @sankey.sankey, @venn.venn,
+        @flowchart.flowchart, @info.info, @ishikawa.ishikawa, @kanban.kanban, @mindmap.mindmap,
+        @packet.packet, @pie.pie, @radar.radar, @railroad.railroad, @sankey.sankey, @venn.venn,
       ],
       source,
       decode_options(@json.parse(options)),
