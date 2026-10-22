@@ -28,6 +28,8 @@ pub fn js_max(Double, Double) -> Double
 
 pub fn js_min(Double, Double) -> Double
 
+pub fn js_number(Json) -> Double
+
 pub fn js_string(Json) -> String
 
 pub fn js_truthy(Json) -> Bool

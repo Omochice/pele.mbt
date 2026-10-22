@@ -1,10 +1,16 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "Omochice/pele/diagrams/flowchart"
 
+import {
+  "Omochice/pele/errors",
+}
+
 // Values
 pub fn canonical_shape(String?) -> String
 
 pub fn is_valid_shape(String) -> Bool
+
+pub fn parse_flowchart(String, FlowDb) -> Unit raise @errors.PeleError
 
 pub let token_names : Array[String]
 
@@ -13,6 +19,101 @@ pub fn tokenize(String) -> Tokens
 // Errors
 
 // Types and methods
+pub(all) enum DocItem {
+  Id(String)
+  Ids(Array[String])
+  Direction(String)
+}
+
+pub(all) struct FlowClassDef {
+  id : String
+  styles : Array[String]
+  text_styles : Array[String]
+}
+
+pub struct FlowDb {
+  mut direction : String?
+  nodes : Map[String, FlowNode]
+  edges : Array[FlowEdge]
+  subgraphs : Array[FlowSubgraph]
+  classes : Map[String, FlowClassDef]
+  tooltips : Map[String, String]
+  mut default_edge_style : Array[String]?
+  mut default_interpolate : String?
+  mut title : String?
+  mut acc_title : String?
+  mut acc_descr : String?
+  // private fields
+}
+pub fn FlowDb::new(max_edges? : Int32, inherit_dir? : Bool, direction? : String) -> Self
+
+pub(all) struct FlowEdge {
+  start : String
+  end : String
+  mut kind : String?
+  mut text : String
+  mut label_type : LabelType
+  mut stroke : String?
+  mut length : Int32?
+  mut style : Array[String]?
+  classes : Array[String]
+  mut id : String
+  mut is_user_defined_id : Bool
+  mut interpolate : Json?
+  mut animate : Json?
+  mut animation : Json?
+}
+
+pub(all) struct FlowNode {
+  id : String
+  mut text : String?
+  mut label_type : LabelType
+  mut kind : String?
+  styles : Array[String]
+  classes : Array[String]
+  mut dir : String?
+  mut props : Map[String, String]?
+  mut link : String?
+  mut link_target : String?
+  mut icon : String?
+  mut form : String?
+  mut pos : String?
+  mut img : String?
+  mut constraint : String?
+  mut asset_width : Double?
+  mut asset_height : Double?
+}
+
+pub(all) struct FlowSubgraph {
+  id : String
+  nodes : Array[String]
+  title : String
+  classes : Array[String]
+  dir : String?
+  label_type : LabelType
+  mut metadata : Map[String, Json]?
+}
+
+pub(all) struct FlowText {
+  text : String
+  kind : LabelType
+}
+
+pub(all) enum LabelType {
+  Text
+  Str
+  Markdown
+} derive(Eq)
+pub fn LabelType::to_string(Self) -> String
+
+pub(all) struct LinkInfo {
+  mut kind : String
+  stroke : String
+  mut length : Int32?
+  mut text : FlowText?
+  mut id : String?
+}
+
 pub(all) struct Tokens {
   types : Array[Int32]
   texts : Array[String]
