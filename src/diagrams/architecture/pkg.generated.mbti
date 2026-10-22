@@ -136,6 +136,7 @@ pub(all) enum Side {
   T
   B
 }
+pub fn Side::index(Self) -> Int32
 pub fn Side::name(Self) -> String
 
 // Type aliases
