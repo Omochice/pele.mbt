@@ -13,6 +13,7 @@ import {
   "Omochice/pele/diagrams/sankey",
   "Omochice/pele/diagrams/timeline",
   "Omochice/pele/diagrams/treemap",
+  "Omochice/pele/diagrams/treeview",
   "Omochice/pele/diagrams/venn",
   "Omochice/pele/errors",
   "Omochice/pele/types",
