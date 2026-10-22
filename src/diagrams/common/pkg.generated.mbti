@@ -37,6 +37,8 @@ pub let string : TokenType
 
 pub fn string_value(String) -> String
 
+pub fn tighten(@types.RenderOptions, (Bool) -> @types.Rendered) -> @types.Rendered
+
 pub let title : TokenType
 
 pub fn title_room(@types.RenderOptions) -> Double

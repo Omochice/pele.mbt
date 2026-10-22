@@ -1,6 +1,6 @@
 ///|
 fn drawn(width : Double) -> @types.Rendered {
-  { svg: "", width, height: 1, links: [] }
+  { svg: "", width, height: 1, links: [], }
 }
 
 ///|
