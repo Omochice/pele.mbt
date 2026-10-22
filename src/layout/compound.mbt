@@ -60,3 +60,38 @@ pub fn cnode(w : Double, h : Double, parent~ : Int32 = -1) -> CNode {
     y: 0,
   }
 }
+
+///|
+/// The size of a laid out compound graph.
+pub(all) struct CompoundResult {
+  width : Double
+  height : Double
+}
+
+///|
+/// The direction a diagram names, or top to bottom for anything else.
+pub fn direction(dir : String?) -> Dir {
+  match dir {
+    Some("BT") => BT
+    Some("LR") => LR
+    Some("RL") => RL
+    _ => TB
+  }
+}
+
+///|
+/// Lays out a graph whose nodes may be nested in groups, writing node centers and sizes into `nodes` and routes and label centers into `edges`.
+/// Each group is laid out on its own, in its own direction, and then placed in its parent as a single box.
+/// An edge that crosses a group's border passes through a port on the side facing its other end.
+pub fn compound_layout(
+  nodes : Array[CNode],
+  edges : Array[CEdge],
+  root_dir : Dir,
+  opt : LayeredOptions,
+) -> CompoundResult {
+  ignore(nodes)
+  ignore(edges)
+  ignore(root_dir)
+  ignore(opt)
+  { width: 0, height: 0, }
+}

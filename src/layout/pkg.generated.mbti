@@ -4,6 +4,10 @@ package "Omochice/pele/layout"
 // Values
 pub fn cnode(Double, Double, parent? : Int32) -> CNode
 
+pub fn compound_layout(Array[CNode], Array[CEdge], Dir, LayeredOptions) -> CompoundResult
+
+pub fn direction(String?) -> Dir
+
 pub fn ease(Double, Double) -> Double
 
 pub fn layered(Array[LNode], Array[LEdge], LayeredOptions) -> LayeredResult
@@ -46,6 +50,11 @@ pub(all) struct CNode {
   mut span : Double
   mut x : Double
   mut y : Double
+}
+
+pub(all) struct CompoundResult {
+  width : Double
+  height : Double
 }
 
 pub(all) enum Dir {

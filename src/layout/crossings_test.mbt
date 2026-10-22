@@ -1,14 +1,4 @@
 ///|
-fn edge(
-  src : Int32,
-  dst : Int32,
-  label_w~ : Double = 0,
-  label_h~ : Double = 0,
-) -> @layout.CEdge {
-  { src, dst, minlen: 1, label_w, label_h, route: [], label_x: 0, label_y: 0, }
-}
-
-///|
 test "counts where routes cross, but not where edges that meet at one node fan out from it" {
   let nodes = [
     @layout.cnode(40, 40),
