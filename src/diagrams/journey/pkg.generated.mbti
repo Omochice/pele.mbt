@@ -1,8 +1,14 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "Omochice/pele/diagrams/journey"
 
+import {
+  "Omochice/pele/errors",
+}
+
 // Values
 pub fn journey_actors(Array[JourneyTask]) -> Array[String]
+
+pub fn parse_journey(String, JourneyDb) -> Unit raise @errors.PeleError
 
 // Errors
 
