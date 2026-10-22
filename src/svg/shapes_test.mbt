@@ -400,3 +400,24 @@ test "curved shapes keep their curves within bounds on small labels" {
     content="<path d=\"M-38,-40H38A12,40 0 0 1 38,40H-38A12,40 0 0 1 -38,-40Z\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/><path d=\"M38,-40A12,40 0 0 0 38,40\" fill=\"none\" stroke=\"var(--_l)\"/>",
   )
 }
+
+///|
+test "symbol shapes carry no label" {
+  for
+    shape in [
+      "sm-circ", "f-circ", "fr-circ", "fork", "hourglass", "cross-circ", "bolt",
+    ] {
+    assert_false(@svg.shape_has_label(shape), msg=shape)
+  }
+}
+
+///|
+test "other shapes carry a label" {
+  for
+    shape in [
+      "rect", "circle", "diam", "cyl", "bang", "text", "collapsedGroup", "nope",
+      "constructor", "",
+    ] {
+    assert_true(@svg.shape_has_label(shape), msg=shape)
+  }
+}
