@@ -476,11 +476,11 @@ pub fn parse_architecture(
   let mut diagram_title = None
   let mut acc_title = None
   let mut acc_descr = None
-  let groups = []
-  let services = []
-  let junctions = []
-  let edges = []
-  let alignments = []
+  let groups : Array[GroupAst] = []
+  let services : Array[ServiceAst] = []
+  let junctions : Array[JunctionAst] = []
+  let edges : Array[EdgeAst] = []
+  let alignments : Array[AlignmentAst] = []
   while r.kind() == NEWLINE {
     r.i += 1
   }
