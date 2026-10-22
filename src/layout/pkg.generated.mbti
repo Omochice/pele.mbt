@@ -12,6 +12,10 @@ pub fn ledge(Int32, Int32, minlen? : Int32, label_w? : Double, label_h? : Double
 
 pub fn lnode(Double, Double, kind? : Kind) -> LNode
 
+pub fn orient(Array[LNode], Array[LEdge]) -> Unit
+
+pub fn rank(Array[LNode], Array[LEdge], Int32) -> Unit
+
 pub fn route_crossings(Array[CNode], Array[CEdge], style? : Style) -> Int32
 
 // Errors
