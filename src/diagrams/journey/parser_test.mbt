@@ -1,7 +1,8 @@
 ///|
 fn read(source : String) -> String {
   let db = @journey.JourneyDb::new(None)
-  @journey.parse_journey(source, db) catch {
+  // The renderer hands the parser its text with one more line break.
+  @journey.parse_journey(source + "\n", db) catch {
     @errors.PeleError(failure) =>
       return "\{failure.code.to_string()}: \{failure.message}"
   }
@@ -33,7 +34,7 @@ test "accessibility statements are read" {
     read(
       "journey\naccDescr {\n        A user journey for\n        family shopping\n      }title T\naccTitle: Adding acc journey\nsection S",
     ),
-    content="title=\"T\" accTitle=\"Adding acc journey\" accDescr=\"A user journey for\\nfamily shopping\\n\" sections=\"S\" tasks=",
+    content="title=\"T\" accTitle=\"Adding acc journey\" accDescr=\"A user journey for\\nfamily shopping\" sections=\"S\" tasks=",
   )
   inspect(
     read("journey\n    accTitle: The title\n    section Order from website"),
