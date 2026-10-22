@@ -178,12 +178,34 @@ pub fn break_label(
 
 ///|
 /// Writes `label` with every line starting at `x`, the first line's top at `top`.
+/// A line is anchored at its start and keeps its spaces, so that where it begins does not depend on how its text was measured.
 pub fn left_label_svg(
   label : @text.Label,
   x : Double,
   top : Double,
   attrs : String,
 ) -> String {
-  ignore((label, x, top, attrs))
-  ""
+  // pele centers a line holding an icon with labelSvg; labels here have no icons.
+  let shared = @svg.shared_style(label)
+  let open = "<text" + @svg.text_style(attrs, shared)
+  let body = StringBuilder()
+  for i, spans in label.lines {
+    let cy = top + (i.to_double() + 0.5) * label.line_height
+    let text = StringBuilder()
+    for span in spans {
+      let own = @svg.span_style(span.style & shared.lnot())
+      if own != "" {
+        text.write_string("<tspan\{own}>\{@svg.esc(span.text)}</tspan>")
+      } else {
+        text.write_string(@svg.esc(span.text))
+      }
+    }
+    let text = text.to_string()
+    if text != "" {
+      body.write_string(
+        "\{open} x=\"\{@svg.num(x)}\" y=\"\{@svg.num(cy + label.size * 0.35)}\" text-anchor=\"start\" xml:space=\"preserve\">\{text}</text>",
+      )
+    }
+  }
+  body.to_string()
 }
