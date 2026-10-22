@@ -1,5 +1,5 @@
 ///|
-fn dump(db : @timeline.TimelineDb) -> String {
+fn dump_model(db : @timeline.TimelineDb) -> String {
   let periods = db.periods.map(p => {
     let events = p.events.map(e => e.escape()).join(",")
     "\{p.text.escape()}/\{events}/\{p.section.escape()}/\{p.section_index}"
@@ -17,7 +17,7 @@ test "a period belongs to the section declared before it" {
   db.add_section("T")
   db.add_task("2002")
   inspect(
-    dump(db),
+    dump_model(db),
     content="sections=\"S\",\"T\" periods=\"First\"//\"\"/-1;\"2001 \"//\"S\"/0;\"2002\"//\"T\"/1",
   )
 }
@@ -29,7 +29,7 @@ test "a section declared twice is listed twice" {
   db.add_section("Same")
   db.add_task("B")
   inspect(
-    dump(db),
+    dump_model(db),
     content="sections=\"Same\",\"Same\" periods=\"B\"//\"Same\"/1",
   )
 }
@@ -42,7 +42,7 @@ test "an event is added to the last period, even after a section header" {
   db.add_section("S")
   db.add_event("b")
   inspect(
-    dump(db),
+    dump_model(db),
     content="sections=\"S\" periods=\"2001 \"/\"a \",\"b\"/\"\"/-1",
   )
 }

@@ -2,10 +2,12 @@
 package "Omochice/pele/diagrams/timeline"
 
 import {
+  "Omochice/pele/diagrams/common",
   "Omochice/pele/errors",
 }
 
 // Values
+pub fn tokenize(String) -> @common.Tokens
 
 // Errors
 
