@@ -3,10 +3,13 @@ package "Omochice/pele/diagrams/railroad"
 
 import {
   "Omochice/pele/errors",
+  "Omochice/pele/types",
 }
 
 // Values
 pub fn parse_railroad(String, String?) -> RailroadModel raise @errors.PeleError
+
+pub let railroad : @types.Diagram
 
 // Errors
 
