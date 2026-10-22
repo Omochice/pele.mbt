@@ -13,9 +13,12 @@ The `<id>` is the first 16 hex characters of the SHA-256 of the source text, so 
 - `<id>.svg` is the exact `svg` string, present only when rendering succeeded.
 - `<id>.json` holds `type`, `mermaidType`, `width`, `height`, and `links` on success.
     On failure it holds a single `error` object with `name`, `code`, `message`, `type`, and `mermaidType`.
+- `<id>.narrow.svg` and `<id>.narrow.json` have the same shape as the files above and hold the output of the narrow profile.
+    They exist only for sources whose narrow outcome differs from the default outcome, so when they are missing the default files are also the narrow expectation.
 
 Errors are goldens too, because a port has to reject the same inputs with the same code and message.
-`manifest.json` records the pele version and commit, the node version, the options, and per-diagram counts of total, ok, and error.
+`manifest.json` records the pele version and commit, the node version, the option profiles, and per-diagram counts of total, ok, error, and narrow.
+The `ok` and `error` counts describe the default profile, and `narrow` counts the sources that have narrow-specific files.
 It contains no timestamps, so regeneration is byte-identical.
 
 ## Regenerating
@@ -34,10 +37,13 @@ Corpus inputs are collected by a port of `loadCorpus` in `vendor/pele/tests/supp
 
 ## Pinned options
 
-Every render uses the options recorded in `manifest.json`.
-They are pele's own defaults, written out explicitly so that a change of default upstream cannot alter the goldens silently.
-`now` is the exception: gantt charts read the current time by default, so it is fixed to 1767225600000 (2026-01-01T00:00:00Z).
-`maxWidth`, `responsive`, `linkSchemes`, and `imageSchemes` are left unset because their defaults mean "undefined selects the built-in behavior" rather than a concrete value.
+Every render uses one of the two option profiles recorded under `profiles` in `manifest.json`.
+The `default` profile holds pele's own defaults, written out explicitly so that a change of default upstream cannot alter the goldens silently.
+The `narrow` profile is the default profile plus `maxWidth: 400`.
+The value 400 is below `directionBreakpoint` (640), so both width fitting and the automatic direction turn take effect.
+A comparison tool has to read the profiles from the manifest instead of hard-coding them.
+`now` is an exception: gantt charts read the current time by default, so it is fixed to 1767225600000 (2026-01-01T00:00:00Z).
+`maxWidth` (outside the narrow profile), `responsive`, `linkSchemes`, and `imageSchemes` are left unset because their defaults mean "undefined selects the built-in behavior" rather than a concrete value.
 `measurer`, `icons`, `math`, and `config` are unset as well.
 The default measurer falls back to pele's built-in metrics table when no canvas is available, and a port has to reproduce that table to match text widths.
 

@@ -30,6 +30,9 @@ const options = {
   now: 1767225600000,
 };
 
+// 400 is below directionBreakpoint, so both width fitting and the automatic direction turn are exercised.
+const profiles = { default: options, narrow: { ...options, maxWidth: 400 } };
+
 const diagrams = {
   agentflow: /agentflow-beta/,
   architecture: /architecture/,
@@ -93,6 +96,33 @@ function loadCorpus(diagram, keyword) {
 
 const json = (value) => JSON.stringify(value, null, 2) + '\n';
 
+function outcomeOf(source, opts, label) {
+  try {
+    const r = render(source, opts);
+    return { svg: r.svg, meta: { type: r.type, mermaidType: r.mermaidType, width: r.width, height: r.height, links: r.links } };
+  } catch (e) {
+    if (e?.name !== 'PeleError') {
+      console.warn(`warning: ${label} threw non-PeleError ${e?.constructor?.name}: ${e?.message}`);
+    }
+    return {
+      meta: {
+        error: {
+          name: e?.name === 'PeleError' ? 'PeleError' : (e?.constructor?.name ?? typeof e),
+          code: e?.code ?? null,
+          message: String(e?.message ?? e),
+          type: e?.type ?? null,
+          mermaidType: e?.mermaidType ?? null,
+        },
+      },
+    };
+  }
+}
+
+function writeOutcome(path, outcome) {
+  if (outcome.svg !== undefined) writeFileSync(path + '.svg', outcome.svg);
+  writeFileSync(path + '.json', json(outcome.meta));
+}
+
 mkdirSync(goldenDir, { recursive: true });
 for (const entry of readdirSync(goldenDir, { withFileTypes: true }).filter((e) => e.name !== 'README.md')) {
   rmSync(join(goldenDir, entry.name), { recursive: true, force: true });
@@ -101,37 +131,20 @@ const counts = {};
 for (const [diagram, keyword] of Object.entries(diagrams)) {
   const outDir = join(goldenDir, diagram);
   mkdirSync(outDir, { recursive: true });
-  const count = { total: 0, ok: 0, error: 0 };
+  const count = { total: 0, ok: 0, error: 0, narrow: 0 };
   for (const source of loadCorpus(diagram, keyword)) {
     const id = createHash('sha256').update(source).digest('hex').slice(0, 16);
     const base = join(outDir, id);
     writeFileSync(base + '.mmd', source);
     count.total++;
-    try {
-      const r = render(source, options);
-      writeFileSync(base + '.svg', r.svg);
-      writeFileSync(
-        base + '.json',
-        json({ type: r.type, mermaidType: r.mermaidType, width: r.width, height: r.height, links: r.links })
-      );
-      count.ok++;
-    } catch (e) {
-      if (e?.name !== 'PeleError') {
-        console.warn(`warning: ${diagram}/${id} threw non-PeleError ${e?.constructor?.name}: ${e?.message}`);
-      }
-      writeFileSync(
-        base + '.json',
-        json({
-          error: {
-            name: e?.name === 'PeleError' ? 'PeleError' : (e?.constructor?.name ?? typeof e),
-            code: e?.code ?? null,
-            message: String(e?.message ?? e),
-            type: e?.type ?? null,
-            mermaidType: e?.mermaidType ?? null,
-          },
-        })
-      );
-      count.error++;
+    const outcome = outcomeOf(source, profiles.default, `${diagram}/${id}`);
+    writeOutcome(base, outcome);
+    if (outcome.meta.error) count.error++;
+    else count.ok++;
+    const narrow = outcomeOf(source, profiles.narrow, `${diagram}/${id} (narrow)`);
+    if (JSON.stringify(narrow) !== JSON.stringify(outcome)) {
+      writeOutcome(base + '.narrow', narrow);
+      count.narrow++;
     }
   }
   counts[diagram] = count;
@@ -143,7 +156,7 @@ writeFileSync(
   json({
     pele: { version: pkg.version, commit: execFileSync('git', ['-C', peleRoot, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim() },
     node: process.version,
-    options,
+    profiles,
     diagrams: counts,
   })
 );
