@@ -36,6 +36,8 @@ pub fn line_end(String, Int32) -> Int32
 
 pub fn literal(String, String) -> TokenType
 
+pub fn literal_label(String, @text.TextMeasurer, Double, Double, style? : Int32) -> @text.Label
+
 pub let newline : TokenType
 
 pub fn parse_generic_types(String) -> String
