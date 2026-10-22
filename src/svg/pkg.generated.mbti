@@ -35,6 +35,8 @@ pub fn rounded(String) -> String
 
 pub fn series_color(Int32) -> String
 
+pub fn shape_has_label(String) -> Bool
+
 pub fn shape_size(String, Double, Double) -> ShapeSize
 
 pub fn shared_style(@text.Label) -> Int32

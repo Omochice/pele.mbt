@@ -19,14 +19,16 @@ pub const PAD_Y : Double = 12
 priv struct ShapeDef {
   size : (Double, Double) -> ShapeSize
   draw : (Double, Double, String, String) -> String
+  no_label : Bool
 }
 
 ///|
 fn ShapeDef::new(
   size~ : (Double, Double) -> ShapeSize,
   draw~ : (Double, Double, String, String) -> String,
+  no_label~ : Bool = false,
 ) -> ShapeDef {
-  { size, draw, }
+  { size, draw, no_label, }
 }
 
 ///|
@@ -396,10 +398,13 @@ let shapes : Map[String, ShapeDef] = {
       )
     },
   ),
-  "hourglass": ShapeDef::new(size=fixed(32, 40), draw=(w, h, a, _) => {
-    poly([-w / 2, -h / 2, w / 2, -h / 2, -w / 2, h / 2, w / 2, h / 2], a)
-  }),
-  "bolt": ShapeDef::new(size=fixed(36, 56), draw=(w, h, a, _) => {
+  "hourglass": ShapeDef::new(no_label=true, size=fixed(32, 40), draw=(
+    w,
+    h,
+    a,
+    _,
+  ) => poly([-w / 2, -h / 2, w / 2, -h / 2, -w / 2, h / 2, w / 2, h / 2], a)),
+  "bolt": ShapeDef::new(no_label=true, size=fixed(36, 56), draw=(w, h, a, _) => {
     poly(
       [
         w * 0.15,
@@ -438,22 +443,35 @@ let shapes : Map[String, ShapeDef] = {
       "<ellipse rx=\"\{num(w / 2)}\" ry=\"\{num(h / 2)}\"\{a}/>"
     },
   ),
-  "sm-circ": ShapeDef::new(size=fixed(14, 14), draw=(w, _, a, _) => {
+  "sm-circ": ShapeDef::new(no_label=true, size=fixed(14, 14), draw=(w, _, a, _) => {
     "<circle r=\"\{num(w / 2)}\"\{a}/>"
   }),
-  "f-circ": ShapeDef::new(size=fixed(14, 14), draw=(w, _, _, line) => {
-    "<circle r=\"\{num(w / 2)}\" fill=\"var(--_l)\"\{line}/>"
-  }),
-  "fr-circ": ShapeDef::new(size=fixed(18, 18), draw=(w, _, a, line) => {
+  "f-circ": ShapeDef::new(no_label=true, size=fixed(14, 14), draw=(
+    w,
+    _,
+    _,
+    line,
+  ) => "<circle r=\"\{num(w / 2)}\" fill=\"var(--_l)\"\{line}/>"),
+  "fr-circ": ShapeDef::new(no_label=true, size=fixed(18, 18), draw=(
+    w,
+    _,
+    a,
+    line,
+  ) => {
     "<circle r=\"\{num(w / 2)}\"\{a}/><circle r=\"\{num(w / 2 - 4)}\" fill=\"var(--_l)\"\{line}/>"
   }),
-  "cross-circ": ShapeDef::new(size=fixed(44, 44), draw=(w, _, a, line) => {
+  "cross-circ": ShapeDef::new(no_label=true, size=fixed(44, 44), draw=(
+    w,
+    _,
+    a,
+    line,
+  ) => {
     let r = w / 2
     let k = r * SQRT1_2
     "<circle r=\"\{num(r)}\"\{a}/>" +
     "<path d=\"M\{num(-k)},\{num(-k)}L\{num(k)},\{num(k)}M\{num(k)},\{num(-k)}L\{num(-k)},\{num(k)}\" fill=\"none\"\{line}/>"
   }),
-  "fork": ShapeDef::new(size=fixed(72, 8), draw=(w, h, _, line) => {
+  "fork": ShapeDef::new(no_label=true, size=fixed(72, 8), draw=(w, h, _, line) => {
     rect(w, h, " fill=\"var(--_l)\"\{line}", rx=" rx=\"2\"")
   }),
   "cyl": ShapeDef::new(
@@ -674,4 +692,13 @@ pub fn draw_shape(
   line : String,
 ) -> String {
   (shape_def(shape).draw)(w, h, a, line)
+}
+
+///|
+/// Whether the named shape has room for a label; symbol shapes such as forks do not.
+pub fn shape_has_label(shape : String) -> Bool {
+  match shapes.get(shape) {
+    Some(def) => !def.no_label
+    None => true
+  }
 }
