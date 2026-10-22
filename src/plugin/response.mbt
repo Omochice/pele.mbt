@@ -1,7 +1,11 @@
 ///|
 fn respond(source : String, options : String) -> (Int32, Json) {
   try {
-    let result = @core.render([], source, decode_options(@json.parse(options)))
+    let result = @core.render(
+      [@pie.pie],
+      source,
+      decode_options(@json.parse(options)),
+    )
     (0, success(result))
   } catch {
     @errors.PeleError(failure) => (1, pele_failure(failure))

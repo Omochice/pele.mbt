@@ -4,7 +4,8 @@ pub let pie : @types.Diagram = {
   kind: "pie",
   section: None,
   keep_comments: false,
-  parse: (_, _, _, _, _) => {
-    render: (_, _) => { svg: "", width: 0, height: 0, links: [], },
+  parse: (source, _, title, _, _) => {
+    let model = build_pie(parse_pie(source), title)
+    { render: (config, options) => render_pie(model, config, options), }
   },
 }

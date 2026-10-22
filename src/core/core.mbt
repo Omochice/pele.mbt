@@ -3,6 +3,60 @@
 const DEFAULT_LIMIT : Double = 50000
 
 ///|
+/// Mermaid has no limit on its output, but a source within the limit can still describe a
+/// drawing of many megabytes.
+const DEFAULT_OUTPUT_LIMIT : Double = 4000000
+
+///|
+/// `A & B --> C & D` multiplies, so a few kilobytes of source can ask for millions of edges.
+const DEFAULT_MAX_EDGES : Double = 5000
+
+///|
+/// Gives an error from a diagram the type it was detected as, unless it names one already.
+fn[T] tag_errors(
+  found : @detect.Detected,
+  run : () -> T raise @errors.PeleError,
+) -> T raise @errors.PeleError {
+  run() catch {
+    @errors.PeleError(failure) =>
+      raise @errors.PeleError({
+        ..failure,
+        kind: if failure.kind is None {
+          Some(found.kind)
+        } else {
+          failure.kind
+        },
+        mermaid_type: if failure.mermaid_type is None {
+          Some(found.mermaid_type)
+        } else {
+          failure.mermaid_type
+        },
+      })
+  }
+}
+
+///|
+/// The host's config with the text's own front matter and directives over it.
+fn merged_config(extra : @types.Config?, own : @types.Config) -> @types.Config {
+  guard extra is Some(extra) else { return own }
+  let config : @types.Config = Map([])
+  for key, value in extra {
+    config[key] = value
+  }
+  for key, value in own {
+    config[key] = value
+  }
+  config
+}
+
+///|
+/// Whether the diagram's config section asks for its natural width.
+fn fixed_width(config : @types.Config, section : String) -> Bool {
+  guard config.get(section) is Some(Object(fields)) else { return false }
+  fields.get("useMaxWidth") is Some(False)
+}
+
+///|
 /// Renders Mermaid text to SVG with the given diagram types.
 /// Raises `PeleError` for text pele rejects.
 pub fn render(
@@ -24,7 +78,7 @@ pub fn render(
       code=UnsupportedDiagram,
     )
   }
-  guard diagrams.iter().find_first(d => d.kind == found.kind) is Some(_) else {
+  guard diagrams.iter().find_first(d => d.kind == found.kind) is Some(diagram) else {
     raise @errors.pele_error(
       "Diagram type \"\{found.kind}\" is not supported yet.",
       code=UnsupportedDiagram,
@@ -32,10 +86,39 @@ pub fn render(
       mermaid_type=found.mermaid_type,
     )
   }
-  raise @errors.pele_error(
-    "Diagram type \"\{found.kind}\" is not supported yet.",
-    code=UnsupportedDiagram,
-    kind=found.kind,
-    mermaid_type=found.mermaid_type,
+  let config = merged_config(options.config, pre.config)
+  let text = if diagram.keep_comments { pre.with_comments } else { pre.text }
+  let max_edges = options.max_edges.unwrap_or(DEFAULT_MAX_EDGES).to_int()
+  let parsed = tag_errors(found, () => {
+    (diagram.parse)(
+      @preprocess.encode_entities(text) + "\n",
+      config,
+      pre.title,
+      pre.line_offset,
+      { max_edges, },
+    )
+  })
+  let responsive = options.responsive.unwrap_or(
+    !fixed_width(config, diagram.section.unwrap_or(found.kind)),
   )
+  let rendered = tag_errors(found, () => {
+    (parsed.render)(config, { ..options, responsive: Some(responsive), })
+  })
+  let output_limit = options.output_limit.unwrap_or(DEFAULT_OUTPUT_LIMIT)
+  if rendered.svg.length().to_double() > output_limit {
+    raise @errors.pele_error(
+      "Diagram output is longer than the limit of \{output_limit} characters.",
+      code=Limit,
+      kind=found.kind,
+      mermaid_type=found.mermaid_type,
+    )
+  }
+  {
+    kind: found.kind,
+    mermaid_type: found.mermaid_type,
+    svg: rendered.svg,
+    width: rendered.width,
+    height: rendered.height,
+    links: rendered.links,
+  }
 }

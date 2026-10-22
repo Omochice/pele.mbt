@@ -1,5 +1,6 @@
 import {
   "Omochice/pele/core",
+  "Omochice/pele/diagrams/pie",
   "Omochice/pele/errors",
   "Omochice/pele/types",
   "moonbitlang/core/encoding/utf8",

@@ -1,0 +1,81 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Omochice/pele/diagrams/common"
+
+import {
+  "Omochice/pele/errors",
+}
+
+// Values
+pub const NO_CLOSER : Int32 = -2
+
+pub const NO_MATCH : Int32 = -1
+
+pub let acc_descr : TokenType
+
+pub fn acc_descr_value(String) -> String
+
+pub let acc_title : TokenType
+
+pub fn acc_title_value(String) -> String
+
+pub let directive : TokenType
+
+pub fn keyword(String) -> TokenType
+
+pub fn literal(String, String) -> TokenType
+
+pub let newline : TokenType
+
+pub fn pattern(String, (String, Int32) -> Int32, first? : String, hidden? : Bool) -> TokenType
+
+pub let single_line_comment : TokenType
+
+pub let string : TokenType
+
+pub fn string_value(String) -> String
+
+pub let title : TokenType
+
+pub fn title_value(String) -> String
+
+pub fn tokenize(String, ArrayView[TokenType], String) -> Tokens raise @errors.PeleError
+
+pub let whitespace : TokenType
+
+pub let yaml : TokenType
+
+// Errors
+
+// Types and methods
+pub(all) struct TokenReader {
+  tokens : Tokens
+  types : ArrayView[TokenType]
+  diagram : String
+  mut i : Int32
+}
+pub fn TokenReader::accept(Self, Int32) -> Bool
+pub fn TokenReader::expect(Self, Int32) -> String raise @errors.PeleError
+pub fn[T] TokenReader::fail(Self, String) -> T raise @errors.PeleError
+pub fn TokenReader::kind(Self) -> Int32
+pub fn TokenReader::new(Tokens, ArrayView[TokenType], String) -> Self
+pub fn TokenReader::take(Self) -> String
+pub fn TokenReader::text(Self, index? : Int32) -> String
+
+pub(all) struct TokenType {
+  name : String
+  scanner : () -> (String, Int32) -> Int32
+  first : String?
+  hidden : Bool
+}
+
+pub(all) struct Tokens {
+  kinds : Array[Int32]
+  starts : Array[Int32]
+  ends : Array[Int32]
+  src : String
+}
+
+// Type aliases
+pub type Scanner = (String, Int32) -> Int32
+
+// Traits
