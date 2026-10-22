@@ -314,21 +314,27 @@ pub const NODE_TYPE_DEFAULT : Int32 = 0
 pub const NODE_TYPE_NO_BORDER : Int32 = 0
 
 ///|
+/// A node written `(text)`.
 pub const NODE_TYPE_ROUNDED_RECT : Int32 = 1
 
 ///|
+/// A node written `[text]`.
 pub const NODE_TYPE_RECT : Int32 = 2
 
 ///|
+/// A node written `((text))`.
 pub const NODE_TYPE_CIRCLE : Int32 = 3
 
 ///|
+/// A node written `)text(`.
 pub const NODE_TYPE_CLOUD : Int32 = 4
 
 ///|
+/// A node written `))text((`.
 pub const NODE_TYPE_BANG : Int32 = 5
 
 ///|
+/// A node written `{{text}}`.
 pub const NODE_TYPE_HEXAGON : Int32 = 6
 
 ///|
