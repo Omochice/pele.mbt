@@ -7,6 +7,7 @@ import {
   "Omochice/pele/util",
   "moonbitlang/core/double",
   "moonbitlang/core/math",
+  "moonbitlang/core/string",
 }
 
 import {
