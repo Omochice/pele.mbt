@@ -64,3 +64,17 @@ fn[T] sort_range(
     list[from + i] = src[i]
   }
 }
+
+///|
+/// Sorts an array stably, as `sort_range` does.
+fn[T] sort_array(list : Array[T], compare : (T, T) -> Double) -> Unit {
+  let count = list.length()
+  if count < 2 {
+    return
+  }
+  let items = FixedArray::makei(count, i => list[i])
+  sort_range(items, 0, count, compare)
+  for i in 0..<count {
+    list[i] = items[i]
+  }
+}

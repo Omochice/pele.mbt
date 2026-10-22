@@ -118,6 +118,14 @@ pub(all) struct LayeredResult {
 let max_dummies = 20000
 
 ///|
+/// Where edges are not given levels, a gap between ranks grows to keep the edges that cross it at least this steep, up to this many times its usual height.
+/// Shallower than that, the edges of a wide rank are hard to tell apart.
+let min_slope = 0.125
+
+///|
+let max_gap = 3.0
+
+///|
 /// A node of the given size.
 pub fn lnode(w : Double, h : Double, kind~ : Kind = Node) -> LNode {
   {
@@ -529,6 +537,7 @@ pub fn layered(
     max_rank,
     w,
     kind,
+    rank,
     ef,
     et,
     efd,
@@ -576,12 +585,182 @@ pub fn layered(
     }
     return { width: 0, height: 0, crossings, declared, }
   }
-  ignore(h)
-  ignore(heads)
-  ignore(label_node)
   ignore(efk)
   ignore(etk)
   ignore(first_seg)
   ignore(last_seg)
-  { width: 0, height: 0, crossings: 0, declared: 0, }
+  let xs = position(g, opt)
+  let empty = empty_ranks(g)
+
+  // A rank that holds nothing but the bends of edges is only there because some other edge has a label or a twin.
+  // Its bends move onto the straight line between the ends of their edges, and one that gets there is left out of the route, so that the edge is drawn as a single curve.
+  let on_line = FixedArray::make(n, false)
+  if empty is Some(empty) && !opt.tracks {
+    straighten(
+      g,
+      xs,
+      empty,
+      first_dummy,
+      span,
+      if opt.apart {
+        0
+      } else {
+        opt.edge_sep
+      },
+      on_line,
+    )
+  }
+  if !opt.tracks {
+    past_labels(g, xs, first_dummy, span, opt.edge_sep, on_line)
+  }
+
+  // Ranks that hold only border ports or their pass-through dummies need little room of their own.
+  let port_only = fn(r : Int32, wanted : Kind) {
+    let mut found = false
+    for i in layer_start[r]..<layer_start[r + 1] {
+      let k = kind[order[i]]
+      if k.ordinal() == wanted.ordinal() {
+        found = true
+      } else if !(k is Dummy) {
+        return false
+      }
+    }
+    found
+  }
+  let start_ranks = if port_only(0, StartPort) { step } else { 0 }
+  let end_ranks = if port_only(max_rank, EndPort) { step } else { 0 }
+  // The longest way across that any edge travels in the gap below each rank.
+  let run = FixedArray::make(max_rank + 1, 0.0)
+  for e in 0..<segments {
+    let across = (xs[ef[e]] + efd[e] - xs[et[e]] - etd[e]).abs()
+    if across > run[rank[ef[e]]] {
+      run[rank[ef[e]]] = across
+    }
+  }
+  let band_top = FixedArray::make(max_rank + 1, 0.0)
+  let band_bottom = FixedArray::make(max_rank + 1, 0.0)
+  let usual = fn(r : Int32) {
+    (if r < start_ranks || r >= max_rank - end_ranks {
+      opt.port_sep
+    } else {
+      opt.rank_sep
+    }) /
+    step.to_double()
+  }
+  // The room under each rank.
+  // Edges that are not cut into pieces need more where they run far across.
+  let gap_under = FixedArray::make(max_rank + 1, 0.0)
+  for r in 0..<max_rank {
+    gap_under[r] = jmax(
+      usual(r),
+      jmin(max_gap * opt.rank_sep / step.to_double(), run[r] * min_slope),
+    )
+  }
+  // A rank between two ranks of nodes, which holds labels and bends only.
+  let between = FixedArray::make(max_rank + 1, true)
+  for i in 0..<real {
+    between[rank[i]] = false
+  }
+  for r in 1..<max_rank {
+    if opt.tracks || !between[r] || (heads[r] != 1 && heads[r] != 2) {
+      continue
+    }
+    let shift = jmin(
+      opt.head_room / 2,
+      gap_under[if heads[r] == 1 { r - 1 } else { r }] / 2,
+    )
+    gap_under[r - 1] += if heads[r] == 1 { -shift } else { shift }
+    gap_under[r] += if heads[r] == 1 { shift } else { -shift }
+  }
+  // The part of its rank that an edge runs straight through at a bend or label.
+  // A bare bend beside labels keeps to the middle half, which leaves the curves either side of it more room and still keeps them clear of the labels' corners.
+  let inset = fn(d : Int32) {
+    if kind[d] is Dummy && between[rank[d]] && !opt.tracks {
+      (band_bottom[rank[d]] - band_top[rank[d]]) / 4
+    } else {
+      0.0
+    }
+  }
+  let mut y = 0.0
+  for r in 0..<=max_rank {
+    let mut tallest = 0.0
+    for i in layer_start[r]..<layer_start[r + 1] {
+      if h[order[i]] > tallest {
+        tallest = h[order[i]]
+      }
+    }
+    band_top[r] = y
+    band_bottom[r] = y + tallest
+    y += tallest + gap_under[r]
+  }
+  let height = y
+  let mut min_x = @double.infinity
+  let mut max_x = @double.neg_infinity
+  for i in 0..<n {
+    let half = w[i] / 2
+    if xs[i] - half < min_x {
+      min_x = xs[i] - half
+    }
+    if xs[i] + half > max_x {
+      max_x = xs[i] + half
+    }
+  }
+  for i in 0..<real {
+    let node = nodes[i]
+    let r = node.rank
+    node.x = xs[i] - min_x
+    node.y = (band_top[r] + band_bottom[r]) / 2
+  }
+  for ei in 0..<m {
+    let e = edges[ei]
+    let first = nodes[if e.reversed { e.head } else { e.tail }]
+    let last = nodes[if e.reversed { e.tail } else { e.head }]
+    let pts = [
+      first.x + (if e.reversed { e.head_dx } else { e.tail_dx }),
+      first.y + first.h / 2,
+    ]
+    let d0 = first_dummy[ei]
+    if d0 >= 0 {
+      for d in d0..<(d0 + span[ei] - 1) {
+        if on_line[d] {
+          continue
+        }
+        let x = xs[d] - min_x
+        let top = band_top[rank[d]]
+        let bottom = band_bottom[rank[d]]
+        pts.push(x)
+        pts.push(top + inset(d))
+        if bottom > top {
+          pts.push(x)
+          pts.push(bottom - inset(d))
+        }
+      }
+    }
+    pts.push(last.x + (if e.reversed { e.tail_dx } else { e.head_dx }))
+    pts.push(last.y - last.h / 2)
+    if e.reversed {
+      let mut i = 0
+      let mut j = pts.length() - 2
+      while i < j {
+        let tx = pts[i]
+        let ty = pts[i + 1]
+        pts[i] = pts[j]
+        pts[i + 1] = pts[j + 1]
+        pts[j] = tx
+        pts[j + 1] = ty
+        i += 2
+        j -= 2
+      }
+    }
+    e.points = pts
+    let ln = label_node[ei]
+    if ln >= 0 {
+      e.label_x = xs[ln] - min_x
+      e.label_y = (band_top[rank[ln]] + band_bottom[rank[ln]]) / 2
+    } else if e.label_w > 0 {
+      e.label_x = (pts[0] + pts[pts.length() - 2]) / 2
+      e.label_y = (pts[1] + pts[pts.length() - 1]) / 2
+    }
+  }
+  { width: max_x - min_x, height, crossings: 0, declared: 0, }
 }

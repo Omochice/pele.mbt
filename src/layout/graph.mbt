@@ -6,6 +6,7 @@ priv struct Graph {
   max_rank : Int32
   w : FixedArray[Double]
   kind : FixedArray[Kind]
+  rank : FixedArray[Int32]
   /// Segment endpoints, and where each segment attaches on them.
   ef : FixedArray[Int32]
   et : FixedArray[Int32]
@@ -38,4 +39,16 @@ let end_arrives = 2
 ///|
 fn is_dummy(kind : Kind) -> Bool {
   kind is (Dummy | Label)
+}
+
+///|
+/// The number pele's `const enum` gives each kind.
+fn Kind::ordinal(self : Kind) -> Int32 {
+  match self {
+    Node => 0
+    Dummy => 1
+    Label => 2
+    StartPort => 3
+    EndPort => 4
+  }
 }

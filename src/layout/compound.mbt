@@ -89,9 +89,673 @@ pub fn compound_layout(
   root_dir : Dir,
   opt : LayeredOptions,
 ) -> CompoundResult {
-  ignore(nodes)
-  ignore(edges)
-  ignore(root_dir)
-  ignore(opt)
-  { width: 0, height: 0, }
+  let n = nodes.length()
+  let level_of : Map[Int32, Level] = Map([])
+  let order : Array[Level] = []
+  let make_level = fn(id : Int32, dir : Dir) -> Level {
+    let level : Level = {
+      id,
+      dir,
+      items: [],
+      edges: [],
+      ports: [],
+      port_of: Map([]),
+      routes: Map([]),
+      x: 0,
+      y: 0,
+    }
+    level_of[id] = level
+    level
+  }
+  let level_at = fn(id : Int32) -> Level { level_of.get(id).unwrap() }
+  let root = make_level(-1, root_dir)
+  let children : Array[Array[Int32]] = Array::makei(n, _ => [])
+  let root_items = []
+  for i in 0..<n {
+    let p = nodes[i].parent
+    if p >= 0 && p < n && p != i && nodes[p].is_group {
+      children[p].push(i)
+    } else {
+      nodes[i].parent = -1
+      root_items.push(i)
+    }
+  }
+  root.items = root_items
+  order.push(root)
+  let depth = FixedArray::make(n, 0)
+  let placed = FixedArray::make(n, false)
+  let descend = fn(from : Int32) {
+    let mut q = from
+    while q < order.length() {
+      let level = order[q]
+      for item in level.items {
+        placed[item] = true
+        depth[item] = if level.id < 0 { 0 } else { depth[level.id] + 1 }
+        if nodes[item].is_group {
+          let child = make_level(item, nodes[item].dir.unwrap_or(level.dir))
+          child.items = children[item]
+          order.push(child)
+        }
+      }
+      q += 1
+    }
+  }
+  descend(0)
+  // Groups that contain each other are unreachable from the root, so they are lifted out.
+  for i in 0..<n {
+    if placed[i] {
+      continue
+    }
+    let former = nodes[i].parent
+    children[former] = children[former].filter(c => c != i)
+    nodes[i].parent = -1
+    root.items.push(i)
+    placed[i] = true
+    depth[i] = 0
+    if nodes[i].is_group {
+      let from = order.length()
+      let child = make_level(i, nodes[i].dir.unwrap_or(root_dir))
+      child.items = children[i]
+      order.push(child)
+      descend(from)
+    }
+  }
+  for q = order.length() - 1; q > 0; q = q - 1 {
+    let level = order[q]
+    let mut seq = @double.infinity
+    for item in level.items {
+      if nodes[item].seq < seq {
+        seq = nodes[item].seq
+      }
+    }
+    if seq != @double.infinity {
+      nodes[level.id].seq = seq
+    }
+  }
+  for level in order {
+    sort_array(level.items, fn(a, b) {
+      or_else(nodes[a].seq - nodes[b].seq, (a - b).to_double())
+    })
+  }
+
+  // Every group border an edge crosses costs a port.
+  // Past the budget, an edge is drawn between the groups that hold its ends, at the level they share.
+  let mut ports = 0
+  for e in edges {
+    let mut a = e.src
+    let mut b = e.dst
+    let mut crossed = 0
+    while depth[a] > depth[b] {
+      a = nodes[a].parent
+      crossed += 1
+    }
+    while depth[b] > depth[a] {
+      b = nodes[b].parent
+      crossed += 1
+    }
+    while a != b && nodes[a].parent != nodes[b].parent {
+      a = nodes[a].parent
+      b = nodes[b].parent
+      crossed += 2
+    }
+    if a == b {
+      continue
+    }
+    if ports + crossed > max_ports {
+      e.src = a
+      e.dst = b
+    } else {
+      ports += crossed
+    }
+  }
+  let loops : Array[Int32] = []
+  let stray : Array[Int32] = []
+  for ei in 0..<edges.length() {
+    let e = edges[ei]
+    e.route = []
+    if e.src == e.dst {
+      loops.push(ei)
+      continue
+    }
+    let mut a = e.src
+    let mut b = e.dst
+    let a_path : Array[Int32] = []
+    let b_path : Array[Int32] = []
+    while depth[a] > depth[b] {
+      a_path.push(a)
+      a = nodes[a].parent
+    }
+    while depth[b] > depth[a] {
+      b_path.push(b)
+      b = nodes[b].parent
+    }
+    if a == b {
+      stray.push(ei)
+      continue
+    }
+    while nodes[a].parent != nodes[b].parent {
+      a_path.push(a)
+      b_path.push(b)
+      a = nodes[a].parent
+      b = nodes[b].parent
+    }
+    level_at(nodes[a].parent).edges.push({ e: ei, a, b, })
+    for path_out in [(a_path, true), (b_path, false)] {
+      let (path, out) = path_out
+      for inner in path {
+        let level = level_at(nodes[inner].parent)
+        let port : PortEdge = {
+          e: ei,
+          inner,
+          out,
+          side: side_top,
+          hint: @double.not_a_number,
+          px: 0,
+          py: 0,
+          route: [],
+        }
+        level.ports.push(port)
+        level.port_of[ei * 2 + (if out { 0 } else { 1 })] = port
+      }
+    }
+  }
+  let item_index = FixedArray::make(n, 0)
+  let endpoint_below = fn(item : Int32, e : CEdge, out : Bool) {
+    (if out { e.src } else { e.dst }) != item
+  }
+  let port_below = fn(item : Int32, ei : Int32, out : Bool) {
+    level_at(item).port_of.get(ei * 2 + (if out { 0 } else { 1 })).unwrap()
+  }
+  let key = FixedArray::make(n, @double.not_a_number)
+  let mut keyed = false
+  let mut far_hint : ((Level, PortEdge) -> Double)? = None
+  let build = fn(level : Level, sized : Bool) {
+    let vertical = is_vertical(level.dir)
+    let start = start_side(level.dir)
+    let lnodes : Array[LNode] = []
+    let ledges : Array[LEdge] = []
+    for i, item in level.items {
+      item_index[item] = i
+      let node = nodes[item]
+      let ln = if sized {
+        lnode(
+          if vertical {
+            node.w
+          } else {
+            node.h
+          },
+          if vertical {
+            node.h
+          } else {
+            node.w
+          },
+        )
+      } else {
+        lnode(0, 0)
+      }
+      ln.span = if node.is_group {
+        jmin(node.span, ln.w - 2 * node.pad_x)
+      } else {
+        node.span
+      }
+      ln.key = if keyed { key[item] } else { @double.not_a_number }
+      lnodes.push(ln)
+    }
+    let held = fn(item : Int32, ei : Int32, out : Bool) {
+      nodes[item].is_group && endpoint_below(item, edges[ei], out)
+    }
+    let offset = fn(item : Int32, ei : Int32, out : Bool) {
+      if !sized ||
+        !nodes[item].is_group ||
+        !endpoint_below(item, edges[ei], out) {
+        return 0.0
+      }
+      let port = port_below(item, ei, out)
+      if vertical {
+        port.px - nodes[item].w / 2
+      } else {
+        port.py - nodes[item].h / 2
+      }
+    }
+    for le in level.edges {
+      let e = edges[le.e]
+      let edge = ledge(item_index[le.a], item_index[le.b], minlen=e.minlen)
+      if sized {
+        edge.label_w = if vertical { e.label_w } else { e.label_h }
+        edge.label_h = if vertical { e.label_h } else { e.label_w }
+        edge.tail_dx = offset(le.a, le.e, true)
+        edge.head_dx = offset(le.b, le.e, false)
+        edge.tail_fixed = held(le.a, le.e, true)
+        edge.head_fixed = held(le.b, le.e, false)
+      }
+      ledges.push(edge)
+    }
+    let dummies = FixedArray::make(level.ports.length(), -1)
+    for i, port in level.ports {
+      if port.side == start || port.side == opposite(start) {
+        let d = lnodes.length()
+        let ln = lnode(
+          0,
+          0,
+          kind=if port.side == start { StartPort } else { EndPort },
+        )
+        ln.key = if keyed {
+          key[if port.out { edges[port.e].dst } else { edges[port.e].src }]
+        } else {
+          @double.not_a_number
+        }
+        ln.hint = match far_hint {
+          Some(far) if port.hint.is_nan() && keyed => far(level, port)
+          _ => port.hint
+        }
+        lnodes.push(ln)
+        dummies[i] = d
+        let edge = if port.out {
+          ledge(item_index[port.inner], d)
+        } else {
+          ledge(d, item_index[port.inner])
+        }
+        if port.out {
+          edge.tail_dx = offset(port.inner, port.e, true)
+          edge.tail_fixed = held(port.inner, port.e, true)
+        } else {
+          edge.head_dx = offset(port.inner, port.e, false)
+          edge.head_fixed = held(port.inner, port.e, false)
+        }
+        ledges.push(edge)
+      } else {
+        lnodes[item_index[port.inner]].pin = if port.side == side_top ||
+          port.side == side_left {
+          -1
+        } else {
+          1
+        }
+      }
+    }
+    (lnodes, ledges, dummies)
+  }
+  let ordered = ports > 1 &&
+    ports <= max_ordered_ports &&
+    edges.length() <= max_ordered_edges
+
+  // Unchanged levels are reused across layout attempts.
+  let laid : Map[Int32, Array[LaidOut]] = Map([])
+  let lay_out = fn(
+    level : Level,
+    lnodes : Array[LNode],
+    ledges : Array[LEdge],
+  ) -> LaidOut {
+    if !ordered {
+      return { given: [], lnodes, ledges, size: layered(lnodes, ledges, opt), }
+    }
+    let given = describe(lnodes, ledges)
+    let past = match laid.get(level.id) {
+      Some(past) => past
+      None => {
+        let past = []
+        laid[level.id] = past
+        past
+      }
+    }
+    for p in past {
+      if same_values(p.given, given) {
+        return p
+      }
+    }
+    let done = { given, lnodes, ledges, size: layered(lnodes, ledges, opt), }
+    past.push(done)
+    done
+  }
+  let mut total : CompoundResult = { width: 0, height: 0, }
+  let place = fn() {
+    // Parents are ranked first to determine which group sides edges cross.
+    for level in order {
+      for port in level.ports {
+        if nodes[port.inner].is_group &&
+          endpoint_below(port.inner, edges[port.e], port.out) {
+          port_below(port.inner, port.e, port.out).side = port.side
+        }
+      }
+      if level.edges.length() == 0 {
+        continue
+      }
+      let mut needed = false
+      for le in level.edges {
+        let e = edges[le.e]
+        if (nodes[le.a].is_group && e.src != le.a) ||
+          (nodes[le.b].is_group && e.dst != le.b) {
+          needed = true
+        }
+      }
+      if !needed {
+        continue
+      }
+      let (lnodes, ledges, _) = build(level, false)
+      orient(lnodes, ledges)
+      rank(lnodes, ledges, 1)
+      let start = start_side(level.dir)
+      for i, le in level.edges {
+        let e = edges[le.e]
+        let a_above = !ledges[i].reversed
+        if nodes[le.a].is_group && e.src != le.a {
+          port_below(le.a, le.e, true).side = if a_above {
+            opposite(start)
+          } else {
+            start
+          }
+        }
+        if nodes[le.b].is_group && e.dst != le.b {
+          port_below(le.b, le.e, false).side = if a_above {
+            start
+          } else {
+            opposite(start)
+          }
+        }
+      }
+    }
+
+    // Children are laid out first so that their sizes are known.
+    for q = order.length() - 1; q >= 0; q = q - 1 {
+      let level = order[q]
+      let group = if level.id >= 0 { Some(nodes[level.id]) } else { None }
+      let vertical = is_vertical(level.dir)
+      let flip = level.dir is (BT | RL)
+      let (built_nodes, built_edges, dummies) = build(level, true)
+      let { lnodes, ledges, size, .. } = lay_out(
+        level, built_nodes, built_edges,
+      )
+      let content_w = if vertical { size.width } else { size.height }
+      let content_h = if vertical { size.height } else { size.width }
+      let pad_x = match group {
+        Some(group) => group.pad_x
+        None => 0
+      }
+      let pad_top = match group {
+        Some(group) => group.pad_top
+        None => 0
+      }
+      let box_w = jmax(
+        content_w + 2 * pad_x,
+        match group {
+          Some(group) => group.min_w
+          None => 0
+        },
+      )
+      let box_h = content_h +
+        pad_top +
+        (match group {
+          Some(group) => group.pad_bottom
+          None => 0
+        })
+      let off_x = (box_w - content_w) / 2
+      let off_y = pad_top
+      let tx = fn(lx : Double, ly : Double) {
+        off_x +
+        (if vertical { lx } else if flip { size.height - ly } else { ly })
+      }
+      let ty = fn(lx : Double, ly : Double) {
+        off_y +
+        (if vertical { if flip { size.height - ly } else { ly } } else { lx })
+      }
+      let axis = if vertical { 0.0 } else { 1.0 }
+      let convert = fn(points : Array[Double]) {
+        let out = []
+        let mut i = 0
+        while i < points.length() {
+          out.push(tx(points[i], points[i + 1]))
+          out.push(ty(points[i], points[i + 1]))
+          out.push(axis)
+          i += 2
+        }
+        out
+      }
+      for i, item in level.items {
+        nodes[item].x = tx(lnodes[i].x, lnodes[i].y)
+        nodes[item].y = ty(lnodes[i].x, lnodes[i].y)
+      }
+      for i, le in level.edges {
+        let edge = ledges[i]
+        level.routes[le.e] = convert(edge.points)
+        let e = edges[le.e]
+        if e.label_w > 0 {
+          e.label_x = tx(edge.label_x, edge.label_y)
+          e.label_y = ty(edge.label_x, edge.label_y)
+        }
+      }
+      let mut k = level.edges.length()
+      for i, port in level.ports {
+        let item = nodes[port.inner]
+        if dummies[i] >= 0 {
+          let route = convert(ledges[k].points)
+          k += 1
+          let at = if port.out { route.length() - 3 } else { 0 }
+          let mut bx = route[at]
+          let mut by = route[at + 1]
+          if port.side == side_top {
+            by = 0
+          } else if port.side == side_bottom {
+            by = box_h
+          } else if port.side == side_left {
+            bx = 0
+          } else {
+            bx = box_w
+          }
+          if port.out {
+            route.push(bx)
+            route.push(by)
+            route.push(axis)
+          } else {
+            route.insert(0, axis)
+            route.insert(0, by)
+            route.insert(0, bx)
+          }
+          port.px = bx
+          port.py = by
+          port.route = route
+          continue
+        }
+        let mut ix = item.x
+        let mut iy = item.y
+        if item.is_group && endpoint_below(port.inner, edges[port.e], port.out) {
+          let inner = port_below(port.inner, port.e, port.out)
+          ix += inner.px - item.w / 2
+          iy += inner.py - item.h / 2
+        } else if port.side == side_top {
+          iy -= item.h / 2
+        } else if port.side == side_bottom {
+          iy += item.h / 2
+        } else if port.side == side_left {
+          ix -= item.w / 2
+        } else {
+          ix += item.w / 2
+        }
+        let mut bx = ix
+        let mut by = iy
+        if port.side == side_top {
+          by = 0
+        } else if port.side == side_bottom {
+          by = box_h
+        } else if port.side == side_left {
+          bx = 0
+        } else {
+          bx = box_w
+        }
+        let a = if port.side == side_top || port.side == side_bottom {
+          0.0
+        } else {
+          1.0
+        }
+        port.px = bx
+        port.py = by
+        port.route = if port.out {
+          [ix, iy, a, bx, by, a]
+        } else {
+          [bx, by, a, ix, iy, a]
+        }
+      }
+      match group {
+        Some(group) => {
+          group.w = box_w
+          group.h = box_h
+        }
+        None => total = { width: box_w, height: box_h, }
+      }
+    }
+    for level in order {
+      let ox = level.x
+      let oy = level.y
+      for item in level.items {
+        let node = nodes[item]
+        node.x += ox
+        node.y += oy
+        if node.is_group {
+          let child = level_at(item)
+          child.x = node.x - node.w / 2
+          child.y = node.y - node.h / 2
+        }
+      }
+    }
+    let append = fn(
+      route : Array[Double],
+      part : Array[Double],
+      ox : Double,
+      oy : Double,
+    ) {
+      let mut i = 0
+      while i < part.length() {
+        let x = part[i] + ox
+        let y = part[i + 1] + oy
+        let len = route.length()
+        if !(len >= 3 &&
+          (route[len - 3] - x).abs() < 0.01 &&
+          (route[len - 2] - y).abs() < 0.01) {
+          route.push(x)
+          route.push(y)
+          route.push(part[i + 2])
+        }
+        i += 3
+      }
+    }
+    for level in order {
+      for le in level.edges {
+        let e = edges[le.e]
+        let route = []
+        let outward : Array[Level] = []
+        let mut item = e.src
+        while nodes[item].parent != level.id {
+          outward.push(level_at(nodes[item].parent))
+          item = nodes[item].parent
+        }
+        for lv in outward {
+          append(route, lv.port_of.get(le.e * 2).unwrap().route, lv.x, lv.y)
+        }
+        append(route, level.routes.get(le.e).unwrap(), level.x, level.y)
+        let inward : Array[Level] = []
+        let mut item = e.dst
+        while nodes[item].parent != level.id {
+          inward.push(level_at(nodes[item].parent))
+          item = nodes[item].parent
+        }
+        for i = inward.length() - 1; i >= 0; i = i - 1 {
+          append(
+            route,
+            inward[i].port_of.get(le.e * 2 + 1).unwrap().route,
+            inward[i].x,
+            inward[i].y,
+          )
+        }
+        e.route = route
+        if e.label_w > 0 {
+          e.label_x += level.x
+          e.label_y += level.y
+        }
+      }
+    }
+  }
+  ignore(key)
+  keyed = false
+  far_hint = None
+  place()
+  for ei in stray {
+    let e = edges[ei]
+    let a = nodes[e.src]
+    let b = nodes[e.dst]
+    e.route = [a.x, a.y, 0, b.x, b.y, 0]
+    e.label_x = (a.x + b.x) / 2
+    e.label_y = (a.y + b.y) / 2
+  }
+  for ei in loops {
+    let e = edges[ei]
+    let node = nodes[e.src]
+    e.label_x = node.x + node.w / 2 + 28 + e.label_w / 2
+    e.label_y = node.y
+  }
+  total
+}
+
+///|
+let max_ports = 40000
+
+///|
+/// Repeated layouts are limited to small graphs.
+let max_ordered_ports = 400
+
+///|
+let max_ordered_edges = 500
+
+///|
+/// A level's layout, kept with what it was given so that the same level laid out again with the same input can reuse it.
+priv struct LaidOut {
+  given : Array[Double]
+  lnodes : Array[LNode]
+  ledges : Array[LEdge]
+  size : LayeredResult
+}
+
+///|
+fn describe(lnodes : Array[LNode], ledges : Array[LEdge]) -> Array[Double] {
+  let given = []
+  for ln in lnodes {
+    given.push(ln.w)
+    given.push(ln.h)
+    given.push(ln.kind.ordinal().to_double())
+    given.push(ln.pin.to_double())
+    given.push(ln.hint)
+    given.push(ln.key)
+    given.push(ln.span)
+  }
+  let flag = fn(b : Bool) { if b { 1.0 } else { 0.0 } }
+  for le in ledges {
+    given.push(le.tail.to_double())
+    given.push(le.head.to_double())
+    given.push(le.minlen.to_double())
+    given.push(le.label_w)
+    given.push(le.label_h)
+    given.push(le.tail_dx)
+    given.push(le.head_dx)
+    given.push(flag(le.tail_fixed))
+    given.push(flag(le.head_fixed))
+  }
+  given
+}
+
+///|
+/// Whether two lists hold the same values as `Object.is` tells them apart: NaN is NaN, and 0 is not -0.
+fn same_values(a : Array[Double], b : Array[Double]) -> Bool {
+  if a.length() != b.length() {
+    return false
+  }
+  for i in 0..<a.length() {
+    let x = a[i]
+    let y = b[i]
+    let same = if x.is_nan() {
+      y.is_nan()
+    } else {
+      x == y && (x != 0.0 || 1.0 / x == 1.0 / y)
+    }
+    if !same {
+      return false
+    }
+  }
+  true
 }
