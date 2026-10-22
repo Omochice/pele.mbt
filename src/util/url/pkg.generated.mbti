@@ -1,7 +1,21 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "Omochice/pele/util/url"
 
+import {
+  "Omochice/pele/types",
+}
+
 // Values
+pub fn image_url(String, @types.RenderOptions) -> String?
+
+pub fn link_url(String, @types.RenderOptions) -> String?
+
+pub fn linked(String, String, String, Array[@types.LinkInfo], @types.RenderOptions, attrs? : String) -> String
+
+pub fn rel_attr(@types.RenderOptions) -> String
+
+pub fn safe_url(String) -> String
+
 pub fn sanitize_url(String) -> String
 
 // Errors

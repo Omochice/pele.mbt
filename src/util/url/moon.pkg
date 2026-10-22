@@ -1,5 +1,12 @@
 import {
+  "Omochice/pele/svg",
+  "Omochice/pele/text",
+  "Omochice/pele/types",
   "Omochice/pele/util",
   "moonbitlang/core/double",
   "moonbitlang/core/string",
 }
+
+import {
+  "Omochice/pele/types",
+} for "test"
