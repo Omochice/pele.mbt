@@ -57,7 +57,7 @@ test "a title and accessibility statements are read" {
   )
   inspect(
     ast("radar-beta title T axis A"),
-    content="title=\"T\" accTitle=- accDescr=- axes=A[-] curves= options=",
+    content="title=\"T axis A\" accTitle=- accDescr=- axes= curves= options=",
   )
 }
 
@@ -130,8 +130,8 @@ test "numbers follow the NUMBER pattern" {
 ///|
 test "a word that continues as a name is a name" {
   inspect(
-    ast("radar-beta\naxis axisx, maxi, min-1, _x, 1a, a_b"),
-    content="title=- accTitle=- accDescr=- axes=axisx[-],maxi[-],min-1[-],_x[-],1a[-],a_b[-] curves= options=",
+    ast("radar-beta\naxis axisx, maxi, min-1, _x, a_b"),
+    content="title=- accTitle=- accDescr=- axes=axisx[-],maxi[-],min-1[-],_x[-],a_b[-] curves= options=",
   )
   inspect(
     ast("radar-beta\naxis a-, b"),
@@ -214,6 +214,22 @@ test "malformed statements are parse errors" {
   inspect(
     ast("radar-beta\naxis A\ncurve c"),
     content="Parse error on line 3:\ncurve c\n-------^\nExpecting token of type '{' but found end of input.",
+  )
+}
+
+///|
+test "a name that starts with a digit lexes as a number first" {
+  inspect(
+    ast("radar-beta\naxis 1a"),
+    content="Parse error on line 2:\naxis 1a\n-----^\nExpecting token of type 'ID' but found `1`.",
+  )
+}
+
+///|
+test "huge numbers do not stop the parser" {
+  inspect(
+    ast("radar-beta\nmax " + "9".repeat(400)),
+    content="title=- accTitle=- accDescr=- axes= curves= options=max=Infinity",
   )
 }
 

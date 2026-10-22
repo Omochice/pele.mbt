@@ -1,0 +1,52 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Omochice/pele/diagrams/radar"
+
+import {
+  "Omochice/pele/errors",
+}
+
+// Values
+pub fn parse_radar(String) -> RadarAst raise @errors.PeleError
+
+// Errors
+
+// Types and methods
+pub(all) struct AxisAst {
+  name : String
+  label : String?
+}
+
+pub(all) struct CurveAst {
+  name : String
+  label : String?
+  entries : Array[EntryAst]
+}
+
+pub(all) struct EntryAst {
+  axis : String?
+  value : Double
+}
+
+pub(all) struct OptionAst {
+  name : String
+  value : OptionValue
+}
+
+pub(all) enum OptionValue {
+  Flag(Bool)
+  Number(Double)
+  Name(String)
+}
+
+pub(all) struct RadarAst {
+  title : String?
+  acc_title : String?
+  acc_descr : String?
+  axes : Array[AxisAst]
+  curves : Array[CurveAst]
+  options : Array[OptionAst]
+}
+
+// Type aliases
+
+// Traits
