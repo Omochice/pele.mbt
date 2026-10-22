@@ -1,0 +1,73 @@
+///|
+fn string_field(json : Map[String, Json], key : String) -> String? {
+  match json.get(key) {
+    Some(String(value)) => Some(value)
+    _ => None
+  }
+}
+
+///|
+fn number_field(json : Map[String, Json], key : String) -> Double? {
+  match json.get(key) {
+    Some(Number(value, ..)) => Some(value)
+    _ => None
+  }
+}
+
+///|
+fn bool_field(json : Map[String, Json], key : String) -> Bool? {
+  match json.get(key) {
+    Some(True) => Some(true)
+    Some(False) => Some(false)
+    _ => None
+  }
+}
+
+///|
+fn strings_field(json : Map[String, Json], key : String) -> Array[String]? {
+  guard json.get(key) is Some(Array(items)) else { return None }
+  Some(
+    items.filter_map(item => {
+      match item {
+        String(value) => Some(value)
+        _ => None
+      }
+    }),
+  )
+}
+
+///|
+fn config_field(json : Map[String, Json], key : String) -> @types.Config? {
+  match json.get(key) {
+    Some(Object(config)) => Some(config)
+    _ => None
+  }
+}
+
+///|
+/// Reads pele's render options from their JSON form.
+/// A key of the wrong type is ignored, so pele's default applies.
+fn decode_options(json : Json) -> @types.RenderOptions {
+  guard json is Object(fields) else { return @types.RenderOptions::default() }
+  {
+    font_family: string_field(fields, "fontFamily"),
+    font_family_mono: string_field(fields, "fontFamilyMono"),
+    font_size: number_field(fields, "fontSize"),
+    id_prefix: string_field(fields, "idPrefix"),
+    responsive: bool_field(fields, "responsive"),
+    max_width: number_field(fields, "maxWidth"),
+    auto_direction: bool_field(fields, "autoDirection"),
+    direction_breakpoint: number_field(fields, "directionBreakpoint"),
+    padding: number_field(fields, "padding"),
+    limit: number_field(fields, "limit"),
+    output_limit: number_field(fields, "outputLimit"),
+    max_edges: number_field(fields, "maxEdges"),
+    links: bool_field(fields, "links"),
+    images: bool_field(fields, "images"),
+    link_rel: string_field(fields, "linkRel"),
+    link_schemes: strings_field(fields, "linkSchemes"),
+    image_schemes: strings_field(fields, "imageSchemes"),
+    config: config_field(fields, "config"),
+    now: number_field(fields, "now"),
+  }
+}

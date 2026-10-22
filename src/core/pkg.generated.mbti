@@ -1,0 +1,18 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Omochice/pele/core"
+
+import {
+  "Omochice/pele/errors",
+  "Omochice/pele/types",
+}
+
+// Values
+pub fn render(String, @types.RenderOptions) -> @types.RenderResult raise @errors.PeleError
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits

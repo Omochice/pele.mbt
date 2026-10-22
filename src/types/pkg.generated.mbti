@@ -1,0 +1,57 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Omochice/pele/types"
+
+// Values
+
+// Errors
+
+// Types and methods
+pub(all) struct LinkInfo {
+  id : String
+  href : String
+  internal : Bool
+}
+
+pub(all) struct RenderOptions {
+  font_family : String?
+  font_family_mono : String?
+  font_size : Double?
+  id_prefix : String?
+  responsive : Bool?
+  max_width : Double?
+  auto_direction : Bool?
+  direction_breakpoint : Double?
+  padding : Double?
+  limit : Double?
+  output_limit : Double?
+  max_edges : Double?
+  links : Bool?
+  images : Bool?
+  link_rel : String?
+  link_schemes : Array[String]?
+  image_schemes : Array[String]?
+  config : Map[String, Json]?
+  now : Double?
+}
+pub fn RenderOptions::default() -> Self
+
+pub(all) struct RenderResult {
+  kind : String
+  mermaid_type : String
+  svg : String
+  width : Double
+  height : Double
+  links : Array[LinkInfo]
+}
+
+pub(all) struct Rendered {
+  svg : String
+  width : Double
+  height : Double
+  links : Array[LinkInfo]
+}
+
+// Type aliases
+pub type Config = Map[String, Json]
+
+// Traits

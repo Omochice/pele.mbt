@@ -1,0 +1,33 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Omochice/pele/errors"
+
+// Values
+pub fn pele_error(String, code? : ErrorCode, kind? : String, mermaid_type? : String, line? : Int32, column? : Int32, snippet? : String) -> PeleError
+
+// Errors
+pub(all) suberror PeleError {
+  PeleError(Failure)
+}
+
+// Types and methods
+pub(all) enum ErrorCode {
+  UnsupportedDiagram
+  Syntax
+  Semantic
+  Limit
+}
+pub fn ErrorCode::to_string(Self) -> String
+
+pub(all) struct Failure {
+  message : String
+  code : ErrorCode
+  kind : String?
+  mermaid_type : String?
+  line : Int32
+  column : Int32
+  snippet : String
+}
+
+// Type aliases
+
+// Traits
