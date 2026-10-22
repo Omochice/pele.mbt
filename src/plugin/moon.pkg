@@ -3,6 +3,7 @@ import {
   "Omochice/pele/diagrams/flowchart",
   "Omochice/pele/diagrams/info",
   "Omochice/pele/diagrams/ishikawa",
+  "Omochice/pele/diagrams/journey",
   "Omochice/pele/diagrams/kanban",
   "Omochice/pele/diagrams/mindmap",
   "Omochice/pele/diagrams/packet",
