@@ -4,7 +4,8 @@ fn respond(source : String, options : String) -> (Int32, Json) {
     let result = @core.render(
       [
         @flowchart.flowchart, @info.info, @ishikawa.ishikawa, @kanban.kanban, @mindmap.mindmap,
-        @packet.packet, @pie.pie, @radar.radar, @railroad.railroad, @sankey.sankey, @venn.venn,
+        @packet.packet, @pie.pie, @radar.radar, @railroad.railroad, @sankey.sankey,
+        @treemap.treemap, @venn.venn,
       ],
       source,
       decode_options(@json.parse(options)),
