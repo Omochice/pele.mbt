@@ -22,6 +22,10 @@ priv struct ShapeDef {
   /// Distance from the bounding box to the outline on a side, given `w`, `h`, the side and how far
   /// along it from its middle, to the right or down.
   inset : ((Double, Double, Int32, Double) -> Double)?
+  /// How much of a side edges may spread along, centered on its middle: the top and bottom, or the
+  /// left and right when sideways.
+  /// A shape without one keeps its edges at the middle.
+  span : ((Double, Double, Bool) -> Double)?
   no_label : Bool
 }
 
@@ -30,9 +34,30 @@ fn ShapeDef::new(
   size~ : (Double, Double) -> ShapeSize,
   draw~ : (Double, Double, String, String) -> String,
   inset? : (Double, Double, Int32, Double) -> Double,
+  span? : (Double, Double, Bool) -> Double,
   no_label~ : Bool = false,
 ) -> ShapeDef {
-  { size, draw, inset, no_label, }
+  { size, draw, inset, span, no_label, }
+}
+
+///|
+/// Kept clear at each end of a straight side, for the corner.
+const CORNER : Double = 12
+
+///|
+fn flat(w : Double, h : Double, sideways : Bool) -> Double {
+  (if sideways { h } else { w }) - 2 * CORNER
+}
+
+///|
+/// Straight along the top and bottom except for `cut(h)` at each end, and not straight at the sides.
+fn flat_across(cut : (Double) -> Double) -> (Double, Double, Bool) -> Double {
+  (w, h, sideways) => if sideways { 0 } else { w - 2 * cut(h) - 2 * CORNER }
+}
+
+///|
+fn round_span(w : Double, h : Double, sideways : Bool) -> Double {
+  (if sideways { h } else { w }) * 0.6
 }
 
 ///|
@@ -208,17 +233,21 @@ fn bang_points(w : Double, h : Double) -> Array[Double] {
 }
 
 ///|
-let rect_shape : ShapeDef = ShapeDef::new(size=box_size, draw=(w, h, a, _) => {
-  rect(w, h, rounded(a))
-})
+let rect_shape : ShapeDef = ShapeDef::new(span=flat, size=box_size, draw=(
+  w,
+  h,
+  a,
+  _,
+) => rect(w, h, rounded(a)))
 
 ///|
 let shapes : Map[String, ShapeDef] = {
   "rect": rect_shape,
-  "rounded": ShapeDef::new(size=box_size, draw=(w, h, a, _) => {
+  "rounded": ShapeDef::new(span=flat, size=box_size, draw=(w, h, a, _) => {
     rect(w, h, a, rx=" rx=\"\{num(@util.js_min(12, h / 2))}\"")
   }),
   "stadium": ShapeDef::new(
+    span=(w, h, sideways) => if sideways { h * 0.6 } else { w - h },
     inset=(_, h, side, t) => {
       if vertical(side) {
         bulge(t, h / 2, h / 2)
@@ -233,6 +262,7 @@ let shapes : Map[String, ShapeDef] = {
     draw=(w, h, a, _) => rect(w, h, a, rx=" rx=\"\{num(h / 2)}\""),
   ),
   "fr-rect": ShapeDef::new(
+    span=flat,
     size=(tw, th) => { w: tw + 2 * PAD_X + 16, h: th + 2 * PAD_Y, dy: 0, },
     draw=(w, h, a, line) => {
       let x = w / 2 - 8
@@ -240,13 +270,12 @@ let shapes : Map[String, ShapeDef] = {
       "<path d=\"M\{num(-x)},\{num(-h / 2)}V\{num(h / 2)}M\{num(x)},\{num(-h / 2)}V\{num(h / 2)}\" fill=\"none\"\{line}/>"
     },
   ),
-  "text": ShapeDef::new(size=(tw, th) => { w: tw + 8, h: th + 8, dy: 0, }, draw=(
-    w,
-    h,
-    _,
-    _,
-  ) => rect(w, h, hidden_box)),
-  "notch-rect": ShapeDef::new(size=box_size, draw=(w, h, a, _) => {
+  "text": ShapeDef::new(
+    span=flat,
+    size=(tw, th) => { w: tw + 8, h: th + 8, dy: 0, },
+    draw=(w, h, _, _) => rect(w, h, hidden_box),
+  ),
+  "notch-rect": ShapeDef::new(span=flat, size=box_size, draw=(w, h, a, _) => {
     let c = 10.0
     poly(
       [
@@ -265,6 +294,7 @@ let shapes : Map[String, ShapeDef] = {
     )
   }),
   "lin-rect": ShapeDef::new(
+    span=flat,
     size=(tw, th) => { w: tw + 2 * PAD_X + 8, h: th + 2 * PAD_Y, dy: 0, },
     draw=(w, h, a, line) => {
       rect(w, h, rounded(a)) +
@@ -272,6 +302,7 @@ let shapes : Map[String, ShapeDef] = {
     },
   ),
   "div-rect": ShapeDef::new(
+    span=flat,
     size=(tw, th) => { w: tw + 2 * PAD_X, h: th + 2 * PAD_Y + 8, dy: 4, },
     draw=(w, h, a, line) => {
       rect(w, h, rounded(a)) +
@@ -279,6 +310,7 @@ let shapes : Map[String, ShapeDef] = {
     },
   ),
   "win-pane": ShapeDef::new(
+    span=flat,
     size=(tw, th) => { w: tw + 2 * PAD_X + 8, h: th + 2 * PAD_Y + 8, dy: 4, },
     draw=(w, h, a, line) => {
       rect(w, h, rounded(a)) +
@@ -286,6 +318,7 @@ let shapes : Map[String, ShapeDef] = {
     },
   ),
   "st-rect": ShapeDef::new(
+    span=(w, h, sideways) => (if sideways { h } else { w }) - 2 * CORNER - 8,
     size=(tw, th) => { w: tw + 2 * PAD_X + 8, h: th + 2 * PAD_Y + 8, dy: 4, },
     draw=(w, h, a, _) => {
       let bw = w - 8
@@ -301,15 +334,16 @@ let shapes : Map[String, ShapeDef] = {
       out.to_string()
     },
   ),
-  "tag-rect": ShapeDef::new(size=box_size, draw=(w, h, a, line) => {
+  "tag-rect": ShapeDef::new(span=flat, size=box_size, draw=(w, h, a, line) => {
     rect(w, h, rounded(a)) +
     "<path d=\"M\{num(w / 2 - 12)},\{num(h / 2)}L\{num(w / 2)},\{num(h / 2 - 12)}\" fill=\"none\"\{line}/>"
   }),
-  "datastore": ShapeDef::new(size=box_size, draw=(w, h, a, line) => {
+  "datastore": ShapeDef::new(span=flat, size=box_size, draw=(w, h, a, line) => {
     rect(w, h, a.replace(old="stroke=\"var(--_b)\"", new="stroke=\"none\"")) +
     "<path d=\"M\{num(-w / 2)},\{num(-h / 2)}H\{num(w / 2)}M\{num(-w / 2)},\{num(h / 2)}H\{num(w / 2)}\" fill=\"none\"\{line}/>"
   }),
   "console": ShapeDef::new(
+    span=flat,
     size=(tw, th) => {
       w: @util.js_max(tw + 2 * PAD_X, 72),
       h: th + 2 * PAD_Y + 12,
@@ -321,6 +355,7 @@ let shapes : Map[String, ShapeDef] = {
     },
   ),
   "browser": ShapeDef::new(
+    span=flat,
     size=(tw, th) => {
       w: @util.js_max(tw + 2 * PAD_X, 72),
       h: th + 2 * PAD_Y + 12,
@@ -346,6 +381,7 @@ let shapes : Map[String, ShapeDef] = {
     },
   ),
   "diam": ShapeDef::new(
+    span=round_span,
     inset=(w, h, side, t) => {
       if vertical(side) {
         t.abs() * w / h
@@ -361,6 +397,7 @@ let shapes : Map[String, ShapeDef] = {
     draw=(w, h, a, _) => poly([0, -h / 2, w / 2, 0, 0, h / 2, -w / 2, 0], a),
   ),
   "hex": ShapeDef::new(
+    span=(w, h, sideways) => if sideways { h * 0.5 } else { w - h / 2 - CORNER },
     inset=(_, _, side, t) => if vertical(side) { t.abs() / 2 } else { 0 },
     size=slanted_size(2),
     draw=(w, h, a, _) => {
@@ -385,6 +422,7 @@ let shapes : Map[String, ShapeDef] = {
     },
   ),
   "odd": ShapeDef::new(
+    span=flat_across(_ => 0),
     inset=(_, h, side, _) => if side == 3 { h / 4 } else { 0 },
     size=slanted_size(4),
     draw=(w, h, a, _) => {
@@ -406,54 +444,54 @@ let shapes : Map[String, ShapeDef] = {
       )
     },
   ),
-  "lean-r": ShapeDef::new(inset=lean_inset, size=slanted_size(2), draw=(
-    w,
-    h,
-    a,
-    _,
-  ) => {
-    let s = h / 4
-    poly(
-      [-w / 2 + s, -h / 2, w / 2, -h / 2, w / 2 - s, h / 2, -w / 2, h / 2],
-      a,
-    )
-  }),
-  "lean-l": ShapeDef::new(inset=lean_inset, size=slanted_size(2), draw=(
-    w,
-    h,
-    a,
-    _,
-  ) => {
-    let s = h / 4
-    poly(
-      [-w / 2, -h / 2, w / 2 - s, -h / 2, w / 2, h / 2, -w / 2 + s, h / 2],
-      a,
-    )
-  }),
-  "trap-b": ShapeDef::new(inset=lean_inset, size=slanted_size(2), draw=(
-    w,
-    h,
-    a,
-    _,
-  ) => {
-    let s = h / 4
-    poly(
-      [-w / 2 + s, -h / 2, w / 2 - s, -h / 2, w / 2, h / 2, -w / 2, h / 2],
-      a,
-    )
-  }),
-  "trap-t": ShapeDef::new(inset=lean_inset, size=slanted_size(2), draw=(
-    w,
-    h,
-    a,
-    _,
-  ) => {
-    let s = h / 4
-    poly(
-      [-w / 2, -h / 2, w / 2, -h / 2, w / 2 - s, h / 2, -w / 2 + s, h / 2],
-      a,
-    )
-  }),
+  "lean-r": ShapeDef::new(
+    span=flat_across(h => h / 4),
+    inset=lean_inset,
+    size=slanted_size(2),
+    draw=(w, h, a, _) => {
+      let s = h / 4
+      poly(
+        [-w / 2 + s, -h / 2, w / 2, -h / 2, w / 2 - s, h / 2, -w / 2, h / 2],
+        a,
+      )
+    },
+  ),
+  "lean-l": ShapeDef::new(
+    span=flat_across(h => h / 4),
+    inset=lean_inset,
+    size=slanted_size(2),
+    draw=(w, h, a, _) => {
+      let s = h / 4
+      poly(
+        [-w / 2, -h / 2, w / 2 - s, -h / 2, w / 2, h / 2, -w / 2 + s, h / 2],
+        a,
+      )
+    },
+  ),
+  "trap-b": ShapeDef::new(
+    span=flat_across(h => h / 4),
+    inset=lean_inset,
+    size=slanted_size(2),
+    draw=(w, h, a, _) => {
+      let s = h / 4
+      poly(
+        [-w / 2 + s, -h / 2, w / 2 - s, -h / 2, w / 2, h / 2, -w / 2, h / 2],
+        a,
+      )
+    },
+  ),
+  "trap-t": ShapeDef::new(
+    span=flat_across(h => h / 4),
+    inset=lean_inset,
+    size=slanted_size(2),
+    draw=(w, h, a, _) => {
+      let s = h / 4
+      poly(
+        [-w / 2, -h / 2, w / 2, -h / 2, w / 2 - s, h / 2, -w / 2 + s, h / 2],
+        a,
+      )
+    },
+  ),
   "tri": ShapeDef::new(
     inset=(w, _, side, _) => if vertical(side) { w / 4 } else { 0 },
     size=(tw, th) => tri_size(tw, th, false),
@@ -472,6 +510,7 @@ let shapes : Map[String, ShapeDef] = {
     },
   ),
   "notch-pent": ShapeDef::new(
+    span=flat,
     size=(tw, th) => { w: tw + 2 * PAD_X, h: th + 2 * PAD_Y, dy: 0, },
     draw=(w, h, a, _) => {
       let c = 10.0
@@ -531,21 +570,22 @@ let shapes : Map[String, ShapeDef] = {
     size=(tw, th) => { w: tw + 2 * PAD_X + 28, h: th + 2 * PAD_Y + 24, dy: 0, },
     draw=(w, h, a, _) => poly(bang_points(w, h), a),
   ),
-  "circle": ShapeDef::new(inset=round_inset, size=circle_size(16, 44), draw=(
-    w,
-    _,
-    a,
-    _,
-  ) => "<circle r=\"\{num(w / 2)}\"\{a}/>"),
-  "dbl-circ": ShapeDef::new(inset=round_inset, size=circle_size(26, 54), draw=(
-    w,
-    _,
-    a,
-    line,
-  ) => {
-    "<circle r=\"\{num(w / 2)}\"\{a}/><circle r=\"\{num(w / 2 - 5)}\" fill=\"none\"\{line}/>"
-  }),
+  "circle": ShapeDef::new(
+    span=round_span,
+    inset=round_inset,
+    size=circle_size(16, 44),
+    draw=(w, _, a, _) => "<circle r=\"\{num(w / 2)}\"\{a}/>",
+  ),
+  "dbl-circ": ShapeDef::new(
+    span=round_span,
+    inset=round_inset,
+    size=circle_size(26, 54),
+    draw=(w, _, a, line) => {
+      "<circle r=\"\{num(w / 2)}\"\{a}/><circle r=\"\{num(w / 2 - 5)}\" fill=\"none\"\{line}/>"
+    },
+  ),
   "ellipse": ShapeDef::new(
+    span=round_span,
     inset=round_inset,
     size=(tw, th) => {
       w: tw * 1.3 + 2 * PAD_X,
@@ -557,12 +597,14 @@ let shapes : Map[String, ShapeDef] = {
     },
   ),
   "sm-circ": ShapeDef::new(
+    span=round_span,
     inset=round_inset,
     no_label=true,
     size=fixed(14, 14),
     draw=(w, _, a, _) => "<circle r=\"\{num(w / 2)}\"\{a}/>",
   ),
   "f-circ": ShapeDef::new(
+    span=round_span,
     inset=round_inset,
     no_label=true,
     size=fixed(14, 14),
@@ -571,6 +613,7 @@ let shapes : Map[String, ShapeDef] = {
     },
   ),
   "fr-circ": ShapeDef::new(
+    span=round_span,
     inset=round_inset,
     no_label=true,
     size=fixed(18, 18),
@@ -579,6 +622,7 @@ let shapes : Map[String, ShapeDef] = {
     },
   ),
   "cross-circ": ShapeDef::new(
+    span=round_span,
     inset=round_inset,
     no_label=true,
     size=fixed(44, 44),
@@ -589,10 +633,22 @@ let shapes : Map[String, ShapeDef] = {
       "<path d=\"M\{num(-k)},\{num(-k)}L\{num(k)},\{num(k)}M\{num(k)},\{num(-k)}L\{num(-k)},\{num(k)}\" fill=\"none\"\{line}/>"
     },
   ),
-  "fork": ShapeDef::new(no_label=true, size=fixed(72, 8), draw=(w, h, _, line) => {
-    rect(w, h, " fill=\"var(--_l)\"\{line}", rx=" rx=\"2\"")
-  }),
+  "fork": ShapeDef::new(
+    span=(w, h, sideways) => (if sideways { h } else { w }) - 8,
+    no_label=true,
+    size=fixed(72, 8),
+    draw=(w, h, _, line) => {
+      rect(w, h, " fill=\"var(--_l)\"\{line}", rx=" rx=\"2\"")
+    },
+  ),
   "cyl": ShapeDef::new(
+    span=(w, h, sideways) => {
+      if sideways {
+        h - 2 * CORNER - 12
+      } else {
+        w * 0.6
+      }
+    },
     inset=cap_inset,
     size=(tw, th) => {
       let w = @util.js_max(tw + 2 * PAD_X, 56)
@@ -605,6 +661,13 @@ let shapes : Map[String, ShapeDef] = {
     },
   ),
   "lin-cyl": ShapeDef::new(
+    span=(w, h, sideways) => {
+      if sideways {
+        h - 2 * CORNER - 20
+      } else {
+        w * 0.6
+      }
+    },
     inset=cap_inset,
     size=(tw, th) => {
       let w = @util.js_max(tw + 2 * PAD_X, 56)
@@ -837,6 +900,22 @@ pub fn shape_inset(
     Some({ inset: Some(inset), .. }) => inset(w, h, side, t)
     _ => 0
   }
+}
+
+///|
+/// How much of a side of the named shape edges may spread along, when the flow runs down or, if
+/// `sideways`, across.
+pub fn shape_span(
+  shape : String,
+  w : Double,
+  h : Double,
+  sideways : Bool,
+) -> Double {
+  let span = match shapes.get(shape) {
+    Some({ span: Some(span), .. }) => span(w, h, sideways)
+    _ => 0
+  }
+  @util.js_max(0, span)
 }
 
 ///|

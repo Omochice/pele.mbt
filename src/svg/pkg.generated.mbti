@@ -41,6 +41,8 @@ pub fn shape_inset(String, Double, Double, Int32, t? : Double) -> Double
 
 pub fn shape_size(String, Double, Double) -> ShapeSize
 
+pub fn shape_span(String, Double, Double, Bool) -> Double
+
 pub fn shared_style(@text.Label) -> Int32
 
 pub fn span_style(Int32) -> String
