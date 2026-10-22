@@ -234,6 +234,24 @@ test "huge numbers do not stop the parser" {
 }
 
 ///|
+test "long runs of digits and unclosed blocks are scanned once" {
+  let zeros = "0".repeat(50000)
+  inspect(
+    ast("radar-beta\ncurve c{" + zeros + "}").length() > 0,
+    content="true",
+  )
+  inspect(ast("radar-beta\nmax " + zeros + ".5").length() > 0, content="true")
+  inspect(
+    ast("radar-beta\n" + "accDescr {".repeat(5000)).has_prefix("Parse error"),
+    content="true",
+  )
+  inspect(
+    ast("radar-beta\naxis a" + "-".repeat(50000)).has_prefix("Lexical error"),
+    content="true",
+  )
+}
+
+///|
 test "unknown text is a lexical error" {
   inspect(
     ast("radar-beta\naxis A@"),

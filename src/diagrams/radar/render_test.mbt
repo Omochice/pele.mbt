@@ -270,6 +270,16 @@ test "degenerate charts render without NaN or infinity" {
 }
 
 ///|
+test "names and labels are escaped" {
+  let out = svg(
+    "radar-beta\n axis a[\"<script>x</script>\"], b[\"\\\"q\\\" & co\"]\n curve c[\"<img src=x>\"]{1,2}",
+  )
+  inspect(out.contains("<script"), content="false")
+  inspect(out.contains("<img"), content="false")
+  inspect(out.contains("&quot;q&quot; &amp; co"), content="true")
+}
+
+///|
 test "accessible names are written" {
   let out = svg(BASIC + "\n accTitle: Name\n accDescr: Text")
   inspect(out.contains("<title id=\"pele-title\">Name</title>"), content="true")
