@@ -3,6 +3,7 @@ package "Omochice/pele/diagrams/cynefin"
 
 import {
   "Omochice/pele/errors",
+  "Omochice/pele/types",
 }
 
 // Values
@@ -13,6 +14,8 @@ pub fn build_cynefin(CynefinAst, String?) -> CynefinModel
 pub fn cliff(Double, Double, Double, Double) -> Array[Double]
 
 pub fn curve_path(Array[Double]) -> String
+
+pub let cynefin : @types.Diagram
 
 pub fn ellipse_path(Double, Double, Double, Double) -> String
 
