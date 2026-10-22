@@ -7,6 +7,8 @@ import {
 }
 
 // Values
+pub fn layout_sankey(SankeyDb, LayoutOptions) -> SankeyLayout raise @errors.PeleError
+
 pub fn parse_sankey(String, SankeyDb) -> Unit raise @errors.PeleError
 
 pub fn prepare_text_for_parsing(String) -> String
@@ -18,6 +20,39 @@ pub fn tokenize(String) -> Tokens
 // Errors
 
 // Types and methods
+pub(all) enum Alignment {
+  Justify
+  Left
+  Right
+  Center
+}
+
+pub(all) struct LayoutOptions {
+  width : Double
+  height : Double
+  node_width : Double
+  node_padding : Double
+  label_height : Double
+  alignment : Alignment
+}
+
+pub(all) struct PlacedLink {
+  source : Int32
+  target : Int32
+  value : Double
+  mut thickness : Double
+  mut source_y : Double
+  mut target_y : Double
+}
+
+pub(all) struct PlacedNode {
+  layer : Int32
+  value : Double
+  x : Double
+  mut y : Double
+  mut height : Double
+}
+
 pub struct SankeyDb {
   nodes : Array[SankeyNode]
   links : Array[SankeyLink]
@@ -27,6 +62,11 @@ pub struct SankeyDb {
 pub fn SankeyDb::add_link(Self, SankeyNode, SankeyNode, Double) -> Unit
 pub fn SankeyDb::find_or_create_node(Self, String) -> SankeyNode
 pub fn SankeyDb::new() -> Self
+
+pub(all) struct SankeyLayout {
+  nodes : Array[PlacedNode]
+  links : Array[PlacedLink]
+}
 
 pub(all) struct SankeyLink {
   source : SankeyNode
