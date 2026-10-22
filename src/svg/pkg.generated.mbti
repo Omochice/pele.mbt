@@ -40,6 +40,8 @@ pub fn inset_route(Array[Double], Int32, @layout.CNode, shape~ : String, w~ : Do
 
 pub fn label_svg(@text.Label, Double, Double, String) -> String
 
+pub fn loop_path(@layout.CNode, Double, Double, Int32, Bool, Double, Double, @layout.CEdge) -> EdgePath
+
 pub fn mark_crossings(Crossings, Array[Double]) -> Unit
 
 pub fn marker(String, Double, Double, Double, Double, String) -> String
@@ -83,6 +85,18 @@ pub struct Crossings {
   // private fields
 }
 pub fn Crossings::new() -> Self
+
+pub(all) struct EdgePath {
+  d : String
+  sx : Double
+  sy : Double
+  sdx : Double
+  sdy : Double
+  ex : Double
+  ey : Double
+  edx : Double
+  edy : Double
+}
 
 pub(all) struct ResolvedStyle {
   shape : String
