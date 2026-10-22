@@ -3,9 +3,12 @@ package "Omochice/pele/diagrams/mindmap"
 
 import {
   "Omochice/pele/errors",
+  "Omochice/pele/types",
 }
 
 // Values
+pub let mindmap : @types.Diagram
+
 pub fn parse_mindmap(String, String?) -> MindmapModel raise @errors.PeleError
 
 // Errors

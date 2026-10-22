@@ -1,8 +1,11 @@
 import {
   "Omochice/pele/diagrams/common",
   "Omochice/pele/errors",
+  "Omochice/pele/types",
 }
 
 import {
+  "Omochice/pele/core",
   "Omochice/pele/errors",
+  "Omochice/pele/types",
 } for "test"
