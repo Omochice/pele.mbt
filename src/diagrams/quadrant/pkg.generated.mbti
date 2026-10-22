@@ -3,12 +3,15 @@ package "Omochice/pele/diagrams/quadrant"
 
 import {
   "Omochice/pele/errors",
+  "Omochice/pele/types",
 }
 
 // Values
 pub fn parse_quadrant(String, QuadrantDb) -> Unit raise @errors.PeleError
 
 pub fn parse_styles(Array[String]) -> PointStyle raise @errors.PeleError
+
+pub let quadrant : @types.Diagram
 
 // Errors
 
