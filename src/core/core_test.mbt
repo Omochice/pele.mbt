@@ -5,7 +5,7 @@ fn failure_of(text : String) -> String {
     "rendered"
   } catch {
     @errors.PeleError(failure) =>
-      "\{failure.code.to_string()}: \{failure.message} \{failure.kind} \{failure.mermaid_type}"
+      "\{failure.code.to_string()}: \{failure.message} \{failure.kind.unwrap_or("null")} \{failure.mermaid_type.unwrap_or("null")}"
   }
 }
 
@@ -13,7 +13,7 @@ fn failure_of(text : String) -> String {
 test "text that names no diagram is rejected as unsupported" {
   inspect(
     failure_of("should handle simple pie"),
-    content="unsupported-diagram: No diagram type detected for the given text. None None",
+    content="unsupported-diagram: No diagram type detected for the given text. null null",
   )
 }
 
