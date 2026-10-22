@@ -24,10 +24,7 @@ test "a sequence or choice of one is its only member" {
 
 ///|
 test "three escapes are decoded and any other escaped character stands for itself" {
-  inspect(
-    ir("terminal(\"a\\nb\\tc\\rd\")"),
-    content="\"a\\nb\\tc\\rd\"",
-  )
+  inspect(ir("terminal(\"a\\nb\\tc\\rd\")"), content="\"a\\nb\\tc\\rd\"")
   inspect(ir("terminal(\"\\\"\\\\\\x\\0\")"), content="\"\\\"\\\\x0\"")
 }
 

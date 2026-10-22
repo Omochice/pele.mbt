@@ -1,0 +1,46 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Omochice/pele/diagrams/railroad"
+
+import {
+  "Omochice/pele/errors",
+}
+
+// Values
+pub fn parse_railroad(String, String?) -> RailroadModel raise @errors.PeleError
+
+// Errors
+
+// Types and methods
+pub(all) enum Notation {
+  Railroad
+  Ebnf
+  Abnf
+  Peg
+}
+
+pub(all) struct RailroadModel {
+  notation : Notation
+  title : String?
+  acc_title : String?
+  acc_descr : String?
+  rules : Array[RailroadRule]
+}
+
+pub(all) enum RailroadNode {
+  Terminal(String)
+  NonTerminal(String)
+  Special(String)
+  Sequence(Array[RailroadNode])
+  Choice(Array[RailroadNode])
+  Optional(RailroadNode)
+  Repetition(element~ : RailroadNode, min~ : Double, max~ : Double)
+}
+
+pub(all) struct RailroadRule {
+  name : String
+  definition : RailroadNode
+}
+
+// Type aliases
+
+// Traits
