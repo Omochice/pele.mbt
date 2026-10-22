@@ -39,7 +39,7 @@ test "a root line is a column" {
 
 ///|
 test "a shaped root line without an id is a column" {
-  inspect(model("kanban\n    (root)"), content="title=front\n@4 \"root\"")
+  inspect(model("kanban\n    (root)"), content="title=front\nroot@4 \"root\"")
 }
 
 ///|
@@ -108,7 +108,7 @@ test "metadata that is invalid YAML is a syntax error" {
   )
   inspect(
     model("kanban\n  todo\n    a@{ label: \"x }"),
-    content="syntax: Parse error on line 5:\n\n^\nExpecting 'SPACELINE', 'NL', 'EOF', 'SHAPE_DATA', got '1' kanban",
+    content="syntax: Parse error on line 4:\n\n^\nExpecting 'SPACELINE', 'NL', 'EOF', 'SHAPE_DATA', got '1' kanban",
   )
 }
 
