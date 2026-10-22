@@ -42,14 +42,26 @@ pub(open) trait GitDbParseProvider {
 }
 
 ///|
+fn commit_type_of(name : CommitTypeName) -> CommitType {
+  match name {
+    Normal => Normal
+    Reverse => Reverse
+    Highlight => Highlight
+  }
+}
+
+///|
 /// Hands the statements of a graph to a database, in order.
 pub fn[Db : GitDbParseProvider] populate(
   ast : GitGraphAst,
   db : Db,
 ) -> Unit raise @errors.PeleError {
-  ignore(ast)
-  db.checkout("")
-  raise @errors.pele_error("not implemented")
+  if ast.dir is Some(dir) {
+    db.set_direction(dir)
+  }
+  for statement in ast.statements {
+    parse_statement(statement, db)
+  }
 }
 
 ///|
@@ -58,7 +70,33 @@ pub fn[Db : GitDbParseProvider] parse_statement(
   statement : StatementAst,
   db : Db,
 ) -> Unit raise @errors.PeleError {
-  ignore(statement)
-  db.checkout("")
-  raise @errors.pele_error("not implemented")
+  match statement {
+    Commit(c) =>
+      db.commit({
+        id: c.id,
+        msg: c.message.unwrap_or(""),
+        commit_type: c.commit_type.map(commit_type_of).unwrap_or(Normal),
+        tags: c.tags,
+      })
+    Branch(b) => db.branch({ name: b.name, order: b.order.unwrap_or(0), })
+    Merge(m) =>
+      db.merge({
+        branch: m.branch,
+        id: m.id.unwrap_or(""),
+        commit_type: m.commit_type.map(commit_type_of),
+        tags: m.tags,
+      })
+    Checkout(c) => db.checkout(c.branch)
+    CherryPicking(c) =>
+      db.cherry_pick({
+        id: c.id,
+        target_id: "",
+        parent: c.parent,
+        tags: if c.tags.is_empty() {
+          None
+        } else {
+          Some(c.tags)
+        },
+      })
+  }
 }
