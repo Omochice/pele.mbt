@@ -1,0 +1,28 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Omochice/pele/preprocess"
+
+import {
+  "Omochice/pele/errors",
+}
+
+// Values
+pub fn cleanup_comments(String) -> String
+
+pub fn encode_entities(String) -> String
+
+pub fn preprocess(String) -> Preprocessed raise @errors.PeleError
+
+// Errors
+
+// Types and methods
+pub(all) struct Preprocessed {
+  text : String
+  title : String?
+  config : Map[String, Json]
+  with_comments : String
+  line_offset : Int32
+}
+
+// Type aliases
+
+// Traits
