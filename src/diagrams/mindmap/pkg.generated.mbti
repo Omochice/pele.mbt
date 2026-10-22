@@ -1,0 +1,41 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Omochice/pele/diagrams/mindmap"
+
+import {
+  "Omochice/pele/errors",
+}
+
+// Values
+pub fn parse_mindmap(String, String?) -> MindmapModel raise @errors.PeleError
+
+// Errors
+
+// Types and methods
+pub struct MindmapDb {
+  nodes : Array[MindmapNode]
+  base_level : Int32
+  open : Array[MindmapNode]
+}
+pub fn MindmapDb::new() -> Self
+
+pub(all) struct MindmapModel {
+  title : String?
+  nodes : Array[MindmapNode]
+}
+
+pub(all) struct MindmapNode {
+  id : Int32
+  node_id : String
+  level : Int32
+  descr : String
+  node_type : Int32
+  children : Array[MindmapNode]
+  is_root : Bool
+  mut section : Int32?
+  mut class_ : String?
+  mut icon : String?
+}
+
+// Type aliases
+
+// Traits
