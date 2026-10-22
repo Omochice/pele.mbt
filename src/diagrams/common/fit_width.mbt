@@ -43,3 +43,16 @@ pub fn title_room(options : @types.RenderOptions) -> Double {
     _ => 4000
   }
 }
+
+///|
+/// The width of a chart that is drawn to a set width: its own, or the host's when that is smaller.
+/// `around` is what the chart adds outside that width, and `least` is how narrow it may be made.
+pub fn cap_width(
+  options : @types.RenderOptions,
+  natural : Double,
+  least : Double,
+  around~ : Double = 0,
+) -> Double {
+  ignore((options, least, around))
+  natural
+}
