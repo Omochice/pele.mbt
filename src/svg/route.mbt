@@ -8,6 +8,17 @@ const CORNER : Double = 12
 const HANDLE : Double = 0.62
 
 ///|
+/// The number at `i`, or NaN past either end where JavaScript reads `undefined`.
+/// pele reads past the ends of a route of fewer than two points and still draws a path, which arithmetic on NaN reproduces.
+fn at(list : Array[Double], i : Int32) -> Double {
+  if i >= 0 && i < list.length() {
+    list[i]
+  } else {
+    @double.not_a_number
+  }
+}
+
+///|
 /// JavaScript's `Math.sign`, which keeps -0 and NaN.
 fn js_sign(value : Double) -> Double {
   if value > 0 {
@@ -70,8 +81,8 @@ pub fn route_path(
   }
   for i = 0; i < route.length(); i = i + 3 {
     let x = route[i]
-    let y = route[i + 1]
-    let axis = route[i + 2]
+    let y = at(route, i + 1)
+    let axis = at(route, i + 2)
     let last = xs.length() - 1
     // A stepped route turns at right angles where a smooth one would curve.
     if stepped &&
@@ -102,33 +113,32 @@ pub fn route_path(
   }
   let mut last = xs.length() - 1
   let aligned = fn(i : Int32) {
-    (xs[i] - xs[i - 1]).abs() < 0.01 || (ys[i] - ys[i - 1]).abs() < 0.01
+    (at(xs, i) - at(xs, i - 1)).abs() < 0.01 ||
+    (at(ys, i) - at(ys, i - 1)).abs() < 0.01
   }
   let straight = fn(i : Int32) { linear || aligned(i) }
   // The way the route heads from point i to point j: along the flow where an S joins them.
   let unit = fn(i : Int32, j : Int32, axis : Double) -> (Double, Double) {
+    let dx = at(xs, j) - at(xs, i)
+    let dy = at(ys, j) - at(ys, i)
     if !straight(if i > j { i } else { j }) {
-      return if axis == 0 {
-        (0, way(ys[j] - ys[i]))
-      } else {
-        (way(xs[j] - xs[i]), 0)
-      }
+      return if axis == 0 { (0, way(dy)) } else { (way(dx), 0) }
     }
-    let dx = xs[j] - xs[i]
-    let dy = ys[j] - ys[i]
     let len = or_one(@layout.hypot(dx, dy))
     (dx / len, dy / len)
   }
-  let (sdx, sdy) = unit(0, 1, axes[1])
-  let (edx, edy) = unit(last - 1, last, axes[last])
-  let sx = xs[0]
-  let sy = ys[0]
-  let ex = xs[last]
-  let ey = ys[last]
-  xs[0] += sdx * start_trim
-  ys[0] += sdy * start_trim
-  xs[last] -= edx * end_trim
-  ys[last] -= edy * end_trim
+  let (sdx, sdy) = unit(0, 1, at(axes, 1))
+  let (edx, edy) = unit(last - 1, last, at(axes, last))
+  let sx = at(xs, 0)
+  let sy = at(ys, 0)
+  let ex = at(xs, last)
+  let ey = at(ys, last)
+  if last >= 0 {
+    xs[0] += sdx * start_trim
+    ys[0] += sdy * start_trim
+    xs[last] -= edx * end_trim
+    ys[last] -= edy * end_trim
+  }
   let length = fn(i : Int32) {
     (xs[i] - xs[i - 1]).abs() + (ys[i] - ys[i - 1]).abs()
   }
@@ -145,7 +155,8 @@ pub fn route_path(
   }
   // An edge that curves into a marker runs straight for a little way first, where it has the room, so that the marker does not sit on the bend.
   let run_along = fn(i : Int32, ux : Double, uy : Double) {
-    (xs[i] - xs[i - 1]).abs() * ux.abs() + (ys[i] - ys[i - 1]).abs() * uy.abs()
+    (at(xs, i) - at(xs, i - 1)).abs() * ux.abs() +
+    (at(ys, i) - at(ys, i - 1)).abs() * uy.abs()
   }
   // Of the way from the end of a run to where it turns, the part that makes up for a larger marker beside this one is kept where it can be, and the rest is at most a quarter of what is left, so that ends on one side of a node turn equally far from it.
   let lead = fn(reach : Double, trim : Double, run : Double) {
@@ -175,9 +186,9 @@ pub fn route_path(
     last += 1
   }
   let d = StringBuilder()
-  d.write_string("M\{num(xs[0])},\{num(ys[0])}")
-  let mut at_x = xs[0]
-  let mut at_y = ys[0]
+  d.write_string("M\{num(at(xs, 0))},\{num(at(ys, 0))}")
+  let mut at_x = at(xs, 0)
+  let mut at_y = at(ys, 0)
   let line_to = fn(x : Double, y : Double) {
     if near(x, y, at_x, at_y) {
       return
