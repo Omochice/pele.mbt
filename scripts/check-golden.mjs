@@ -15,7 +15,7 @@ const wasmPath = join(root, '_build/wasm/release/build/plugin/plugin.wasm');
 
 // Diagrams whose goldens are expected to pass. The others are reported as skipped, not failed,
 // so the list grows as diagrams are ported.
-const PORTED = ['info', 'pie', 'radar', 'railroad', 'sankey', 'venn'];
+const PORTED = ['flowchart', 'info', 'pie', 'radar', 'railroad', 'sankey', 'venn'];
 
 const requested = process.argv.slice(2);
 const diagrams = requested.length > 0 ? requested : PORTED;

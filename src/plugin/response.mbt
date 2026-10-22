@@ -2,7 +2,10 @@
 fn respond(source : String, options : String) -> (Int32, Json) {
   try {
     let result = @core.render(
-      [@info.info, @pie.pie, @radar.radar, @railroad.railroad, @sankey.sankey, @venn.venn],
+      [
+        @flowchart.flowchart, @info.info, @pie.pie, @radar.radar, @railroad.railroad,
+        @sankey.sankey, @venn.venn,
+      ],
       source,
       decode_options(@json.parse(options)),
     )
