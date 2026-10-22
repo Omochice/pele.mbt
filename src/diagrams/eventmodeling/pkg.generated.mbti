@@ -6,11 +6,25 @@ import {
 }
 
 // Values
+pub fn build_event_model(EventModelAst, String?) -> EventModelingModel raise @errors.PeleError
+
 pub fn read_event_model(String) -> EventModelAst raise @errors.PeleError
 
 // Errors
 
 // Types and methods
+pub(all) struct EmBox {
+  id : String
+  kind : EntityKind
+  entity : String
+  name : String
+  scope : String?
+  reset : Bool
+  lane : EmLane
+  data : String?
+  data_type : String?
+}
+
 pub(all) struct EmDataEntity {
   name : String
   data_type : String?
@@ -36,10 +50,44 @@ pub(all) struct EmGwt {
   then_ : Array[String]
 }
 
+pub(all) struct EmLane {
+  index : Int32
+  key : String
+  label : String
+  group : LaneGroup
+  scope : String?
+}
+
+pub(all) struct EmNote {
+  frame : String
+  text : String
+  data_type : String?
+}
+
 pub(all) struct EmNoteEntity {
   source_frame : String
   data_type : String?
   data_block_value : String
+}
+
+pub(all) struct EmRelation {
+  source : EmBox
+  target : EmBox
+}
+
+pub(all) struct EmSpecification {
+  frame : String
+  given : Array[String]
+  when_ : Array[String]
+  then_ : Array[String]
+}
+
+pub(all) enum EntityKind {
+  Ui
+  Processor
+  Command
+  ReadModel
+  Event
 }
 
 pub(all) struct EventModelAst {
@@ -52,6 +100,24 @@ pub(all) struct EventModelAst {
   note_entities : Array[EmNoteEntity]
   gwt_entities : Array[EmGwt]
   source : String
+}
+
+pub(all) struct EventModelingModel {
+  title : String?
+  acc_title : String?
+  acc_descr : String?
+  boxes : Array[EmBox]
+  lanes : Array[EmLane]
+  relations : Array[EmRelation]
+  notes : Array[EmNote]
+  specifications : Array[EmSpecification]
+  entities : Array[String]
+}
+
+pub(all) enum LaneGroup {
+  Trigger
+  State
+  Stream
 }
 
 // Type aliases
