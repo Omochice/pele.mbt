@@ -74,6 +74,8 @@ pub fn pattern(String, (String, Int32) -> Int32, first? : String, hidden? : Bool
 
 pub fn plain_label(String?, @text.TextMeasurer, Double, Double, base? : Int32) -> @text.Label
 
+pub let resumable_acc_descr : TokenType
+
 pub fn runs_across(String?) -> Bool
 
 pub let single_line_comment : TokenType
