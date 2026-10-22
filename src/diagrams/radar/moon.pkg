@@ -15,4 +15,5 @@ import {
   "Omochice/pele/core",
   "Omochice/pele/errors",
   "Omochice/pele/types",
+  "Omochice/pele/util",
 } for "test"
