@@ -26,6 +26,8 @@ pub fn slice(String, Int32, end? : Int32) -> String
 
 pub fn starts_with_at(String, String, Int32) -> Bool
 
+pub fn to_fixed0(Double) -> String
+
 pub fn trim(String) -> String
 
 pub fn trim_end(String) -> String
