@@ -24,6 +24,8 @@ pub fn accessibility(Tokens, Int32, Int32) -> Int32
 
 pub let directive : TokenType
 
+pub fn fit_label(String?, @text.TextMeasurer, Double, Double, base? : Int32) -> @text.Label
+
 pub fn fit_text(String, Double, Double, Double, @text.TextMeasurer, style? : Int32) -> Fitted?
 
 pub fn fit_width(@types.RenderOptions, Double, Double, (Double, Bool) -> @types.Rendered) -> @types.Rendered
@@ -39,6 +41,8 @@ pub let newline : TokenType
 pub fn parse_generic_types(String) -> String
 
 pub fn pattern(String, (String, Int32) -> Int32, first? : String, hidden? : Bool) -> TokenType
+
+pub fn plain_label(String?, @text.TextMeasurer, Double, Double, base? : Int32) -> @text.Label
 
 pub fn runs_across(String?) -> Bool
 
