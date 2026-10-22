@@ -4,7 +4,7 @@ fn drawn(width : Double) -> @types.Rendered {
 }
 
 ///|
-fn widths(max_width : Double?) -> Array[Bool] {
+fn widths(max_width : Double?) -> String {
   let calls = []
   let options = { ..@types.RenderOptions::default(), max_width, }
   tighten(options, tight => {
@@ -12,22 +12,22 @@ fn widths(max_width : Double?) -> Array[Bool] {
     drawn(if tight { 80 } else { 100 })
   })
   |> ignore
-  calls
+  calls.map(tight => if tight { "tight" } else { "loose" }).join(" ")
 }
 
 ///|
 test "a diagram without a width limit is drawn loosely once" {
-  inspect(widths(None), content="[false]")
+  inspect(widths(None), content="loose")
 }
 
 ///|
 test "a diagram that fits is drawn loosely once" {
-  inspect(widths(Some(100)), content="[false]")
+  inspect(widths(Some(100)), content="loose")
 }
 
 ///|
 test "a diagram that does not fit is drawn tightly as well" {
-  inspect(widths(Some(90)), content="[false, true]")
+  inspect(widths(Some(90)), content="loose tight")
 }
 
 ///|
