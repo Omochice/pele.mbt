@@ -6,11 +6,17 @@ import {
 }
 
 // Values
+pub fn build_treeview(TreeViewAst, String?) -> TreeViewModel
+
 pub fn is_box_drawing_format(Array[String]) -> Bool
 
 pub fn parse_treeview(String) -> TreeViewAst raise @errors.PeleError
 
+pub fn populate(TreeViewAst, TreeViewDb) -> Unit
+
 pub fn preprocess_box_drawing(String) -> BoxDrawing raise @errors.PeleError
+
+pub fn read_treeview(String) -> TreeViewAst raise @errors.PeleError
 
 pub fn remap_error_lines(String, Map[Int32, Int32]) -> String
 
@@ -20,6 +26,22 @@ pub fn remap_error_lines(String, Map[Int32, Int32]) -> String
 pub(all) struct BoxDrawing {
   text : String
   line_map : Map[Int32, Int32]
+}
+
+pub(all) enum NodeType {
+  File
+  Directory
+}
+
+pub(all) struct TreeNode {
+  id : Int32
+  level : Int32
+  name : String
+  node_type : NodeType
+  icon : String?
+  css_class : String?
+  description : String?
+  children : Array[TreeNode]
 }
 
 pub(all) struct TreeNodeAst {
@@ -35,6 +57,22 @@ pub(all) struct TreeViewAst {
   acc_title : String?
   acc_descr : String?
   nodes : Array[TreeNodeAst]
+}
+
+pub struct TreeViewDb {
+  count : Int32
+  root : TreeNode
+  stack : Array[TreeNode]
+}
+pub fn TreeViewDb::add_node(Self, Int32, String, NodeType, css_class? : String, icon? : String, description? : String) -> Unit
+pub fn TreeViewDb::new() -> Self
+
+pub(all) struct TreeViewModel {
+  title : String?
+  acc_title : String?
+  acc_descr : String?
+  root : TreeNode
+  count : Int32
 }
 
 // Type aliases
