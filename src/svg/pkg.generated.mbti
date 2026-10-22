@@ -8,6 +8,8 @@ import {
 }
 
 // Values
+pub const ARROW : Double = 8
+
 pub const PAD_X : Double = 18
 
 pub const PAD_Y : Double = 12
@@ -31,6 +33,10 @@ pub fn font_style(Double, String?, String?) -> String
 pub fn inset_route(Array[Double], Int32, @layout.CNode, shape~ : String, w~ : Double, h~ : Double) -> Unit
 
 pub fn label_svg(@text.Label, Double, Double, String) -> String
+
+pub fn marker(String, Double, Double, Double, Double, String) -> String
+
+pub fn marker_trim(String) -> Double
 
 pub fn num(Double) -> String
 
