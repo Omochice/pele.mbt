@@ -12,4 +12,6 @@ import {
   "Omochice/pele/core",
   "Omochice/pele/errors",
   "Omochice/pele/types",
+  "Omochice/pele/util",
+  "moonbitlang/core/double",
 } for "test"
