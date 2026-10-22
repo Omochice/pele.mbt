@@ -74,6 +74,19 @@ fn slanted_size(share : Double) -> (Double, Double) -> ShapeSize {
 }
 
 ///|
+/// `Math.SQRT1_2`.
+const SQRT1_2 : Double = 0.7071067811865476
+
+///|
+/// The diameter of a circle around the label's diagonal.
+fn circle_size(room : Double, least : Double) -> (Double, Double) -> ShapeSize {
+  (tw, th) => {
+    let d = @util.js_max((tw * tw + th * th).sqrt() + room, least)
+    { w: d, h: d, dy: 0, }
+  }
+}
+
+///|
 fn bang_points(w : Double, h : Double) -> Array[Double] {
   let spikes = 14
   let points = []
@@ -358,6 +371,40 @@ let shapes : Map[String, ShapeDef] = {
     size=(tw, th) => { w: tw + 2 * PAD_X + 28, h: th + 2 * PAD_Y + 24, dy: 0, },
     draw=(w, h, a, _) => poly(bang_points(w, h), a),
   ),
+  "circle": ShapeDef::new(size=circle_size(16, 44), draw=(w, _, a, _) => {
+    "<circle r=\"\{num(w / 2)}\"\{a}/>"
+  }),
+  "dbl-circ": ShapeDef::new(size=circle_size(26, 54), draw=(w, _, a, line) => {
+    "<circle r=\"\{num(w / 2)}\"\{a}/><circle r=\"\{num(w / 2 - 5)}\" fill=\"none\"\{line}/>"
+  }),
+  "ellipse": ShapeDef::new(
+    size=(tw, th) => {
+      w: tw * 1.3 + 2 * PAD_X,
+      h: th * 1.2 + 2 * PAD_Y,
+      dy: 0,
+    },
+    draw=(w, h, a, _) => {
+      "<ellipse rx=\"\{num(w / 2)}\" ry=\"\{num(h / 2)}\"\{a}/>"
+    },
+  ),
+  "sm-circ": ShapeDef::new(size=fixed(14, 14), draw=(w, _, a, _) => {
+    "<circle r=\"\{num(w / 2)}\"\{a}/>"
+  }),
+  "f-circ": ShapeDef::new(size=fixed(14, 14), draw=(w, _, _, line) => {
+    "<circle r=\"\{num(w / 2)}\" fill=\"var(--_l)\"\{line}/>"
+  }),
+  "fr-circ": ShapeDef::new(size=fixed(18, 18), draw=(w, _, a, line) => {
+    "<circle r=\"\{num(w / 2)}\"\{a}/><circle r=\"\{num(w / 2 - 4)}\" fill=\"var(--_l)\"\{line}/>"
+  }),
+  "cross-circ": ShapeDef::new(size=fixed(44, 44), draw=(w, _, a, line) => {
+    let r = w / 2
+    let k = r * SQRT1_2
+    "<circle r=\"\{num(r)}\"\{a}/>" +
+    "<path d=\"M\{num(-k)},\{num(-k)}L\{num(k)},\{num(k)}M\{num(k)},\{num(-k)}L\{num(-k)},\{num(k)}\" fill=\"none\"\{line}/>"
+  }),
+  "fork": ShapeDef::new(size=fixed(72, 8), draw=(w, h, _, line) => {
+    rect(w, h, " fill=\"var(--_l)\"\{line}", rx=" rx=\"2\"")
+  }),
 }
 
 ///|
