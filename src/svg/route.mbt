@@ -1,4 +1,9 @@
 ///|
+/// How far the handles of a wide turn reach along its two legs.
+/// A little more than a circle's, which makes the turn fuller.
+const HANDLE : Double = 0.62
+
+///|
 /// JavaScript's `Math.sign`, which keeps -0 and NaN.
 fn js_sign(value : Double) -> Double {
   if value > 0 {
@@ -23,6 +28,7 @@ fn way(value : Double) -> Double {
 ///|
 /// Builds the path for a route of x, y, axis triples, where the axis is 0 for a point the edge runs into vertically and 1 horizontally.
 /// Between two points that are not in line, a route is one S that leaves and arrives along the flow.
+/// Where the route itself turns a corner, any but a linear one turns as widely as it can: the turn takes the whole of a leg that ends at a node and half of a leg it shares with the next turn.
 /// `start_trim` and `end_trim` leave room for the markers at its ends.
 /// `start_reach` and `end_reach` say how far from its nodes the edge starts to turn, where the other edges on the same side of a node need it to; by default, far enough to clear its own marker.
 pub fn route_path(
@@ -88,6 +94,20 @@ pub fn route_path(
   ys[0] += sdy * start_trim
   xs[last] -= edx * end_trim
   ys[last] -= edy * end_trim
+  let length = fn(i : Int32) {
+    (xs[i] - xs[i - 1]).abs() + (ys[i] - ys[i - 1]).abs()
+  }
+  // Whether the route turns a corner at point i, from running one way to running the other.
+  let turns = fn(i : Int32) {
+    !linear &&
+    i > 0 &&
+    i < last &&
+    aligned(i) &&
+    aligned(i + 1) &&
+    length(i) >= 0.01 &&
+    length(i + 1) >= 0.01 &&
+    ((xs[i] - xs[i - 1]).abs() < 0.01) != ((xs[i + 1] - xs[i]).abs() < 0.01)
+  }
   // An edge that curves into a marker runs straight for a little way first, where it has the room, so that the marker does not sit on the bend.
   let run_along = fn(i : Int32, ux : Double, uy : Double) {
     (xs[i] - xs[i - 1]).abs() * ux.abs() + (ys[i] - ys[i - 1]).abs() * uy.abs()
@@ -97,12 +117,12 @@ pub fn route_path(
     let room = @util.js_min(@util.js_max(0, reach - LEAD - trim), run / 4)
     room + @util.js_min(reach - trim - room, (run - room) / 4)
   }
-  let arrives = if end_reach > end_trim && !straight(last) {
+  let arrives = if end_reach > end_trim && (!straight(last) || turns(last - 1)) {
     lead(end_reach, end_trim, run_along(last, edx, edy))
   } else {
     0
   }
-  let leaves = if start_reach > start_trim && !straight(1) {
+  let leaves = if start_reach > start_trim && (!straight(1) || turns(1)) {
     lead(start_reach, start_trim, run_along(1, sdx, sdy))
   } else {
     0
@@ -148,7 +168,29 @@ pub fn route_path(
       at_y = y
       continue
     }
-    line_to(x, y)
+    if !turns(i) {
+      // A point part of the way along one straight run adds nothing to the path.
+      if i < last &&
+        aligned(i) &&
+        aligned(i + 1) &&
+        (x - xs[i - 1]) * (xs[i + 1] - x) + (y - ys[i - 1]) * (ys[i + 1] - y) >
+        0 {
+        continue
+      }
+      line_to(x, y)
+      continue
+    }
+    // How much of the leg before the turn and of the leg after it the turn takes: all of one that ends at a node, short of the straight run into a marker, and half of one it shares.
+    let before = if turns(i - 1) { length(i) / 2 } else { length(i) }
+    let after = if turns(i + 1) { length(i + 1) / 2 } else { length(i + 1) }
+    let (ux, uy) = unit(i - 1, i, axes[i])
+    let (vx, vy) = unit(i, i + 1, axes[i + 1])
+    line_to(x - ux * before, y - uy * before)
+    at_x = x + vx * after
+    at_y = y + vy * after
+    d.write_string(
+      "C\{num(x - ux * before * (1 - HANDLE))},\{num(y - uy * before * (1 - HANDLE))} \{num(x + vx * after * (1 - HANDLE))},\{num(y + vy * after * (1 - HANDLE))} \{num(at_x)},\{num(at_y)}",
+    )
   }
   { d: d.to_string(), sx, sy, sdx: -sdx, sdy: -sdy, ex, ey, edx, edy, }
 }
