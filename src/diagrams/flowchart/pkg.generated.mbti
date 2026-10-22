@@ -7,6 +7,8 @@ import {
 }
 
 // Values
+pub fn build_flow_graph(FlowDb, default_curve? : String) -> FlowGraph
+
 pub fn canonical_shape(String?) -> String
 
 pub fn is_valid_shape(String) -> Bool
@@ -85,6 +87,11 @@ pub(all) struct FlowEdge {
   mut animation : Json?
 }
 
+pub(all) struct FlowGraph {
+  nodes : Array[GraphNode]
+  edges : Array[GraphEdge]
+}
+
 pub(all) struct FlowNode {
   id : String
   mut text : String?
@@ -118,6 +125,51 @@ pub(all) struct FlowSubgraph {
 pub(all) struct FlowText {
   text : String
   kind : LabelType
+}
+
+pub(all) struct GraphEdge {
+  id : String
+  is_user_defined_id : Bool
+  start : String
+  end : String
+  kind : String
+  label : String
+  label_type : LabelType
+  thickness : String?
+  pattern : String?
+  minlen : Int32?
+  arrow_type_start : String
+  arrow_type_end : String
+  css_compiled_styles : Array[String]
+  style : Array[String]
+  classes : String
+  animate : Json?
+  animation : Json?
+  curve : Json?
+}
+
+pub(all) struct GraphNode {
+  id : String
+  label : String?
+  label_type : LabelType
+  shape : String
+  is_group : Bool
+  parent_id : String?
+  mut css_styles : Array[String]
+  mut css_compiled_styles : Array[String]
+  mut css_classes : String
+  dir : String?
+  link : String?
+  link_target : String?
+  tooltip : String?
+  icon : String?
+  pos : String?
+  img : String?
+  asset_width : Double?
+  asset_height : Double?
+  constraint : String?
+  color_index : Int32?
+  metadata : Map[String, Json]?
 }
 
 pub(all) enum LabelType {
