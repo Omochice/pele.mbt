@@ -1,0 +1,13 @@
+{
+  "type": "gantt",
+  "mermaidType": "gantt",
+  "width": 400,
+  "height": 67,
+  "links": [
+    {
+      "id": "${prop}",
+      "href": "https://mermaid.js.org/",
+      "internal": false
+    }
+  ]
+}

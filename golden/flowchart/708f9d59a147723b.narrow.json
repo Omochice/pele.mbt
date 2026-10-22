@@ -1,0 +1,28 @@
+{
+  "type": "flowchart",
+  "mermaidType": "flowchart-v2",
+  "width": 400,
+  "height": 64,
+  "links": [
+    {
+      "id": "A",
+      "href": "https://www.github.com/",
+      "internal": false
+    },
+    {
+      "id": "B",
+      "href": "https://www.github.com/",
+      "internal": false
+    },
+    {
+      "id": "C",
+      "href": "https://www.github.com/",
+      "internal": false
+    },
+    {
+      "id": "D",
+      "href": "https://www.github.com/",
+      "internal": false
+    }
+  ]
+}
