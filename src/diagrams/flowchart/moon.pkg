@@ -8,6 +8,7 @@ import {
   "Omochice/pele/util",
   "Omochice/pele/util/url",
   "moonbitlang/core/cmp",
+  "moonbitlang/core/double",
 }
 
 import {

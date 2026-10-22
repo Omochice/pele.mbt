@@ -8,6 +8,9 @@ const EDGE_SEP : Double = 16
 const RANK_SEP : Double = 48
 
 ///|
+const GROUP_PAD : Double = 20
+
+///|
 const SHAPE_ATTRS : String = " fill=\"var(--_s)\" stroke=\"var(--_b)\""
 
 ///|
@@ -96,6 +99,7 @@ fn draw(
   turned : Bool,
   tight : Bool,
 ) -> @types.Rendered {
+  let group_pad = if tight { 12.0 } else { GROUP_PAD }
   let flow = flow_section(config)
   let curve = match flow.get("curve") {
     Some(String(name)) => Some(name)
@@ -125,19 +129,43 @@ fn draw(
       (if style.italic { @text.STYLE_ITALIC } else { 0 })
     let markdown = node.label_type is Markdown
     let font_size = style.font_size.unwrap_or(size)
-    let shape = canonical_shape(Some(node.shape))
-    let text = if @svg.shape_has_label(shape) { node.label } else { None }
-    let label = @text.layout_label(
-      text,
-      markdown,
-      measurer,
-      font_size,
-      wrap_width,
-      base=text_style,
-    )
-    let s = @svg.shape_size(shape, label.width, label.height)
-    let view = { node, style, label, shape, w: s.w, h: s.h, dy: s.dy, }
-    let c = @layout.cnode(s.w, s.h)
+    let (view, c) = if node.is_group {
+      let label = @text.layout_label(
+        node.label,
+        markdown,
+        measurer,
+        font_size,
+        4000,
+        base=text_style,
+      )
+      let c = @layout.cnode(0, 0)
+      c.is_group = true
+      c.dir = match node.dir {
+        Some(dir) if dir != "" => Some(@layout.direction(Some(dir)))
+        _ => None
+      }
+      c.pad_x = group_pad
+      c.pad_top = if label.height > 0 { label.height + 16 } else { GROUP_PAD }
+      c.pad_bottom = group_pad
+      c.min_w = label.width + 2 * group_pad - 12
+      ({ node, style, label, shape: "group", w: 0, h: 0, dy: 0, }, c)
+    } else {
+      let shape = canonical_shape(Some(node.shape))
+      let text = if @svg.shape_has_label(shape) { node.label } else { None }
+      let label = @text.layout_label(
+        text,
+        markdown,
+        measurer,
+        font_size,
+        wrap_width,
+        base=text_style,
+      )
+      let s = @svg.shape_size(shape, label.width, label.height)
+      (
+        { node, style, label, shape, w: s.w, h: s.h, dy: s.dy, },
+        @layout.cnode(s.w, s.h),
+      )
+    }
     c.seq = views.length().to_double()
     views.push(view)
     cnodes.push(c)
@@ -165,12 +193,11 @@ fn draw(
     dir.unwrap_or(root_dir) is (LR | RL)
   }
   for i, view in views {
-    cnodes[i].span = @svg.shape_span(
-      view.shape,
-      view.w,
-      view.h,
-      flows_sideways(i),
-    )
+    cnodes[i].span = if view.node.is_group {
+      @double.infinity
+    } else {
+      @svg.shape_span(view.shape, view.w, view.h, flows_sideways(i))
+    }
   }
   let cedges : Array[@layout.CEdge] = []
   let edge_labels : Array[@text.Label] = []
@@ -237,12 +264,57 @@ fn draw(
   let width = (inner + 2 * pad).ceil()
   let height = (layout.height + title_height + 2 * pad).ceil()
   let links : Array[@types.LinkInfo] = []
+  let crossings = @svg.Crossings::new()
+  if cnodes.iter().any(c => c.is_group) {
+    for e in cedges {
+      @svg.mark_crossings(crossings, e.route)
+    }
+  }
+  let clusters = StringBuilder()
+  let struck_titles = StringBuilder()
   let nodes_out = StringBuilder()
   for i, view in views {
     let c = cnodes[i]
     let node = view.node
     let classes = node_classes(node.css_classes)
     let id = @svg.esc_text(node.id)
+    if c.is_group {
+      let title_x = @svg.cluster_title_x(
+        c,
+        view.label.width,
+        crossings,
+        group_pad,
+      )
+      let title_y = c.y - c.h / 2 + 8 + view.label.height / 2
+      let title_attrs = " class=\"pele-cluster-label\" fill=\"var(--_m)\"\{view.style.text}"
+      let struck = @svg.title_crossed(c, view.label.width, title_x, crossings)
+      if struck {
+        struck_titles.write_string(
+          @svg.struck_title(
+            view.label,
+            title_x,
+            title_y,
+            title_attrs,
+            id,
+            cnodes,
+            i,
+          ),
+        )
+      }
+      clusters.write_string(
+        "<g class=\"pele-cluster\{classes}\" data-id=\"\{id}\">",
+      )
+      clusters.write_string(
+        "<rect x=\"\{@svg.num(c.x - c.w / 2)}\" y=\"\{@svg.num(c.y - c.h / 2)}\" width=\"\{@svg.num(c.w)}\" height=\"\{@svg.num(c.h)}\" fill=\"var(--_a)\" fill-opacity=\"0.5\" stroke=\"var(--_b)\"\{@svg.rounded(view.style.shape)}/>",
+      )
+      if !struck {
+        clusters.write_string(
+          @svg.label_svg(view.label, title_x, title_y, title_attrs),
+        )
+      }
+      clusters.write_string("</g>")
+      continue
+    }
     let inner = @svg.draw_shape(
       view.shape,
       view.w,
@@ -372,11 +444,19 @@ fn draw(
       " class=\"pele-title\" font-weight=\"var(--_tw)\"",
     ),
   )
+  let clusters_svg = clusters.to_string()
+  if clusters_svg != "" {
+    content.write_string("<g class=\"pele-clusters\">\{clusters_svg}</g>")
+  }
   let edges_svg = edges_out.to_string()
   if edges_svg != "" {
     content.write_string(
       "<g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\">\{edges_svg}</g>",
     )
+  }
+  let struck_svg = struck_titles.to_string()
+  if struck_svg != "" {
+    content.write_string("<g class=\"pele-cluster-titles\">\{struck_svg}</g>")
   }
   let labels_svg = labels_out.to_string()
   if labels_svg != "" {
