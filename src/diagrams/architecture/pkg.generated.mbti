@@ -1,0 +1,72 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Omochice/pele/diagrams/architecture"
+
+import {
+  "Omochice/pele/errors",
+}
+
+// Values
+pub fn parse_architecture(String) -> ArchitectureAst raise @errors.PeleError
+
+// Errors
+
+// Types and methods
+pub(all) struct AlignmentAst {
+  direction : String
+  members : Array[String]
+}
+
+pub(all) struct ArchitectureAst {
+  title : String?
+  acc_title : String?
+  acc_descr : String?
+  groups : Array[GroupAst]
+  services : Array[ServiceAst]
+  junctions : Array[JunctionAst]
+  edges : Array[EdgeAst]
+  alignments : Array[AlignmentAst]
+}
+
+pub(all) struct EdgeAst {
+  lhs_id : String
+  lhs_group : Bool
+  lhs_dir : Side
+  lhs_into : Bool
+  title : String?
+  rhs_into : Bool
+  rhs_dir : Side
+  rhs_id : String
+  rhs_group : Bool
+}
+
+pub(all) struct GroupAst {
+  id : String
+  icon : String?
+  title : String?
+  parent : String?
+}
+
+pub(all) struct JunctionAst {
+  id : String
+  parent : String?
+}
+
+pub(all) struct ServiceAst {
+  id : String
+  icon : String?
+  icon_text : String?
+  title : String?
+  parent : String?
+}
+
+pub(all) enum Side {
+  L
+  R
+  T
+  B
+}
+pub fn Side::name(Self) -> String
+
+// Type aliases
+
+// Traits
