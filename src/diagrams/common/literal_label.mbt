@@ -107,6 +107,71 @@ pub fn break_label(
   measurer : @text.TextMeasurer,
   room : Double,
 ) -> @text.Label {
-  ignore((measurer, room))
-  label
+  // pele also keeps icon and math spans whole and recomputes line heights for math.
+  // Labels here have neither, as in pele without an icon resolver or a typesetter.
+  if label.width <= room {
+    return label
+  }
+  let lines : Array[Array[@text.Span]] = []
+  let widths : Array[Double] = []
+  for i, spans in label.lines {
+    if label.widths[i] <= room {
+      lines.push(spans)
+      widths.push(label.widths[i])
+      continue
+    }
+    let mut current : Array[@text.Span] = []
+    let mut width = 0.0
+    let commit = () => {
+      lines.push(current)
+      widths.push(width)
+      current = []
+      width = 0
+    }
+    for span in spans {
+      let starts = code_point_starts(span.text)
+      for k in 0..<(starts.length() - 1) {
+        let char = @util.slice(span.text, starts[k], end=starts[k + 1])
+        let mut last = match current.last() {
+          Some(last) if last.style == span.style => Some(last)
+          _ => None
+        }
+        let next_width = match last {
+          Some(last) => measurer.width(last.text + char, label.size, span.style)
+          None => measurer.width(char, label.size, span.style)
+        }
+        let mut added = match last {
+          Some(last) => next_width - last.width
+          None => next_width
+        }
+        if current.length() > 0 && width + added > room {
+          commit()
+          last = None
+          added = measurer.width(char, label.size, span.style)
+        }
+        match last {
+          Some(last) => {
+            last.text = last.text + char
+            last.width = last.width + added
+          }
+          None => current.push({ text: char, style: span.style, width: added, })
+        }
+        width += added
+      }
+    }
+    if current.length() > 0 || spans.length() == 0 {
+      commit()
+    }
+  }
+  let mut width = 0.0
+  for w in widths {
+    width = @util.js_max(width, w)
+  }
+  {
+    ..label,
+    lines,
+    widths,
+    width,
+    height: lines.length().to_double() * label.line_height,
+  }
 }
