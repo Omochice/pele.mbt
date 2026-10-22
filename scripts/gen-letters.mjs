@@ -33,45 +33,12 @@ let letter_ranges_packed : String =
 ${lines.join('\n')}
 
 ///|
-let letter_ranges : Array[Int] = {
-  let out = []
-  let mut prev = 0
-  let parts = letter_ranges_packed.replace_all(old="\\n", new=" ").split(" ").to_array()
-  for i = 0; i + 1 < parts.length(); i = i + 2 {
-    let start = prev + base36_value(parts[i])
-    prev = start + base36_value(parts[i + 1])
-    out.push(start)
-    out.push(prev)
-  }
-  out
-}
-
-///|
-fn base36_value(digits : StringView) -> Int {
-  let mut value = 0
-  for c in digits {
-    let d = if c >= '0' && c <= '9' { c.to_int() - '0'.to_int() } else { c.to_int() - 'a'.to_int() + 10 }
-    value = value * 36 + d
-  }
-  value
-}
+let letter_ranges : Array[Int] = unpack_ranges(letter_ranges_packed)
 
 ///|
 /// Whether the code point is a letter or a number, as \`[\\p{L}\\p{N}]\` with the \`u\` flag sees it.
 pub fn is_letter_or_number(code_point : Int) -> Bool {
-  let mut lo = 0
-  let mut hi = letter_ranges.length() / 2 - 1
-  while lo <= hi {
-    let mid = (lo + hi) / 2
-    if code_point < letter_ranges[mid * 2] {
-      hi = mid - 1
-    } else if code_point > letter_ranges[mid * 2 + 1] {
-      lo = mid + 1
-    } else {
-      return true
-    }
-  }
-  false
+  in_ranges(letter_ranges, code_point)
 }
 `;
 writeFileSync(join(root, 'src/util/letters.mbt'), source);
