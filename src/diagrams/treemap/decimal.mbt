@@ -34,6 +34,43 @@ fn scaled(x : Double, shift : Int32) -> BigInt {
 }
 
 ///|
+fn non_finite_or_huge(x : Double) -> Bool {
+  x.is_nan() || x.is_inf() || x >= 1.0e21
+}
+
+///|
+/// What `x.toFixed(digits)` writes, for a non-negative `x`.
+fn to_fixed(x : Double, digits : Int32) -> String {
+  if non_finite_or_huge(x) {
+    return x.to_string()
+  }
+  let mut whole = scaled(x, digits).to_string()
+  if digits == 0 {
+    return whole
+  }
+  while whole.length() <= digits {
+    whole = "0" + whole
+  }
+  let point = whole.length() - digits
+  @util.slice(whole, 0, end=point) + "." + @util.slice(whole, point)
+}
+
+///|
+/// What `x.toExponential(digits)` writes, for a non-negative `x`.
+fn to_exponential(x : Double, digits : Int32) -> String {
+  if x.is_nan() || x.is_inf() {
+    return x.to_string()
+  }
+  let (all, e) = significant(x, digits + 1)
+  let mantissa = if digits == 0 {
+    all
+  } else {
+    @util.slice(all, 0, end=1) + "." + @util.slice(all, 1)
+  }
+  mantissa + (if e < 0 { "e-" } else { "e+" }) + e.abs().to_string()
+}
+
+///|
 /// The `count` significant digits of a positive `x` and the decimal exponent of the first, as
 /// `toPrecision` and `toExponential` choose them.
 fn significant(x : Double, count : Int32) -> (String, Int32) {

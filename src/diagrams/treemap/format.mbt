@@ -7,6 +7,8 @@ priv struct Spec {
   comma : Bool
   precision : Int32?
   tilde : Bool
+  /// The code of the type letter, or -1 when there is none.
+  kind : Int32
 }
 
 ///|
@@ -58,13 +60,15 @@ fn read_rest(spec : String, from : Int32) -> Spec? {
     i += 1
   }
   let letter = @util.code_at(spec, i)
+  let mut kind = -1
   if letter == '%'.to_int() ||
     (letter >= 'a'.to_int() && letter <= 'z'.to_int()) ||
     (letter >= 'A'.to_int() && letter <= 'Z'.to_int()) {
+    kind = letter
     i += 1
   }
   if i == spec.length() {
-    Some({ plus, dollar, comma, precision, tilde, })
+    Some({ plus, dollar, comma, precision, tilde, kind, })
   } else {
     None
   }
@@ -145,10 +149,22 @@ pub fn formatter(spec : String) -> (Double) -> String {
   }
   value => {
     let abs = value.abs()
-    let mut body = to_shortest(
-      abs,
-      @util.js_max(1, spec.precision.unwrap_or(12).to_double()).to_int(),
-    )
+    let mut suffix = ""
+    let mut body = match spec.kind {
+      102 => to_fixed(abs, spec.precision.unwrap_or(6))
+      37 => {
+        suffix = "%"
+        to_fixed(abs * 100, spec.precision.unwrap_or(6))
+      }
+      // util's to_fixed0 writes the shortest digits for values past 2^53, where toFixed writes the exact ones.
+      100 => to_fixed(abs.round(), 0)
+      101 => to_exponential(abs, spec.precision.unwrap_or(6))
+      _ =>
+        to_shortest(
+          abs,
+          @util.js_max(1, spec.precision.unwrap_or(12).to_double()).to_int(),
+        )
+    }
     if spec.tilde && body.contains(".") && !body.contains("e") {
       body = strip_trailing_zeros(body)
     }
@@ -162,6 +178,7 @@ pub fn formatter(spec : String) -> (Double) -> String {
     }
     (if value < 0 { "-" } else if spec.plus { "+" } else { "" }) +
     (if spec.dollar { "$" } else { "" }) +
-    body
+    body +
+    suffix
   }
 }
