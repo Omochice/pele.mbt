@@ -19,11 +19,15 @@ pub let acc_title : TokenType
 
 pub fn acc_title_value(String) -> String
 
+pub fn accessibility(Tokens, Int32, Int32) -> Int32
+
 pub let directive : TokenType
 
 pub fn fit_width(@types.RenderOptions, Double, Double, (Double, Bool) -> @types.Rendered) -> @types.Rendered
 
 pub fn keyword(String) -> TokenType
+
+pub fn line_end(String, Int32) -> Int32
 
 pub fn literal(String, String) -> TokenType
 
@@ -36,6 +40,8 @@ pub fn pattern(String, (String, Int32) -> Int32, first? : String, hidden? : Bool
 pub fn runs_across(String?) -> Bool
 
 pub let single_line_comment : TokenType
+
+pub fn skip_trivia(String, Int32) -> Int32
 
 pub let string : TokenType
 
