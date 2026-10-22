@@ -1,0 +1,42 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Omochice/pele/diagrams/cynefin"
+
+// Values
+pub fn backward(Array[Double]) -> String
+
+pub fn cliff(Double, Double, Double, Double) -> Array[Double]
+
+pub fn curve_path(Array[Double]) -> String
+
+pub fn ellipse_path(Double, Double, Double, Double) -> String
+
+pub let fold : WaveOptions
+
+pub fn forward(Array[Double]) -> String
+
+pub fn hash_string(String) -> Int32
+
+pub let horizon : WaveOptions
+
+pub fn resolve_seed(Double?, String) -> Double
+
+pub fn seeded_random(Double) -> Double
+
+pub fn wave(Double, Double, Double, Double, Double, WaveOptions) -> Array[Double]
+
+// Errors
+
+// Types and methods
+pub(all) struct WaveOptions {
+  segments : Int32
+  vertical : Bool
+  point_step : Int32
+  control_step : Int32
+  control_shift : Int32
+  pin_start : Bool
+  pin_end : Bool
+}
+
+// Type aliases
+
+// Traits
