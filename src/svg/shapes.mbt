@@ -52,6 +52,41 @@ fn rect(w : Double, h : Double, a : String, rx~ : String = "") -> String {
 }
 
 ///|
+fn fixed(w : Double, h : Double) -> (Double, Double) -> ShapeSize {
+  (_, _) => { w, h, dy: 0, }
+}
+
+///|
+fn tri_size(tw : Double, th : Double, flip : Bool) -> ShapeSize {
+  let w = @util.js_max(1.6 * tw + 40, 80)
+  let h = (th + 10) / (1 - (tw + 8) / w)
+  let dy = h / 2 - 10 - th / 2
+  { w, h, dy: if flip { -dy } else { dy }, }
+}
+
+///|
+/// The width of a shape whose sides are slanted or notched by a share of its height.
+fn slanted_size(share : Double) -> (Double, Double) -> ShapeSize {
+  (tw, th) => {
+    let h = th + 2 * PAD_Y
+    { w: tw + 2 * PAD_X + h / share, h, dy: 0, }
+  }
+}
+
+///|
+fn bang_points(w : Double, h : Double) -> Array[Double] {
+  let spikes = 14
+  let points = []
+  for i in 0..<(spikes * 2) {
+    let angle = @math.PI * i.to_double() / spikes.to_double() - @math.PI / 2
+    let k = if i % 2 == 0 { 1.0 } else { 0.82 }
+    points.push(@math.cos(angle) * (w / 2) * k)
+    points.push(@math.sin(angle) * (h / 2) * k)
+  }
+  points
+}
+
+///|
 let rect_shape : ShapeDef = ShapeDef::new(size=box_size, draw=(w, h, a, _) => {
   rect(w, h, rounded(a))
 })
@@ -182,11 +217,150 @@ let shapes : Map[String, ShapeDef] = {
       "<rect x=\"\{num(-w / 2)}\" y=\"\{num(-h / 2)}\" width=\"\{num(w)}\" height=\"\{num(h - 4)}\"\{rounded(a)}/>"
     },
   ),
+  "diam": ShapeDef::new(
+    size=(tw, th) => {
+      let a = tw + 16
+      let b = th + 8
+      { w: a + 1.6 * b, h: a / 1.6 + b, dy: 0, }
+    },
+    draw=(w, h, a, _) => poly([0, -h / 2, w / 2, 0, 0, h / 2, -w / 2, 0], a),
+  ),
+  "hex": ShapeDef::new(size=slanted_size(2), draw=(w, h, a, _) => {
+    let m = h / 4
+    poly(
+      [
+        -w / 2 + m,
+        -h / 2,
+        w / 2 - m,
+        -h / 2,
+        w / 2,
+        0,
+        w / 2 - m,
+        h / 2,
+        -w / 2 + m,
+        h / 2,
+        -w / 2,
+        0,
+      ],
+      a,
+    )
+  }),
+  "odd": ShapeDef::new(size=slanted_size(4), draw=(w, h, a, _) => {
+    let notch = h / 4
+    poly(
+      [
+        -w / 2,
+        -h / 2,
+        w / 2,
+        -h / 2,
+        w / 2,
+        h / 2,
+        -w / 2,
+        h / 2,
+        -w / 2 + notch,
+        0,
+      ],
+      a,
+    )
+  }),
+  "lean-r": ShapeDef::new(size=slanted_size(2), draw=(w, h, a, _) => {
+    let s = h / 4
+    poly(
+      [-w / 2 + s, -h / 2, w / 2, -h / 2, w / 2 - s, h / 2, -w / 2, h / 2],
+      a,
+    )
+  }),
+  "lean-l": ShapeDef::new(size=slanted_size(2), draw=(w, h, a, _) => {
+    let s = h / 4
+    poly(
+      [-w / 2, -h / 2, w / 2 - s, -h / 2, w / 2, h / 2, -w / 2 + s, h / 2],
+      a,
+    )
+  }),
+  "trap-b": ShapeDef::new(size=slanted_size(2), draw=(w, h, a, _) => {
+    let s = h / 4
+    poly(
+      [-w / 2 + s, -h / 2, w / 2 - s, -h / 2, w / 2, h / 2, -w / 2, h / 2],
+      a,
+    )
+  }),
+  "trap-t": ShapeDef::new(size=slanted_size(2), draw=(w, h, a, _) => {
+    let s = h / 4
+    poly(
+      [-w / 2, -h / 2, w / 2, -h / 2, w / 2 - s, h / 2, -w / 2 + s, h / 2],
+      a,
+    )
+  }),
+  "tri": ShapeDef::new(size=(tw, th) => tri_size(tw, th, false), draw=(
+    w,
+    h,
+    a,
+    _,
+  ) => poly([0, -h / 2, w / 2, h / 2, -w / 2, h / 2], a)),
+  "flip-tri": ShapeDef::new(size=(tw, th) => tri_size(tw, th, true), draw=(
+    w,
+    h,
+    a,
+    _,
+  ) => poly([-w / 2, -h / 2, w / 2, -h / 2, 0, h / 2], a)),
+  "sl-rect": ShapeDef::new(
+    size=(tw, th) => { w: tw + 2 * PAD_X, h: th + 2 * PAD_Y + 10, dy: 5, },
+    draw=(w, h, a, _) => {
+      poly([-w / 2, -h / 2 + 10, w / 2, -h / 2, w / 2, h / 2, -w / 2, h / 2], a)
+    },
+  ),
+  "notch-pent": ShapeDef::new(
+    size=(tw, th) => { w: tw + 2 * PAD_X, h: th + 2 * PAD_Y, dy: 0, },
+    draw=(w, h, a, _) => {
+      let c = 10.0
+      poly(
+        [
+          -w / 2 + c,
+          -h / 2,
+          w / 2 - c,
+          -h / 2,
+          w / 2,
+          -h / 2 + c,
+          w / 2,
+          h / 2,
+          -w / 2,
+          h / 2,
+          -w / 2,
+          -h / 2 + c,
+        ],
+        a,
+      )
+    },
+  ),
+  "hourglass": ShapeDef::new(size=fixed(32, 40), draw=(w, h, a, _) => {
+    poly([-w / 2, -h / 2, w / 2, -h / 2, -w / 2, h / 2, w / 2, h / 2], a)
+  }),
+  "bolt": ShapeDef::new(size=fixed(36, 56), draw=(w, h, a, _) => {
+    poly(
+      [
+        w * 0.15,
+        -h / 2,
+        -w / 2,
+        h * 0.08,
+        -w * 0.05,
+        h * 0.08,
+        -w * 0.15,
+        h / 2,
+        w / 2,
+        -h * 0.08,
+        w * 0.05,
+        -h * 0.08,
+      ],
+      a,
+    )
+  }),
+  "bang": ShapeDef::new(
+    size=(tw, th) => { w: tw + 2 * PAD_X + 28, h: th + 2 * PAD_Y + 24, dy: 0, },
+    draw=(w, h, a, _) => poly(bang_points(w, h), a),
+  ),
 }
 
 ///|
-/// Unknown names fall back to a rectangle; a Map lookup also keeps names like `constructor` from
-/// reaching anything but the table, as pele guards against with its own Map.
 fn shape_def(shape : String) -> ShapeDef {
   shapes.get(shape).unwrap_or(rect_shape)
 }
