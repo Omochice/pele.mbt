@@ -2,6 +2,7 @@ import {
   "Omochice/pele/diagrams/common",
   "Omochice/pele/errors",
   "Omochice/pele/svg",
+  "Omochice/pele/text",
   "Omochice/pele/types",
   "Omochice/pele/util",
 }
