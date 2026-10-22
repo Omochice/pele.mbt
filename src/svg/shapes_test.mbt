@@ -16,6 +16,14 @@ fn draw(shape : String) -> String {
 }
 
 ///|
+/// The insets of the four sides, top first and clockwise, a little off their middles.
+fn insets(shape : String) -> String {
+  [0, 1, 2, 3]
+  .map(side => @svg.shape_inset(shape, 101.25, 43.2, side, t=7.5).to_string())
+  .join(" ")
+}
+
+///|
 test "rectangular shapes pad the label" {
   inspect(size("rect", 37.5, 19.2), content="73.5 43.2 0")
   inspect(size("rounded", 37.5, 19.2), content="73.5 43.2 0")
@@ -420,4 +428,99 @@ test "other shapes carry a label" {
     ] {
     assert_true(@svg.shape_has_label(shape), msg=shape)
   }
+}
+
+///|
+test "edges end on the outline of the shape" {
+  inspect(
+    insets("stadium"),
+    content="0 1.3438898107262465 0 1.3438898107262465",
+  )
+  inspect(insets("cyl"), content="0.0798053984899878 0 0.0798053984899878 0")
+  inspect(
+    insets("lin-cyl"),
+    content="0.0798053984899878 0 0.0798053984899878 0",
+  )
+  inspect(
+    insets("circle"),
+    content="0.2383521234900969 3.1497417438896402 0.2383521234900969 3.1497417438896402",
+  )
+  inspect(
+    insets("dbl-circ"),
+    content="0.2383521234900969 3.1497417438896402 0.2383521234900969 3.1497417438896402",
+  )
+  inspect(
+    insets("ellipse"),
+    content="0.2383521234900969 3.1497417438896402 0.2383521234900969 3.1497417438896402",
+  )
+  inspect(
+    insets("sm-circ"),
+    content="0.2383521234900969 3.1497417438896402 0.2383521234900969 3.1497417438896402",
+  )
+  inspect(
+    insets("f-circ"),
+    content="0.2383521234900969 3.1497417438896402 0.2383521234900969 3.1497417438896402",
+  )
+  inspect(
+    insets("fr-circ"),
+    content="0.2383521234900969 3.1497417438896402 0.2383521234900969 3.1497417438896402",
+  )
+  inspect(
+    insets("cross-circ"),
+    content="0.2383521234900969 3.1497417438896402 0.2383521234900969 3.1497417438896402",
+  )
+  inspect(insets("diam"), content="3.2 17.578125 3.2 17.578125")
+  inspect(insets("hex"), content="0 3.75 0 3.75")
+  inspect(insets("odd"), content="0 0 0 10.8")
+  inspect(insets("lean-r"), content="0 5.4 0 5.4")
+  inspect(insets("lean-l"), content="0 5.4 0 5.4")
+  inspect(insets("trap-b"), content="0 5.4 0 5.4")
+  inspect(insets("trap-t"), content="0 5.4 0 5.4")
+  inspect(insets("tri"), content="0 25.3125 0 25.3125")
+  inspect(insets("flip-tri"), content="0 25.3125 0 25.3125")
+  inspect(insets("sl-rect"), content="5 0 0 0")
+  inspect(insets("hourglass"), content="0 50.625 0 50.625")
+  inspect(insets("bolt"), content="0 25.3125 0 25.3125")
+  inspect(insets("bang"), content="3 3 3 3")
+  inspect(insets("doc"), content="0 0 10 0")
+  inspect(insets("docs"), content="0 0 10 0")
+  inspect(insets("tag-doc"), content="0 0 10 0")
+  inspect(insets("lin-doc"), content="0 0 10 0")
+  inspect(insets("flag"), content="8 0 8 0")
+  inspect(insets("bucket"), content="0 3.6 0 3.6")
+  inspect(insets("cloud"), content="1 2 1 2")
+  inspect(insets("bow-rect"), content="0 8.64 0 0")
+}
+
+///|
+test "shapes with straight sides have no inset" {
+  inspect(insets("rect"), content="0 0 0 0")
+  inspect(insets("rounded"), content="0 0 0 0")
+  inspect(insets("fork"), content="0 0 0 0")
+  inspect(insets("delay"), content="0 0 0 0")
+  inspect(insets("folder"), content="0 0 0 0")
+  inspect(insets("person"), content="0 0 0 0")
+  inspect(insets("nope"), content="0 0 0 0")
+  inspect(insets("constructor"), content="0 0 0 0")
+}
+
+///|
+test "a round outline falls away from the box toward the corners" {
+  inspect(@svg.shape_inset("circle", 40, 40, 0), content="0")
+  inspect(@svg.shape_inset("circle", 40, 40, 1, t=-20), content="20")
+  inspect(@svg.shape_inset("circle", 40, 40, 1, t=1000), content="20")
+  inspect(
+    @svg.shape_inset("ellipse", 80, 40, 2, t=-30),
+    content="6.771243444677046",
+  )
+  inspect(
+    @svg.shape_inset("cyl", 300, 40, 0, t=100),
+    content="3.0557280900008412",
+  )
+}
+
+///|
+test "an empty round shape has no defined inset" {
+  assert_true(@svg.shape_inset("circle", 0, 0, 0).is_nan())
+  assert_true(@svg.shape_inset("diam", 0, 0, 0).is_nan())
 }
