@@ -41,6 +41,16 @@ fn way(value : Double) -> Double {
 }
 
 ///|
+/// How far from its node an end turns to clear its own marker, trimmed by `trim`.
+fn own_reach(trim : Double) -> Double {
+  if trim > 0 {
+    trim + LEAD
+  } else {
+    0
+  }
+}
+
+///|
 /// Builds the path for a route of x, y, axis triples, where the axis is 0 for a point the edge runs into vertically and 1 horizontally.
 /// Between two points that are not in line, a route is one S that leaves and arrives along the flow, or a step in a stepped route.
 /// Where the route itself turns a corner, a stepped route rounds it a little, and any other but a linear one turns as widely as it can: the turn takes the whole of a leg that ends at a node and half of a leg it shares with the next turn.
@@ -54,20 +64,8 @@ pub fn route_path(
   start_reach? : Double,
   end_reach? : Double,
 ) -> EdgePath {
-  let start_reach = start_reach.unwrap_or(
-    if start_trim > 0 {
-      start_trim + LEAD
-    } else {
-      0
-    },
-  )
-  let end_reach = end_reach.unwrap_or(
-    if end_trim > 0 {
-      end_trim + LEAD
-    } else {
-      0
-    },
-  )
+  let start_reach = start_reach.unwrap_or(own_reach(start_trim))
+  let end_reach = end_reach.unwrap_or(own_reach(end_trim))
   let linear = curve == Some("linear")
   let stepped = match curve {
     Some("step" | "stepBefore" | "stepAfter") => true
