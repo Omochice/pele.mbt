@@ -94,7 +94,7 @@ pub fn parse_railroad(
     Railroad => parse_ir(source)
     Ebnf => parse_ebnf(source)
     Abnf => parse_abnf(source)
-    _ => abort("not ported yet")
+    Peg => parse_peg(source)
   }
   {
     notation,

@@ -1,9 +1,6 @@
 ///|
 test "PEG suffixes and choices are read" {
-  inspect(
-    peg("a? b* c+"),
-    content="([<a>] {<b>}0..Infinity {<c>}1..Infinity)",
-  )
+  inspect(peg("a? b* c+"), content="([<a>] {<b>}0..Infinity {<c>}1..Infinity)")
   inspect(peg("a / \"b\" c"), content="(<a> | (\"b\" <c>))")
   inspect(peg("( ( a ) )"), content="<a>")
   inspect(peg("\"\\b\""), content="\"b\"")
