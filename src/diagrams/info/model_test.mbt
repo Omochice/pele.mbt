@@ -8,10 +8,7 @@ fn model(source : String) -> String {
 
 ///|
 test "the front matter title is used when the diagram has none" {
-  inspect(
-    model("info"),
-    content="title=front accTitle=\"-\" accDescr=\"-\"",
-  )
+  inspect(model("info"), content="title=front accTitle=\"-\" accDescr=\"-\"")
   inspect(
     model("info\ntitle"),
     content="title=front accTitle=\"-\" accDescr=\"-\"",

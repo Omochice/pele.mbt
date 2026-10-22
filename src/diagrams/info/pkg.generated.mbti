@@ -6,12 +6,20 @@ import {
 }
 
 // Values
+pub fn build_info(InfoAst, String?) -> InfoModel
+
 pub fn parse_info(String) -> InfoAst raise @errors.PeleError
 
 // Errors
 
 // Types and methods
 pub(all) struct InfoAst {
+  title : String?
+  acc_title : String?
+  acc_descr : String?
+}
+
+pub(all) struct InfoModel {
   title : String?
   acc_title : String?
   acc_descr : String?
