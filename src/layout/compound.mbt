@@ -69,6 +69,20 @@ pub(all) struct CompoundResult {
 }
 
 ///|
+/// Moves a laid out graph by `ox` across and `oy` down.
+pub fn shift_layout(
+  nodes : Array[CNode],
+  edges : Array[CEdge],
+  ox : Double,
+  oy : Double,
+) -> Unit {
+  ignore(nodes)
+  ignore(edges)
+  ignore(ox)
+  ignore(oy)
+}
+
+///|
 /// The direction a diagram names, or top to bottom for anything else.
 pub fn direction(dir : String?) -> Dir {
   match dir {

@@ -100,3 +100,19 @@ test "survives groups that contain each other" {
   assert_false(size.width.is_nan() || size.width.is_inf())
   assert_true(edges[0].route.length() >= 6)
 }
+
+///|
+test "shifts nodes, routes and labels by an offset, leaving each point's axis" {
+  let nodes = nodes_in_order([(60, 40), (60, 40)])
+  let edges = [edge(0, 1, label_w=20, label_h=10)]
+  edges[0].route = [30, 40, 0, 30, 88, 1]
+  edges[0].label_x = 30
+  edges[0].label_y = 64
+  nodes[1].y = 108
+  @layout.shift_layout(nodes, edges, 8, 12.5)
+  let route = edges[0].route.map(x => "\{x}").join(",")
+  inspect(
+    "\{nodes[0].x},\{nodes[0].y} \{nodes[1].x},\{nodes[1].y} \{route} \{edges[0].label_x},\{edges[0].label_y}",
+    content="8,12.5 8,120.5 38,52.5,0,38,100.5,1 38,76.5",
+  )
+}
