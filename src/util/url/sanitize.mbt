@@ -54,7 +54,7 @@ fn entity_end(text : String, at : Int32) -> Int32 {
 ///|
 /// `String.fromCharCode(word)`: the number wrapped to 16 bits, with NaN and infinities as 0.
 fn char_code(word : String) -> Int32 {
-  let n = @util.js_number(Json::string(word))
+  let n = @util.to_number(word)
   if n.is_nan() || n.is_inf() {
     return 0
   }

@@ -449,7 +449,7 @@ fn FlowDb::edge_at(
   self : FlowDb,
   pos : String,
 ) -> FlowEdge raise @errors.PeleError {
-  let index = @util.js_number(Json::string(pos))
+  let index = @util.to_number(pos)
   if index >= 0.0 &&
     index < self.edges.length().to_double() &&
     index == index.floor() {
