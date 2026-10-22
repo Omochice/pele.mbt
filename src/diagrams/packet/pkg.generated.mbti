@@ -3,14 +3,19 @@ package "Omochice/pele/diagrams/packet"
 
 import {
   "Omochice/pele/errors",
+  "Omochice/pele/types",
 }
 
 // Values
 pub fn build_packet(PacketAst, Map[String, Json], String?) -> PacketModel raise @errors.PeleError
 
+pub let packet : @types.Diagram
+
 pub fn packet_option(Map[String, Json], String, Double, Double, Double) -> Double
 
 pub fn parse_packet(String) -> PacketAst raise @errors.PeleError
+
+pub fn render_packet(PacketModel, Map[String, Json], @types.RenderOptions) -> @types.Rendered
 
 // Errors
 

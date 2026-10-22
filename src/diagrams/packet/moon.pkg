@@ -4,3 +4,7 @@ import {
   "Omochice/pele/types",
   "Omochice/pele/util",
 }
+
+import {
+  "Omochice/pele/core",
+} for "test"
