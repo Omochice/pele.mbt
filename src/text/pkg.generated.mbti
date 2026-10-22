@@ -1,0 +1,23 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Omochice/pele/text"
+
+// Values
+pub const STYLE_BOLD : Int32 = 1
+
+pub const STYLE_ITALIC : Int32 = 2
+
+pub const STYLE_MONO : Int32 = 4
+
+pub let metrics_measurer : TextMeasurer
+
+// Errors
+
+// Types and methods
+pub(all) struct TextMeasurer {
+  width_of : (String, Double, Int32) -> Double
+}
+pub fn TextMeasurer::width(Self, String, Double, Int32) -> Double
+
+// Type aliases
+
+// Traits
