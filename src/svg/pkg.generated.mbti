@@ -22,6 +22,8 @@ pub const ROOT_STYLE : String = "--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#
 
 pub const ROUNDED : String = " style=\"rx:var(--_r)\""
 
+pub fn cluster_title_x(@layout.CNode, Double, Crossings, Double) -> Double
+
 pub fn draw_shape(String, Double, Double, String, String) -> String
 
 pub fn edge_label_svg(String, @text.Label, Double, Double, String) -> String
@@ -37,6 +39,8 @@ pub fn font_style(Double, String?, String?) -> String
 pub fn inset_route(Array[Double], Int32, @layout.CNode, shape~ : String, w~ : Double, h~ : Double) -> Unit
 
 pub fn label_svg(@text.Label, Double, Double, String) -> String
+
+pub fn mark_crossings(Crossings, Array[Double]) -> Unit
 
 pub fn marker(String, Double, Double, Double, Double, String) -> String
 
@@ -66,11 +70,18 @@ pub fn svg_document(String, Double, Double, Double, @types.RenderOptions, String
 
 pub fn text_style(String, Int32) -> String
 
+pub fn title_crossed(@layout.CNode, Double, Double, Crossings) -> Bool
+
 pub fn title_label(String?, @text.TextMeasurer, Double, Double) -> @text.Label
 
 // Errors
 
 // Types and methods
+pub struct Crossings {
+  // private fields
+}
+pub fn Crossings::new() -> Self
+
 pub(all) struct ResolvedStyle {
   shape : String
   line : String
