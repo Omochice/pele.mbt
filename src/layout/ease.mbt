@@ -6,5 +6,5 @@
 pub fn ease(across : Double, along : Double) -> Double {
   let reach = across.abs()
   let reach = if reach == 0.0 || reach.is_nan() { 1.0 } else { reach }
-  jmax(0.25, jmin(0.5, 4.0 * along.abs() / reach))
+  @util.js_max(0.25, @util.js_min(0.5, 4.0 * along.abs() / reach))
 }

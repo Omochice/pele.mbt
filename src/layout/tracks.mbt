@@ -93,8 +93,8 @@ fn assign_tracks(
     return
   }
   // The pieces are compared pair by pair, so where each begins and ends across the flow is worked out once.
-  let lo_of = FixedArray::makei(total, k => jmin(from[k], to[k]))
-  let hi_of = FixedArray::makei(total, k => jmax(from[k], to[k]))
+  let lo_of = FixedArray::makei(total, k => @util.js_min(from[k], to[k]))
+  let hi_of = FixedArray::makei(total, k => @util.js_max(from[k], to[k]))
   let within = fn(x : Double, k : Int32) {
     if x >= lo_of[k] - in_line && x <= hi_of[k] + in_line {
       1
@@ -321,9 +321,9 @@ fn assign_tracks(
       for j in 0..<samples {
         let dx = line[2 * j + 2] - line[2 * j]
         let dy = line[2 * j + 3] - line[2 * j + 1]
-        let t = jmax(
+        let t = @util.js_max(
           0,
-          jmin(
+          @util.js_min(
             1,
             ((px - line[2 * j]) * dx + (py - line[2 * j + 1]) * dy) /
             or_else(dx * dx + dy * dy, 1),
@@ -339,7 +339,7 @@ fn assign_tracks(
     false
   }
   let near = fn(a : Int32, b : Int32, height : Double, limit : Double) {
-    let h = jmax(height / 2, height - 2 * level_lead)
+    let h = @util.js_max(height / 2, height - 2 * level_lead)
     sample(a, h, line_a)
     sample(b, h, line_b)
     reaches(line_a, line_b, limit) || reaches(line_b, line_a, limit)

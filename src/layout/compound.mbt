@@ -318,7 +318,7 @@ pub fn compound_layout(
         lnode(0, 0)
       }
       ln.span = if node.is_group {
-        jmin(node.span, ln.w - 2 * node.pad_x)
+        @util.js_min(node.span, ln.w - 2 * node.pad_x)
       } else {
         node.span
       }
@@ -620,7 +620,7 @@ pub fn compound_layout(
         Some(group) => group.pad_top
         None => 0
       }
-      let box_w = jmax(
+      let box_w = @util.js_max(
         content_w + 2 * pad_x,
         match group {
           Some(group) => group.min_w

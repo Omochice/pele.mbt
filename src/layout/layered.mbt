@@ -733,9 +733,12 @@ pub fn layered(
     gap_under[r] = if pieces is Some(_) {
       usual(r)
     } else {
-      jmax(
+      @util.js_max(
         usual(r),
-        jmin(max_gap * opt.rank_sep / step.to_double(), run[r] * min_slope),
+        @util.js_min(
+          max_gap * opt.rank_sep / step.to_double(),
+          run[r] * min_slope,
+        ),
       )
     }
   }
@@ -748,7 +751,7 @@ pub fn layered(
     if opt.tracks || !between[r] || (heads[r] != 1 && heads[r] != 2) {
       continue
     }
-    let shift = jmin(
+    let shift = @util.js_min(
       opt.head_room / 2,
       gap_under[if heads[r] == 1 { r - 1 } else { r }] / 2,
     )
@@ -794,12 +797,15 @@ pub fn layered(
     assign_tracks(pieces, track_count, !opt.tracks, room, tall)
     for r in 0..<max_rank {
       if track_count[r] > 0 {
-        gap_under[r] += jmax(
+        gap_under[r] += @util.js_max(
           0,
           2 * margin + (track_count[r] - 1).to_double() * least_pitch - room[r],
         )
       } else if tall[r] > 0 {
-        gap_under[r] += jmax(0, jmin(max_gap * opt.rank_sep, tall[r]) - room[r])
+        gap_under[r] += @util.js_max(
+          0,
+          @util.js_min(max_gap * opt.rank_sep, tall[r]) - room[r],
+        )
       }
     }
   }
@@ -823,7 +829,10 @@ pub fn layered(
     let bottom = band_top[below[r]]
     let count = if opt.tracks { track_count[r] } else { pieces.levels[piece] }
     let pitch = if count > 1 {
-      jmin(most_pitch, (bottom - top - 2 * margin) / (count - 1).to_double())
+      @util.js_min(
+        most_pitch,
+        (bottom - top - 2 * margin) / (count - 1).to_double(),
+      )
     } else {
       0.0
     }

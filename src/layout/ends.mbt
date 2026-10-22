@@ -66,7 +66,7 @@ fn side_ends(
   if total == 0.0 {
     return 0
   }
-  let pitch = jmin(port_pitch, span / total)
+  let pitch = @util.js_min(port_pitch, span / total)
   for k in 1..<ids.length() {
     room[k] *= pitch
   }
@@ -82,7 +82,7 @@ fn spread(
   etk : FixedArray[Int32],
 ) -> Unit {
   for v in 0..<g.real {
-    let span = jmin(nodes[v].span, g.w[v])
+    let span = @util.js_min(nodes[v].span, g.w[v])
     if span <= 0 || !(nodes[v].kind is Node) {
       continue
     }
@@ -262,7 +262,7 @@ fn align_labels(
         return choice
       }
     }
-    jmax(lo, jmin(hi, choices[0]))
+    @util.js_max(lo, @util.js_min(hi, choices[0]))
   }
   let done = FixedArray::make(g.n, false)
   let chain : Array[Int32] = []
@@ -381,7 +381,7 @@ fn settle(
     let point = if side == 0 { xs[u] + efd[e] } else { xs[u] + etd[e] }
     // Once the other end has its place, this one comes into line with it if it can.
     if again && (point - xs[v]).abs() <= span / 2 + in_line {
-      return jmax(-span / 2, jmin(span / 2, point - xs[v]))
+      return @util.js_max(-span / 2, @util.js_min(span / 2, point - xs[v]))
     }
     // The part of the other side that its end may move along, if it may move.
     let mut middle = point
@@ -390,26 +390,26 @@ fn settle(
       nodes[u].kind is Node &&
       (if side == 0 { efk } else { etk })[e] != end_held &&
       free_on(1 - side, u) >= 2 {
-      width = jmax(0, jmin(nodes[u].span, w[u]))
+      width = @util.js_max(0, @util.js_min(nodes[u].span, w[u]))
       if width > 0 {
         middle = xs[u]
       }
     }
-    let lo = jmax(xs[v] - span / 2, middle - width / 2)
-    let hi = jmin(xs[v] + span / 2, middle + width / 2)
+    let lo = @util.js_max(xs[v] - span / 2, middle - width / 2)
+    let hi = @util.js_min(xs[v] + span / 2, middle + width / 2)
     // Two sides with no part in line: the end leans towards the other, if its side is long enough.
     if lo > hi + in_line {
-      let lean = jmax(0, span / 2 - lean_clear)
-      return jmax(-lean, jmin(lean, point - xs[v]))
+      let lean = @util.js_max(0, span / 2 - lean_clear)
+      return @util.js_max(-lean, @util.js_min(lean, point - xs[v]))
     }
     // Both ends settle on one place in the part the two sides share: nearer the middle of the narrower.
     let place = (xs[v] * width + middle * span) / (width + span)
-    jmax(lo, jmin(hi, place)) - xs[v]
+    @util.js_max(lo, @util.js_min(hi, place)) - xs[v]
   }
   // End order and spacing stay fixed across passes; held ends divide free ends into runs.
   let sides : Array[SideEnds] = []
   for v in 0..<real {
-    let span = jmin(nodes[v].span, w[v])
+    let span = @util.js_min(nodes[v].span, w[v])
     if span <= 0 || !(nodes[v].kind is Node) {
       continue
     }
@@ -514,7 +514,10 @@ fn settle(
             let level = if hi - total < lo {
               (lo + hi - total) / 2
             } else {
-              jmax(lo, jmin(hi - total, sum[b] / count[b].to_double()))
+              @util.js_max(
+                lo,
+                @util.js_min(hi - total, sum[b] / count[b].to_double()),
+              )
             }
             for _c in 0..<count[b] {
               if j > 0 {

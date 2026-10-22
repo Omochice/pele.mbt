@@ -22,6 +22,10 @@ pub fn is_space(Int32) -> Bool
 
 pub fn is_word(Int32) -> Bool
 
+pub fn js_max(Double, Double) -> Double
+
+pub fn js_min(Double, Double) -> Double
+
 pub fn js_string(Json) -> String
 
 pub fn js_truthy(Json) -> Bool

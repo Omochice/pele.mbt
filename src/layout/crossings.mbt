@@ -99,12 +99,12 @@ pub fn route_crossings(
     to_x = x1
     to_y = y1
     ends[count] = part
-    ax[count] = jmin(x0, x1)
-    bx[count] = jmax(x0, x1)
+    ax[count] = @util.js_min(x0, x1)
+    bx[count] = @util.js_max(x0, x1)
     ay[count] = if x0 <= x1 { y0 } else { y1 }
     by[count] = if x0 <= x1 { y1 } else { y0 }
-    low[count] = jmin(y0, y1)
-    high[count] = jmax(y0, y1)
+    low[count] = @util.js_min(y0, y1)
+    high[count] = @util.js_max(y0, y1)
     if low[count] < top {
       top = low[count]
     }
@@ -241,7 +241,7 @@ pub fn route_crossings(
     0.0
   }
   let band_of = fn(y : Double) {
-    jmin((bands - 1).to_double(), ((y - top) * scale).floor()).to_int()
+    @util.js_min((bands - 1).to_double(), ((y - top) * scale).floor()).to_int()
   }
   let first = FixedArray::make(count, 0)
   let band_start = FixedArray::make(bands + 1, 0)
@@ -306,7 +306,10 @@ pub fn route_crossings(
     let dy = runs[o + 3] - y0
     let length = dx * dx + dy * dy
     let t = if length > 0.0 {
-      jmax(0.0, jmin(1.0, ((x - x0) * dx + (y - y0) * dy) / length))
+      @util.js_max(
+        0.0,
+        @util.js_min(1.0, ((x - x0) * dx + (y - y0) * dy) / length),
+      )
     } else {
       0.0
     }

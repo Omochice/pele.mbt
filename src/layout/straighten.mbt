@@ -166,8 +166,8 @@ fn past_labels(
       let below = g.succ_e[g.succ_start[last]]
       let from = xs[g.ef[above]] + g.efd[above]
       let to = xs[g.et[below]] + g.etd[below]
-      let lo = jmin(from, to) - clear
-      let hi = jmax(from, to) + clear
+      let lo = @util.js_min(from, to) - clear
+      let hi = @util.js_max(from, to) + clear
       let mut free = true
       let r = g.rank[d]
       for i = g.layer_start[r]; free && i < g.layer_start[r + 1]; i = i + 1 {
