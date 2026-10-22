@@ -105,11 +105,12 @@ test "a trailing slash makes a directory and an empty icon hides the icon" {
       "treeView-beta\nsrc/\n    index.js icon()\n    \"my folder/\" icon(none) :::x ##\n    y :::\n",
     ),
     content=(
-      #|title=- accTitle="-" accDescr="-" count=4
+      #|title=- accTitle="-" accDescr="-" count=5
       #|#0 L-1 dir /
       #|  #1 L0 dir src
       #|    #2 L4 file index.js icon=none
-      #|    #3 L4 dir my folder icon=none class=x
+      #|    #3 L4 dir my folder class=x icon=none
+      #|    #4 L4 file y :::
     ),
   )
 }

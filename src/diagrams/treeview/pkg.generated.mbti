@@ -60,7 +60,7 @@ pub(all) struct TreeViewAst {
 }
 
 pub struct TreeViewDb {
-  count : Int32
+  mut count : Int32
   root : TreeNode
   stack : Array[TreeNode]
 }
@@ -72,7 +72,7 @@ pub(all) struct TreeViewModel {
   acc_title : String?
   acc_descr : String?
   root : TreeNode
-  count : Int32
+  mut count : Int32
 }
 
 // Type aliases
