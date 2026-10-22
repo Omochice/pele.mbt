@@ -25,6 +25,13 @@ const BRANCH_GAP_X : Double = 52
 const BRANCH_GAP_Y : Double = 28
 
 ///|
+/// Running down, each level is set in by this much.
+const INDENT : Double = 28
+
+///|
+const ROW_GAP : Double = 10
+
+///|
 const TEXT_PAD : Double = 6
 
 ///|
@@ -62,7 +69,7 @@ fn layout(
   model : MindmapModel,
   config : @types.Config,
   options : @types.RenderOptions,
-  _down : Bool,
+  down : Bool,
 ) -> Layout {
   let size = options.font_size.unwrap_or(16)
   let measurer = @text.metrics_measurer
@@ -70,10 +77,18 @@ fn layout(
   let nodes = model.nodes
   let n = nodes.length()
   let parent = Array::make(n, 0)
+  let depth = Array::make(n, 0)
   for i in 0..<n {
     for child in nodes[i].children {
       parent[child.id] = i
+      depth[child.id] = depth[i] + 1
     }
+  }
+  // An outline has the width the host gives it, less what its level is set in.
+  let room = match options.max_width {
+    Some(available) if down && available > 0 =>
+      available - 2 * options.padding.unwrap_or(8)
+    _ => @double.infinity
   }
   let labels = []
   let shapes = []
@@ -83,7 +98,11 @@ fn layout(
   let anchor = Array::make(n, 0.0)
   for i in 0..<n {
     let node = nodes[i]
-    let label = @text.layout_label(Some(node.descr), true, measurer, size, wrap)
+    let fit = @util.js_min(
+      wrap,
+      @util.js_max(72, room - depth[i].to_double() * INDENT - 2 * TEXT_PAD),
+    )
+    let label = @text.layout_label(Some(node.descr), true, measurer, size, fit)
     labels.push(label)
     let th = @util.js_max(label.height, (size * 1.5).round())
     let named = if node.node_type >= 0 && node.node_type < shape_names.length() {
@@ -97,6 +116,13 @@ fn layout(
       ROOT_SHAPE
     } else {
       ""
+    }
+    // In an outline the root heads a column, and the trunk drops from under its left end.
+    // A circle or a cloud would stand wide of that, so the root is a pill there unless it is a box already.
+    let shape = if down && i == 0 && shape != "rect" && shape != "rounded" {
+      ROOT_SHAPE
+    } else {
+      shape
     }
     shapes.push(shape)
     if shape == "" {
@@ -163,7 +189,18 @@ fn layout(
   let y = Array::make(n, 0.0)
   let band = Array::make(n, 0.0)
   let side = Array::make(n, 0)
-  if n > 0 {
+  if down {
+    // Nodes are in depth-first order, which is the order of an outline's rows.
+    let mut row = 0.0
+    for i in 0..<n {
+      if i > 0 && parent[i] == 0 {
+        row += ROW_GAP
+      }
+      x[i] = depth[i].to_double() * INDENT + w[i] / 2
+      y[i] = row
+      row += h[i] + ROW_GAP
+    }
+  } else if n > 0 {
     // The first branches go right and the rest left, split where the two sides are closest in height.
     let branches = nodes[0].children
     let count = branches.length()

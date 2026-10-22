@@ -3,6 +3,43 @@
 const TINT : Double = 0.22
 
 ///|
+/// Running down, links leave a node this far from its left edge, and turn in with a bend of this size.
+const STEM : Double = 12
+
+///|
+const BEND : Double = 8
+
+///|
+/// A label with each line starting at `left`, for an outline, where centered lines would look ragged.
+fn left_label(label : @text.Label, left : Double, cy : Double) -> String {
+  let attrs = " class=\"pele-label\""
+  if label.lines.length() < 2 {
+    return @svg.label_svg(label, left + label.width / 2, cy, attrs)
+  }
+  let out = StringBuilder()
+  let top = cy - label.height / 2
+  for k in 0..<label.lines.length() {
+    let line : @text.Label = {
+      lines: [label.lines[k]],
+      widths: [label.widths[k]],
+      width: label.widths[k],
+      height: label.line_height,
+      size: label.size,
+      line_height: label.line_height,
+    }
+    out.write_string(
+      @svg.label_svg(
+        line,
+        left + label.widths[k] / 2,
+        top + (k.to_double() + 0.5) * label.line_height,
+        attrs,
+      ),
+    )
+  }
+  out.to_string()
+}
+
+///|
 fn render_mindmap(
   model : MindmapModel,
   config : @types.Config,
@@ -34,6 +71,8 @@ fn draw(
   let edges = StringBuilder()
   let body = StringBuilder()
   let mut color = ""
+  // Running down: how far the trunk under each node has been drawn.
+  let trunk = Array::make(n, 0.0)
   let flush = (section : Int32?) => {
     if body.is_empty() {
       return
@@ -61,7 +100,35 @@ fn draw(
     if i == 0 || parent[i] == 0 {
       flush(nodes[k - 1].section)
     }
-    if i > 0 {
+    if i > 0 && down {
+      if parent[i] == 0 {
+        color = @svg.series_color(node.section.unwrap_or(0))
+      }
+      let p = parent[i]
+      // The link drops from under its parent and turns in to the node's left.
+      // It starts where the link to the sibling above turned in, so each stretch of a shared trunk has one color.
+      // Under the root's rounded end, the trunk starts where that end has come down to the bottom.
+      let stem = if p == 0 {
+        @util.js_min(@util.js_max(STEM, h[0] / 2), INDENT - BEND)
+      } else {
+        STEM
+      }
+      let x1 = x[p] - w[p] / 2 + @util.js_min(stem, w[p] / 2)
+      let y1 = if trunk[p] != 0 { trunk[p] } else { y[p] + h[p] }
+      let left = cx - w[i] / 2
+      let x2 = left +
+        (if shape != "" { @svg.shape_inset(shape, w[i], h[i], 3) } else { 0 })
+      let y2 = top + anchor[i]
+      let bend = @util.js_max(
+        0,
+        @util.js_min(@util.js_min(BEND, x2 - x1), y2 - y1),
+      )
+      // The next link carries on from where this one leaves the trunk, so the trunk has no gap.
+      trunk[p] = y2 - bend
+      edges.write_string(
+        "<path class=\"pele-edge\" d=\"M\{@svg.num(x1)},\{@svg.num(y1)}V\{@svg.num(y2 - bend)}Q\{@svg.num(x1)},\{@svg.num(y2)} \{@svg.num(x1 + bend)},\{@svg.num(y2)}H\{@svg.num(x2)}\"/>",
+      )
+    } else if i > 0 {
       if parent[i] == 0 {
         color = @svg.series_color(node.section.unwrap_or(0))
       }
@@ -123,7 +190,11 @@ fn draw(
     }
     let group = "<g class=\"pele-node pele-shape-\{kind}\{if i > 0 { "" } else { " pele-root" }}\{@svg.class_names(node.class_.unwrap_or(""))}\" data-id=\"\{@svg.esc_text(node.node_id)}\" transform=\"translate(\{@svg.num(cx)},\{@svg.num(top + h[i] / 2)})\">" +
       inner +
-      @svg.label_svg(label, 0, dy[i], " class=\"pele-label\"") +
+      (if down && shape == "" {
+        left_label(label, -label.width / 2, dy[i])
+      } else {
+        @svg.label_svg(label, 0, dy[i], " class=\"pele-label\"")
+      }) +
       "</g>"
     if i > 0 {
       body.write_string(group)
