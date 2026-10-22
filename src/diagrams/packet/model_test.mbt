@@ -97,7 +97,7 @@ test "bitsPerRow sets the width of a row" {
       "packet\n+4: \"a\"\n+8: \"b\"",
       config=with_packet({ "bitsPerRow": 8 }),
     ),
-    content="title=front acc=-|- perRow=8 rows=0-3/4:a 4-7/3:b // 8-11/4:b",
+    content="title=front acc=-|- perRow=8 rows=0-3/4:a 4-7/3:b // 8-11/3:b",
   )
 }
 
