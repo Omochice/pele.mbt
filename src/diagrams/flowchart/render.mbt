@@ -154,7 +154,11 @@ fn draw(
       ({ node, style, label, shape: "group", w: 0, h: 0, dy: 0, }, c)
     } else {
       let shape = canonical_shape(Some(node.shape))
-      let text = if @svg.shape_has_label(shape) { node.label } else { None }
+      let text = if has_asset(node) || @svg.shape_has_label(shape) {
+        node.label
+      } else {
+        None
+      }
       let label = @text.layout_label(
         text,
         markdown,
@@ -163,11 +167,27 @@ fn draw(
         wrap_width,
         base=text_style,
       )
-      let s = @svg.shape_size(shape, label.width, label.height)
-      (
-        { node, style, label, shape, w: s.w, h: s.h, dy: s.dy, },
-        @layout.cnode(s.w, s.h),
-      )
+      let (w, h, dy) = if has_asset(node) {
+        let box = if is_set(node.img) { 80.0 } else { 48.0 }
+        let aw = asset_size(node.asset_width, box)
+        let ah = asset_size(node.asset_height, box)
+        let dy = if label.height == 0 {
+          0.0
+        } else if node.pos is Some("t") {
+          -ah / 2
+        } else {
+          ah / 2
+        }
+        (
+          @util.js_max(aw, label.width + 8),
+          ah + (if label.height > 0 { label.height + 6 } else { 0 }),
+          dy,
+        )
+      } else {
+        let s = @svg.shape_size(shape, label.width, label.height)
+        (s.w, s.h, s.dy)
+      }
+      ({ node, style, label, shape, w, h, dy, }, @layout.cnode(w, h))
     }
     c.seq = views.length().to_double()
     views.push(view)
@@ -195,11 +215,17 @@ fn draw(
     }
     dir.unwrap_or(root_dir) is (LR | RL)
   }
+  // The edges on one side of a node spread along it; a picture or an icon keeps them at its middle.
   for i, view in views {
-    cnodes[i].span = if view.node.is_group {
-      @double.infinity
-    } else {
-      @svg.shape_span(view.shape, view.w, view.h, flows_sideways(i))
+    if view.node.is_group {
+      cnodes[i].span = @double.infinity
+    } else if !has_asset(view.node) {
+      cnodes[i].span = @svg.shape_span(
+        view.shape,
+        view.w,
+        view.h,
+        flows_sideways(i),
+      )
     }
   }
   let cedges : Array[@layout.CEdge] = []
@@ -327,13 +353,19 @@ fn draw(
       clusters.write_string("</g>")
       continue
     }
-    let inner = @svg.draw_shape(
-      view.shape,
-      view.w,
-      view.h,
-      SHAPE_ATTRS + view.style.shape,
-      LINE_ATTRS + view.style.line,
-    )
+    let inner = if node.img is Some(img) && img != "" {
+      picture(node, img, view, options)
+    } else if node.icon is Some(icon) && icon != "" {
+      icon_svg(node, icon, view)
+    } else {
+      @svg.draw_shape(
+        view.shape,
+        view.w,
+        view.h,
+        SHAPE_ATTRS + view.style.shape,
+        LINE_ATTRS + view.style.line,
+      )
+    }
     let mut text = @svg.label_svg(
       view.label,
       0,
