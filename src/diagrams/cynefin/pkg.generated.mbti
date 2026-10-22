@@ -8,6 +8,8 @@ import {
 // Values
 pub fn backward(Array[Double]) -> String
 
+pub fn build_cynefin(CynefinAst, String?) -> CynefinModel
+
 pub fn cliff(Double, Double, Double, Double) -> Array[Double]
 
 pub fn curve_path(Array[Double]) -> String
@@ -38,6 +40,14 @@ pub(all) struct CynefinAst {
   acc_title : String?
   acc_descr : String?
   domains : Array[DomainBlockAst]
+  transitions : Array[TransitionAst]
+}
+
+pub(all) struct CynefinModel {
+  title : String?
+  acc_title : String?
+  acc_descr : String?
+  domains : Map[String, Array[String]]
   transitions : Array[TransitionAst]
 }
 
