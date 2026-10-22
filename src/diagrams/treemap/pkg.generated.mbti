@@ -3,6 +3,7 @@ package "Omochice/pele/diagrams/treemap"
 
 import {
   "Omochice/pele/errors",
+  "Omochice/pele/types",
 }
 
 // Values
@@ -15,6 +16,8 @@ pub fn formatter(String) -> (Double) -> String
 pub fn layout_treemap(Array[TreemapNode], Double, Double, Insets) -> Array[Box]
 
 pub fn parse_treemap(String) -> TreemapAst raise @errors.PeleError
+
+pub let treemap : @types.Diagram
 
 // Errors
 
