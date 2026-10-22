@@ -31,6 +31,8 @@ pub let newline : TokenType
 
 pub fn pattern(String, (String, Int32) -> Int32, first? : String, hidden? : Bool) -> TokenType
 
+pub fn runs_across(String?) -> Bool
+
 pub let single_line_comment : TokenType
 
 pub let string : TokenType
@@ -46,6 +48,8 @@ pub fn title_room(@types.RenderOptions) -> Double
 pub fn title_value(String) -> String
 
 pub fn tokenize(String, ArrayView[TokenType], String) -> Tokens raise @errors.PeleError
+
+pub fn turn_to_fit(@types.RenderOptions, (Bool) -> @types.Rendered) -> @types.Rendered
 
 pub let whitespace : TokenType
 
