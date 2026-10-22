@@ -39,6 +39,8 @@ pub const T_TIMELINE_TD : Int32 = 6
 
 pub const T_TITLE : Int32 = 7
 
+pub fn parse_timeline(String, TimelineDb) -> Unit raise @errors.PeleError
+
 pub fn tokenize(String) -> @common.Tokens
 
 // Errors
