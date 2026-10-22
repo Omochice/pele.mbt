@@ -10,7 +10,7 @@ pub struct FlowDb {
   tooltips : Map[String, String]
   mut default_edge_style : Array[String]?
   mut default_interpolate : String?
-  title : String?
+  mut title : String?
   mut acc_title : String?
   mut acc_descr : String?
   priv subgraph_lookup : Map[String, FlowSubgraph]

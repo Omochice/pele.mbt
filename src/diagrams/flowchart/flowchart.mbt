@@ -7,8 +7,14 @@ pub fn parse_model(
   title : String?,
   limits : @types.ParseLimits,
 ) -> FlowDb raise @errors.PeleError {
-  ignore((config, title, limits))
-  let db = FlowDb::new()
+  let inherit_dir = match config.get("flowchart") {
+    Some(Object(flow)) => flow.get("inheritDir") is Some(True)
+    _ => false
+  }
+  let db = FlowDb::new(max_edges=limits.max_edges, inherit_dir~)
+  if title is Some(title) && title != "" {
+    db.title = Some(title)
+  }
   parse_flowchart(source, db)
   db
 }
