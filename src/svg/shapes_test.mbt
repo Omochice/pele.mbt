@@ -635,3 +635,45 @@ test "a route end off every side lies on none" {
   inspect(@svg.end_side([50, 30.4], 0, node), content="0")
   inspect(@svg.end_side([50, 30.5], 0, node), content="-1")
 }
+
+///|
+fn inset(
+  shape : String,
+  w : Double,
+  h : Double,
+  route : Array[Double],
+  at : Int32,
+  is_group~ : Bool = false,
+) -> String {
+  @svg.inset_route(route, at, layout_box(is_group~), shape~, w~, h~)
+  route.map(x => x.to_string()).join(" ")
+}
+
+///|
+test "route ends move from the box onto the outline" {
+  inspect(inset("circle", 30, 20, [0, 0, 50, 30], 2), content="0 0 50 30")
+  inspect(
+    inset("circle", 30, 20, [53, 50, 9, 9], 0),
+    content="53 49.797958971132715 9 9",
+  )
+  inspect(
+    inset("circle", 30, 20, [35, 44, 9, 9], 0),
+    content="36.25227291513248 44 9 9",
+  )
+  inspect(inset("diam", 24, 16, [65, 37, 9, 9], 0), content="57.5 37 9 9")
+}
+
+///|
+test "route ends move onto a shape smaller than its box" {
+  inspect(inset("rect", 24, 16, [50, 30, 9, 9], 0), content="50 32 9 9")
+  inspect(inset("rect", 24, 16, [35, 40, 9, 9], 0), content="38 40 9 9")
+}
+
+///|
+test "route ends stay put on groups and off the box" {
+  inspect(
+    inset("circle", 30, 20, [50, 30, 9, 9], 0, is_group=true),
+    content="50 30 9 9",
+  )
+  inspect(inset("circle", 30, 20, [50, 40, 9, 9], 0), content="50 40 9 9")
+}
