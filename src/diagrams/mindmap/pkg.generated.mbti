@@ -13,7 +13,7 @@ pub fn parse_mindmap(String, String?) -> MindmapModel raise @errors.PeleError
 // Types and methods
 pub struct MindmapDb {
   nodes : Array[MindmapNode]
-  base_level : Int32
+  mut base_level : Int32
   open : Array[MindmapNode]
 }
 pub fn MindmapDb::new() -> Self
