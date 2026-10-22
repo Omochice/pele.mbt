@@ -24,8 +24,10 @@ test "box-drawing characters are told from plain text" {
       ["    file.txt", "        nested.txt"],
       ["", "   "],
       ["root/", "file.txt"],
-    ].map(lines => @treeview.is_box_drawing_format(lines)),
-    content="[true, true, true, false, false, false]",
+    ]
+    .map(lines => @treeview.is_box_drawing_format(lines).to_string())
+    .join(","),
+    content="true,true,true,false,false,false",
   )
 }
 
@@ -85,7 +87,7 @@ test "the width of a segment is inferred from the first branch that is not at th
       #|treeView-beta
       #|root/
       #|        a/
-      #|            b
+      #|                b
       #|        c
     ),
   )
