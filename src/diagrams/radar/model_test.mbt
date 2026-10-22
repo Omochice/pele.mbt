@@ -6,7 +6,8 @@ fn model(source : String) -> String {
   }
   let axes = built.axes.map(axis => "\{axis.name}[\{axis.label}]")
   let curves = built.curves.map(curve => {
-    "\{curve.name}[\{curve.label}]\{curve.entries}"
+    let values = curve.entries.map(value => value.to_string()).join(", ")
+    "\{curve.name}[\{curve.label}][\{values}]"
   })
   let options = built.options
   let max = match options.max {

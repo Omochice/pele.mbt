@@ -82,7 +82,7 @@ fn entries_of(
   if axes.is_empty() {
     raise invalid("Axes must be populated before curves for reference entries")
   }
-  let by_axis : Map[String, Double] = {}
+  let by_axis : Map[String, Double] = Map([])
   for entry in curve.entries {
     if entry.axis is Some(axis) && !by_axis.contains(axis) {
       by_axis[axis] = entry.value
