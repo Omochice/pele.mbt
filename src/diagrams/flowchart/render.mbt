@@ -69,6 +69,7 @@ fn flow_section(config : @types.Config) -> Map[String, Json] {
 
 ///|
 fn edge_classes(classes : String) -> String {
+  // The graph gives an edge these three classes or none, so removing them one after another matches pele's single-pass regex.
   @svg.class_names(
     classes
     .replace_all(old="edge-thickness-normal", new="")
