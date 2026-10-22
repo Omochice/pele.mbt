@@ -25,6 +25,7 @@ pub fn TimelineDb::add_task(Self, String) -> Unit
 pub fn TimelineDb::new() -> Self
 pub fn TimelineDb::set_acc_description(Self, String) -> Unit
 pub fn TimelineDb::set_acc_title(Self, String) -> Unit
+pub fn TimelineDb::set_diagram_title(Self, String) -> Unit
 pub fn TimelineDb::set_direction(Self, String) -> Unit
 
 pub(all) struct TimelinePeriod {
