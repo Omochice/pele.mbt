@@ -19,11 +19,12 @@ pub struct SankeyDb {
   nodes : Array[SankeyNode]
   links : Array[SankeyLink]
   mut title : String?
+  priv lookup : Map[String, SankeyNode]
 }
 
 ///|
 pub fn SankeyDb::new() -> SankeyDb {
-  { nodes: [], links: [], title: None, }
+  { nodes: [], links: [], title: None, lookup: {}, }
 }
 
 ///|
@@ -32,9 +33,15 @@ pub fn SankeyDb::find_or_create_node(
   self : SankeyDb,
   id : String,
 ) -> SankeyNode {
-  ignore(id)
-  ignore(self)
-  { id: "?", index: -1, }
+  match self.lookup.get(id) {
+    Some(node) => node
+    None => {
+      let node = { id, index: self.nodes.length(), }
+      self.lookup[id] = node
+      self.nodes.push(node)
+      node
+    }
+  }
 }
 
 ///|
@@ -44,8 +51,5 @@ pub fn SankeyDb::add_link(
   target : SankeyNode,
   value : Double,
 ) -> Unit {
-  ignore(self)
-  ignore(source)
-  ignore(target)
-  ignore(value)
+  self.links.push({ source, target, value, })
 }

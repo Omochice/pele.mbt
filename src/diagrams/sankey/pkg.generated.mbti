@@ -22,6 +22,7 @@ pub struct SankeyDb {
   nodes : Array[SankeyNode]
   links : Array[SankeyLink]
   mut title : String?
+  // private fields
 }
 pub fn SankeyDb::add_link(Self, SankeyNode, SankeyNode, Double) -> Unit
 pub fn SankeyDb::find_or_create_node(Self, String) -> SankeyNode
