@@ -1,0 +1,62 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Omochice/pele/diagrams/sankey"
+
+import {
+  "Omochice/pele/errors",
+  "Omochice/pele/types",
+}
+
+// Values
+pub fn parse_sankey(String, SankeyDb) -> Unit raise @errors.PeleError
+
+pub fn prepare_text_for_parsing(String) -> String
+
+pub let sankey : @types.Diagram
+
+pub fn tokenize(String) -> Tokens
+
+// Errors
+
+// Types and methods
+pub struct SankeyDb {
+  nodes : Array[SankeyNode]
+  links : Array[SankeyLink]
+  mut title : String?
+}
+pub fn SankeyDb::add_link(Self, SankeyNode, SankeyNode, Double) -> Unit
+pub fn SankeyDb::find_or_create_node(Self, String) -> SankeyNode
+pub fn SankeyDb::new() -> Self
+
+pub(all) struct SankeyLink {
+  source : SankeyNode
+  target : SankeyNode
+  value : Double
+}
+
+pub(all) struct SankeyNode {
+  id : String
+  index : Int32
+}
+
+pub(all) enum Token {
+  End
+  Stuck
+  Sankey
+  Newline
+  Comma
+  Dquote
+  NonEscapedText
+  EscapedText
+  Eof
+}
+pub fn Token::name(Self) -> String
+
+pub(all) struct Tokens {
+  types : Array[Token]
+  texts : Array[String]
+  starts : Array[Int32]
+}
+
+// Type aliases
+
+// Traits
