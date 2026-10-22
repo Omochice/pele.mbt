@@ -9,4 +9,5 @@ import {
 
 import {
   "Omochice/pele/core",
+  "moonbitlang/core/double",
 } for "test"
