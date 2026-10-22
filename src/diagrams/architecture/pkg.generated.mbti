@@ -63,13 +63,14 @@ pub(all) struct ArchitectureAst {
 }
 
 pub struct ArchitectureDb {
-  title : String?
-  acc_title : String?
-  acc_descr : String?
+  mut title : String?
+  mut acc_title : String?
+  mut acc_descr : String?
   nodes : Map[String, ArchNode]
   groups : Map[String, ArchGroup]
   edges : Array[ArchEdge]
   layout_hints : Array[ArchLayoutHint]
+  // private fields
 }
 pub fn ArchitectureDb::add_edge(Self, ArchEdge) -> Unit raise @errors.PeleError
 pub fn ArchitectureDb::add_group(Self, String, icon? : String, title? : String, parent? : String) -> Unit raise @errors.PeleError
