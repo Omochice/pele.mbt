@@ -10,6 +10,8 @@ import {
 // Values
 pub const ARROW : Double = 8
 
+pub const LEAD : Double = 6
+
 pub const PAD_X : Double = 18
 
 pub const PAD_Y : Double = 12
@@ -21,6 +23,8 @@ pub const ROOT_STYLE : String = "--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#
 pub const ROUNDED : String = " style=\"rx:var(--_r)\""
 
 pub fn draw_shape(String, Double, Double, String, String) -> String
+
+pub fn edge_label_svg(String, @text.Label, Double, Double, String) -> String
 
 pub fn end_side(Array[Double], Int32, @layout.CNode) -> Int32
 
@@ -80,6 +84,13 @@ pub(all) struct ShapeSize {
   h : Double
   dy : Double
 }
+
+pub struct SideReach {
+  // private fields
+}
+pub fn SideReach::add(Self, Int32, Int32, String) -> Unit
+pub fn SideReach::new() -> Self
+pub fn SideReach::of(Self, Int32, Int32) -> Double
 
 // Type aliases
 
