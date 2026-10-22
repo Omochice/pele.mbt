@@ -71,6 +71,33 @@ fn numbers_after(svg : String, prefix : String) -> Array[Double] {
 }
 
 ///|
+priv struct Rect {
+  x : Double
+  y : Double
+  width : Double
+}
+
+///|
+/// The rectangles of a drawing, whose attributes are always written as x, y, width, height.
+fn rects(svg : String) -> Array[Rect] {
+  let prefix = "<rect x=\""
+  let out = []
+  let mut from = 0
+  while true {
+    let at = @util.index_of(svg, prefix, from~)
+    if at == -1 {
+      break
+    }
+    let (x, after_x) = read_number(svg, at + prefix.length())
+    let (y, after_y) = read_number(svg, after_x + "\" y=\"".length())
+    let (width, end) = read_number(svg, after_y + "\" width=\"".length())
+    out.push({ x, y, width, })
+    from = end
+  }
+  out
+}
+
+///|
 fn moods(svg : String) -> String {
   let prefix = "class=\"pele-face pele-face-"
   let out = []
@@ -218,13 +245,12 @@ test "a section band spans its run of tasks, and empty or missing sections draw 
   inspect(svg.contains(">A<"), content="false")
   inspect(svg.contains(">D<"), content="false")
   // The rects are, in order: first, band B, b1, b2, band C, c1.
-  let xs = numbers_after(svg, "<rect x=\"")
-  let ys = numbers_after(svg, "\" y=\"")
-  let widths = numbers_after(svg, "\" width=\"")
-  inspect(xs[1] == xs[2], content="true")
-  inspect(xs[1] + widths[1] == xs[3] + widths[3], content="true")
-  inspect(ys[1] < ys[2], content="true")
-  inspect(ys[0] == ys[2], content="true")
+  let r = rects(svg)
+  inspect(r.length(), content="6")
+  inspect(r[1].x == r[2].x, content="true")
+  inspect(r[1].x + r[1].width == r[3].x + r[3].width, content="true")
+  inspect(r[1].y < r[2].y, content="true")
+  inspect(r[0].y == r[2].y, content="true")
 }
 
 ///|
@@ -250,10 +276,8 @@ test "lines break at <br>, long names wrap, and long words are cut" {
   inspect(long.width == one.width, content="true")
   let cut = draw("journey\n  " + "x".repeat(200) + ": 3\n")
   inspect(cut.width <= one.width + 80, content="true")
-  let card = numbers_after(cut.svg, "<rect x=\"")
-  let card_width = numbers_after(cut.svg, "\" width=\"")[0]
-  inspect(card.length() > 0 && card_width <= 224, content="true")
-  inspect(cut.svg.contains("x".repeat(200)), content="false")
+  inspect(rects(cut.svg)[0].width <= 220, content="true")
+  inspect(cut.svg.contains(">" + "x".repeat(200) + "<"), content="false")
 }
 
 ///|
@@ -276,8 +300,9 @@ test "many actors stay inside their card" {
     names.push("p\{i}")
   }
   let svg = draw("journey\n  crowd: 3: " + names.join(",") + "\n").svg
-  let x0 = numbers_after(svg, "<rect x=\"")[0]
-  let x1 = x0 + numbers_after(svg, "\" width=\"")[0]
+  let card = rects(svg)[0]
+  let x0 = card.x
+  let x1 = card.x + card.width
   let dots = numbers_after(svg, "class=\"pele-actor\" cx=\"")
   inspect(dots.length(), content="60")
   inspect(dots.iter().all(cx => cx - 5 >= x0 && cx + 5 <= x1), content="true")

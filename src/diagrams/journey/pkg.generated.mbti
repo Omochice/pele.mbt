@@ -13,7 +13,7 @@ pub fn journey_actors(Array[JourneyTask]) -> Array[String]
 
 pub fn parse_journey(String, JourneyDb) -> Unit raise @errors.PeleError
 
-pub fn render_journey(JourneyDb, Map[String, Json], @types.RenderOptions) -> @types.Rendered raise @errors.PeleError
+pub fn render_journey(JourneyDb, Map[String, Json], @types.RenderOptions) -> @types.Rendered
 
 // Errors
 
