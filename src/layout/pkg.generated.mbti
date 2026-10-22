@@ -4,6 +4,8 @@ package "Omochice/pele/layout"
 // Values
 pub fn cnode(Double, Double, parent? : Int32) -> CNode
 
+pub fn ease(Double, Double) -> Double
+
 pub fn route_crossings(Array[CNode], Array[CEdge], style? : Style) -> Int32
 
 // Errors
