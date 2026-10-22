@@ -8,6 +8,10 @@ import {
 // Values
 pub fn parse_git(String) -> GitGraphAst raise @errors.PeleError
 
+pub fn[Db : GitDbParseProvider] parse_statement(StatementAst, Db) -> Unit raise @errors.PeleError
+
+pub fn[Db : GitDbParseProvider] populate(GitGraphAst, Db) -> Unit raise @errors.PeleError
+
 // Errors
 
 // Types and methods
@@ -16,8 +20,20 @@ pub(all) struct BranchAst {
   order : Double?
 }
 
+pub(all) struct BranchDb {
+  name : String
+  order : Double
+}
+
 pub(all) struct CheckoutAst {
   branch : String
+}
+
+pub(all) struct CherryPickDb {
+  id : String?
+  target_id : String
+  parent : String?
+  tags : Array[String]?
 }
 
 pub(all) struct CherryPickingAst {
@@ -33,10 +49,38 @@ pub(all) struct CommitAst {
   commit_type : CommitTypeName?
 }
 
+pub(all) struct CommitDb {
+  msg : String
+  id : String?
+  commit_type : CommitType
+  tags : Array[String]
+}
+
+pub(all) enum CommitType {
+  Normal
+  Reverse
+  Highlight
+  Merge
+  CherryPick
+}
+pub fn CommitType::index(Self) -> Int32
+
 pub(all) enum CommitTypeName {
   Normal
   Reverse
   Highlight
+}
+
+pub(all) struct GitCommit {
+  id : String
+  message : String
+  seq : Int32
+  commit_type : CommitType
+  tags : Array[String]
+  parents : Array[String]
+  branch : String
+  custom_type : CommitType?
+  custom_id : Bool
 }
 
 pub(all) enum GitDirection {
@@ -60,6 +104,13 @@ pub(all) struct MergeAst {
   commit_type : CommitTypeName?
 }
 
+pub(all) struct MergeDb {
+  branch : String
+  id : String
+  commit_type : CommitType?
+  tags : Array[String]
+}
+
 pub(all) enum StatementAst {
   Commit(CommitAst)
   Branch(BranchAst)
@@ -71,3 +122,11 @@ pub(all) enum StatementAst {
 // Type aliases
 
 // Traits
+pub(open) trait GitDbParseProvider {
+  fn set_direction(Self, GitDirection) -> Unit
+  fn commit(Self, CommitDb) -> Unit raise @errors.PeleError
+  fn branch(Self, BranchDb) -> Unit raise @errors.PeleError
+  fn merge(Self, MergeDb) -> Unit raise @errors.PeleError
+  fn cherry_pick(Self, CherryPickDb) -> Unit raise @errors.PeleError
+  fn checkout(Self, String) -> Unit raise @errors.PeleError
+}
