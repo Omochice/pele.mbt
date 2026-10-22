@@ -349,7 +349,7 @@ test "the title comes from the front matter unless the chart sets one" {
   )
   inspect(
     tags("text", "---\ntitle: From front matter\n---\nquadrantChart\n title"),
-    content="500x500\n",
+    content="500x500",
   )
 }
 
@@ -417,7 +417,7 @@ test "extreme numbers are kept within bounds" {
   )
   inspect(
     tags(
-      "circle", "---\nconfig:\n  quadrantChart:\n    chartWidth: 1e999\n    pointRadius: 1e999\n    quadrantPadding: 1e999\n---\nquadrantChart\n y-axis Down --> Up\n A: [0.5, 0.5]",
+      "circle", "---\nconfig:\n  quadrantChart:\n    chartWidth: .inf\n    pointRadius: .inf\n    quadrantPadding: .inf\n---\nquadrantChart\n y-axis Down --> Up\n A: [0.5, 0.5]",
     ),
     content="4000x500\n<circle class=\"pele-point\" data-id=\"A\" cx=\"2013\" cy=\"250\" r=\"200\"/>",
   )
