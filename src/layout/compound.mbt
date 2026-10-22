@@ -378,6 +378,128 @@ pub fn compound_layout(
     ports <= max_ordered_ports &&
     edges.length() <= max_ordered_edges
 
+  // A flat layout coordinates node and port order across groups.
+  let mut flat_crossings = 0
+  let mut flat = order.length() > 1 && ordered
+  for level in order {
+    if !same_dir(level.dir, root_dir) {
+      flat = false
+    }
+  }
+  if flat {
+    let vertical = is_vertical(root_dir)
+    let leaf = FixedArray::make(n, -1)
+    let group = FixedArray::make(n, -1)
+    let lnodes : Array[LNode] = []
+    let of_ : Array[Int32] = []
+    let parent : Array[Int32] = []
+    for i in 0..<n {
+      if !nodes[i].is_group {
+        continue
+      }
+      group[i] = parent.length()
+      parent.push(-1)
+    }
+    for i in 0..<n {
+      let p = nodes[i].parent
+      if nodes[i].is_group {
+        parent[group[i]] = if p >= 0 { group[p] } else { -1 }
+      } else {
+        leaf[i] = lnodes.length()
+        lnodes.push(
+          lnode(
+            if vertical {
+              nodes[i].w
+            } else {
+              nodes[i].h
+            },
+            if vertical {
+              nodes[i].h
+            } else {
+              nodes[i].w
+            },
+          ),
+        )
+        of_.push(if p >= 0 { group[p] } else { -1 })
+      }
+    }
+    let ledges : Array[LEdge] = []
+    let ledge_of = FixedArray::make(edges.length(), -1)
+    for ei, e in edges {
+      if e.src == e.dst || leaf[e.src] < 0 || leaf[e.dst] < 0 {
+        continue
+      }
+      ledge_of[ei] = ledges.length()
+      ledges.push(
+        ledge(
+          leaf[e.src],
+          leaf[e.dst],
+          minlen=e.minlen,
+          label_w=if vertical { e.label_w } else { e.label_h },
+          label_h=if vertical { e.label_h } else { e.label_w },
+        ),
+      )
+    }
+    let flat_layout = layered(lnodes, ledges, {
+      ..opt,
+      groups: Some({ of: of_, parent, }),
+      order_only: true,
+    })
+    flat_crossings = if flat_layout.crossings < flat_layout.declared {
+      flat_layout.crossings
+    } else {
+      flat_layout.declared
+    }
+    let sum = FixedArray::make(n, 0.0)
+    let count = FixedArray::make(n, 0)
+    // The last rank each group occupies.
+    let last = FixedArray::make(n, -1)
+    for i in 0..<n {
+      if leaf[i] < 0 {
+        continue
+      }
+      key[i] = lnodes[leaf[i]].x
+      let mut p = nodes[i].parent
+      while p >= 0 {
+        sum[p] += key[i]
+        count[p] += 1
+        if lnodes[leaf[i]].rank > last[p] {
+          last[p] = lnodes[leaf[i]].rank
+        }
+        p = nodes[p].parent
+      }
+    }
+    for i in 0..<n {
+      if count[i] > 0 {
+        key[i] = sum[i] / count[i].to_double()
+      }
+    }
+    // Outgoing ports at the group's last rank are ordered by where their edges are there, ties broken by the next rank.
+    far_hint = Some(fn(level : Level, port : PortEdge) {
+      let le = ledge_of[port.e]
+      if le < 0 ||
+        level.id < 0 ||
+        !port.out ||
+        port.side != opposite(start_side(level.dir)) {
+        return @double.not_a_number
+      }
+      let points = ledges[le].points
+      let mut inside = key[edges[port.e].src]
+      let mut outside = 0.0
+      let mut k = 0
+      while k < points.length() {
+        if points[k] == last[level.id].to_double() {
+          inside = points[k + 1]
+        }
+        if points[k] == (last[level.id] + 1).to_double() {
+          outside = points[k + 1]
+        }
+        k += 2
+      }
+      inside + outside * 1.0e-6
+    })
+  }
+
   // Unchanged levels are reused across layout attempts.
   let laid : Map[Int32, Array[LaidOut]] = Map([])
   let lay_out = fn(
@@ -672,10 +794,96 @@ pub fn compound_layout(
       }
     }
   }
-  ignore(key)
-  keyed = false
-  far_hint = None
+  // The flat layout ignores group boxes, so ordering each group on its own may cross less.
+  let style = style_of(opt)
+  keyed = flat
   place()
+  let mut crossings = -1
+  if flat {
+    crossings = route_crossings(nodes, edges, style~)
+    if crossings.to_double() >
+      flat_crossings.to_double() * flat_slack + flat_spare {
+      let first = Snapshot::take(nodes, edges, order, total)
+      keyed = false
+      place()
+      let own = route_crossings(nodes, edges, style~)
+      if own >= crossings {
+        keyed = true
+        total = first.restore(nodes, edges, order)
+      } else {
+        crossings = own
+      }
+    }
+  }
+
+  // Port order is refined from the routes outside each group.
+  // This is skipped if ordering each group on its own won, since it rarely helps enough to justify another layout.
+  if keyed == flat && ordered {
+    let mut again = false
+    for level in order {
+      if level.id < 0 {
+        continue
+      }
+      let box = nodes[level.id]
+      let vertical = is_vertical(level.dir)
+      let end = opposite(start_side(level.dir))
+      let seen : Array[(Double, Double)] = []
+      for port in level.ports {
+        if port.side != end {
+          continue
+        }
+        // The straight run out of the port is skipped to find where the edge turns.
+        let route = edges[port.e].route
+        let bx = level.x + port.px
+        let by = level.y + port.py
+        let mut at = -1
+        let mut k = 0
+        while k < route.length() && (at < 0 || port.out) {
+          if (route[k] - bx).abs() < 0.01 && (route[k + 1] - by).abs() < 0.01 {
+            at = k
+          }
+          k += 3
+        }
+        if at < 0 {
+          continue
+        }
+        let a = if vertical { 0 } else { 1 }
+        let step = if port.out { 3 } else { -3 }
+        let mut next = at + step
+        while next >= 0 &&
+              next < route.length() &&
+              (route[next + a] - route[at + a]).abs() < in_line {
+          next += step
+        }
+        if next < 0 || next >= route.length() {
+          continue
+        }
+        port.hint = route[next + a] -
+          (if vertical { box.x - box.w / 2 } else { box.y - box.h / 2 })
+        seen.push((if vertical { port.px } else { port.py }, port.hint))
+      }
+      sort_array(seen, fn(p, q) { p.0 - q.0 })
+      for i in 1..<seen.length() {
+        if seen[i - 1].1 > seen[i].1 {
+          again = true
+        }
+      }
+    }
+    if again {
+      let before = if crossings >= 0 {
+        crossings
+      } else {
+        route_crossings(nodes, edges, style~)
+      }
+      if before > 0 {
+        let first = Snapshot::take(nodes, edges, order, total)
+        place()
+        if route_crossings(nodes, edges, style~) >= before {
+          total = first.restore(nodes, edges, order)
+        }
+      }
+    }
+  }
   for ei in stray {
     let e = edges[ei]
     let a = nodes[e.src]
@@ -702,6 +910,13 @@ let max_ordered_ports = 400
 
 ///|
 let max_ordered_edges = 500
+
+///|
+/// How many more crossings than the flat drawing had the grouped one may have before each group is ordered on its own instead.
+let flat_slack = 1.5
+
+///|
+let flat_spare = 4.0
 
 ///|
 /// A level's layout, kept with what it was given so that the same level laid out again with the same input can reuse it.

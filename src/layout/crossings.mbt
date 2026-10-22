@@ -7,6 +7,18 @@ pub(all) enum Style {
 }
 
 ///|
+/// How the routes of a layout with these options are drawn.
+pub fn style_of(opt : LayeredOptions) -> Style {
+  if opt.tracks {
+    Stepped
+  } else if opt.straight {
+    Linear
+  } else {
+    Curved
+  }
+}
+
+///|
 /// Crossings this near a node that both edges meet are where they fan out from it.
 let fan_room = 24.0
 
@@ -109,6 +121,10 @@ pub fn route_crossings(
       continue
     }
     let r = e.route
+    // An edge whose ends share a group has no route yet while the layout compares its attempts; pele reads past the end of it and draws nothing.
+    if r.length() < 6 {
+      continue
+    }
     let aligned = fn(k : Int32) {
       (r[k] - r[k - 3]).abs() < 0.01 || (r[k + 1] - r[k - 2]).abs() < 0.01
     }

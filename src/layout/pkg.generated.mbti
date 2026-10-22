@@ -22,6 +22,8 @@ pub fn rank(Array[LNode], Array[LEdge], Int32) -> Unit
 
 pub fn route_crossings(Array[CNode], Array[CEdge], style? : Style) -> Int32
 
+pub fn style_of(LayeredOptions) -> Style
+
 // Errors
 
 // Types and methods
