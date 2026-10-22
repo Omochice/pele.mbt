@@ -23,12 +23,30 @@ fn way(value : Double) -> Double {
 ///|
 /// Builds the path for a route of x, y, axis triples, where the axis is 0 for a point the edge runs into vertically and 1 horizontally.
 /// Between two points that are not in line, a route is one S that leaves and arrives along the flow.
+/// `start_trim` and `end_trim` leave room for the markers at its ends.
+/// `start_reach` and `end_reach` say how far from its nodes the edge starts to turn, where the other edges on the same side of a node need it to; by default, far enough to clear its own marker.
 pub fn route_path(
   route : Array[Double],
   curve : String?,
   start_trim : Double,
   end_trim : Double,
+  start_reach? : Double,
+  end_reach? : Double,
 ) -> EdgePath {
+  let start_reach = start_reach.unwrap_or(
+    if start_trim > 0 {
+      start_trim + LEAD
+    } else {
+      0
+    },
+  )
+  let end_reach = end_reach.unwrap_or(
+    if end_trim > 0 {
+      end_trim + LEAD
+    } else {
+      0
+    },
+  )
   let linear = curve == Some("linear")
   let xs : Array[Double] = []
   let ys : Array[Double] = []
@@ -41,7 +59,7 @@ pub fn route_path(
     ys.push(route[i + 1])
     axes.push(route[i + 2])
   }
-  let last = xs.length() - 1
+  let mut last = xs.length() - 1
   let aligned = fn(i : Int32) {
     (xs[i] - xs[i - 1]).abs() < 0.01 || (ys[i] - ys[i - 1]).abs() < 0.01
   }
@@ -70,6 +88,37 @@ pub fn route_path(
   ys[0] += sdy * start_trim
   xs[last] -= edx * end_trim
   ys[last] -= edy * end_trim
+  // An edge that curves into a marker runs straight for a little way first, where it has the room, so that the marker does not sit on the bend.
+  let run_along = fn(i : Int32, ux : Double, uy : Double) {
+    (xs[i] - xs[i - 1]).abs() * ux.abs() + (ys[i] - ys[i - 1]).abs() * uy.abs()
+  }
+  // Of the way from the end of a run to where it turns, the part that makes up for a larger marker beside this one is kept where it can be, and the rest is at most a quarter of what is left, so that ends on one side of a node turn equally far from it.
+  let lead = fn(reach : Double, trim : Double, run : Double) {
+    let room = @util.js_min(@util.js_max(0, reach - LEAD - trim), run / 4)
+    room + @util.js_min(reach - trim - room, (run - room) / 4)
+  }
+  let arrives = if end_reach > end_trim && !straight(last) {
+    lead(end_reach, end_trim, run_along(last, edx, edy))
+  } else {
+    0
+  }
+  let leaves = if start_reach > start_trim && !straight(1) {
+    lead(start_reach, start_trim, run_along(1, sdx, sdy))
+  } else {
+    0
+  }
+  if arrives >= 1 {
+    xs.insert(last, xs[last] - edx * arrives)
+    ys.insert(last, ys[last] - edy * arrives)
+    axes.insert(last, axes[last])
+    last += 1
+  }
+  if leaves >= 1 {
+    xs.insert(1, xs[0] + sdx * leaves)
+    ys.insert(1, ys[0] + sdy * leaves)
+    axes.insert(1, axes[1])
+    last += 1
+  }
   let d = StringBuilder()
   d.write_string("M\{num(xs[0])},\{num(ys[0])}")
   let mut at_x = xs[0]
