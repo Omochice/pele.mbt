@@ -3,10 +3,13 @@ package "Omochice/pele/diagrams/info"
 
 import {
   "Omochice/pele/errors",
+  "Omochice/pele/types",
 }
 
 // Values
 pub fn build_info(InfoAst, String?) -> InfoModel
+
+pub let info : @types.Diagram
 
 pub fn parse_info(String) -> InfoAst raise @errors.PeleError
 

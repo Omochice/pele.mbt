@@ -45,13 +45,13 @@ test "writes accessible names" {
 
 ///|
 test "rejects anything else after the keyword" {
-  let error = render("info unsupported") catch {
+  let error = try render("info unsupported") catch {
     @errors.PeleError(failure) => failure.message
   } noraise {
     _ => "rendered"
   }
   assert_true(error.contains("Lexical error on line 1"))
-  let error = render("info\ntitle a\nshowInfo") catch {
+  let error = try render("info\ntitle a\nshowInfo") catch {
     @errors.PeleError(failure) => failure.message
   } noraise {
     _ => "rendered"
