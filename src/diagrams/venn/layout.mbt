@@ -46,7 +46,7 @@ pub fn ensure_pairwise_subsets(
       continue
     }
     let members = subset.sets.copy()
-    members.sort()
+    sort_ids(members)
     for i in 0..<(members.length() - 1) {
       for j in (i + 1)..<members.length() {
         let pair = [members[i], members[j]]

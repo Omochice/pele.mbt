@@ -63,7 +63,7 @@ pub fn normalize_text(text : String) -> String {
 ///|
 fn normalize_ids(ids : Array[String]) -> Array[String] {
   let normalized = ids.map(normalize_text)
-  normalized.sort()
+  sort_ids(normalized)
   normalized
 }
 

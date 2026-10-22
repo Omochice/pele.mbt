@@ -74,6 +74,26 @@ fn key_of(ids : Array[String]) -> String {
 /// The key of a list of ids as `JSON.stringify([...ids].sort())` makes it.
 fn sorted_key(ids : Array[String]) -> String {
   let sorted = ids.copy()
-  sorted.sort()
+  sort_ids(sorted)
   json_key(sorted)
+}
+
+///|
+/// Orders strings by UTF-16 code units, as the default `Array.prototype.sort` of JavaScript does.
+/// `String::compare` is not used because it does not order by code units.
+fn compare_code_units(a : String, b : String) -> Int32 {
+  let shared = @cmp.minimum(a.length(), b.length())
+  for i in 0..<shared {
+    let difference = @util.code_at(a, i) - @util.code_at(b, i)
+    if difference != 0 {
+      return difference
+    }
+  }
+  a.length() - b.length()
+}
+
+///|
+/// Sorts ids in place as `ids.sort()` does in JavaScript.
+fn sort_ids(ids : Array[String]) -> Unit {
+  ids.sort_by(compare_code_units)
 }
