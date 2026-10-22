@@ -19,7 +19,7 @@ fn layout(
     .map(span => "\{span.text.escape()}/\{span.style}/\{span.width}")
     .join(" ")
   })
-  "\{lines.join(" | ")} widths=\{label.widths} width=\{label.width} height=\{label.height} size=\{label.size} line=\{label.line_height}"
+  "\{lines.join(" | ")} widths=[\{label.widths.map(w => w.to_string()).join(", ")}] width=\{label.width} height=\{label.height} size=\{label.size} line=\{label.line_height}"
 }
 
 ///|
