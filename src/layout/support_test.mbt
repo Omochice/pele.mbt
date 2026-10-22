@@ -35,3 +35,28 @@ fn nodes_in_order(sizes : Array[(Double, Double)]) -> Array[@layout.CNode] {
     node
   })
 }
+
+///|
+fn on_border(node : @layout.CNode, x : Double, y : Double) -> Bool {
+  let dx = (x - node.x).abs()
+  let dy = (y - node.y).abs()
+  let inside = dx <= node.w / 2 + 0.5 && dy <= node.h / 2 + 0.5
+  let edge_x = (dx - node.w / 2).abs() <= 0.5
+  let edge_y = (dy - node.h / 2).abs() <= 0.5
+  inside && (edge_x || edge_y)
+}
+
+///|
+/// Pele's seeded random numbers for its test corpus, a linear congruential generator in 32 bits.
+fn random(seed : Int32) -> () -> Double {
+  let mut state = seed.reinterpret_as_uint()
+  () => {
+    state = state * 1664525U + 1013904223U
+    state.to_double() / 4294967296.0
+  }
+}
+
+///|
+fn near(actual : Double, expected : Double) -> Bool {
+  (actual - expected).abs() < 5.0e-6
+}
