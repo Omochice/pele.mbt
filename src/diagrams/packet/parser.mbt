@@ -142,7 +142,7 @@ pub fn parse_packet(source : String) -> PacketAst raise @errors.PeleError {
   let mut title = None
   let mut acc_title = None
   let mut acc_descr = None
-  let blocks = []
+  let blocks : Array[PacketBlockAst] = []
   while r.kind() == NEWLINE {
     r.i += 1
   }

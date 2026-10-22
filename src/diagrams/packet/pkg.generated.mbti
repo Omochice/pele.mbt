@@ -6,6 +6,10 @@ import {
 }
 
 // Values
+pub fn build_packet(PacketAst, Map[String, Json], String?) -> PacketModel raise @errors.PeleError
+
+pub fn packet_option(Map[String, Json], String, Double, Double, Double) -> Double
+
 pub fn parse_packet(String) -> PacketAst raise @errors.PeleError
 
 // Errors
@@ -18,11 +22,26 @@ pub(all) struct PacketAst {
   blocks : Array[PacketBlockAst]
 }
 
+pub(all) struct PacketBlock {
+  mut start : Double
+  mut end : Double
+  mut bits : Double
+  label : String
+}
+
 pub(all) struct PacketBlockAst {
   start : Double?
   end : Double?
   bits : Double?
   label : String
+}
+
+pub(all) struct PacketModel {
+  title : String?
+  acc_title : String?
+  acc_descr : String?
+  bits_per_row : Double
+  rows : Array[Array[PacketBlock]]
 }
 
 // Type aliases
