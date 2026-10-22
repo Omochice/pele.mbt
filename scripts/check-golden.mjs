@@ -20,7 +20,10 @@ const PORTED = ['pie'];
 const requested = process.argv.slice(2);
 const diagrams = requested.length > 0 ? requested : PORTED;
 const manifest = JSON.parse(readFileSync(join(goldenDir, 'manifest.json'), 'utf8'));
-const optionBytes = Buffer.from(JSON.stringify(manifest.options));
+const profiles = Object.entries(manifest.profiles).map(([name, options]) => ({
+  name,
+  optionBytes: Buffer.from(JSON.stringify(options)),
+}));
 
 if (!existsSync(wasmPath)) {
   console.error(`missing ${wasmPath}; run \`moon build --target wasm --release\` first`);
@@ -34,7 +37,7 @@ if (foreign.length > 0) {
 }
 
 // A fresh instance per call, because a trapped instance is left in an undefined state.
-function call(source) {
+function call(source, optionBytes) {
   const args = Buffer.concat([source, optionBytes]);
   let instance;
   let result;
@@ -61,12 +64,19 @@ function firstDifference(expected, actual) {
   return `at ${i}: expected ${excerpt(expected, i)}, got ${excerpt(actual, i)}`;
 }
 
-function compare(id, dir) {
+// Files without a profile-specific variant are shared with the default profile.
+function expectedStem(id, dir, profile) {
+  if (profile === 'default') return id;
+  return existsSync(join(dir, `${id}.${profile}.json`)) ? `${id}.${profile}` : id;
+}
+
+function compare(id, dir, profile) {
+  const stem = expectedStem(id, dir, profile.name);
   const source = readFileSync(join(dir, `${id}.mmd`));
-  const expected = JSON.parse(readFileSync(join(dir, `${id}.json`), 'utf8'));
+  const expected = JSON.parse(readFileSync(join(dir, `${stem}.json`), 'utf8'));
   let outcome;
   try {
-    outcome = call(source);
+    outcome = call(source, profile.optionBytes);
   } catch (error) {
     if (error instanceof WebAssembly.RuntimeError) return { kind: 'trap', detail: error.message };
     throw error;
@@ -85,7 +95,7 @@ function compare(id, dir) {
     return { kind: 'pass' };
   }
   if (outcome.code !== 0) return { kind: 'fail', detail: `expected success, got ${JSON.stringify(actual.error ?? actual)}` };
-  const svg = readFileSync(join(dir, `${id}.svg`), 'utf8');
+  const svg = readFileSync(join(dir, `${stem}.svg`), 'utf8');
   if (actual.svg !== svg) return { kind: 'fail', detail: `svg differs ${firstDifference(svg, String(actual.svg))}` };
   for (const key of ['type', 'mermaidType', 'width', 'height', 'links']) {
     if (!isDeepStrictEqual(actual[key], expected[key])) {
@@ -96,6 +106,7 @@ function compare(id, dir) {
 }
 
 const totals = { pass: 0, fail: 0, trap: 0 };
+const perProfile = [];
 for (const entry of readdirSync(goldenDir, { withFileTypes: true })) {
   if (!entry.isDirectory()) continue;
   if (!diagrams.includes(entry.name)) {
@@ -107,12 +118,20 @@ for (const entry of readdirSync(goldenDir, { withFileTypes: true })) {
     .filter((f) => f.endsWith('.mmd'))
     .map((f) => f.slice(0, -4))
     .sort();
-  for (const id of ids) {
-    const { kind, detail } = compare(id, dir);
-    totals[kind]++;
-    console.log(`${kind.toUpperCase()} ${entry.name}/${id}${detail ? `: ${detail}` : ''}`);
+  for (const profile of profiles) {
+    const tally = { label: `${entry.name} ${profile.name}`, pass: 0, total: 0 };
+    perProfile.push(tally);
+    for (const id of ids) {
+      const { kind, detail } = compare(id, dir, profile);
+      totals[kind]++;
+      tally.total++;
+      if (kind === 'pass') tally.pass++;
+      console.log(`${kind.toUpperCase()} ${entry.name} ${profile.name}/${id}${detail ? `: ${detail}` : ''}`);
+    }
   }
 }
+console.log();
+for (const { label, pass, total } of perProfile) console.log(`${label} ${pass}/${total}`);
 const total = totals.pass + totals.fail + totals.trap;
-console.log(`\n${totals.pass}/${total} passed, ${totals.fail} failed, ${totals.trap} trapped`);
+console.log(`\ntotal ${totals.pass}/${total} passed, ${totals.fail} failed, ${totals.trap} trapped`);
 process.exit(totals.fail + totals.trap > 0 ? 1 : 0);
