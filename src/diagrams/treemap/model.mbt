@@ -70,6 +70,28 @@ pub fn build_hierarchy(items : Array[TreemapItem]) -> Array[TreemapNode] {
 /// Builds the hierarchy of a treemap, with each class's declarations given to the rows that use it.
 /// `title` is the front matter title, used when the treemap has none.
 pub fn build_treemap(ast : TreemapAst, title : String?) -> TreemapModel {
+  let classes : Map[String, Array[String]] = Map([])
+  for row in ast.rows {
+    if row is ClassDef(_, name, text) {
+      let styles = match classes.get(name) {
+        Some(styles) => styles
+        None => {
+          let styles = []
+          classes.set(name, styles)
+          styles
+        }
+      }
+      // The section signs only keep an escaped comma apart from the separators while they are swapped.
+      let declarations = text
+        .unwrap_or("")
+        .replace_all(old="\\,", new="§§§")
+        .replace_all(old=",", new=";")
+        .replace_all(old="§§§", new=",")
+      for declaration in declarations.split(";") {
+        styles.push(declaration.to_owned())
+      }
+    }
+  }
   let items = []
   for row in ast.rows {
     if row is Item(indent, found) {
@@ -83,15 +105,48 @@ pub fn build_treemap(ast : TreemapAst, title : String?) -> TreemapModel {
         leaf,
         value,
         class_selector,
-        css_compiled_styles: None,
+        css_compiled_styles: class_selector.bind(selector => {
+          classes.get(selector)
+        }),
       })
     }
   }
   {
-    title,
-    acc_title: None,
-    acc_descr: None,
+    title: match non_empty(ast.title) {
+      Some(_) as own => own
+      None => title
+    },
+    acc_title: non_empty(ast.acc_title).map(@util.trim_start),
+    acc_descr: non_empty(ast.acc_descr).map(join_indented_lines),
     roots: build_hierarchy(items),
-    classes: {},
+    classes,
   }
+}
+
+///|
+fn non_empty(value : String?) -> String? {
+  match value {
+    Some("") => None
+    _ => value
+  }
+}
+
+///|
+/// Does what `text.replace(/\n\s+/g, '\n')` does.
+fn join_indented_lines(text : String) -> String {
+  let out = StringBuilder()
+  let mut i = 0
+  while i < text.length() {
+    @util.write_range(out, text, i, i + 1)
+    if @util.code_at(text, i) == '\n'.to_int() &&
+      @util.is_space(@util.code_at(text, i + 1)) {
+      i += 1
+      while @util.is_space(@util.code_at(text, i)) {
+        i += 1
+      }
+    } else {
+      i += 1
+    }
+  }
+  out.to_string()
 }
