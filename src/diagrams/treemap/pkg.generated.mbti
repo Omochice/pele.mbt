@@ -12,11 +12,31 @@ pub fn build_treemap(TreemapAst, String?) -> TreemapModel
 
 pub fn formatter(String) -> (Double) -> String
 
+pub fn layout_treemap(Array[TreemapNode], Double, Double, Insets) -> Array[Box]
+
 pub fn parse_treemap(String) -> TreemapAst raise @errors.PeleError
 
 // Errors
 
 // Types and methods
+pub(all) struct Box {
+  node : TreemapNode
+  parent : Box?
+  series : Int32
+  mut value : Double
+  children : Array[Box]
+  mut x : Double
+  mut y : Double
+  mut w : Double
+  mut h : Double
+}
+
+pub(all) struct Insets {
+  gap : Double
+  header : Double
+  side : Double
+}
+
 pub(all) enum ItemAst {
   Section(String, String?)
   Leaf(String, Double, String?)
