@@ -40,12 +40,30 @@ pub struct FlowDb {
   tooltips : Map[String, String]
   mut default_edge_style : Array[String]?
   mut default_interpolate : String?
-  mut title : String?
+  title : String?
   mut acc_title : String?
   mut acc_descr : String?
   // private fields
 }
+pub fn FlowDb::add_class(Self, String, Array[String]) -> Unit
+pub fn FlowDb::add_link(Self, Array[String], Array[String], LinkInfo?) -> Unit raise @errors.PeleError
+pub fn FlowDb::add_single_link(Self, String, String, LinkInfo?, id? : String) -> Unit raise @errors.PeleError
+pub fn FlowDb::add_subgraph(Self, FlowText?, Array[DocItem], FlowText?, title_is_id? : Bool) -> String
+pub fn FlowDb::add_vertex(Self, String, text? : FlowText, kind? : String, style? : Array[String], classes? : Array[String], dir? : String, props? : Map[String, String], metadata? : String) -> Unit raise @errors.PeleError
+pub fn FlowDb::destruct_link(Self, String, start? : String) -> LinkInfo
+pub fn FlowDb::exists(Self, Array[FlowSubgraph], String) -> Bool
+pub fn FlowDb::make_uniq(Self, FlowSubgraph, Array[FlowSubgraph]) -> Array[String]
 pub fn FlowDb::new(max_edges? : Int32, inherit_dir? : Bool, direction? : String) -> Self
+pub fn FlowDb::set_acc_description(Self, String) -> Unit
+pub fn FlowDb::set_acc_title(Self, String) -> Unit
+pub fn FlowDb::set_class(Self, String, String) -> Unit
+pub fn FlowDb::set_click_event(Self, String) -> Unit
+pub fn FlowDb::set_direction(Self, String) -> Unit
+pub fn FlowDb::set_link(Self, String, String, target? : String) -> Unit
+pub fn FlowDb::set_tooltip(Self, String, String?) -> Unit
+pub fn FlowDb::subgraph(Self, String) -> FlowSubgraph?
+pub fn FlowDb::update_link(Self, Array[String], Array[String]) -> Unit raise @errors.PeleError
+pub fn FlowDb::update_link_interpolate(Self, Array[String], String) -> Unit raise @errors.PeleError
 
 pub(all) struct FlowEdge {
   start : String
@@ -103,7 +121,7 @@ pub(all) enum LabelType {
   Text
   Str
   Markdown
-} derive(Eq)
+}
 pub fn LabelType::to_string(Self) -> String
 
 pub(all) struct LinkInfo {

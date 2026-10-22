@@ -4,7 +4,7 @@ pub(all) enum LabelType {
   Text
   Str
   Markdown
-} derive(Eq)
+}
 
 ///|
 /// The name pele gives the label type.
