@@ -52,64 +52,9 @@ fn entity_end(text : String, at : Int32) -> Int32 {
 }
 
 ///|
-fn radix_value(digits : String, radix : Int32) -> Double {
-  if digits == "" {
-    return @double.not_a_number
-  }
-  let mut value = 0.0
-  for i in 0..<digits.length() {
-    let c = @util.code_at(digits, i)
-    let d = if @util.is_hex(c) { hex_value(c) } else { radix }
-    if d >= radix {
-      return @double.not_a_number
-    }
-    value = value * radix.to_double() + d.to_double()
-  }
-  value
-}
-
-///|
-/// `Number(word)` for a run of `\w` characters, which has no sign, point or space to deal with.
-fn word_number(word : String) -> Double {
-  if word == "Infinity" {
-    return @double.infinity
-  }
-  let prefix = @util.slice(word, 0, end=2).to_lower()
-  match prefix {
-    "0x" => return radix_value(@util.slice(word, 2), 16)
-    "0o" => return radix_value(@util.slice(word, 2), 8)
-    "0b" => return radix_value(@util.slice(word, 2), 2)
-    _ => ()
-  }
-  let mut i = 0
-  while @util.is_digit(@util.code_at(word, i)) {
-    i += 1
-  }
-  if i == 0 {
-    return @double.not_a_number
-  }
-  if i < word.length() {
-    let e = @util.code_at(word, i)
-    if e != 'e'.to_int() && e != 'E'.to_int() {
-      return @double.not_a_number
-    }
-    let mut j = i + 1
-    while @util.is_digit(@util.code_at(word, j)) {
-      j += 1
-    }
-    if j == i + 1 || j < word.length() {
-      return @double.not_a_number
-    }
-  }
-  @string.parse_double(word) catch {
-    _ => @double.not_a_number
-  }
-}
-
-///|
 /// `String.fromCharCode(word)`: the number wrapped to 16 bits, with NaN and infinities as 0.
 fn char_code(word : String) -> Int32 {
-  let n = word_number(word)
+  let n = @util.js_number(Json::string(word))
   if n.is_nan() || n.is_inf() {
     return 0
   }
