@@ -66,6 +66,8 @@ pub fn svg_document(String, Double, Double, Double, @types.RenderOptions, String
 
 pub fn text_style(String, Int32) -> String
 
+pub fn title_label(String?, @text.TextMeasurer, Double, Double) -> @text.Label
+
 // Errors
 
 // Types and methods
