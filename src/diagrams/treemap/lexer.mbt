@@ -50,6 +50,11 @@ fn is_name_char(c : Int32) -> Bool {
 /// Where the pieces of a `classDef` statement lie.
 priv struct ClassDefSpan {
   end : Int32
+  name_start : Int32
+  name_end : Int32
+  /// The declarations are absent when `style_start` is -1.
+  style_start : Int32
+  style_end : Int32
 }
 
 ///|
@@ -72,8 +77,12 @@ fn scan_class_def(src : String, p : Int32) -> ClassDefSpan? {
   while is_name_char(@util.code_at(src, i)) {
     i += 1
   }
+  let name_end = i
+  let mut style_start = -1
+  let mut style_end = -1
   let declarations = skip_space(src, i)
   if declarations > i {
+    style_start = declarations
     i = declarations
     while i < src.length() {
       let c = @util.code_at(src, i)
@@ -82,11 +91,12 @@ fn scan_class_def(src : String, p : Int32) -> ClassDefSpan? {
       }
       i += 1
     }
+    style_end = i
   }
   if @util.code_at(src, i) == ';'.to_int() {
     i += 1
   }
-  Some({ end: i, })
+  Some({ end: i, name_start, name_end, style_start, style_end, })
 }
 
 ///|

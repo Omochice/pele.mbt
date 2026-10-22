@@ -69,6 +69,24 @@ pub fn parse_treemap(source : String) -> TreemapAst raise @errors.PeleError {
     } else {
       None
     }
+    if r.kind() == CLASS_DEF {
+      let text = r.take()
+      // The token was matched by the same scan, so it matches again.
+      let span = scan_class_def(text, 0).unwrap()
+      let style = if span.style_end > span.style_start && span.style_start >= 0 {
+        Some(@util.slice(text, span.style_start, end=span.style_end))
+      } else {
+        None
+      }
+      rows.push(
+        ClassDef(
+          indent,
+          @util.slice(text, span.name_start, end=span.name_end),
+          style,
+        ),
+      )
+      continue
+    }
     let name = r.expect(STRING)
     let name = @util.slice(name, 1, end=name.length() - 1)
     // A leaf is a name followed by a colon or comma, with or without whitespace before it.
