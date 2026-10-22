@@ -222,3 +222,57 @@ test "polygon shapes are drawn around the origin" {
     content="<polygon points=\"0,-21.6 9.24,-17.27 21.97,-19.46 25.88,-13.85 39.58,-13.47 37.4,-7.68 49.36,-4.81 41.51,0 49.36,4.81 37.4,7.68 39.58,13.47 25.88,13.85 21.97,19.46 9.24,17.27 0,21.6 -9.24,17.27 -21.97,19.46 -25.88,13.85 -39.58,13.47 -37.4,7.68 -49.36,4.81 -41.51,0 -49.36,-4.81 -37.4,-7.68 -39.58,-13.47 -25.88,-13.85 -21.97,-19.46 -9.24,-17.27\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/>",
   )
 }
+
+///|
+test "round shapes fit the label diagonal" {
+  inspect(
+    size("circle", 37.5, 19.2),
+    content="58.12944338583172 58.12944338583172 0",
+  )
+  inspect(
+    size("dbl-circ", 37.5, 19.2),
+    content="68.12944338583172 68.12944338583172 0",
+  )
+  inspect(size("ellipse", 37.5, 19.2), content="84.75 47.04 0")
+  inspect(size("sm-circ", 37.5, 19.2), content="14 14 0")
+  inspect(size("f-circ", 37.5, 19.2), content="14 14 0")
+  inspect(size("fr-circ", 37.5, 19.2), content="18 18 0")
+  inspect(size("cross-circ", 37.5, 19.2), content="44 44 0")
+  inspect(size("fork", 37.5, 19.2), content="72 8 0")
+}
+
+///|
+test "round shapes are drawn around the origin" {
+  inspect(
+    draw("circle"),
+    content="<circle r=\"50.63\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/>",
+  )
+  inspect(
+    draw("dbl-circ"),
+    content="<circle r=\"50.63\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/><circle r=\"45.63\" fill=\"none\" stroke=\"var(--_l)\"/>",
+  )
+  inspect(
+    draw("ellipse"),
+    content="<ellipse rx=\"50.63\" ry=\"21.6\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/>",
+  )
+  inspect(
+    draw("sm-circ"),
+    content="<circle r=\"50.63\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/>",
+  )
+  inspect(
+    draw("f-circ"),
+    content="<circle r=\"50.63\" fill=\"var(--_l)\" stroke=\"var(--_l)\"/>",
+  )
+  inspect(
+    draw("fr-circ"),
+    content="<circle r=\"50.63\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/><circle r=\"46.63\" fill=\"var(--_l)\" stroke=\"var(--_l)\"/>",
+  )
+  inspect(
+    draw("cross-circ"),
+    content="<circle r=\"50.63\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/><path d=\"M-35.8,-35.8L35.8,35.8M35.8,-35.8L-35.8,35.8\" fill=\"none\" stroke=\"var(--_l)\"/>",
+  )
+  inspect(
+    draw("fork"),
+    content="<rect x=\"-50.62\" y=\"-21.6\" width=\"101.25\" height=\"43.2\" rx=\"2\" fill=\"var(--_l)\" stroke=\"var(--_l)\"/>",
+  )
+}
