@@ -8,6 +8,22 @@ import {
 }
 
 // Values
+pub const NODE_TYPE_BANG : Int32 = 5
+
+pub const NODE_TYPE_CIRCLE : Int32 = 3
+
+pub const NODE_TYPE_CLOUD : Int32 = 4
+
+pub const NODE_TYPE_DEFAULT : Int32 = 0
+
+pub const NODE_TYPE_HEXAGON : Int32 = 6
+
+pub const NODE_TYPE_NO_BORDER : Int32 = 0
+
+pub const NODE_TYPE_RECT : Int32 = 2
+
+pub const NODE_TYPE_ROUNDED_RECT : Int32 = 1
+
 pub const NO_CLOSER : Int32 = -2
 
 pub const NO_MATCH : Int32 = -1
@@ -46,7 +62,11 @@ pub fn literal_label(String, @text.TextMeasurer, Double, Double, style? : Int32)
 
 pub let newline : TokenType
 
+pub fn outline_node_type(String, String) -> Int32
+
 pub fn parse_generic_types(String) -> String
+
+pub fn[Db : OutlineDb] parse_outline(String, Db, Bool) -> Unit raise @errors.PeleError
 
 pub fn pattern(String, (String, Int32) -> Int32, first? : String, hidden? : Bool) -> TokenType
 
@@ -72,6 +92,8 @@ pub fn title_value(String) -> String
 
 pub fn tokenize(String, ArrayView[TokenType], String) -> Tokens raise @errors.PeleError
 
+pub fn tokenize_outline(String, Bool) -> OutlineTokens
+
 pub fn turn_to_fit(@types.RenderOptions, (Bool) -> @types.Rendered) -> @types.Rendered
 
 pub let whitespace : TokenType
@@ -83,10 +105,39 @@ pub let yaml : TokenType
 // Errors
 
 // Types and methods
+pub(all) enum Decoration {
+  Icon(String)
+  Class(String)
+}
+
 pub(all) struct Fitted {
   text : String
   size : Double
   width : Double
+}
+
+pub(all) enum OutlineToken {
+  End
+  Invalid
+  Spaceline
+  Nl
+  Eof
+  Keyword
+  Spacelist
+  Icon
+  Class
+  NodeDstart
+  NodeId
+  NodeDescr
+  NodeDend
+  ShapeData
+}
+pub fn OutlineToken::name(Self, Bool) -> String
+
+pub(all) struct OutlineTokens {
+  types : Array[OutlineToken]
+  texts : Array[String]
+  starts : Array[Int32]
 }
 
 pub(all) struct TokenReader {
@@ -121,3 +172,7 @@ pub(all) struct Tokens {
 pub type Scanner = (String, Int32) -> Int32
 
 // Traits
+pub(open) trait OutlineDb {
+  fn add_node(Self, Int32, String, String, Int32, String?) -> Unit raise @errors.PeleError
+  fn decorate_node(Self, Decoration) -> Unit
+}
