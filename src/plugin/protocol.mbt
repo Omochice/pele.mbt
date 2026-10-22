@@ -20,6 +20,12 @@ pub fn render(source_len : Int32, options_len : Int32) -> Int32 {
   let options = @utf8.decode_lossy(args[source_len:source_len + options_len])
   let (status, body) = respond(source, options)
   let out = @utf8.encode(body.stringify())
+  sent.val = out
   send_result(bytes_addr(out), out.length())
   status
 }
+
+///|
+/// The last result sent to the host.
+/// Without a reference past the call, `out` is freed between taking its address and the host reading it, and the allocator's bookkeeping overwrites its last bytes.
+let sent : Ref[Bytes] = { val: b"", }
