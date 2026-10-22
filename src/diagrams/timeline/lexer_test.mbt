@@ -92,7 +92,7 @@ test "a section takes its name up to a colon or a line break" {
 test "a period runs to a colon, and an event starts at a colon followed by whitespace" {
   let cases = [
     (
-      "timeline\n  2001 : a : b\n", "4@0+8 3@8+3 14@11+5 15@16+4 15@20+3 3@23+1 1@24+0 0@24+0",
+      "timeline\n  2001 : a : b\n", "4@0+8 3@8+1 14@11+5 15@16+4 15@20+3 3@23+1 1@24+0 0@24+0",
     ),
     ("a : b", "14@0+2 15@2+3 1@5+0 0@5+0"),
     ("a: b", "14@0+1 15@1+3 1@4+0 0@4+0"),

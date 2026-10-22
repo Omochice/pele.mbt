@@ -7,6 +7,38 @@ import {
 }
 
 // Values
+pub const T_ACC_DESCR : Int32 = 10
+
+pub const T_ACC_DESCR_MULTILINE_VALUE : Int32 = 12
+
+pub const T_ACC_DESCR_VALUE : Int32 = 11
+
+pub const T_ACC_TITLE : Int32 = 8
+
+pub const T_ACC_TITLE_VALUE : Int32 = 9
+
+pub const T_END : Int32 = 0
+
+pub const T_EOF : Int32 = 1
+
+pub const T_EVENT : Int32 = 15
+
+pub const T_INVALID : Int32 = 2
+
+pub const T_NEWLINE : Int32 = 3
+
+pub const T_PERIOD : Int32 = 14
+
+pub const T_SECTION : Int32 = 13
+
+pub const T_TIMELINE : Int32 = 4
+
+pub const T_TIMELINE_LR : Int32 = 5
+
+pub const T_TIMELINE_TD : Int32 = 6
+
+pub const T_TITLE : Int32 = 7
+
 pub fn tokenize(String) -> @common.Tokens
 
 // Errors
