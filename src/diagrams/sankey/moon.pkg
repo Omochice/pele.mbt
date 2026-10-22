@@ -2,9 +2,11 @@ import {
   "Omochice/pele/errors",
   "Omochice/pele/types",
   "Omochice/pele/util",
+  "moonbitlang/core/cmp",
+  "moonbitlang/core/double",
+  "moonbitlang/core/math",
 }
 
 import {
   "Omochice/pele/errors",
-  "moonbitlang/core/double",
 } for "test"
