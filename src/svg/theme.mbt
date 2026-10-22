@@ -8,6 +8,25 @@ pub const ROOT_STYLE : String = "--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#
 pub const RADIUS : String = "var(--pele-radius,4px)"
 
 ///|
+/// The corner radius as a style attribute.
+/// It is set through CSS rather than the `rx` attribute to support older browsers.
+pub const ROUNDED : String = " style=\"rx:var(--_r)\""
+
+///|
+/// Adds the rounded corner radius to shape attributes, ahead of any style they already have so that
+/// style can override it.
+pub fn rounded(attrs : String) -> String {
+  let at = @util.index_of(attrs, " style=\"")
+  if at < 0 {
+    attrs + ROUNDED
+  } else {
+    @util.slice(attrs, 0, end=at + 8) +
+    "rx:var(--_r);" +
+    @util.slice(attrs, at + 8)
+  }
+}
+
+///|
 /// The code point at `i` and where the next one starts, reading surrogate pairs as the `u` flag does.
 fn code_point_at(text : String, i : Int32) -> (Int32, Int32) {
   let c = @util.code_at(text, i)
