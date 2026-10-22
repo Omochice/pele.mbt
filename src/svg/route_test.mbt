@@ -187,6 +187,33 @@ test "route_path draws a line between stepped points nearly in line" {
 }
 
 ///|
+test "route_path reads the points a short route lacks as NaN, as pele reads them as undefined" {
+  inspect(marked([5, 5, 0], 7, 7), content="M12,-2 5 5 -1 0 5 5 0 1")
+  inspect(
+    marked([5, 5, 1], 0, 0, start_reach=9, end_reach=9),
+    content="M5,5 5 5 -1 0 5 5 1 0",
+  )
+  inspect(stepped([5, 5, 0], "step", 7, 7), content="M12,-2 5 5 -1 0 5 5 0 1")
+  inspect(
+    stepped([5, 5, 0], "linear", 7, 7),
+    content="MNaN,NaN 5 5 NaN NaN 5 5 NaN NaN",
+  )
+  inspect(
+    marked([0, 0, 0, 10, 48], 0, 7),
+    content="M0,0C0.75,0 2.25,48 3,48 0 0 -1 0 10 48 1 0",
+  )
+}
+
+///|
+test "route_path writes an end it does not have as NaN where pele leaves it undefined" {
+  inspect(marked([], 7, 7), content="MNaN,NaN NaN NaN -1 0 NaN NaN 1 0")
+  inspect(
+    marked([0, 0, 0, 10], 0, 0),
+    content="M0,0C5,0 5,NaN 10,NaN 0 0 -1 0 10 NaN 1 0",
+  )
+}
+
+///|
 /// The path of a curve with the given trims and reaches.
 fn marked(
   route : Array[Double],
