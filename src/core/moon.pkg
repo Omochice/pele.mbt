@@ -2,6 +2,7 @@ import {
   "Omochice/pele/detect",
   "Omochice/pele/errors",
   "Omochice/pele/preprocess",
+  "Omochice/pele/text",
   "Omochice/pele/types",
 }
 

@@ -119,6 +119,9 @@ pub fn render(
     svg: rendered.svg,
     width: rendered.width,
     height: rendered.height,
-    links: rendered.links,
+    links: rendered.links.map(link => {
+      ..link,
+      id: @text.decode_entities(link.id),
+    }),
   }
 }

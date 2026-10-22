@@ -14,6 +14,8 @@ pub fn is_hex(Int32) -> Bool
 
 pub fn is_letter(Int32) -> Bool
 
+pub fn is_letter_or_number(Int32) -> Bool
+
 pub fn is_line_end(Int32) -> Bool
 
 pub fn is_space(Int32) -> Bool

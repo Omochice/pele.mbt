@@ -3,6 +3,7 @@ package "Omochice/pele/diagrams/common"
 
 import {
   "Omochice/pele/errors",
+  "Omochice/pele/types",
 }
 
 // Values
@@ -20,6 +21,8 @@ pub fn acc_title_value(String) -> String
 
 pub let directive : TokenType
 
+pub fn fit_width(@types.RenderOptions, Double, Double, (Double, Bool) -> @types.Rendered) -> @types.Rendered
+
 pub fn keyword(String) -> TokenType
 
 pub fn literal(String, String) -> TokenType
@@ -35,6 +38,8 @@ pub let string : TokenType
 pub fn string_value(String) -> String
 
 pub let title : TokenType
+
+pub fn title_room(@types.RenderOptions) -> Double
 
 pub fn title_value(String) -> String
 
