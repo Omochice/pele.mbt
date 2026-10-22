@@ -1,0 +1,54 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Omochice/pele/layout"
+
+// Values
+pub fn cnode(Double, Double, parent? : Int32) -> CNode
+
+pub fn route_crossings(Array[CNode], Array[CEdge], style? : Style) -> Int32
+
+// Errors
+
+// Types and methods
+pub(all) struct CEdge {
+  mut src : Int32
+  mut dst : Int32
+  minlen : Int32
+  label_w : Double
+  label_h : Double
+  mut route : Array[Double]
+  mut label_x : Double
+  mut label_y : Double
+}
+
+pub(all) struct CNode {
+  mut w : Double
+  mut h : Double
+  mut parent : Int32
+  mut is_group : Bool
+  mut dir : Dir?
+  mut pad_x : Double
+  mut pad_top : Double
+  mut pad_bottom : Double
+  mut min_w : Double
+  mut seq : Double
+  mut span : Double
+  mut x : Double
+  mut y : Double
+}
+
+pub(all) enum Dir {
+  TB
+  BT
+  LR
+  RL
+}
+
+pub(all) enum Style {
+  Curved
+  Stepped
+  Linear
+}
+
+// Type aliases
+
+// Traits
