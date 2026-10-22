@@ -1,0 +1,51 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Omochice/pele/diagrams/venn"
+
+import {
+  "Omochice/pele/errors",
+  "moonbitlang/core/set",
+}
+
+// Values
+pub fn normalize_text(String) -> String
+
+pub fn parse_venn(String) -> VennDb raise @errors.PeleError
+
+// Errors
+
+// Types and methods
+pub(all) struct VennDb {
+  mut title : String?
+  subsets : Array[VennSubset]
+  text_nodes : Array[VennText]
+  styles : Array[VennStyle]
+  known : @set.Set[String]
+  mut current : Array[String]?
+  mut indent : Bool
+}
+pub fn VennDb::add_style_data(Self, Array[String], Array[(String, String)]) -> Unit
+pub fn VennDb::add_subset_data(Self, Array[String], String?, Double?) -> Unit
+pub fn VennDb::add_text_data(Self, Array[String], String, String?) -> Unit
+pub fn VennDb::new() -> Self
+pub fn VennDb::validate_union_identifiers(Self, Array[String]) -> Unit raise @errors.PeleError
+
+pub(all) struct VennStyle {
+  targets : Array[String]
+  styles : Map[String, String]
+}
+
+pub(all) struct VennSubset {
+  sets : Array[String]
+  size : Double
+  label : String?
+}
+
+pub(all) struct VennText {
+  sets : Array[String]
+  id : String
+  label : String?
+}
+
+// Type aliases
+
+// Traits

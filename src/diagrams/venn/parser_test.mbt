@@ -9,10 +9,15 @@ fn label(value : String?) -> String {
 ///|
 fn dump(source : String) -> String {
   let db = @venn.parse_venn(source) catch {
-    @errors.PeleError(failure) => return "\{failure.code.to_string()}: \{failure.message}"
+    @errors.PeleError(failure) =>
+      return "\{failure.code.to_string()}: \{failure.message}"
   }
-  let subsets = db.subsets.map(s => "\{s.sets.join("|")}:\{s.size}:\{label(s.label)}")
-  let texts = db.text_nodes.map(t => "\{t.sets.join("|")}/\{t.id}:\{label(t.label)}")
+  let subsets = db.subsets.map(s => {
+    "\{s.sets.join("|")}:\{s.size}:\{label(s.label)}"
+  })
+  let texts = db.text_nodes.map(t => {
+    "\{t.sets.join("|")}/\{t.id}:\{label(t.label)}"
+  })
   let styles = db.styles.map(s => {
     let declared = []
     for key, value in s.styles {
@@ -26,7 +31,9 @@ fn dump(source : String) -> String {
 ///|
 test "sets get 10 and an overlap 10 over the square of its sets" {
   inspect(
-    dump("venn-beta\n          title foo bar\n          set A\n          set B\n          union A,B\n      "),
+    dump(
+      "venn-beta\n          title foo bar\n          set A\n          set B\n          union A,B\n      ",
+    ),
     content="title=\"foo bar\" subsets=[A:10:-, B:10:-, A|B:2.5:-] texts=[] styles=[]",
   )
   inspect(
@@ -46,7 +53,9 @@ test "labels are read in brackets, quoted or not" {
 ///|
 test "sizes follow a colon" {
   inspect(
-    dump("venn-beta\nset A[\"Alpha\"]:20\nset B:12\nset C:30\nunion A,B[\"AB\"]:5.3\nunion C,A,B:1"),
+    dump(
+      "venn-beta\nset A[\"Alpha\"]:20\nset B:12\nset C:30\nunion A,B[\"AB\"]:5.3\nunion C,A,B:1",
+    ),
     content="title=- subsets=[A:20:\"Alpha\", B:12:-, C:30:-, A|B:5.3:\"AB\", A|B|C:1:-] texts=[] styles=[]",
   )
   inspect(
@@ -68,7 +77,9 @@ test "indented texts belong to the set before them" {
 ///|
 test "a text statement names its sets" {
   inspect(
-    dump("venn-beta\nset A\nset B\ntext A,B t1[\"one\"]\ntext B \"two\"\ntext A 3"),
+    dump(
+      "venn-beta\nset A\nset B\ntext A,B t1[\"one\"]\ntext B \"two\"\ntext A 3",
+    ),
     content="title=- subsets=[A:10:-, B:10:-] texts=[A|B/t1:\"one\", B/two:-, A/3:-] styles=[]",
   )
 }
@@ -92,7 +103,9 @@ test "styles list their declarations" {
     content="title=- subsets=[A:10:-, B:10:-, A|B:2.5:-] texts=[] styles=[A{fill=#ff6b6b;color=#333}, A|B{color=red}, B{fill=rgb(255, 0, 128)}, A{fill=rgba(255, 0, 128, 0.5)}]",
   )
   inspect(
-    dump("venn-beta\nset A\nstyle A stroke:\"dashed red\", stroke-width:2 px, x:#fff 5 a"),
+    dump(
+      "venn-beta\nset A\nstyle A stroke:\"dashed red\", stroke-width:2 px, x:#fff 5 a",
+    ),
     content="title=- subsets=[A:10:-] texts=[] styles=[A{stroke=dashed red;stroke-width=2 px;x=#fff 5 a}]",
   )
 }
@@ -108,7 +121,9 @@ test "quoted identifiers lose their quotes and are sorted" {
 ///|
 test "keywords ignore case and comments are skipped" {
   inspect(
-    dump("\n\n  VENN-BETA\n%% comment\n  SET A %% trailing\n  Set B:5\n\n   \n  UNION A,B\n    TEXT t\nSTYLE A FILL:Red\nTITLE Shout"),
+    dump(
+      "\n\n  VENN-BETA\n%% comment\n  SET A %% trailing\n  Set B:5\n\n   \n  UNION A,B\n    TEXT t\nSTYLE A FILL:Red\nTITLE Shout",
+    ),
     content="title=\"Shout\" subsets=[A:10:-, B:5:-, A|B:2.5:-] texts=[A|B/t:-] styles=[A{FILL=Red}]",
   )
 }
