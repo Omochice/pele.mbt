@@ -129,3 +129,25 @@ fn model_dump(db : @state.StateDb) -> String {
   }
   out.join("\n")
 }
+
+///|
+/// The graph as text: one line for each node, then one for each edge.
+fn graph_dump(graph : @state.StateGraph) -> String {
+  let out = []
+  for n in graph.nodes {
+    let color = match n.color_index {
+      Some(index) => index.to_string()
+      None => "-"
+    }
+    out.push(
+      "node \{q(Some(n.id))} shape=\{q(n.shape)} label=\{q(n.label)} description=\{list(n.description)} classes=\{q(Some(n.css_classes))} compiled=\{list(n.css_compiled_styles)} styles=\{list(n.css_styles)} type=\{q(n.kind)} group=\{n.is_group} parent=\{q(n.parent_id)} dir=\{q(n.dir)} position=\{q(n.position)} noteFor=\{q(n.note_for)} color=\{color}",
+    )
+  }
+  for e in graph.edges {
+    let pattern = if e.dashed { "dashed" } else { "-" }
+    out.push(
+      "edge \{q(Some(e.id))} \{q(Some(e.start))} \{q(Some(e.end))} \{q(Some(e.label))} \{q(Some(e.classes))} \{pattern}",
+    )
+  }
+  out.join("\n")
+}

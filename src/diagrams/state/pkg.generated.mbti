@@ -6,6 +6,8 @@ import {
 }
 
 // Values
+pub fn build_state_graph(Array[Stmt], Map[String, StateStmt], Map[String, StateClassDef]) -> StateGraph raise @errors.PeleError
+
 pub fn parse_state(String, StateDb) -> Array[Stmt] raise @errors.PeleError
 
 pub fn tokenize(String) -> Tokens
@@ -37,6 +39,7 @@ pub struct StateDb {
   title : String?
   mut acc_title : String?
   mut acc_descr : String?
+  mut graph : StateGraph
   // private fields
 }
 pub fn StateDb::add_description(Self, String, String) -> Unit
@@ -50,12 +53,43 @@ pub fn StateDb::set_acc_description(Self, String) -> Unit
 pub fn StateDb::set_acc_title(Self, String) -> Unit
 pub fn StateDb::set_css_class(Self, String, String) -> Unit
 pub fn StateDb::set_direction(Self, String) -> Unit
-pub fn StateDb::set_root_doc(Self, Array[Stmt]) -> Unit
+pub fn StateDb::set_root_doc(Self, Array[Stmt]) -> Unit raise @errors.PeleError
 pub fn StateDb::trim_colon(Self, String) -> String
+
+pub(all) struct StateEdge {
+  id : String
+  start : String
+  end : String
+  label : String
+  classes : String
+  dashed : Bool
+}
+
+pub(all) struct StateGraph {
+  nodes : Array[StateNode]
+  edges : Array[StateEdge]
+}
 
 pub(all) struct StateLink {
   url : String
   tooltip : String
+}
+
+pub(all) struct StateNode {
+  id : String
+  mut shape : String?
+  mut label : String?
+  mut description : Array[String]
+  mut css_classes : String
+  mut css_compiled_styles : Array[String]
+  mut css_styles : Array[String]
+  mut kind : String?
+  mut is_group : Bool
+  mut parent_id : String?
+  mut dir : String?
+  mut position : String?
+  mut note_for : String?
+  mut color_index : Int32?
 }
 
 pub(all) struct StateNote {

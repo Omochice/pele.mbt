@@ -10,6 +10,7 @@ pub struct StateDb {
   title : String?
   mut acc_title : String?
   mut acc_descr : String?
+  mut graph : StateGraph
   priv mut divider_count : Int32
 }
 
@@ -25,6 +26,7 @@ pub fn StateDb::new(title? : String) -> StateDb {
     title,
     acc_title: None,
     acc_descr: None,
+    graph: { nodes: [], edges: [], },
     divider_count: 0,
   }
 }
@@ -77,7 +79,10 @@ fn replace_first(text : String, old : String, new : String) -> String {
 
 ///|
 /// Takes the parsed document, gives each `[*]` and region its id, and collects the root document's states, relations and classes.
-pub fn StateDb::set_root_doc(self : StateDb, doc : Array[Stmt]) -> Unit {
+pub fn StateDb::set_root_doc(
+  self : StateDb,
+  doc : Array[Stmt],
+) -> Unit raise @errors.PeleError {
   self.root_doc = doc
   self.translate()
   self.extract(doc)
@@ -85,7 +90,10 @@ pub fn StateDb::set_root_doc(self : StateDb, doc : Array[Stmt]) -> Unit {
 
 ///|
 /// Only the root document's statements become states, relations and classes here; the statements inside composites are read when the graph is built.
-fn StateDb::extract(self : StateDb, doc : Array[Stmt]) -> Unit {
+fn StateDb::extract(
+  self : StateDb,
+  doc : Array[Stmt],
+) -> Unit raise @errors.PeleError {
   self.states = Map([])
   self.relations = []
   self.classes = Map([])
@@ -117,6 +125,7 @@ fn StateDb::extract(self : StateDb, doc : Array[Stmt]) -> Unit {
       Click(id, url, tooltip) => self.add_link(id.id, url, tooltip)
     }
   }
+  self.graph = build_state_graph(doc, self.states, self.classes)
 }
 
 ///|
