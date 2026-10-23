@@ -301,6 +301,7 @@ export const CASES = [
   lazy('git', 'a title past V8', () => `gitGraph\ntitle ${'"'.repeat(90000000)}\ncommit\n`, RAISED),
   lazy('wardley', 'a title past V8', () => `wardley-beta\ntitle ${'"'.repeat(90000000)}\ncomponent A [0.2, 0.2]\n`, RAISED),
   lazy('pie', 'a title past V8', () => `pie\ntitle ${'"'.repeat(90000000)}\n"a":1\n`, RAISED),
+  lazy('packet', 'a title past V8', () => `packet\ntitle ${'"'.repeat(90000000)}\n0-31: "a"\n`, RAISED),
   lazy('railroad', 'a title past V8', () => `railroad-peg-beta\ntitle ${'"'.repeat(90000000)}\nr <- "a" ;\n`, RAISED),
 ];
 
