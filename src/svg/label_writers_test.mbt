@@ -149,3 +149,76 @@ test "a struck title is written with its id as write_struck_title writes it esca
     }
   }
 }
+
+///|
+let attrs_samples : Array[String] = [
+  "", " class=\"pele-section-label\"", " font-weight=\"bold\"", " fill=\"none\" stroke=\"red\"",
+  " style=\"fill:red;opacity:0.5\"",
+]
+
+///|
+test "a label with an id is written as write_label writes it with the id among its attributes" {
+  let icons = (name : String) => {
+    if name == "fa:fa-x" {
+      Some("<path/>")
+    } else {
+      None
+    }
+  }
+  for raw in label_samples {
+    let label = label_of(raw)
+    for attrs in attrs_samples {
+      for after in ["\"", "\" fill=\"var(--_m)\"", "\" font-style=\"italic\""] {
+        for id in id_samples {
+          let want = @svg.Markup::new()
+          @svg.write_label(
+            want,
+            label,
+            10,
+            20,
+            attrs + " data-id=\"\{@svg.esc_text(id)}" + after,
+            icons~,
+          )
+          let got = @svg.Markup::new()
+          @svg.write_label_with_id(
+            got,
+            label,
+            10,
+            20,
+            attrs + " data-id=\"",
+            id,
+            after,
+            "",
+            icons~,
+          )
+          assert_eq(got.to_string(), want.to_string())
+        }
+      }
+    }
+  }
+}
+
+///|
+test "an id naming an alias puts the alias in the root's style as write_label does" {
+  let label = label_of("<b>bold</b>")
+  let document = (content : @svg.Markup) => {
+    @svg.markup_document(
+      "flowchart",
+      10,
+      10,
+      16,
+      @types.RenderOptions::default(),
+      None,
+      None,
+      content,
+    )
+  }
+  let want = @svg.Markup::new()
+  @svg.write_label(want, label, 0, 0, " data-id=\"var(--_hw)\"")
+  let got = @svg.Markup::new()
+  @svg.write_label_with_id(
+    got, label, 0, 0, " data-id=\"", "var(--_hw)", "\"", "",
+  )
+  assert_eq(document(got), document(want))
+  assert_true(document(got).contains("--_hw:"))
+}
