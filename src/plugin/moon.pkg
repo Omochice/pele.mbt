@@ -15,6 +15,7 @@ import {
   "Omochice/pele/diagrams/quadrant",
   "Omochice/pele/diagrams/radar",
   "Omochice/pele/diagrams/railroad",
+  "Omochice/pele/diagrams/requirement",
   "Omochice/pele/diagrams/sankey",
   "Omochice/pele/diagrams/timeline",
   "Omochice/pele/diagrams/treemap",
