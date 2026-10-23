@@ -133,7 +133,7 @@ pub fn parse_model(String, String?) -> RequirementDb raise @errors.PeleError
 
 pub fn parse_requirement(String, RequirementDb) -> Unit raise @errors.PeleError
 
-pub fn render_requirement(RequirementDb, Map[String, Json], @types.RenderOptions) -> @types.Rendered
+pub fn render_requirement(RequirementDb, Map[String, Json], @types.RenderOptions) -> @types.Rendered raise @errors.PeleError
 
 pub let requirement : @types.Diagram
 

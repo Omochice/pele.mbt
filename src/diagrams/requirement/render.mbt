@@ -259,7 +259,7 @@ pub fn render_requirement(
   db : RequirementDb,
   config : @types.Config,
   options : @types.RenderOptions,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   ignore(config)
   if !@common.runs_across(Some(db.direction)) {
     return draw(db, options, false)
@@ -284,7 +284,7 @@ fn draw(
   db : RequirementDb,
   options : @types.RenderOptions,
   turned : Bool,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   let graph = build_requirement_graph(db)
   let size = options.font_size.unwrap_or(16)
   let small = (size * 0.875).round()
@@ -445,7 +445,7 @@ fn draw(
   let width = (inner + 2.0 * pad).ceil()
   let height = (layout.height + title_height + 2.0 * pad).ceil()
   let n = @svg.num
-  let nodes_out = StringBuilder()
+  let nodes_out = @svg.Markup::new()
   for i, view in views {
     let { w, h, style, .. } = view
     let left = -w / 2
@@ -505,12 +505,12 @@ fn draw(
     } else {
       "pele-element"
     }
-    nodes_out.write_string(
+    nodes_out.write(
       "<g class=\"pele-node \{kind_class}\{@svg.node_class_names(view.node.css_classes)}\" data-id=\"\{@svg.esc_text(view.node.id)}\" transform=\"translate(\{n(cnodes[i].x + ox)},\{n(cnodes[i].y + oy)})\">\{body.to_string()}</g>",
     )
   }
-  let edges_out = StringBuilder()
-  let labels_out = StringBuilder()
+  let edges_out = @svg.Markup::new()
+  let labels_out = @svg.Markup::new()
   let loop_seen : Map[Int32, Int32] = Map([])
   for i, ce in cedges {
     let edge = drawn[i]
@@ -605,15 +605,15 @@ fn draw(
     } else {
       arrow_marker(path.ex, path.ey, path.edx, path.edy)
     }
-    edges_out.write_string(
+    edges_out.write(
       "<g class=\"pele-edge pele-relationship-\{relationship}\" data-id=\"\{@svg.esc_text(edge.id)}\"><path d=\"\{path.d}\"\{dash}/>\{mark}</g>",
     )
-    labels_out.write_string(
+    labels_out.write(
       @svg.edge_label_svg(edge.id, edge_label, label_x, label_y, ""),
     )
   }
-  let content = StringBuilder()
-  content.write_string(
+  let content = @svg.Markup::new()
+  content.write(
     @svg.label_svg(
       title,
       width / 2,
@@ -621,20 +621,21 @@ fn draw(
       " class=\"pele-title\" font-weight=\"var(--_tw)\"",
     ),
   )
-  let edges_out = edges_out.to_string()
-  if edges_out != "" {
-    content.write_string(
-      "<g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\">\{edges_out}</g>",
+  if !edges_out.is_empty() {
+    content.write_group(
+      "<g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\">",
+      edges_out, "</g>",
     )
   }
-  let labels_out = labels_out.to_string()
-  if labels_out != "" {
-    content.write_string(
-      "<g class=\"pele-edge-labels\" font-size=\"\{small}\" fill=\"var(--_m)\">\{labels_out}</g>",
+  if !labels_out.is_empty() {
+    content.write_group(
+      "<g class=\"pele-edge-labels\" font-size=\"\{small}\" fill=\"var(--_m)\">",
+      labels_out,
+      "</g>",
     )
   }
-  content.write_string("<g class=\"pele-nodes\">\{nodes_out.to_string()}</g>")
-  let svg = @svg.svg_document(
+  content.write_group("<g class=\"pele-nodes\">", nodes_out, "</g>")
+  let svg = @svg.markup_document(
     "requirement",
     width,
     height,
@@ -642,7 +643,7 @@ fn draw(
     options,
     db.acc_title,
     db.acc_descr,
-    content.to_string(),
+    content,
   )
   { svg, width, height, links: [], }
 }
