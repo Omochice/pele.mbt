@@ -68,3 +68,55 @@ test "a type that is not registered is unsupported" {
     content="unsupported-diagram: Diagram type \"flowchart\" is not supported yet. flowchart flowchart-v2",
   )
 }
+
+///|
+/// A pie that draws, as its SVG, what labels and the diagram learn about `name` from the host.
+fn icon_probe(name : String) -> @types.Diagram {
+  {
+    kind: "pie",
+    section: None,
+    keep_comments: false,
+    parse: (_, _, _, _, _) => {
+      render: (_, options) => {
+        let given = match options.icons {
+          Some(resolve) => resolve(name).unwrap_or("null")
+          None => "none"
+        }
+        {
+          svg: "labels=\{@text.icon_markup(name)} options=\{given}",
+          width: 0,
+          height: 0,
+          links: [],
+        }
+      },
+    },
+  }
+}
+
+///|
+test "the host's icons answer labels and diagrams with entity codes decoded" {
+  let asked = []
+  let icons = (name : String) => {
+    asked.push(name)
+    if name == "a&b" {
+      Some("<path/>")
+    } else {
+      None
+    }
+  }
+  let options = { ..@types.RenderOptions::default(), icons: Some(icons), }
+  let result = @core.render([icon_probe("a&amp;b")], "pie\n", options)
+  inspect(result.svg, content="labels=<path/> options=<path/>")
+  assert_eq(asked, ["a&b", "a&b"])
+  assert_eq(@text.icon_markup("a&b"), "")
+}
+
+///|
+test "without icons labels and diagrams have no resolver" {
+  let result = @core.render(
+    [icon_probe("a&b")],
+    "pie\n",
+    @types.RenderOptions::default(),
+  )
+  inspect(result.svg, content="labels= options=none")
+}
