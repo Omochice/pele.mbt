@@ -57,3 +57,16 @@ pub fn number_messages(
   }
   { index, shown, visible, }
 }
+
+///|
+/// Draws a sequence diagram.
+pub fn render_sequence(
+  db : SeqDb,
+  config : @types.Config,
+  options : @types.RenderOptions,
+) -> @types.Rendered {
+  ignore(db)
+  ignore(config)
+  ignore(options)
+  { svg: "", width: 0, height: 0, links: [], }
+}
