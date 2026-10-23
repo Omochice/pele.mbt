@@ -106,3 +106,67 @@ test "lines and spans become tspans" {
   )
   inspect(@svg.label_svg(label("", 14, 0), 50, 50, ""), content="")
 }
+
+///|
+/// A host that has only `fa:fa-car`.
+fn car_icons(name : String) -> String? {
+  if name == "fa:fa-car" {
+    Some("<path/>")
+  } else {
+    None
+  }
+}
+
+///|
+/// `text` laid out at 16px while the host's icons are known.
+fn icon_label(text : String, max_width : Double) -> @text.Label {
+  @text.with_icons(Some(car_icons), () => {
+    @text.layout_label(Some(text), false, @text.metrics_measurer, 16, max_width)
+  })
+}
+
+///|
+test "an icon span is a square drawn by the resolver after the text" {
+  inspect(
+    @svg.label_svg(
+      icon_label("fa:fa-car Cars", 4000),
+      0,
+      0,
+      " class=\"x\"",
+      icons=car_icons,
+    ),
+    content="<text class=\"x\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"-9.11\" y=\"5.6\" text-anchor=\"start\"> Cars</tspan></text><svg class=\"pele-icon\" data-icon=\"fa:fa-car\" x=\"-29.11\" y=\"-8.8\" width=\"17.6\" height=\"17.6\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path/></svg>",
+  )
+  inspect(
+    @svg.label_svg(
+      icon_label("fa:fa-car", 4000),
+      0,
+      0,
+      " class=\"x\"",
+      icons=car_icons,
+    ),
+    content="<text class=\"x\" text-anchor=\"middle\" xml:space=\"preserve\"></text><svg class=\"pele-icon\" data-icon=\"fa:fa-car\" x=\"-10\" y=\"-8.8\" width=\"17.6\" height=\"17.6\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path/></svg>",
+  )
+}
+
+///|
+test "only lines holding an icon place their spans one by one" {
+  inspect(
+    @svg.label_svg(
+      icon_label("Go fa:fa-car fast and far away", 60),
+      0,
+      0,
+      " class=\"x\"",
+      icons=car_icons,
+    ),
+    content="<text class=\"x\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"-22.9\" y=\"-30.4\" text-anchor=\"start\">Go </tspan><tspan x=\"0\" y=\"-6.4\">fast and</tspan><tspan x=\"0\" y=\"17.6\">far</tspan><tspan x=\"0\" y=\"41.6\">away</tspan></text><svg class=\"pele-icon\" data-icon=\"fa:fa-car\" x=\"2.9\" y=\"-44.8\" width=\"17.6\" height=\"17.6\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path/></svg>",
+  )
+}
+
+///|
+test "an icon span drawn without a resolver is an empty square" {
+  inspect(
+    @svg.label_svg(icon_label("fa:fa-car", 4000), 0, 0, ""),
+    content="<text text-anchor=\"middle\" xml:space=\"preserve\"></text><svg class=\"pele-icon\" data-icon=\"fa:fa-car\" x=\"-10\" y=\"-8.8\" width=\"17.6\" height=\"17.6\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></svg>",
+  )
+}

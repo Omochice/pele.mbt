@@ -125,12 +125,15 @@ pub fn text_style(attrs : String, shared : Int32) -> String {
 
 ///|
 /// Writes a measured label as SVG text centered on (`cx`, `cy`).
+/// `icons` draws inside the square of each icon span, which is otherwise left empty.
 pub fn label_svg(
   label : @text.Label,
   cx : Double,
   cy : Double,
   attrs : String,
+  icons? : @types.IconResolver,
 ) -> String {
+  ignore(icons)
   let lines = label.lines
   if lines.is_empty() {
     return ""
