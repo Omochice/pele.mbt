@@ -1,7 +1,13 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "Omochice/pele/diagrams/state"
 
+import {
+  "Omochice/pele/errors",
+}
+
 // Values
+pub fn parse_state(String, StateDb) -> Array[Stmt] raise @errors.PeleError
+
 pub fn tokenize(String) -> Tokens
 
 // Errors
