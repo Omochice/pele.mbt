@@ -11,6 +11,8 @@ pub fn add_time(@date.JsDate, Double, String) -> @date.JsDate
 
 pub fn auto_ticks(Double, Double, Double) -> Array[Double]
 
+pub fn clock(Double?) -> Double
+
 pub fn format_date(@date.JsDate, String) -> String?
 
 pub fn interval_ticks(String, String, Double, Double, Double) -> Array[Double]?
@@ -36,8 +38,8 @@ pub struct GanttDb {
   mut axis_format : String
   mut tick_interval : String?
   mut today_marker : String
-  includes : Array[String]
-  excludes : Array[String]
+  mut includes : Array[String]
+  mut excludes : Array[String]
   mut inclusive_end_dates : Bool
   mut top_axis : Bool
   display_mode : String
@@ -50,25 +52,27 @@ pub struct GanttDb {
 }
 pub fn GanttDb::from_source(String, warn? : (String) -> Unit) -> Self raise @errors.PeleError
 pub fn GanttDb::get_tasks(Self, Double) -> Array[GanttTask] raise @errors.PeleError
+pub fn GanttDb::is_invalid_date(Self, @date.JsDate) -> Bool raise @errors.PeleError
 pub fn GanttDb::new(warn? : (String) -> Unit) -> Self
 
 pub struct GanttTask {
-  id : String
+  mut id : String
   task : String
   section : String
-  start_time : @date.JsDate?
-  end_time : @date.JsDate?
-  render_end_time : @date.JsDate?
-  manual_end_time : Bool
-  processed : Bool
-  active : Bool
-  done : Bool
-  crit : Bool
-  milestone : Bool
-  vert : Bool
-  order : Int32
+  mut start_time : @date.JsDate?
+  mut end_time : @date.JsDate?
+  mut render_end_time : @date.JsDate?
+  mut manual_end_time : Bool
+  mut processed : Bool
+  mut active : Bool
+  mut done : Bool
+  mut crit : Bool
+  mut milestone : Bool
+  mut vert : Bool
+  mut order : Int32
   classes : Array[String]
   prev_task_id : String?
+  // private fields
 }
 
 pub(all) enum Tok {

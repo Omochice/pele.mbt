@@ -2,6 +2,7 @@ import {
   "Omochice/pele/errors",
   "Omochice/pele/util",
   "Omochice/pele/util/date",
+  "Omochice/pele/util/url",
   "moonbitlang/core/double",
   "moonbitlang/core/math",
 }
