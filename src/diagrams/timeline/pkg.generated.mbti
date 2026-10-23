@@ -42,7 +42,7 @@ pub const T_TITLE : Int32 = 7
 
 pub fn parse_timeline(String, TimelineDb) -> Unit raise @errors.PeleError
 
-pub fn render_timeline(TimelineDb, Map[String, Json], @types.RenderOptions) -> @types.Rendered
+pub fn render_timeline(TimelineDb, Map[String, Json], @types.RenderOptions) -> @types.Rendered raise @errors.PeleError
 
 pub let timeline : @types.Diagram
 

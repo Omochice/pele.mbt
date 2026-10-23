@@ -67,7 +67,7 @@ pub fn render_timeline(
   model : TimelineDb,
   config : @types.Config,
   options : @types.RenderOptions,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   if model.direction == "TD" {
     return draw(model, config, options, true)
   }
@@ -80,7 +80,7 @@ fn draw(
   config : @types.Config,
   options : @types.RenderOptions,
   vertical : Bool,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   let size = options.font_size.unwrap_or(16)
   let small = (size * 0.875).round()
   let measurer = options.text_measurer()
@@ -287,7 +287,7 @@ fn draw(
     "<g class=\"pele-node pele-period\" data-id=\"\{@svg.esc_text(@util.trim(periods[i].text))}\">"
   }
 
-  let mut body = ""
+  let mut body = @svg.Markup::new()
   let mut height = 0.0
   if vertical {
     let axis_x = left + col_w + AXIS
@@ -295,11 +295,11 @@ fn draw(
     let events_x = spine_x + SPINE
     let mut y = top
     for group in groups {
-      body += open(group)
+      body.write(open(group))
       if group.section >= 0 {
         let label = section_label(group, body_w)
         let h = chip_height(label)
-        body += header(group, label, left, y, body_w, h)
+        body.write(header(group, label, left, y, body_w, h))
         y += h + SECTION_GAP + 4
       }
       for i in group.periods {
@@ -312,33 +312,39 @@ fn draw(
           event_height(event_labels[i][0])
         }
         let cy = y + @util.js_max(h, first) / 2
-        let mut d = "M\{@svg.num(left + col_w)},\{@svg.num(cy)}H\{@svg.num(axis_x)}"
-        let mut cards = ""
+        let d = @svg.Markup::new()
+        d.write(
+          "M\{@svg.num(left + col_w)},\{@svg.num(cy)}H\{@svg.num(axis_x)}",
+        )
+        let cards = @svg.Markup::new()
         let mut ey = cy - first / 2
         let mut last = cy
         for label in event_labels[i] {
           let eh = event_height(label)
           last = ey + eh / 2
-          d += "M\{@svg.num(spine_x)},\{@svg.num(last)}H\{@svg.num(events_x)}"
-          cards += event(label, color, events_x, ey, eh)
+          d.write(
+            "M\{@svg.num(spine_x)},\{@svg.num(last)}H\{@svg.num(events_x)}",
+          )
+          cards.write(event(label, color, events_x, ey, eh))
           ey += eh + EVENT_GAP
         }
-        if cards != "" {
-          d += "M\{@svg.num(axis_x)},\{@svg.num(cy)}H\{@svg.num(spine_x)}V\{@svg.num(last)}"
+        if !cards.is_empty() {
+          d.write(
+            "M\{@svg.num(axis_x)},\{@svg.num(cy)}H\{@svg.num(spine_x)}V\{@svg.num(last)}",
+          )
         }
-        body += open_period(i) +
-          period(i, color, left, cy - h / 2, h) +
-          "<path class=\"pele-edge\" d=\"\{d}\"\{LINE}/>" +
-          dot(axis_x, cy, color) +
-          cards +
-          "</g>"
+        body.write(open_period(i) + period(i, color, left, cy - h / 2, h))
+        body.write_group("<path class=\"pele-edge\" d=\"", d, "\"\{LINE}/>")
+        body.write(dot(axis_x, cy, color))
+        body.write_markup(cards)
+        body.write("</g>")
         y = @util.js_max(cy + h / 2, ey - EVENT_GAP) + GAP
       }
       if group.periods.is_empty() {
         y += GAP - SECTION_GAP - 4
       }
       if group.section >= 0 {
-        body += "</g>"
+        body.write("</g>")
       }
     }
     if !groups.is_empty() {
@@ -346,9 +352,13 @@ fn draw(
     }
     if drawn {
       let tip = y + TAIL + @svg.ARROW
-      body = "<path class=\"pele-axis\" d=\"M\{@svg.num(axis_x)},\{@svg.num(top)}V\{@svg.num(tip - @svg.ARROW + 1)}\" fill=\"none\" stroke=\"var(--_l)\"/>" +
-        @svg.marker("arrow_point", axis_x, tip, 0, 1, "var(--_l)") +
-        body
+      let axis = @svg.Markup::new()
+      axis.write(
+        "<path class=\"pele-axis\" d=\"M\{@svg.num(axis_x)},\{@svg.num(top)}V\{@svg.num(tip - @svg.ARROW + 1)}\" fill=\"none\" stroke=\"var(--_l)\"/>" +
+        @svg.marker("arrow_point", axis_x, tip, 0, 1, "var(--_l)"),
+      )
+      axis.write_markup(body)
+      body = axis
       y = tip
     }
     height = y + pad
@@ -378,65 +388,78 @@ fn draw(
     for g, group in groups {
       let span = @cmp.maximum(group.periods.length(), 1)
       let gx = left + slot.to_double() * pitch
-      body += open(group)
+      body.write(open(group))
       if section_labels[g] is Some(label) {
-        body += header(
-          group,
-          label,
-          gx,
-          top,
-          span.to_double() * pitch - GAP,
-          header_h,
+        body.write(
+          header(
+            group,
+            label,
+            gx,
+            top,
+            span.to_double() * pitch - GAP,
+            header_h,
+          ),
         )
       }
       for k, i in group.periods {
         let color = color_of(group, i)
         let x = gx + k.to_double() * pitch
         let cx = x + col_w / 2
-        let mut d = "M\{@svg.num(cx)},\{@svg.num(periods_y + chip_h)}V\{@svg.num(if event_labels[i].is_empty() { axis_y } else { events_y })}"
-        let mut cards = ""
+        let d = @svg.Markup::new()
+        d.write(
+          "M\{@svg.num(cx)},\{@svg.num(periods_y + chip_h)}V\{@svg.num(if event_labels[i].is_empty() { axis_y } else { events_y })}",
+        )
+        let cards = @svg.Markup::new()
         let mut ey = events_y
         for event_label in event_labels[i] {
           let eh = event_height(event_label)
           if ey > events_y {
-            d += "M\{@svg.num(cx)},\{@svg.num(ey - EVENT_GAP)}V\{@svg.num(ey)}"
+            d.write(
+              "M\{@svg.num(cx)},\{@svg.num(ey - EVENT_GAP)}V\{@svg.num(ey)}",
+            )
           }
-          cards += event(event_label, color, x, ey, eh)
+          cards.write(event(event_label, color, x, ey, eh))
           ey += eh + EVENT_GAP
         }
         bottom = @util.js_max(bottom, ey - EVENT_GAP)
-        body += open_period(i) +
-          period(i, color, x, periods_y, chip_h) +
-          "<path class=\"pele-edge\" d=\"\{d}\"\{LINE}/>" +
-          dot(cx, axis_y, color) +
-          cards +
-          "</g>"
+        body.write(open_period(i) + period(i, color, x, periods_y, chip_h))
+        body.write_group("<path class=\"pele-edge\" d=\"", d, "\"\{LINE}/>")
+        body.write(dot(cx, axis_y, color))
+        body.write_markup(cards)
+        body.write("</g>")
       }
       if group.section >= 0 {
-        body += "</g>"
+        body.write("</g>")
       }
       slot += span
     }
     if drawn {
       let tip = left + body_w
-      body = "<path class=\"pele-axis\" d=\"M\{@svg.num(left)},\{@svg.num(axis_y)}H\{@svg.num(tip - @svg.ARROW + 1)}\" fill=\"none\" stroke=\"var(--_l)\"/>" +
-        @svg.marker("arrow_point", tip, axis_y, 1, 0, "var(--_l)") +
-        body
+      let axis = @svg.Markup::new()
+      axis.write(
+        "<path class=\"pele-axis\" d=\"M\{@svg.num(left)},\{@svg.num(axis_y)}H\{@svg.num(tip - @svg.ARROW + 1)}\" fill=\"none\" stroke=\"var(--_l)\"/>" +
+        @svg.marker("arrow_point", tip, axis_y, 1, 0, "var(--_l)"),
+      )
+      axis.write_markup(body)
+      body = axis
     }
     height = bottom + pad
   }
 
   let total_width = (width + 2 * pad).ceil()
   let total_height = @util.js_max(height, pad * 2).ceil()
-  let content = @svg.label_svg(
+  let content = @svg.Markup::new()
+  content.write(
+    @svg.label_svg(
       title,
       total_width / 2,
       pad + title.height / 2,
       " class=\"pele-title\" font-weight=\"var(--_tw)\"",
-    ) +
-    body
+    ),
+  )
+  content.write_markup(body)
   {
-    svg: @svg.svg_document(
+    svg: @svg.markup_document(
       "timeline",
       total_width,
       total_height,
