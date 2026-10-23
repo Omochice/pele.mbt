@@ -34,7 +34,7 @@ priv struct Run {
 fn draw_down(
   model : EventModelingModel,
   options : @types.RenderOptions,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   let size = options.font_size.unwrap_or(16)
   let small = (size * 0.875).round()
   let mono = (size * 0.75).round()
@@ -123,9 +123,9 @@ fn draw_down(
   let mut y = pad + (if title.height > 0 { title.height + 12 } else { 0 })
   let mut bottom = pad + title.height
   let mut width = @util.js_max(title.width, card_width + gutter)
-  let nodes = StringBuilder()
-  let edges = StringBuilder()
-  let cards = StringBuilder()
+  let nodes = @svg.Markup::new()
+  let edges = @svg.Markup::new()
+  let cards = @svg.Markup::new()
   let placed : Map[String, Card] = Map([])
   let text = (raw : String, font_size : Double, style : Int32) => {
     @common.literal_label(
@@ -202,7 +202,7 @@ fn draw_down(
         )
       None => ""
     }
-    nodes.write_string(
+    nodes.write(
       "<g class=\"pele-cluster pele-em-lane\" data-id=\"\{@svg.esc_text(box.lane.label)}\">" +
       @common.left_label_svg(
         lane,
@@ -263,7 +263,7 @@ fn draw_down(
         @svg.marker("arrow_point", pad + t.w, to, -1, 0, "var(--_l)"),
       )
     }
-    edges.write_string(
+    edges.write(
       "<g class=\"pele-edge\" data-id=\"\{@svg.esc_text(relation.source.id)}-\{@svg.esc_text(relation.target.id)}\"><path d=\"\{d}\" fill=\"none\" stroke=\"var(--_l)\"/>\{head}</g>",
     )
   }
@@ -287,7 +287,7 @@ fn draw_down(
       @util.js_max(head.width + 2.0 * BOX_PAD_X, body.width + 2.0 * BOX_PAD_X),
     )
     let h = 2.0 * BOX_PAD_Y + head.height + body.height
-    cards.write_string(
+    cards.write(
       "<g class=\"pele-em-\{kind}\" data-id=\"\{@svg.esc_text(frame)}\"><rect x=\"\{@svg.num(pad)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(w)}\" height=\"\{@svg.num(h)}\" fill=\"var(--_bg)\" stroke=\"var(--_b)\"\{@svg.ROUNDED}/>" +
       @svg.label_svg(
         head,
@@ -321,17 +321,20 @@ fn draw_down(
   }
   let total_width = (width + 2.0 * pad).ceil()
   let height = (bottom + pad).ceil()
-  let content = @svg.label_svg(
+  let content = @svg.Markup::new()
+  content.write(
+    @svg.label_svg(
       title,
       total_width / 2,
       pad + title.height / 2,
       " class=\"pele-title\" font-weight=\"var(--_tw)\"",
-    ) +
-    edges.to_string() +
-    nodes.to_string() +
-    cards.to_string()
+    ),
+  )
+  content.write_markup(edges)
+  content.write_markup(nodes)
+  content.write_markup(cards)
   {
-    svg: @svg.svg_document(
+    svg: @svg.markup_document(
       "eventmodeling",
       total_width,
       height,

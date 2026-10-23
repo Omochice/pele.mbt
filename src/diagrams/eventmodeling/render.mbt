@@ -144,7 +144,7 @@ pub fn render_event_model(
   model : EventModelingModel,
   _config : @types.Config,
   options : @types.RenderOptions,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   @common.turn_to_fit(options, down => {
     if down {
       draw_down(model, options)
@@ -158,7 +158,7 @@ pub fn render_event_model(
 fn draw_across(
   model : EventModelingModel,
   options : @types.RenderOptions,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   let size = options.font_size.unwrap_or(16)
   let name_size = (size * 0.875).round()
   let small = (size * 0.8125).round()
@@ -264,11 +264,11 @@ fn draw_across(
   let top = pad + title_height
 
   let mut y = top
-  let lanes = StringBuilder()
+  let lanes = @svg.Markup::new()
   for band in bands {
     band.y = y
     band.h += 2.0 * LANE_PAD
-    lanes.write_string(
+    lanes.write(
       "<g class=\"pele-cluster pele-em-lane\" data-id=\"\{@svg.esc_text(band.lane.label)}\">" +
       "<rect x=\"\{@svg.num(left)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(lane_width)}\" height=\"\{@svg.num(band.h)}\" fill=\"var(--_s)\"\{@svg.ROUNDED}/>" +
       @svg.label_svg(
@@ -283,7 +283,7 @@ fn draw_across(
   }
   let mut bottom = if bands.length() > 0 { y - LANE_GAP } else { top }
 
-  let nodes = StringBuilder()
+  let nodes = @svg.Markup::new()
   for item in placed {
     let band = band_of[item.box.lane.key]
     item.x += left + label_column
@@ -309,12 +309,12 @@ fn draw_across(
         mono_step,
         " class=\"pele-em-data\" font-family=\"\{FONT_MONO}\" font-size=\"\{@svg.num(mono)}\"",
       )
-    nodes.write_string(
+    nodes.write(
       "<g class=\"pele-node pele-em-\{kind_class(item.box.kind)}\{if item.box.reset { " pele-em-reset" } else { "" }}\" data-id=\"\{@svg.esc_text(item.box.id)}\">\{shape}\{text}</g>",
     )
   }
 
-  let edges = StringBuilder()
+  let edges = @svg.Markup::new()
   let trim = @svg.marker_trim("arrow_point")
   for relation in model.relations {
     guard by_box.get(relation.source.id) is Some(s) &&
@@ -369,14 +369,14 @@ fn draw_across(
       }
       (d, @svg.marker("arrow_point", tx, ty, 0, dir, "var(--_l)"))
     }
-    edges.write_string(
+    edges.write(
       "<g class=\"pele-edge\" data-id=\"\{@svg.esc_text(relation.source.id)}-\{@svg.esc_text(relation.target.id)}\"><path d=\"\{d}\" fill=\"none\" stroke=\"var(--_l)\"/>\{head}</g>",
     )
   }
 
   // Notes and given/when/then specifications are listed under the lanes with the frame they belong to.
   let names = frame_names(model)
-  let cards = StringBuilder()
+  let cards = @svg.Markup::new()
   let mut any_card = false
   let mut cards_right = 0.0
   let card = (
@@ -403,7 +403,7 @@ fn draw_across(
       rows.length().to_double() * small_step
     let cy = bottom + (if !any_card && bands.is_empty() { 0 } else { CARD_GAP })
     any_card = true
-    cards.write_string(
+    cards.write(
       "<g class=\"pele-em-\{kind}\" data-id=\"\{@svg.esc_text(frame)}\">" +
       "<rect x=\"\{@svg.num(left)}\" y=\"\{@svg.num(cy)}\" width=\"\{@svg.num(w)}\" height=\"\{@svg.num(h)}\" fill=\"var(--_bg)\" stroke=\"var(--_b)\"\{@svg.ROUNDED}/>" +
       @svg.label_svg(
@@ -441,18 +441,21 @@ fn draw_across(
   )
   let total_width = (width + 2 * pad).ceil()
   let total_height = (bottom + pad).ceil()
-  let content = @svg.label_svg(
+  let content = @svg.Markup::new()
+  content.write(
+    @svg.label_svg(
       title,
       total_width / 2,
       pad + title.height / 2,
       " class=\"pele-title\" font-weight=\"var(--_tw)\"",
-    ) +
-    lanes.to_string() +
-    edges.to_string() +
-    nodes.to_string() +
-    cards.to_string()
+    ),
+  )
+  content.write_markup(lanes)
+  content.write_markup(edges)
+  content.write_markup(nodes)
+  content.write_markup(cards)
   {
-    svg: @svg.svg_document(
+    svg: @svg.markup_document(
       "eventmodeling",
       total_width,
       total_height,
