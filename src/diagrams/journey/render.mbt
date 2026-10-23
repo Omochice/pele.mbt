@@ -233,20 +233,23 @@ fn horizontal_journey(
         let dot_y = cards_y + card_h - PAD_Y - DOT
         let color = @svg.series_color(actor.get(name).unwrap_or(0))
         dots.write(
-          "<circle class=\"pele-actor\" cx=\"\{@svg.num(dot_x)}\" cy=\"\{@svg.num(dot_y)}\" r=\"\{DOT}\" fill=\"\{color}\" stroke=\"var(--_s)\">" +
-          "<title>\{@svg.esc_text(name)}</title></circle>",
+          "<circle class=\"pele-actor\" cx=\"\{@svg.num(dot_x)}\" cy=\"\{@svg.num(dot_y)}\" r=\"\{DOT}\" fill=\"\{color}\" stroke=\"var(--_s)\"><title>",
         )
+        @svg.write_esc_text(dots, name)
+        dots.write("</title></circle>")
       }
       let card = @svg.Markup::new()
+      card.write("<g class=\"pele-node pele-task\" data-id=\"")
+      @svg.write_esc_text(card, @util.trim(task.task))
       card.write(
-        "<g class=\"pele-node pele-task\" data-id=\"\{@svg.esc_text(@util.trim(task.task))}\">" +
-        "<rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(cards_y)}\" width=\"\{@svg.num(card_w)}\" height=\"\{@svg.num(card_h)}\" fill=\"var(--_s)\" stroke=\"var(--_b)\"\{@svg.ROUNDED}/>" +
-        @svg.label_svg(
-          labels[index],
-          cx,
-          cards_y + PAD_Y + text_h / 2,
-          " font-size=\"\{small}\"",
-        ),
+        "\"><rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(cards_y)}\" width=\"\{@svg.num(card_w)}\" height=\"\{@svg.num(card_h)}\" fill=\"var(--_s)\" stroke=\"var(--_b)\"\{@svg.ROUNDED}/>",
+      )
+      @svg.write_label(
+        card,
+        labels[index],
+        cx,
+        cards_y + PAD_Y + text_h / 2,
+        " font-size=\"\{small}\"",
       )
       card.write_markup(dots)
       card.write("</g>")
@@ -272,15 +275,17 @@ fn horizontal_journey(
         Some(label) => {
           let x = left + run.start.to_double() * pitch
           let w = run.count.to_double() * pitch - GAP
+          body.write("<g class=\"pele-cluster pele-section\" data-id=\"")
+          @svg.write_esc_text(body, @util.trim(tasks[run.start].section))
           body.write(
-            "<g class=\"pele-cluster pele-section\" data-id=\"\{@svg.esc_text(@util.trim(tasks[run.start].section))}\">" +
-            "<rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(top)}\" width=\"\{@svg.num(w)}\" height=\"\{@svg.num(band_h)}\" fill=\"var(--_a)\"\{@svg.ROUNDED}/>" +
-            @svg.label_svg(
-              label,
-              x + w / 2,
-              top + band_h / 2,
-              " font-size=\"\{small}\" font-weight=\"var(--_hw)\"",
-            ),
+            "\"><rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(top)}\" width=\"\{@svg.num(w)}\" height=\"\{@svg.num(band_h)}\" fill=\"var(--_a)\"\{@svg.ROUNDED}/>",
+          )
+          @svg.write_label(
+            body,
+            label,
+            x + w / 2,
+            top + band_h / 2,
+            " font-size=\"\{small}\" font-weight=\"var(--_hw)\"",
           )
           body.write_markup(members)
           body.write("</g>")
@@ -296,17 +301,19 @@ fn horizontal_journey(
       for item in legend {
         let cy = y0 + item.y + item.h / 2
         let color = @svg.series_color(actor.get(item.name).unwrap_or(0))
+        items.write("<g class=\"pele-legend-item\" data-id=\"")
+        @svg.write_esc_text(items, item.name)
         items.write(
-          "<g class=\"pele-legend-item\" data-id=\"\{@svg.esc_text(item.name)}\">" +
-          "<circle cx=\"\{@svg.num(x0 + item.x + DOT)}\" cy=\"\{@svg.num(cy)}\" r=\"\{DOT}\" fill=\"\{color}\"/>" +
-          @svg.label_svg(
-            item.label,
-            x0 + item.x + 2.0 * DOT + 6 + item.label.width / 2,
-            cy,
-            "",
-          ) +
-          "</g>",
+          "\"><circle cx=\"\{@svg.num(x0 + item.x + DOT)}\" cy=\"\{@svg.num(cy)}\" r=\"\{DOT}\" fill=\"\{color}\"/>",
         )
+        @svg.write_label(
+          items,
+          item.label,
+          x0 + item.x + 2.0 * DOT + 6 + item.label.width / 2,
+          cy,
+          "",
+        )
+        items.write("</g>")
       }
       body.write_group(
         "<g class=\"pele-legend\" font-size=\"\{small}\">",

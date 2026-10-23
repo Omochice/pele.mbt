@@ -37,13 +37,12 @@ fn vertical_journey(
         base=@text.STYLE_BOLD,
       )
       if head.height != 0 {
-        body.write(
-          @svg.label_svg(
-            head,
-            pad + 8 + head.width / 2,
-            y + head.height / 2,
-            " class=\"pele-cluster-label\" font-weight=\"var(--_hw)\"",
-          ),
+        @svg.write_label(
+          body,
+          head,
+          pad + 8 + head.width / 2,
+          y + head.height / 2,
+          " class=\"pele-cluster-label\" font-weight=\"var(--_hw)\"",
         )
         width = @util.js_max(width, head.width + 16)
         y += head.height + 8
@@ -62,13 +61,12 @@ fn vertical_journey(
     body.write(
       "<g class=\"pele-node pele-journey-step\" data-id=\"\{index}\"><rect x=\"\{@svg.num(pad)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(w)}\" height=\"\{@svg.num(h)}\" fill=\"var(--_s)\" stroke=\"var(--_b)\"\{@svg.ROUNDED}/>",
     )
-    body.write(
-      @svg.label_svg(
-        label,
-        pad + PAD_X + label.width / 2,
-        y + PAD_Y + label.height / 2,
-        " class=\"pele-label\"",
-      ),
+    @svg.write_label(
+      body,
+      label,
+      pad + PAD_X + label.width / 2,
+      y + PAD_Y + label.height / 2,
+      " class=\"pele-label\"",
     )
     let cx = pad + w - 28
     body.write(face(cx, y + PAD_Y + FACE, mood_of(task.score)))
@@ -83,13 +81,14 @@ fn vertical_journey(
       let ph = @util.js_max(16, person.1.height)
       let color = @svg.series_color(actors.get(person.0).unwrap_or(0))
       body.write(
-        "<circle class=\"pele-actor\" cx=\"\{@svg.num(pad + 16)}\" cy=\"\{@svg.num(py + ph / 2)}\" r=\"\{DOT}\" fill=\"\{color}\"/>" +
-        @svg.label_svg(
-          person.1,
-          pad + 28 + person.1.width / 2,
-          py + ph / 2,
-          " class=\"pele-journey-actor\" font-size=\"\{small}\"",
-        ),
+        "<circle class=\"pele-actor\" cx=\"\{@svg.num(pad + 16)}\" cy=\"\{@svg.num(py + ph / 2)}\" r=\"\{DOT}\" fill=\"\{color}\"/>",
+      )
+      @svg.write_label(
+        body,
+        person.1,
+        pad + 28 + person.1.width / 2,
+        py + ph / 2,
+        " class=\"pele-journey-actor\" font-size=\"\{small}\"",
       )
       py += ph + 4
     }
