@@ -311,6 +311,8 @@ export const CASES = [
   lazy('journey', 'a front matter title wrapped past what a doubling StringBuilder holds', () => `---\ntitle: ${'<'.repeat(70000000)}\n---\njourney\nsection S\n  T: 5: Me\n`, RAISED),
   lazy('journey', 'a front matter title wrapped past what a doubling StringBuilder holds, drawn down', () => `---\ntitle: ${'<'.repeat(70000000)}\n---\njourney\nsection S\n  T: 5: Me\n`, { ...RAISED, maxWidth: 300 }),
   lazy('journey', 'a title past V8', () => `journey\ntitle ${'"'.repeat(90000000)}\nsection S\n  T: 5: Me\n`, RAISED),
+  lazy('timeline', 'a front matter title wrapped past what a doubling StringBuilder holds', () => `---\ntitle: ${'<'.repeat(70000000)}\n---\ntimeline\n  p : e\n`, RAISED),
+  lazy('timeline', 'a title past V8', () => `timeline\ntitle ${'"'.repeat(90000000)}\n  p : e\n`, RAISED),
   // A YAML plain scalar cannot start with `"`, so a front matter title of `"` starts with `x`.
   lazy('flowchart', 'a front matter title past V8', () => `---\ntitle: x${'"'.repeat(90000000)}\n---\ngraph TD\nA\n`, RAISED),
   lazy('swimlane', 'a front matter title past V8', () => `---\ntitle: x${'"'.repeat(90000000)}\n---\nswimlane-beta TB\nsubgraph L\nA\nend\n`, RAISED),
