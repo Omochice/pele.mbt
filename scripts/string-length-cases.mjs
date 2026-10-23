@@ -110,4 +110,5 @@ export const CASES = [
   ['timeline', 'long events', `timeline\n${names('', 1650).map((name) => `  ${name} : E${'&'.repeat(50000)}`).join('\n')}\n`, RAISED],
   // Laying out many sets takes time that grows faster than their count, so the texts of one set amplify instead.
   ['venn', 'long texts in one set', `venn-beta\nset A\n${names('T', 2180).map((name) => `  text ${name}["${'&'.repeat(50000)}"]`).join('\n')}\n`, RAISED],
+  ['xychart', 'bar series', `xychart\n${Array(1060).fill(`bar [${Array(10000).fill(1).join(',')}]`).join('\n')}\n`, RAISED],
 ];
