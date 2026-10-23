@@ -10,6 +10,8 @@ export const RAISED = { limit: Number.MAX_VALUE, outputLimit: Number.MAX_VALUE }
 // icon spans, whatever diagram the label is in.
 const ICONS = { ...RAISED, icons: { 'fa:fa-x': `<path d="${'M0 0'.repeat(25000)}"/>` } };
 const iconLabel = (count) => `graph TD\nA["${Array(count).fill('fa:fa-x').join(' ')}"]\n`;
+// A host icon as long as the fill, for the diagrams that draw one for each element.
+const ICON = { ...RAISED, icons: { 'fa:fa-a': `<path d="${'M0 0'.repeat(12500)}"/>` } };
 
 export const CASES = [
   [
@@ -77,4 +79,5 @@ export const CASES = [
     `gantt\ndateFormat YYYY-MM-DD\n${names('s', 10700).map((name) => `section fa:fa-big ${name}\nt${name} :2026-01-01, 1d`).join('\n')}\n`,
     { ...RAISED, icons: { 'fa:fa-big': `<path d="M0,0${'H1'.repeat(25000)}"/>` } },
   ],
+  ['kanban', 'cards with an icon', `kanban\nc[Col]\n${names('k', 10700).map((name) => `  ${name}[fa:fa-a]`).join('\n')}\n`, ICON],
 ];
