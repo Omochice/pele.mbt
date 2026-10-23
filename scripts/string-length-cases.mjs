@@ -173,4 +173,6 @@ export const CASES = [
   // An entry's name is written in its data-id and as its text.
   ['treeview', 'one entry named by many &', `treeView-beta\n  "${'&'.repeat(54000000)}"\n`, RAISED],
   ['treeview', 'one entry described by many &', `treeView-beta\n  a "${'&'.repeat(110000000)}"\n`, RAISED],
+  ['wardley', 'host icons in one anchor label', `wardley-beta\nanchor "${Array(5400).fill('fa:fa-x').join(' ')}" [0.5, 0.5]\n`, ICONS],
+  ['wardley', 'host icons in one link label', `wardley-beta\ncomponent A [0.2, 0.2]\ncomponent B [0.8, 0.8]\nA->B; ${Array(5400).fill('fa:fa-x').join(' ')}\n`, ICONS],
 ];
