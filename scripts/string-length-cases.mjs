@@ -322,6 +322,7 @@ export const CASES = [
   lazy('requirement', 'a front matter title past V8', () => `---\ntitle: x${'"'.repeat(90000000)}\n---\nrequirementDiagram\nrequirement r {\n}\n`, RAISED),
   lazy('usecase', 'a front matter title past V8', () => `---\ntitle: x${'"'.repeat(90000000)}\n---\nusecase-beta\nU("x")\n`, RAISED),
   lazy('kanban', 'a front matter title past V8', () => `---\ntitle: x${'"'.repeat(90000000)}\n---\nkanban\nc[Col]\n  k[x]\n`, RAISED),
+  lazy('mindmap', 'a front matter title past V8', () => `---\ntitle: x${'"'.repeat(90000000)}\n---\nmindmap\nroot\n`, RAISED),
   lazy('architecture', 'a title past V8', () => `architecture-beta\ntitle ${'"'.repeat(90000000)}\nservice s(server)[x]\n`, RAISED),
   lazy('cynefin', 'a title past V8', () => `cynefin-beta\ntitle ${'"'.repeat(90000000)}\ncomplex\n  "x"\n`, RAISED),
   lazy('git', 'a title past V8', () => `gitGraph\ntitle ${'"'.repeat(90000000)}\ncommit\n`, RAISED),
