@@ -119,4 +119,9 @@ export const CASES = [
   // Each `&` of an accessible description is escaped to five code units in the document's head.
   ['pie', 'an accessible description longer than a doubling StringBuilder holds', `pie\naccDescr: ${'&'.repeat(60000000)}\n"a":1\n`, RAISED],
   ['pie', 'an accessible description past V8', `pie\naccDescr: ${'&'.repeat(110000000)}\n"a":1\n`, RAISED],
+  // An info diagram repeats nothing, so only its one title or accessible description can grow.
+  ['info', 'a title longer than a doubling StringBuilder holds', `info\ntitle ${'&'.repeat(60000000)}\n`, RAISED],
+  ['info', 'a title past V8', `info\ntitle ${'&'.repeat(110000000)}\n`, RAISED],
+  ['info', 'an accessible description longer than a doubling StringBuilder holds', `info\naccDescr: ${'&'.repeat(60000000)}\n`, RAISED],
+  ['info', 'an accessible description past V8', `info\naccDescr: ${'&'.repeat(110000000)}\n`, RAISED],
 ];
