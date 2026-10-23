@@ -53,68 +53,97 @@ fn is_family_char(c : Int32, first : Bool) -> Bool {
 }
 
 ///|
-/// The end of one family name at `at`, quoted or not, or -1.
-fn family_end(list : String, at : Int32) -> Int32 {
+/// The end of one family name at `at`, quoted or not, or -1, and the slots of V8's backtracking stack reading it takes, as `family_list_slots` counts them.
+fn family_end(list : String, at : Int32, wide : Bool) -> (Int32, Int64) {
   let quote = @util.code_at(list, at)
   if quote == '"'.to_int() || quote == '\''.to_int() {
     let mut i = at + 1
+    let mut steps = 0L
     while i < list.length() {
       let c = @util.code_at(list, i)
       if c == quote {
-        return i + 1
+        return (i + 1, if wide { 2L * steps } else { 0L })
       }
       if "\"'\\\n<>{}();:@".contains_code_unit(c.to_uint16()) {
-        return -1
+        break
       }
-      i += 1
+      i = code_point_at(list, i).1
+      steps += 1
     }
-    return -1
+    return (-1, if wide { 2L * steps + 4 } else { 4L })
   }
   let (first, next) = code_point_at(list, at)
   if !is_family_char(first, true) {
-    return -1
+    return (-1, 0L)
   }
   let mut i = next
+  let mut steps = 0L
   while i < list.length() {
     let (c, after) = code_point_at(list, i)
     if !is_family_char(c, false) {
       break
     }
     i = after
+    steps += 1
   }
-  i
-}
-
-///|
-fn skip_space(text : String, from : Int32) -> Int32 {
-  let mut i = from
-  while @util.is_space(@util.code_at(text, i)) {
-    i += 1
-  }
-  i
+  (i, if wide { 4L * steps } else { 0L })
 }
 
 ///|
 /// Whether the list is font names, quoted or not, and nothing that could end the declaration
 /// it is put in.
-/// Each font after the first takes eleven slots of V8's backtracking stack, whatever its quotes and blanks, and the error pele reports is raised once they fill it.
+/// Raises the error pele reports where its pattern for the list runs out of V8's backtracking stack, see `family_list_slots`.
 fn is_family_list(list : String) -> Bool raise @errors.PeleError {
-  let mut end = family_end(list, skip_space(list, 0))
-  let mut more = 0L
-  while end != -1 {
-    let after = skip_space(list, end)
-    if after == list.length() || @util.code_at(list, after) != ','.to_int() {
-      break
-    }
-    end = family_end(list, skip_space(list, after + 1))
-    if end != -1 {
-      more += 1
-    }
-  }
-  if @util.backtrack_stack_overflows(11L * more + 6) {
+  let (fits, slots) = family_list_slots(list)
+  if @util.backtrack_stack_overflows(slots) {
     raise @errors.nested_too_deeply()
   }
-  end != -1 && skip_space(list, end) == list.length()
+  fits
+}
+
+///|
+/// Whether the list is font names, and the most slots of V8's backtracking stack pele's `u` pattern for it fills.
+/// V8 matches a list of Latin-1 characters with code that takes eleven slots for each font tried after the first and nothing for its characters.
+/// A list with a character past Latin-1 is two-byte text, matched with code that takes four slots for each font tried after the first, two for each blank and each quoted character, and four for each unquoted character after a font's first.
+/// Either takes four more for a quoted font left unclosed.
+fn family_list_slots(list : String) -> (Bool, Int64) {
+  let wide = list.iter().any(c => c.to_int() > 0xff)
+  let blank = if wide { 2L } else { 0L }
+  let mut depth = 2L
+  let mut at = 0
+  while @util.is_space(@util.code_at(list, at)) {
+    at += 1
+    depth += blank
+  }
+  let (first_end, first_slots) = family_end(list, at, wide)
+  if first_end == -1 {
+    return (false, depth + first_slots)
+  }
+  depth += first_slots
+  let mut end = first_end
+  while true {
+    let mut tried = if wide { 4L } else { 11L }
+    let mut i = end
+    while @util.is_space(@util.code_at(list, i)) {
+      i += 1
+      tried += blank
+    }
+    if @util.code_at(list, i) != ','.to_int() {
+      return (i == list.length(), depth + tried)
+    }
+    i += 1
+    while @util.is_space(@util.code_at(list, i)) {
+      i += 1
+      tried += blank
+    }
+    let (next, slots) = family_end(list, i, wide)
+    if next == -1 {
+      return (false, depth + tried + slots)
+    }
+    depth += tried + slots
+    end = next
+  }
+  (false, depth)
 }
 
 ///|
