@@ -52,4 +52,10 @@ export const CASES = [
   ['flowchart', 'host icons in one node label', iconLabel(5400), ICONS],
   ['flowchart', 'one node label longer than a doubling StringBuilder holds', iconLabel(3000), ICONS],
   ['swimlane', 'host icons in one lane title', `swimlane-beta TB\nsubgraph L["${Array(5400).fill('fa:fa-x').join(' ')}"]\nA\nend\n`, ICONS],
+  [
+    'architecture',
+    'services drawing a host icon',
+    `architecture-beta\n${names('s', 10700).map((name) => `service ${name}(big)[x]`).join('\n')}\n`,
+    { ...RAISED, icons: { big: `<path d="M0,0${'H1'.repeat(25000)}"/>` } },
+  ],
 ];
