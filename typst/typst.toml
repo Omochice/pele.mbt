@@ -1,0 +1,12 @@
+[package]
+name = "pele"
+version = "0.1.0"
+entrypoint = "lib.typ"
+authors = ["Omochice"]
+license = "Zlib AND MIT"
+description = "Render Mermaid diagrams with pele, compiled to a WebAssembly plugin"
+repository = "https://github.com/Omochice/pele.mbt"
+keywords = ["mermaid", "diagram", "flowchart", "svg"]
+categories = ["visualization"]
+compiler = "0.15.0"
+exclude = ["examples", "tests"]
