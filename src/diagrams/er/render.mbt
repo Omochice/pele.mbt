@@ -103,7 +103,6 @@ priv struct Loop {
 ///|
 /// Writes a measured label starting at `x`, with the baseline of its first line at `y`.
 /// Icon spans are drawn in place by `icons`, and the text after one is positioned anew.
-/// pele also places math here; labels in this port hold none.
 fn text_left(
   label : @text.Label,
   x : Double,
@@ -118,6 +117,7 @@ fn text_left(
   if lines.length() == 1 &&
     lines[0].length() == 1 &&
     lines[0][0].icon is None &&
+    lines[0][0].math is None &&
     lines[0][0].style == 0 {
     return "<text\{attrs} x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\">\{@svg.esc(lines[0][0].text)}</text>"
   }
@@ -127,7 +127,19 @@ fn text_left(
   let body = StringBuilder()
   let extra = StringBuilder()
   for i, line in lines {
-    let middle = top + (i.to_double() + 0.5) * label.line_height
+    let middle = top + @text.line_middle(label, i)
+    if @text.has_math(line) {
+      extra.write_string(
+        @svg.label_svg(
+          @text.label_line(label, i),
+          x + label.widths[i] / 2,
+          middle,
+          attrs,
+          icons?,
+        ),
+      )
+      continue
+    }
     let line_y = middle + shift
     let has_icon = line.iter().any(span => span.icon is Some(_))
     let mut sx = x
