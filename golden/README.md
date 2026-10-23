@@ -162,10 +162,12 @@ This ceiling is the one intentional, platform-imposed difference from pele; ever
 
 A diagram reaches the ceiling when some repeated part of its source multiplies into the SVG without a cap, so that a source within the limit draws an SVG past it.
 Every diagram that writes a `classDef` or `style` into each of many elements can.
-The flowchart (and the swimlane it renders through), class, state, ER, block, agentflow, requirement, treemap, and use case diagrams build their SVG with `Markup` and so fail with a `limit` error where pele does; each has an amplifying input in `scripts/string-length-cases.mjs` and a skipped test in `src/diagrams/<diagram>/string_length_test.mbt`.
+The flowchart (and the swimlane it renders through), class, state, ER, block, agentflow, requirement, treemap, use case, architecture, C4, Cynefin, and Gantt diagrams build their SVG with `Markup` and so fail with a `limit` error where pele does; each has an amplifying input in `scripts/string-length-cases.mjs` and a skipped test in `src/diagrams/<diagram>/string_length_test.mbt`.
+The architecture, Cynefin, and Gantt diagrams reach it through the host icon drawn in each service, item, or section label.
+The C4 diagram draws no host markup, only an empty icon box of about 260 code units for each icon span in a label, so it reaches V8's longest string only from a source of tens of millions of code units under a raised `limit`.
 
 The other diagrams still build their SVG with a plain `StringBuilder`, which traps when it grows past 2^28 code units rather than reporting the `limit` error.
-A diagram that draws host icons can be driven there, because the icon markup the host supplies is unbounded and a label may hold many icon spans; the icon-drawing ones not yet converted are the architecture, c4, cynefin, gantt, git, kanban, mindmap, sequence, treeview, and wardley diagrams, and pie draws host icons in its slice labels as well.
+A diagram that draws host icons can be driven there, because the icon markup the host supplies is unbounded and a label may hold many icon spans; the icon-drawing ones not yet converted are the git, kanban, mindmap, sequence, treeview, and wardley diagrams, and pie draws host icons in its slice labels as well.
 Moving each to `Markup` is the same change the diagrams above have had; it is follow-up work.
 
 A single label can reach the ceiling on its own, however small the diagram, because each of its icon spans draws the host's drawing of the icon and each of its `$$…$$` spans draws the host's math markup.
