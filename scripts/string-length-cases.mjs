@@ -121,7 +121,8 @@ export const CASES = [
   ['pie', 'an accessible description past V8', `pie\naccDescr: ${'&'.repeat(110000000)}\n"a":1\n`, RAISED],
   // An info diagram repeats nothing, so only its one title or accessible description can grow.
   ['info', 'a title longer than a doubling StringBuilder holds', `info\ntitle ${'&'.repeat(60000000)}\n`, RAISED],
-  ['info', 'a title past V8', `info\ntitle ${'&'.repeat(110000000)}\n`, RAISED],
+  // pele lays out a title of `&` in more than V8's default heap, so `"`, escaped to six code units, takes fewer.
+  ['info', 'a title past V8', `info\ntitle ${'"'.repeat(90000000)}\n`, RAISED],
   ['info', 'an accessible description longer than a doubling StringBuilder holds', `info\naccDescr: ${'&'.repeat(60000000)}\n`, RAISED],
   ['info', 'an accessible description past V8', `info\naccDescr: ${'&'.repeat(110000000)}\n`, RAISED],
 ];

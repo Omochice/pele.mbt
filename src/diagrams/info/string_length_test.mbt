@@ -25,7 +25,7 @@ test "a title longer than a doubling StringBuilder holds is drawn" {
 ///|
 #skip("slow: escapes over 536 million code units before it fails")
 test "a title outgrowing V8's longest string fails as nested too deeply" {
-  let title = "&".repeat(110000000)
+  let title = "\"".repeat(90000000)
   inspect(
     failure_of("info\ntitle \{title}\n"),
     content="limit: Diagram is nested too deeply. info info",
