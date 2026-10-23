@@ -17,7 +17,7 @@ pub let swimlane : @types.Diagram = {
   section: None,
   keep_comments: false,
   parse: (source, config, title, _, limits) => {
-    ignore(parse_swimlane(source, config, title, limits))
-    { render: (_, _) => { svg: "", width: 0, height: 0, links: [], }, }
+    let db = parse_swimlane(source, config, title, limits)
+    { render: (config, options) => render_swimlane(db, config, options), }
   },
 }
