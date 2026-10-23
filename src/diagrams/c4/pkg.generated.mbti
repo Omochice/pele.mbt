@@ -3,6 +3,7 @@ package "Omochice/pele/diagrams/c4"
 
 import {
   "Omochice/pele/errors",
+  "Omochice/pele/text",
 }
 
 // Values
@@ -13,6 +14,8 @@ pub const LANE : Double = 20
 pub fn crosses(Array[Double], Double, Double, Double, Double) -> Bool
 
 pub fn cyl_ry(Double) -> Double
+
+pub fn layout_c4(C4Db, @text.TextMeasurer, Double, Double, Double?, Double) -> Layout
 
 pub fn parse_c4(String, C4Db) -> Unit raise @errors.PeleError
 
@@ -125,6 +128,17 @@ pub(all) struct C4Tokens {
   ends : Array[Int32]
 }
 
+pub(all) struct Group {
+  box : Box
+  boundary : C4Element
+  kids : Array[Group]
+  nodes : Array[Node]
+  labels : Array[@text.Label]
+  head : Double
+  head_w : Double
+  mut head_x : Double
+}
+
 pub struct Lanes {
   upright : Array[Double]
   level : Array[Double]
@@ -135,6 +149,18 @@ pub struct Lanes {
 }
 pub fn Lanes::frame(Self, Box) -> Unit
 pub fn Lanes::new() -> Self
+
+pub(all) struct Layout {
+  order : Array[Group]
+  boxes : Map[Int32, Box]
+}
+
+pub(all) struct Node {
+  box : Box
+  shape : C4Element
+  labels : Array[@text.Label]
+  text_h : Double
+}
 
 pub(all) struct Route {
   d : String
