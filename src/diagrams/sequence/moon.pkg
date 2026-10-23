@@ -3,5 +3,6 @@ import {
   "Omochice/pele/svg",
   "Omochice/pele/text",
   "Omochice/pele/util",
+  "moonbitlang/core/double",
   "moonbitlang/core/json",
 }
