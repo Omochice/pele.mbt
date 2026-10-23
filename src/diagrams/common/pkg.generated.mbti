@@ -50,7 +50,7 @@ pub fn fit_text(String, Double, Double, Double, @text.TextMeasurer, style? : Int
 
 pub fn fit_width(@types.RenderOptions, Double, Double, (Double, Bool) -> @types.Rendered) -> @types.Rendered
 
-pub fn icon_svg(String, Double, Double, Double, drawing? : String) -> String
+pub fn icon_svg(String, Double, Double, Double, icons? : (String) -> String?, drawing? : String) -> String
 
 pub fn keyword(String) -> TokenType
 

@@ -11,6 +11,29 @@ test "icon_svg draws an empty square named after the icon" {
 }
 
 ///|
+test "icon_svg draws what the host has for the icon before its own drawing" {
+  let icons = (name : String) => {
+    match name {
+      "car" => Some("<path id=\"car\"/>")
+      "blank" => Some("")
+      _ => None
+    }
+  }
+  inspect(
+    @common.icon_svg("car", 0, 0, 24, icons~, drawing="<circle/>"),
+    content="<svg class=\"pele-icon\" data-icon=\"car\" x=\"0\" y=\"0\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path id=\"car\"/></svg>",
+  )
+  inspect(
+    @common.icon_svg("blank", 0, 0, 24, icons~, drawing="<circle/>"),
+    content="<svg class=\"pele-icon\" data-icon=\"blank\" x=\"0\" y=\"0\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></svg>",
+  )
+  inspect(
+    @common.icon_svg("other", 0, 0, 24, icons~, drawing="<circle/>"),
+    content="<svg class=\"pele-icon\" data-icon=\"other\" x=\"0\" y=\"0\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle/></svg>",
+  )
+}
+
+///|
 test "icon_svg matches pele over names, positions and sizes" {
   let outputs = []
   let names = [
