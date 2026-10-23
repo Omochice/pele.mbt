@@ -3,6 +3,7 @@ package "Omochice/pele/diagrams/block"
 
 import {
   "Omochice/pele/errors",
+  "Omochice/pele/types",
 }
 
 // Values
@@ -11,6 +12,8 @@ pub fn arrow_axis(Int32) -> String
 pub fn arrow_mask(Array[String]) -> Int32
 
 pub fn arrow_size(Int32, Double, Double) -> ArrowSize
+
+pub let block : @types.Diagram
 
 pub fn calculate_block_position(Double, Double) -> (Double, Double) raise @errors.PeleError
 
@@ -29,6 +32,8 @@ pub fn edge_str_to_thickness(String) -> String
 pub fn layout(Cell, Double) -> (Double, Double) raise @errors.PeleError
 
 pub fn parse_block(String, BlockDb) -> Unit raise @errors.PeleError
+
+pub fn render_block(BlockDb, Map[String, Json], @types.RenderOptions) -> @types.Rendered raise @errors.PeleError
 
 pub fn tokenize(String) -> Tokens
 
