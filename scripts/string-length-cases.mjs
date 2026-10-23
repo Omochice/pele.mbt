@@ -390,6 +390,17 @@ export const CASES = [
   lazy('state', 'one state colored past V8', () => `stateDiagram-v2\nA\nstyle A color:${'&'.repeat(110000000)}\n`, RAISED),
   // A fill goes into the style of the state's box, and a color into its label's.
   lazy('state', 'one state filled by many &', () => `stateDiagram-v2\nA\nstyle A fill:${'&'.repeat(54000000)}\n`, RAISED),
+  // An element's alias is its data-id, and a relation's names both its ends.
+  lazy('c4', 'one person aliased by many &', () => `C4Context\nPerson(${'&'.repeat(54000000)}, "x")\n`, RAISED),
+  lazy('c4', 'one person aliased past V8', () => `C4Context\nPerson(${'&'.repeat(110000000)}, "x")\n`, RAISED),
+  lazy('c4', 'one boundary aliased by many &', () => `C4Context\nBoundary(${'&'.repeat(54000000)}, "x") {\n  Person(p, "x")\n}\n`, RAISED),
+  lazy('c4', 'a relation between people aliased by many &', () => `C4Context\nPerson(${'&'.repeat(54000000)}, "x")\nPerson(q, "y")\nRel(${'&'.repeat(54000000)}, q, "")\n`, RAISED),
+  lazy('c4', 'one relation described by many &', () => `C4Context\nPerson(p, "x")\nPerson(q, "y")\nRel(p, q, "l", "t", "${'&'.repeat(54000000)}")\n`, RAISED),
+  lazy('c4', 'one link of many &', () => `C4Context\nPerson(p, "x", "d", "s", "t", "https://x/${'&'.repeat(54000000)}")\n`, RAISED),
+  // A system's fill goes once into its box; a person's text color into each of its labels.
+  lazy('c4', 'one system filled by many &', () => `C4Context\nSystem(s, "x")\nUpdateElementStyle(s, "${'&'.repeat(54000000)}")\n`, RAISED),
+  lazy('c4', 'one person colored by many &', () => `C4Context\nPerson(p, "x")\nUpdateElementStyle(p, $fontColor="${'&'.repeat(54000000)}")\n`, RAISED),
+  lazy('c4', 'one relation lined by many &', () => `C4Context\nPerson(p, "x")\nPerson(q, "y")\nRel(p, q, "l")\nUpdateRelStyle(p, q, "red", "${'&'.repeat(54000000)}")\n`, RAISED),
 ];
 
 // A case whose source is built only when the check reaches it, as a getter in the source's place,
