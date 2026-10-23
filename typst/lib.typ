@@ -1,7 +1,7 @@
 #let _plugin = plugin("plugin.wasm")
 
 /// The fonts the default theme names in place of pele's generic families.
-/// typst's SVG renderer resolves no generic family such as `sans-serif` or `monospace`, and pele lays labels out with Arial's metrics, so Arial and its metric-compatible stand-ins come first.
+/// typst's SVG renderer resolves no generic family such as `sans-serif` or `monospace`, and pele lays labels out with Arial's metrics unless it is given a measurer, so Arial and its metric-compatible stand-ins come first.
 /// DejaVu Sans Mono ships with typst, so code is drawn in it wherever the document is compiled.
 #let default-fonts = (
   font: "Arial, Helvetica, Liberation Sans, Arimo",

@@ -47,10 +47,35 @@ An absent key keeps pele's own value.
 A value holding `;`, `{` or `}` is ignored, as it could end the declaration it is written into.
 
 typst resolves no generic font family such as `sans-serif` or `monospace`, and draws such text in its default serif font.
-The theme therefore names `Arial, Helvetica, Liberation Sans, Arimo` for `font`, as pele lays labels out with Arial's metrics, and `DejaVu Sans Mono`, which ships with typst, for `font-mono`.
+The theme therefore names `Arial, Helvetica, Liberation Sans, Arimo` for `font`, as pele lays labels out with Arial's metrics unless it is given a measurer, and `DejaVu Sans Mono`, which ships with typst, for `font-mono`.
 Either default gives way to `fontFamily` or `fontFamilyMono`, or to the theme's own key.
 
 `theme: none` returns pele's SVG unchanged, which typst draws without its colors.
+
+## Fonts
+
+pele sizes every box from the widths of its labels, and without a measurer it takes them from a table of Arial's advances.
+Text drawn in a font with other metrics then overflows its box or leaves a gap.
+`font-measurer` measures a font's advances with typst and returns them in the form the `measurer` option takes, so labels are laid out in the font they are drawn in.
+
+```typ
+#import "typst/lib.typ": font-measurer, mermaid
+
+#context mermaid(
+  fontFamily: "Libertinus Serif",
+  measurer: font-measurer("Libertinus Serif"),
+  "graph LR\n  A[Measured in its own font] --> B",
+)
+```
+
+It reads the fonts, so it is called inside `context`.
+The font is named twice because `fontFamily` is the CSS font list the SVG is drawn with, while `font-measurer` takes a font as `text` does.
+`font-mono` names the font of code, `DejaVu Sans Mono` by default, and `chars` the characters measured one by one, `measured-chars` by default.
+Any other character takes the mean advance of the lowercase Latin letters, or the advance of `日` where pele counts it as double width.
+
+The `measurer` option can also be written by hand, as a dictionary of `unitsPerEm` and `styles`, which maps each of pele's styles to its `advances`, `default` and `wide` advance in font units.
+The section "Callback options" of the repository's `golden/README.md` gives its exact rules.
+It is a table rather than a function because a plugin cannot call back into typst, so kerning and ligatures are not part of it.
 
 ## Why the SVG is rewritten
 
@@ -67,7 +92,6 @@ Without a theme, the plugin returns pele's output byte for byte.
 ## Limitations
 
 - typst does not evaluate `color-mix()`, so the halo pele draws behind the titles of nested clusters is left out.
-- Labels are always measured with pele's Arial metrics, so text in a font with other metrics may not fit its box.
 - Icons and math, which pele takes as functions, are not supported.
 
 ## Checking
