@@ -11,10 +11,15 @@ const BEND : Double = 8
 
 ///|
 /// A label with each line starting at `left`, for an outline, where centered lines would look ragged.
-fn left_label(label : @text.Label, left : Double, cy : Double) -> String {
+fn left_label(
+  label : @text.Label,
+  left : Double,
+  cy : Double,
+  icons : @types.IconResolver?,
+) -> String {
   let attrs = " class=\"pele-label\""
   if label.lines.length() < 2 {
-    return @svg.label_svg(label, left + label.width / 2, cy, attrs)
+    return @svg.label_svg(label, left + label.width / 2, cy, attrs, icons?)
   }
   let out = StringBuilder()
   let top = cy - label.height / 2
@@ -33,6 +38,7 @@ fn left_label(label : @text.Label, left : Double, cy : Double) -> String {
         left + label.widths[k] / 2,
         top + (k.to_double() + 0.5) * label.line_height,
         attrs,
+        icons?,
       ),
     )
   }
@@ -60,7 +66,7 @@ fn draw(
   let pad = options.padding.unwrap_or(8)
   let nodes = model.nodes
   let n = nodes.length()
-  let { parent, shapes, labels, w, h, dy, anchor, x, y, side, } = layout(
+  let { parent, shapes, labels, drawn, glyph, w, h, dy, anchor, x, y, side, } = layout(
     model, config, options, down,
   )
   let mut min_x = 0.0
@@ -181,6 +187,23 @@ fn draw(
     } else {
       ""
     }
+    let shift = if drawn[i] {
+      (glyph + (if label.width > 0 { ICON_GAP } else { 0 })) / 2
+    } else {
+      0
+    }
+    let inner = match node.icon {
+      Some(icon) if drawn[i] =>
+        inner +
+        @common.icon_svg(
+          icon,
+          -shift - label.width / 2,
+          dy[i] - glyph / 2,
+          glyph,
+          icons?=options.icons,
+        )
+      _ => inner
+    }
     let kind = if shape != "" {
       shape
     } else if pill {
@@ -191,9 +214,15 @@ fn draw(
     let group = "<g class=\"pele-node pele-shape-\{kind}\{if i > 0 { "" } else { " pele-root" }}\{@svg.class_names(node.class_.unwrap_or(""))}\" data-id=\"\{@svg.esc_text(node.node_id)}\" transform=\"translate(\{@svg.num(cx)},\{@svg.num(top + h[i] / 2)})\">" +
       inner +
       (if down && shape == "" {
-        left_label(label, -label.width / 2, dy[i])
+        left_label(label, shift - label.width / 2, dy[i], options.icons)
       } else {
-        @svg.label_svg(label, 0, dy[i], " class=\"pele-label\"")
+        @svg.label_svg(
+          label,
+          shift,
+          dy[i],
+          " class=\"pele-label\"",
+          icons?=options.icons,
+        )
       }) +
       "</g>"
     if i > 0 {

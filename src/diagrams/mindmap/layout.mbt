@@ -38,6 +38,10 @@ const TEXT_PAD : Double = 6
 const PILL_PAD : Double = 12
 
 ///|
+/// Between a node's icon and its label.
+const ICON_GAP : Double = 6
+
+///|
 /// A node's size and where it stands, relative to the root's center.
 priv struct Layout {
   parent : Array[Int32]
@@ -45,6 +49,10 @@ priv struct Layout {
   labels : Array[@text.Label]
   w : Array[Double]
   h : Array[Double]
+  /// Whether the host has the node's icon; one it does not have takes no room.
+  drawn : Array[Bool]
+  /// The side of an icon's square.
+  glyph : Double
   /// How far the label sits below the middle of its node.
   dy : Array[Double]
   /// Where links meet the node, measured down from its top.
@@ -96,14 +104,27 @@ fn layout(
   let h = Array::make(n, 0.0)
   let dy = Array::make(n, 0.0)
   let anchor = Array::make(n, 0.0)
+  let glyph = size * 1.25
+  let drawn = Array::make(n, false)
   for i in 0..<n {
     let node = nodes[i]
+    drawn[i] = node.icon is Some(icon) && @text.icon_markup(icon) != ""
+    let room_for_icon = if drawn[i] { glyph + ICON_GAP } else { 0 }
     let fit = @util.js_min(
       wrap,
-      @util.js_max(72, room - depth[i].to_double() * INDENT - 2 * TEXT_PAD),
+      @util.js_max(
+        72,
+        room - depth[i].to_double() * INDENT - 2 * TEXT_PAD - room_for_icon,
+      ),
     )
     let label = @text.layout_label(Some(node.descr), true, measurer, size, fit)
     labels.push(label)
+    let tw = label.width +
+      (if drawn[i] {
+        glyph + (if label.width > 0 { ICON_GAP } else { 0 })
+      } else {
+        0
+      })
     let th = @util.js_max(label.height, (size * 1.5).round())
     let named = if node.node_type >= 0 && node.node_type < shape_names.length() {
       shape_names[node.node_type]
@@ -129,11 +150,11 @@ fn layout(
       // A node with no shape of its own is plain text when it ends a branch, and text in a
       // tinted pill when the branch goes on from it, which sets the levels apart.
       let pill = !node.children.is_empty()
-      w[i] = label.width + 2 * (if pill { PILL_PAD } else { TEXT_PAD })
+      w[i] = tw + 2 * (if pill { PILL_PAD } else { TEXT_PAD })
       h[i] = th + (if pill { 6 } else { 0 })
       anchor[i] = h[i] / 2
     } else {
-      let s = @svg.shape_size(shape, label.width, th)
+      let s = @svg.shape_size(shape, tw, th)
       w[i] = s.w
       h[i] = s.h
       dy[i] = s.dy
@@ -250,5 +271,5 @@ fn layout(
       }
     }
   }
-  { parent, shapes, labels, w, h, dy, anchor, x, y, side, }
+  { parent, shapes, labels, drawn, glyph, w, h, dy, anchor, x, y, side, }
 }
