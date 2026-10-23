@@ -217,6 +217,13 @@ test "columns that do not fit the width fold into rows" {
 }
 
 ///|
+test "columns folded into a width narrower than the padding are drawn with no width" {
+  let out = svg("kanban\n  todo[a]\n  done[b]", max_width=1)
+  assert_true(has(out, "viewBox=\"0 0 16 124\""))
+  assert_eq(count(out, "<rect width=\"0\""), 2)
+}
+
+///|
 test "the output has no non-finite number" {
   let out = svg(
     BASE +
