@@ -9,6 +9,9 @@ pub fn icon_svg(
   icons? : @types.IconResolver,
   drawing~ : String = "",
 ) -> String {
-  ignore(icons)
+  let drawing = match icons {
+    Some(resolve) => resolve(name).unwrap_or(drawing)
+    None => drawing
+  }
   "<svg class=\"pele-icon\" data-icon=\"\{@svg.esc_text(name)}\" x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(side)}\" height=\"\{@svg.num(side)}\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\{drawing}</svg>"
 }
