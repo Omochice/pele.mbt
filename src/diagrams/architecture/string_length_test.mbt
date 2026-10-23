@@ -87,3 +87,43 @@ test "a string the grammar has no place for fails as nested too deeply where pel
     content="limit: Diagram is nested too deeply. architecture architecture",
   )
 }
+
+///|
+#skip("slow: draws a service label of four million characters")
+test "a quoted service label fails as nested too deeply where pele's pattern runs out of V8's backtracking stack" {
+  inspect(
+    backtrack_outcome(
+      "architecture-beta\nservice s(server)[\"\{"a".repeat(4194294)}\"]\n",
+    ),
+    content="rendered",
+  )
+  inspect(
+    backtrack_outcome(
+      "architecture-beta\nservice s(server)[\"\{"a".repeat(4194295)}\"]\n",
+    ),
+    content="limit: Diagram is nested too deeply. architecture architecture",
+  )
+  inspect(
+    backtrack_outcome(
+      "architecture-beta\nservice s(server)['\{"a".repeat(4194295)}']\n",
+    ),
+    content="limit: Diagram is nested too deeply. architecture architecture",
+  )
+}
+
+///|
+#skip("slow: draws a service label of four million characters")
+test "a quoted service label not closed by its bracket runs one more character before V8's backtracking stack runs out" {
+  inspect(
+    backtrack_outcome(
+      "architecture-beta\nservice s(server)[\"\{"a".repeat(4194295)}\"x]\n",
+    ),
+    content="rendered",
+  )
+  inspect(
+    backtrack_outcome(
+      "architecture-beta\nservice s(server)[\"\{"a".repeat(4194296)}\"x]\n",
+    ),
+    content="limit: Diagram is nested too deeply. architecture architecture",
+  )
+}

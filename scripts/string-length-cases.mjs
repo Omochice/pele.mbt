@@ -252,6 +252,14 @@ export const CASES = [
   lazy('railroad', 'an EBNF terminal at V8\'s backtracking stack', () => `railroad-ebnf-beta\nr = "${'a'.repeat(4194295)}" ;\n`, RAISED),
   lazy('railroad', 'a terminal just short of V8\'s backtracking stack', () => `railroad-beta\nr = terminal("${'a'.repeat(4194294)}") ;\n`, RAISED),
   lazy('railroad', 'a terminal at V8\'s backtracking stack', () => `railroad-beta\nr = terminal("${'a'.repeat(4194295)}") ;\n`, RAISED),
+  // An architecture label is read with the same alternatives inside brackets, followed by a third
+  // that stays untried when the bracket closes the quote, whichever quote it is.
+  lazy('architecture', 'a service label just short of V8\'s backtracking stack', () => `architecture-beta\nservice s(server)["${'a'.repeat(4194294)}"]\n`, RAISED),
+  lazy('architecture', 'a service label at V8\'s backtracking stack', () => `architecture-beta\nservice s(server)["${'a'.repeat(4194295)}"]\n`, RAISED),
+  lazy('architecture', 'a single-quoted service label just short of V8\'s backtracking stack', () => `architecture-beta\nservice s(server)['${'a'.repeat(4194294)}']\n`, RAISED),
+  lazy('architecture', 'a single-quoted service label at V8\'s backtracking stack', () => `architecture-beta\nservice s(server)['${'a'.repeat(4194295)}']\n`, RAISED),
+  lazy('architecture', 'a service label with text after its quote just short of V8\'s backtracking stack', () => `architecture-beta\nservice s(server)["${'a'.repeat(4194295)}"x]\n`, RAISED),
+  lazy('architecture', 'a service label with text after its quote at V8\'s backtracking stack', () => `architecture-beta\nservice s(server)["${'a'.repeat(4194296)}"x]\n`, RAISED),
 ];
 
 // A case whose source is built only when the check reaches it, as a getter in the source's place,
