@@ -178,6 +178,8 @@ Some diagrams reach the ceiling only past a cap that looks as if it bounded them
 Laying out a Venn diagram takes pele time that grows faster than the number of sets, so the Venn input puts many texts in one set instead.
 
 The event model, Ishikawa, and journey diagrams are drawn down for a narrow host after they are drawn across, so each also has an input whose drawing down pele draws between 2^28 code units and the hold limit.
+A diagram drawn more than once to fit a narrow host, through `tighten`, `fit_width` or `turn_to_fit` in `src/diagrams/common/`, measures a drawing past the hold limit as pele does, because `markup_document` leaves that document empty rather than failing, and `src/core/core.mbt` refuses only the drawing the diagram answers with.
+The journey case "long tasks, drawn down within the port after across past it" and the journey and Ishikawa cases "drawn down past V8 after across past the port" check that the drawing down is drawn, or fails as nested too deeply, where pele's is, after a drawing across past the hold limit.
 
 The info diagram draws only its title and pele's version, so no part of it repeats; it reaches the ceiling only through a single title or accessible description.
 
@@ -186,6 +188,3 @@ A single label can reach the ceiling on its own, however small the diagram, beca
 The flowchart writes its node labels, cluster titles and edge labels with them, and the swimlane its lane titles, so those fail with the `limit` error where pele does; the cases "host icons in one node label", "one node label longer than a doubling StringBuilder holds" and "host icons in one lane title" check it.
 The other diagrams still take their labels, titles and accessible descriptions as single strings, so one of them of thousands of host icons, or of tens of millions of `&`, traps there although their markup fails as pele does.
 Moving their call sites to the writers is follow-up work.
-
-A diagram that is drawn twice to fit a narrow host holds its first drawing to the hold limit as well.
-When that first drawing passes the hold limit and pele goes on to a second drawing, the port fails with its hold-limit error where pele draws the second drawing within the hold limit, or fails with "Diagram is nested too deeply." on it.
