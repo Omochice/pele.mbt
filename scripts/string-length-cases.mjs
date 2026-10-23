@@ -475,6 +475,10 @@ export const CASES = [
   lazy('swimlane', 'one lane id of many &', () => `swimlane-beta TB\nsubgraph "${'&'.repeat(54000000)}" [x]\nA\nend\n`, RAISED),
   // Without a title a lane's id is its title as well.
   lazy('swimlane', 'one lane named by many &', () => `swimlane-beta TB\nsubgraph "${'&'.repeat(54000000)}"\nA\nend\n`, RAISED),
+  lazy('agentflow', 'one tooltip of many &', () => `agentflow-beta TB\n  a\n  click a callback "${'&'.repeat(54000000)}"\n`, RAISED),
+  lazy('agentflow', 'one link of many &', () => `agentflow-beta TB\n  a\n  click a href "${'&'.repeat(54000000)}"\n`, RAISED),
+  // An internal link writes the agent's label in its href and its data-href as well.
+  lazy('agentflow', 'one internal link of many &', () => `agentflow-beta TB\n  a["${'&'.repeat(54000000)}"]\n  class a internal-link\n`, RAISED),
   lazy('usecase', 'one actor icon of many &', () => `usecase-beta\nactor User@{ icon: "${'&'.repeat(54000000)}" }\n`, RAISED),
   lazy('usecase', 'one fill of many &', () => `usecase-beta\nU("x")\nstyle U fill:${'&'.repeat(54000000)}\n`, RAISED),
   lazy('usecase', 'one text color of many &', () => `usecase-beta\nU("x")\nstyle U color:${'&'.repeat(54000000)}\n`, RAISED),
