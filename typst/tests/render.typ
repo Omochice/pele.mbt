@@ -32,6 +32,15 @@
 // Other options reach pele under their own names.
 #assert(render(flowchart, fontSize: 20).svg.contains("font:20px"))
 
+// Icons reach pele as a dictionary from icon name to SVG fragment.
+#let car = "<path d=\"M3,14H21V18H3Z\"/>"
+#let iconic = render("graph TD\n  A[fa:fa-car Car]\n  B[fa:fa-bus Bus]", icons: ("fa:fa-car": car))
+#assert(iconic.svg.contains("data-icon=\"fa:fa-car\""), message: iconic.svg)
+#assert(iconic.svg.contains(car), message: iconic.svg)
+#assert(not iconic.svg.contains("fa:fa-bus"), message: "an icon the host lacks is drawn")
+#assert(render("graph TD\n  A[fa:fa-car Car]").width < iconic.width, message: "the icon takes no room")
+#mermaid("architecture-beta\n  service db(database)[DB]", icons: ("database": car))
+
 // Without a theme the SVG is pele's own.
 #assert(render(flowchart, theme: none).svg.contains("fill=\"var(--_s)\""))
 
