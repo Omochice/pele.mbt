@@ -184,4 +184,7 @@ export const CASES = [
   ['ishikawa', 'one cause of many &', `ishikawa-beta\nProblem\n  C\n    ${'&'.repeat(110000000)}\n`, RAISED],
   // A category's text is written in its data-id and as its label.
   ['ishikawa', 'one category of many &', `ishikawa-beta\nProblem\n  ${'&'.repeat(54000000)}\n`, RAISED],
+  // A task's and a section's text are written in their data-ids and as their labels.
+  ['journey', 'one task of many &', `journey\nsection S\n  ${'&'.repeat(54000000)}: 5: Me\n`, RAISED],
+  ['journey', 'one section of many &', `journey\nsection ${'&'.repeat(54000000)}\n  T: 5: Me\n`, RAISED],
 ];

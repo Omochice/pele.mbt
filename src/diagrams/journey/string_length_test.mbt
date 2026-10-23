@@ -60,3 +60,40 @@ test "people drawn across past the hold limit fail drawn down as nested too deep
     content="limit: Diagram is nested too deeply. journey journey",
   )
 }
+
+
+///|
+fn outcome_of(source : String, options : @types.RenderOptions) -> String {
+  try {
+    @core.render([@journey.journey], source, options) |> ignore
+    "rendered"
+  } catch {
+    @errors.PeleError(failure) =>
+      "\{failure.code.to_string()}: \{failure.message} \{failure.kind.unwrap_or("null")} \{failure.mermaid_type.unwrap_or("null")}"
+  }
+}
+
+///|
+#skip("slow: escapes 54 million characters twice before it fails")
+test "a task of tens of millions of entities fails as nested too deeply" {
+  inspect(
+    outcome_of("journey\nsection S\n  \{"&".repeat(54000000)}: 5: Me\n", {
+      ..@types.RenderOptions::default(),
+      limit: Some(1.0 / 0.0),
+    }),
+    content="limit: Diagram is nested too deeply. journey journey",
+  )
+}
+
+///|
+#skip("slow: escapes 54 million characters twice before it fails")
+test "a section of tens of millions of entities fails as nested too deeply" {
+  inspect(
+    outcome_of("journey\nsection \{"&".repeat(54000000)}\n  T: 5: Me\n", {
+      ..@types.RenderOptions::default(),
+      limit: Some(1.0 / 0.0),
+    }),
+    content="limit: Diagram is nested too deeply. journey journey",
+  )
+}
+
