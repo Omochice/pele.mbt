@@ -115,13 +115,15 @@ fn line(
 }
 
 ///|
-fn leaf_svg(
+/// Writes a terminal, nonterminal or special sequence to `out`, its text a piece at a time.
+fn write_leaf(
+  out : @svg.Markup,
   box : Box,
   x : Double,
   y : Double,
   m : Metrics,
   look : Look,
-) -> String {
+) -> Unit raise @errors.PeleError {
   let text = box.text
   let space = if text.has_prefix(" ") ||
     text.has_suffix(" ") ||
@@ -133,13 +135,30 @@ fn leaf_svg(
   let shape = "<rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y - look.box_top)}\" width=\"\{@svg.num(box.width)}\" height=\"\{@svg.num(m.height)}\""
   let label = "<text x=\"\{@svg.num(x + box.width / 2)}\" y=\"\{@svg.num(y + look.text_shift)}\"\{space}"
   match box.kind {
-    TerminalBox =>
-      "<g class=\"pele-node pele-terminal\">\{shape} rx=\"\{@svg.num(look.box_top)}\" fill=\"var(--_s)\" stroke=\"var(--_b)\"\{look.stroke}/>\{label} font-family=\"\{FONT_MONO}\">\{@svg.esc(text)}</text></g>"
-    NonTerminalBox =>
-      "<g class=\"pele-node pele-nonterminal\" data-id=\"\{@svg.esc_text(box.id)}\">\{shape} fill=\"var(--_bg)\" stroke=\"var(--_b)\"\{look.stroke}\{ROUNDED}/>\{label}>\{@svg.esc(text)}</text></g>"
-    _ =>
-      "<g class=\"pele-node pele-special\">\{shape} fill=\"var(--_bg)\" stroke=\"var(--_b)\" stroke-dasharray=\"4 3\"\{look.stroke}\{ROUNDED}/>" +
-      "\{label} font-style=\"italic\"><tspan fill=\"var(--_m)\">? </tspan>\{@svg.esc(@util.slice(text, 2, end=-2))}<tspan fill=\"var(--_m)\"> ?</tspan></text></g>"
+    TerminalBox => {
+      out.write(
+        "<g class=\"pele-node pele-terminal\">\{shape} rx=\"\{@svg.num(look.box_top)}\" fill=\"var(--_s)\" stroke=\"var(--_b)\"\{look.stroke}/>\{label} font-family=\"\{FONT_MONO}\">",
+      )
+      @svg.write_esc(out, text)
+      out.write("</text></g>")
+    }
+    NonTerminalBox => {
+      out.write("<g class=\"pele-node pele-nonterminal\" data-id=\"")
+      @svg.write_esc_text(out, box.id)
+      out.write(
+        "\">\{shape} fill=\"var(--_bg)\" stroke=\"var(--_b)\"\{look.stroke}\{ROUNDED}/>\{label}>",
+      )
+      @svg.write_esc(out, text)
+      out.write("</text></g>")
+    }
+    _ => {
+      out.write(
+        "<g class=\"pele-node pele-special\">\{shape} fill=\"var(--_bg)\" stroke=\"var(--_b)\" stroke-dasharray=\"4 3\"\{look.stroke}\{ROUNDED}/>" +
+        "\{label} font-style=\"italic\"><tspan fill=\"var(--_m)\">? </tspan>",
+      )
+      @svg.write_esc(out, @util.slice(text, 2, end=-2))
+      out.write("<tspan fill=\"var(--_m)\"> ?</tspan></text></g>")
+    }
   }
 }
 
@@ -283,14 +302,16 @@ fn place(
         )
         if box.text != "" {
           ink.nodes.write(
-            "<text class=\"pele-edge-label pele-count\" x=\"\{@svg.num(middle)}\" y=\"\{@svg.num(loop_y + COUNT_SIZE + 3)}\" font-size=\"\{COUNT_SIZE}\" fill=\"var(--_m)\">\{@svg.esc(box.text)}</text>",
+            "<text class=\"pele-edge-label pele-count\" x=\"\{@svg.num(middle)}\" y=\"\{@svg.num(loop_y + COUNT_SIZE + 3)}\" font-size=\"\{COUNT_SIZE}\" fill=\"var(--_m)\">",
           )
+          @svg.write_esc(ink.nodes, box.text)
+          ink.nodes.write("</text>")
         }
         boxes.push(kid)
         at.push(kx)
         at.push(y)
       }
-      _ => ink.nodes.write(leaf_svg(box, x, y, m, look))
+      _ => write_leaf(ink.nodes, box, x, y, m, look)
     }
   }
 }
@@ -397,10 +418,13 @@ fn draw(
     } else {
       ""
     }
+    rules.write("<g class=\"pele-rule\" data-id=\"")
+    @svg.write_esc_text(rules, rule.name)
     rules.write(
-      "<g class=\"pele-rule\" data-id=\"\{@svg.esc_text(rule.name)}\">" +
-      "<text class=\"pele-rule-name\" x=\"\{@svg.num(pad)}\" y=\"\{@svg.num(top + head_height / 2 + head_size * 0.35)}\" font-size=\"\{@svg.num(head_size)}\" font-weight=\"var(--_hw)\" text-anchor=\"start\">\{@svg.esc(name)}</text>",
+      "\"><text class=\"pele-rule-name\" x=\"\{@svg.num(pad)}\" y=\"\{@svg.num(top + head_height / 2 + head_size * 0.35)}\" font-size=\"\{@svg.num(head_size)}\" font-weight=\"var(--_hw)\" text-anchor=\"start\">",
     )
+    @svg.write_esc(rules, name)
+    rules.write("</text>")
     rules.write_group(
       "<path class=\"pele-edge pele-track\" d=\"",
       ink.track,
