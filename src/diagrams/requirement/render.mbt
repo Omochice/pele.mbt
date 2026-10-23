@@ -83,7 +83,11 @@ fn restyle(
     let mut total = 0.0
     let spans = line.map(span => {
       let style = span.style | bits
-      let w = measurer.width(span.text, label.size, style)
+      let w = if span.icon is Some(_) {
+        span.width
+      } else {
+        measurer.width(span.text, label.size, style)
+      }
       total += w
       { ..span, style, width: w, }
     })
