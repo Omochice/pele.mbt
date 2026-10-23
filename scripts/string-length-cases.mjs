@@ -51,4 +51,5 @@ export const CASES = [
   ['usecase', 'styled use cases', `usecase-beta\nclassDef c ${fill}\n${names('U', 10700).map((name) => `${name}("x"):::c`).join('\n')}\n`, RAISED],
   ['flowchart', 'host icons in one node label', iconLabel(5400), ICONS],
   ['flowchart', 'one node label longer than a doubling StringBuilder holds', iconLabel(3000), ICONS],
+  ['swimlane', 'host icons in one lane title', `swimlane-beta TB\nsubgraph L["${Array(5400).fill('fa:fa-x').join(' ')}"]\nA\nend\n`, ICONS],
 ];
