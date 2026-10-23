@@ -31,6 +31,8 @@ pub struct AgentflowDb {
   priv bare_mappings : Map[Int32, Unit]
   priv first_mapping : Map[String, ElementMapping]
   priv reported : Map[String, Array[Diagnostic]]
+  /// The graph drawn from the model, built once.
+  priv mut graph : AgentGraph?
 }
 
 ///|
@@ -70,6 +72,7 @@ pub fn AgentflowDb::new(
     bare_mappings: Map([]),
     first_mapping: Map([]),
     reported: Map([]),
+    graph: None,
   }
 }
 

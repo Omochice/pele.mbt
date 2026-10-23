@@ -8,6 +8,8 @@ import {
 }
 
 // Values
+pub fn agent_graph(AgentflowDb, Map[String, Json]) -> AgentGraph
+
 pub let agentflow : @types.Diagram
 
 pub fn build_agent_graph(AgentflowDb, Int32, default_curve? : String) -> AgentGraph
