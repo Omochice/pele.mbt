@@ -53,3 +53,24 @@ test "a field drawing host math in each of thousands of spans fails as nested to
     content="limit: Diagram is nested too deeply. requirement requirement",
   )
 }
+
+///|
+#skip("slow: escapes over 536 million code units before it fails")
+test "a front matter title outgrowing V8's longest string fails as nested too deeply" {
+  let failure = try {
+    @core.render(
+      [@requirement.requirement],
+      "---\ntitle: x\{"\"".repeat(90000000)}\n---\nrequirementDiagram\nrequirement r {\n}\n",
+      { ..@types.RenderOptions::default(), limit: Some(1.0 / 0.0), },
+    )
+    |> ignore
+    "rendered"
+  } catch {
+    @errors.PeleError(failure) =>
+      "\{failure.code.to_string()}: \{failure.message} \{failure.kind.unwrap_or("null")} \{failure.mermaid_type.unwrap_or("null")}"
+  }
+  inspect(
+    failure,
+    content="limit: Diagram is nested too deeply. requirement requirement",
+  )
+}

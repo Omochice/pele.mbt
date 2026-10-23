@@ -319,6 +319,7 @@ export const CASES = [
   lazy('er', 'a front matter title past V8', () => `---\ntitle: x${'"'.repeat(90000000)}\n---\nerDiagram\nA {\n}\n`, RAISED),
   lazy('block', 'a front matter title past V8', () => `---\ntitle: x${'"'.repeat(90000000)}\n---\nblock-beta\nA\n`, RAISED),
   lazy('agentflow', 'a front matter title past V8', () => `---\ntitle: x${'"'.repeat(90000000)}\n---\nagentflow-beta TB\n  a\n`, RAISED),
+  lazy('requirement', 'a front matter title past V8', () => `---\ntitle: x${'"'.repeat(90000000)}\n---\nrequirementDiagram\nrequirement r {\n}\n`, RAISED),
   lazy('architecture', 'a title past V8', () => `architecture-beta\ntitle ${'"'.repeat(90000000)}\nservice s(server)[x]\n`, RAISED),
   lazy('cynefin', 'a title past V8', () => `cynefin-beta\ntitle ${'"'.repeat(90000000)}\ncomplex\n  "x"\n`, RAISED),
   lazy('git', 'a title past V8', () => `gitGraph\ntitle ${'"'.repeat(90000000)}\ncommit\n`, RAISED),
