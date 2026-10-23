@@ -47,8 +47,16 @@ fn config_field(json : Map[String, Json], key : String) -> @types.Config? {
 ///|
 /// Reads the theme that makes the SVG drawable by typst, or `None` when the options hold no theme object.
 fn decode_theme(json : Json) -> Map[String, String]? {
-  ignore(json)
-  None
+  guard json is Object(fields) && fields.get("theme") is Some(Object(entries)) else {
+    return None
+  }
+  let theme : Map[String, String] = Map([])
+  for name, value in entries {
+    if value is String(text) {
+      theme[name] = text
+    }
+  }
+  Some(theme)
 }
 
 ///|
