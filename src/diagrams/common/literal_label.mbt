@@ -109,8 +109,8 @@ pub fn break_label(
   measurer : @text.TextMeasurer,
   room : Double,
 ) -> @text.Label {
-  // pele also keeps icon and math spans whole and recomputes line heights for math.
-  // Labels here have neither, as in pele without an icon resolver or a typesetter.
+  // pele also keeps math spans whole and recomputes line heights for math.
+  // Labels here have no math, as in pele without a typesetter.
   if label.width <= room {
     return label
   }
@@ -131,11 +131,20 @@ pub fn break_label(
       width = 0
     }
     for span in spans {
+      if span.icon is Some(_) {
+        if current.length() > 0 && width + span.width > room {
+          commit()
+        }
+        current.push(span)
+        width += span.width
+        continue
+      }
       let starts = code_point_starts(span.text)
       for k in 0..<(starts.length() - 1) {
         let char = @util.slice(span.text, starts[k], end=starts[k + 1])
         let mut last = match current.last() {
-          Some(last) if last.style == span.style => Some(last)
+          Some(last) if last.icon is None && last.style == span.style =>
+            Some(last)
           _ => None
         }
         let next_width = match last {
@@ -193,12 +202,23 @@ pub fn left_label_svg(
   top : Double,
   attrs : String,
 ) -> String {
-  // pele centers a line holding an icon with labelSvg; labels here have no icons.
   let shared = @svg.shared_style(label)
   let open = "<text" + @svg.text_style(attrs, shared)
   let body = StringBuilder()
   for i, spans in label.lines {
     let cy = top + (i.to_double() + 0.5) * label.line_height
+    if spans.iter().any(span => span.icon is Some(_)) {
+      let width = label.widths[i]
+      let line = {
+        ..label,
+        lines: [spans],
+        widths: [width],
+        width,
+        height: label.line_height,
+      }
+      body.write_string(@svg.label_svg(line, x + width / 2, cy, attrs))
+      continue
+    }
     let text = StringBuilder()
     for span in spans {
       let own = @svg.span_style(span.style & shared.lnot())
