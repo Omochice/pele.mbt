@@ -328,7 +328,7 @@ pub fn render_architecture(
   model : ArchitectureDb,
   config : @types.Config,
   options : @types.RenderOptions,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   @common.tighten(options, tight => draw(model, config, options, tight))
 }
 
@@ -339,7 +339,7 @@ fn draw(
   config : @types.Config,
   options : @types.RenderOptions,
   tight : Bool,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   let icon_size = setting(config, "iconSize", 48, 8, 512)
   let size = setting(
     config,
@@ -631,8 +631,8 @@ fn draw(
     }
     p
   }
-  let edges_out = StringBuilder()
-  let labels_out = StringBuilder()
+  let edges_out = @svg.Markup::new()
+  let labels_out = @svg.Markup::new()
   // Vertical runs of the edges, to keep group titles out from under them.
   let runs : Array[Double] = []
   let trim_length = @svg.marker_trim("arrow_point")
@@ -674,14 +674,12 @@ fn draw(
     } else {
       0
     }
-    edges_out.write_string(
+    edges_out.write(
       "<g class=\"pele-edge\" data-id=\"\{@svg.esc_text(edge.lhs_id + "-" + edge.rhs_id)}\">",
     )
-    edges_out.write_string(
-      "<path d=\"\{path_data(points, start_trim, end_trim)}\"/>",
-    )
+    edges_out.write("<path d=\"\{path_data(points, start_trim, end_trim)}\"/>")
     if edge.lhs_into {
-      edges_out.write_string(
+      edges_out.write(
         @svg.marker(
           "arrow_point",
           s.x + s.dx * s.gap,
@@ -693,7 +691,7 @@ fn draw(
       )
     }
     if edge.rhs_into {
-      edges_out.write_string(
+      edges_out.write(
         @svg.marker(
           "arrow_point",
           e.x + e.dx * e.gap,
@@ -704,7 +702,7 @@ fn draw(
         ),
       )
     }
-    edges_out.write_string("</g>")
+    edges_out.write("</g>")
     let mut best = -1
     let mut best_length = -1.0
     let mut flat = -1
@@ -766,7 +764,7 @@ fn draw(
       max_x = @util.js_max(max_x, x + w / 2)
       min_y = @util.js_min(min_y, y - label.height / 2)
       max_y = @util.js_max(max_y, y + label.height / 2)
-      labels_out.write_string(
+      labels_out.write(
         @svg.edge_label_svg(
           edge.lhs_id + "-" + edge.rhs_id,
           label,
@@ -778,7 +776,7 @@ fn draw(
       )
     }
   }
-  let clusters = StringBuilder()
+  let clusters = @svg.Markup::new()
   for g, group in groups {
     let x = left(g)
     let y = top(g)
@@ -827,20 +825,20 @@ fn draw(
         ),
       )
     }
-    clusters.write_string(
+    clusters.write(
       "<g class=\"pele-cluster\" data-id=\"\{@svg.esc_text(group.id)}\">" +
       "<rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(w)}\" height=\"\{@svg.num(bottom(g) - y)}\" fill=\"var(--_a)\" fill-opacity=\"0.5\" stroke=\"var(--_b)\"\{@svg.ROUNDED}/>" +
       head.to_string() +
       "</g>",
     )
   }
-  let nodes_out = StringBuilder()
+  let nodes_out = @svg.Markup::new()
   let glyph = icon_size * 0.5
   let text_size = @util.js_max(6, (size * 0.75).round())
   for i, node in nodes {
     let at = "data-id=\"\{@svg.esc_text(node.id)}\" transform=\"translate(\{@svg.num(center_x(i))},\{@svg.num(row_y[node_row[i]])})\""
     if node.kind is Junction {
-      nodes_out.write_string(
+      nodes_out.write(
         "<g class=\"pele-node pele-junction\" \{at}><circle cy=\"\{@svg.num(half)}\" r=\"\{whole(DOT)}\" fill=\"var(--_l)\"/></g>",
       )
       continue
@@ -881,7 +879,7 @@ fn draw(
       }
       _ => ""
     }
-    nodes_out.write_string(
+    nodes_out.write(
       "<g class=\"pele-node pele-service\" \{at}>" +
       "<rect x=\"\{@svg.num(-half)}\" width=\"\{@svg.num(icon_size)}\" height=\"\{@svg.num(icon_size)}\" fill=\"var(--_s)\" stroke=\"var(--_b)\"\{@svg.ROUNDED}/>" +
       inner +
@@ -912,40 +910,43 @@ fn draw(
   let height = (max_y - min_y + title_height + 2 * pad).ceil()
   let ox = ((width - (max_x - min_x)) / 2 - min_x).round()
   let oy = (pad + title_height - min_y).round()
-  let body = StringBuilder()
-  let clusters = clusters.to_string()
-  if clusters != "" {
-    body.write_string("<g class=\"pele-clusters\">\{clusters}</g>")
+  let body = @svg.Markup::new()
+  if !clusters.is_empty() {
+    body.write_group("<g class=\"pele-clusters\">", clusters, "</g>")
   }
-  let edges_out = edges_out.to_string()
-  if edges_out != "" {
-    body.write_string(
-      "<g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\{edges_out}</g>",
+  if !edges_out.is_empty() {
+    body.write_group(
+      "<g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\" stroke-linejoin=\"round\">",
+      edges_out, "</g>",
     )
   }
-  let labels_out = labels_out.to_string()
-  if labels_out != "" {
-    body.write_string(
-      "<g class=\"pele-edge-labels\" font-size=\"\{whole(small)}\">\{labels_out}</g>",
+  if !labels_out.is_empty() {
+    body.write_group(
+      "<g class=\"pele-edge-labels\" font-size=\"\{whole(small)}\">",
+      labels_out,
+      "</g>",
     )
   }
-  let nodes_out = nodes_out.to_string()
-  if nodes_out != "" {
-    body.write_string("<g class=\"pele-nodes\">\{nodes_out}</g>")
+  if !nodes_out.is_empty() {
+    body.write_group("<g class=\"pele-nodes\">", nodes_out, "</g>")
   }
-  let body = body.to_string()
-  let content = @svg.label_svg(
+  let content = @svg.Markup::new()
+  content.write(
+    @svg.label_svg(
       title,
       width / 2,
       pad + title.height / 2,
       " class=\"pele-title\" font-weight=\"var(--_tw)\"",
-    ) +
-    (if body != "" {
-      "<g transform=\"translate(\{whole(ox)},\{whole(oy)})\">\{body}</g>"
-    } else {
-      ""
-    })
-  let svg = @svg.svg_document(
+    ),
+  )
+  if !body.is_empty() {
+    content.write_group(
+      "<g transform=\"translate(\{whole(ox)},\{whole(oy)})\">",
+      body,
+      "</g>",
+    )
+  }
+  let svg = @svg.markup_document(
     "architecture",
     width,
     height,

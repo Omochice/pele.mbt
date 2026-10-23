@@ -15,7 +15,7 @@ pub fn place_on_grid(Array[ArchNode], Array[ArchGroup], Array[ArchEdge], Array[A
 
 pub fn populate(ArchitectureAst, ArchitectureDb) -> Unit raise @errors.PeleError
 
-pub fn render_architecture(ArchitectureDb, Map[String, Json], @types.RenderOptions) -> @types.Rendered
+pub fn render_architecture(ArchitectureDb, Map[String, Json], @types.RenderOptions) -> @types.Rendered raise @errors.PeleError
 
 // Errors
 
