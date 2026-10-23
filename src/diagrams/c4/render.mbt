@@ -598,13 +598,12 @@ fn draw(
   let ox = pad - min_x + (inner - (max_x - min_x)) / 2
   let oy = pad + title_height - min_y
   let content = @svg.Markup::new()
-  content.write(
-    @svg.label_svg(
-      title,
-      width / 2,
-      pad + title.height / 2,
-      " class=\"pele-title\" font-weight=\"var(--_tw)\"",
-    ),
+  @svg.write_label(
+    content,
+    title,
+    width / 2,
+    pad + title.height / 2,
+    " class=\"pele-title\" font-weight=\"var(--_tw)\"",
   )
   content.write("<g transform=\"translate(\{@svg.num(ox)},\{@svg.num(oy)})\">")
   if !clusters.is_empty() {
