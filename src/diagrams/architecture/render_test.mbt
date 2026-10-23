@@ -15,8 +15,9 @@ let docs : Array[String] = [
 fn drawn(
   source : String,
   max_width? : Double,
+  icons? : @types.IconResolver,
 ) -> Result[@types.RenderResult, @errors.Failure] {
-  let options = { ..@types.RenderOptions::default(), max_width, }
+  let options = { ..@types.RenderOptions::default(), max_width, icons, }
   Ok(@core.render([@architecture.architecture], source, options)) catch {
     @errors.PeleError(failure) => Err(failure)
   }
@@ -24,8 +25,12 @@ fn drawn(
 
 ///|
 /// The size and drawing, or the failure, in the form the expected values were taken from pele in.
-fn svg(source : String, max_width? : Double) -> String {
-  match drawn(source, max_width?) {
+fn svg(
+  source : String,
+  max_width? : Double,
+  icons? : @types.IconResolver,
+) -> String {
+  match drawn(source, max_width?, icons?) {
     Ok(result) => "\{result.width}x\{result.height} \{result.svg}"
     Err(failure) => "\{failure.code.to_string()}: \{failure.message}"
   }
@@ -786,5 +791,59 @@ test "a narrow host tightens the layout" {
       max_width=400,
     ),
     content="398x184 <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-architecture\" viewBox=\"0 0 398 184\" width=\"398\" height=\"184\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_tw:var(--pele-title-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"architecture\"><text class=\"pele-title\" font-weight=\"var(--_tw)\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"199\" y=\"25.6\">A title that is long enough to wrap</tspan></text><g transform=\"translate(8,44)\"><g class=\"pele-clusters\"><g class=\"pele-cluster\" data-id=\"g\"><rect x=\"0\" y=\"0\" width=\"284\" height=\"132\" fill=\"var(--_a)\" fill-opacity=\"0.5\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-cluster-label\" fill=\"var(--_m)\" x=\"113.17\" y=\"23.6\" text-anchor=\"middle\">A group title that is quite long</text></g></g><g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><g class=\"pele-edge\" data-id=\"a-b\"><path d=\"M93,60L188,60\"/><path class=\"pele-marker\" d=\"M195,60L187,63.36L187,56.64Z\" fill=\"var(--_l)\" stroke=\"none\"/></g><g class=\"pele-edge\" data-id=\"b-c\"><path d=\"M243,60L329,60\"/></g></g><g class=\"pele-edge-labels\" font-size=\"14\"><g class=\"pele-edge-label\" data-id=\"a-b\"><rect x=\"126\" y=\"49.5\" width=\"36\" height=\"21\" rx=\"3\" fill=\"var(--_bg)\"/><text x=\"144\" y=\"64.9\" text-anchor=\"middle\">calls</text></g></g><g class=\"pele-nodes\"><g class=\"pele-node pele-service\" data-id=\"a\" transform=\"translate(69,36)\"><rect x=\"-24\" width=\"48\" height=\"48\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" x=\"0\" y=\"69.6\" text-anchor=\"middle\">Alpha service</text></g><g class=\"pele-node pele-service\" data-id=\"b\" transform=\"translate(219,36)\"><rect x=\"-24\" width=\"48\" height=\"48\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" x=\"0\" y=\"69.6\" text-anchor=\"middle\">Beta service</text></g><g class=\"pele-node pele-service\" data-id=\"c\" transform=\"translate(353,36)\"><rect x=\"-24\" width=\"48\" height=\"48\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" x=\"0\" y=\"69.6\" text-anchor=\"middle\">Gamma</text></g></g></g></svg>",
+  )
+}
+
+///|
+/// A host that has exactly the icons in `pairs`, by name.
+fn host(pairs : Array[(String, String)]) -> @types.IconResolver {
+  let icons = Map::from_array(pairs)
+  name => icons.get(name)
+}
+
+///|
+test "groups, services and labels draw the icons the host has" {
+  inspect(
+    svg(
+      "architecture-beta\n  group api(cloud)[API]\n  service db(database)[fa:fa-car DB] in api\n",
+      icons=host([
+        ("cloud", "<path id=\"c\"/>"),
+        ("fa:fa-car", "<path id=\"car\"/>"),
+      ]),
+    ),
+    content="104x148 <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-architecture\" viewBox=\"0 0 104 148\" width=\"104\" height=\"148\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"architecture\"><g transform=\"translate(8,8)\"><g class=\"pele-clusters\"><g class=\"pele-cluster\" data-id=\"api\"><rect x=\"0\" y=\"0\" width=\"88\" height=\"132\" fill=\"var(--_a)\" fill-opacity=\"0.5\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><svg class=\"pele-icon\" data-icon=\"cloud\" x=\"10\" y=\"8\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path id=\"c\"/></svg><text class=\"pele-cluster-label\" fill=\"var(--_m)\" x=\"48.9\" y=\"23.6\" text-anchor=\"middle\">API</text></g></g><g class=\"pele-nodes\"><g class=\"pele-node pele-service\" data-id=\"db\" transform=\"translate(44,36)\"><rect x=\"-24\" width=\"48\" height=\"48\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><svg class=\"pele-icon\" data-icon=\"database\" x=\"-12\" y=\"12\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 6a8 3 0 1 0 16 0a8 3 0 1 0-16 0M4 6v12a8 3 0 0 0 16 0V6M4 12a8 3 0 0 0 16 0\" stroke=\"var(--_fg)\" stroke-width=\"1.5\"/></svg><text class=\"pele-label\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"-3.34\" y=\"69.6\" text-anchor=\"start\"> DB</tspan></text><svg class=\"pele-icon\" data-icon=\"fa:fa-car\" x=\"-23.34\" y=\"55.2\" width=\"17.6\" height=\"17.6\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path id=\"car\"/></svg></g></g></g></svg>",
+  )
+}
+
+///|
+test "an empty drawing from the host replaces a built-in icon" {
+  inspect(
+    svg(
+      "architecture-beta\n  group api(cloud)[API]\n  service db(database)[DB] in api\n",
+      icons=host([("cloud", "")]),
+    ),
+    content="104x148 <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-architecture\" viewBox=\"0 0 104 148\" width=\"104\" height=\"148\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"architecture\"><g transform=\"translate(8,8)\"><g class=\"pele-clusters\"><g class=\"pele-cluster\" data-id=\"api\"><rect x=\"0\" y=\"0\" width=\"88\" height=\"132\" fill=\"var(--_a)\" fill-opacity=\"0.5\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><svg class=\"pele-icon\" data-icon=\"cloud\" x=\"10\" y=\"8\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></svg><text class=\"pele-cluster-label\" fill=\"var(--_m)\" x=\"48.9\" y=\"23.6\" text-anchor=\"middle\">API</text></g></g><g class=\"pele-nodes\"><g class=\"pele-node pele-service\" data-id=\"db\" transform=\"translate(44,36)\"><rect x=\"-24\" width=\"48\" height=\"48\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><svg class=\"pele-icon\" data-icon=\"database\" x=\"-12\" y=\"12\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 6a8 3 0 1 0 16 0a8 3 0 1 0-16 0M4 6v12a8 3 0 0 0 16 0V6M4 12a8 3 0 0 0 16 0\" stroke=\"var(--_fg)\" stroke-width=\"1.5\"/></svg><text class=\"pele-label\" x=\"0\" y=\"69.6\" text-anchor=\"middle\">DB</text></g></g></g></svg>",
+  )
+}
+
+///|
+test "edge labels draw the icons the host has" {
+  inspect(
+    svg(
+      "architecture-beta\n  service a(server)[A]\n  service b(server)[B]\n  a:R -[fa:fa-car x]- L:b\n",
+      icons=host([("fa:fa-car", "<path id=\"car\"/>")]),
+    ),
+    content="169x92 <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-architecture\" viewBox=\"0 0 169 92\" width=\"169\" height=\"92\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"architecture\"><g transform=\"translate(8,8)\"><g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><g class=\"pele-edge\" data-id=\"a-b\"><path d=\"M48,24L105,24\"/></g></g><g class=\"pele-edge-labels\" font-size=\"14\"><g class=\"pele-edge-label\" data-id=\"a-b\"><rect x=\"58.3\" y=\"13.5\" width=\"36.39\" height=\"21\" rx=\"3\" fill=\"var(--_bg)\"/><text text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"79.8\" y=\"28.9\" text-anchor=\"start\"> x</tspan></text><svg class=\"pele-icon\" data-icon=\"fa:fa-car\" x=\"62.3\" y=\"16.3\" width=\"15.4\" height=\"15.4\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path id=\"car\"/></svg></g></g><g class=\"pele-nodes\"><g class=\"pele-node pele-service\" data-id=\"a\" transform=\"translate(24,0)\"><rect x=\"-24\" width=\"48\" height=\"48\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><svg class=\"pele-icon\" data-icon=\"server\" x=\"-12\" y=\"12\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 4h18v7H3zM3 13h18v7H3zM7 7.5h.01M7 16.5h.01M11 7.5h6M11 16.5h6\" stroke=\"var(--_fg)\" stroke-width=\"1.5\"/></svg><text class=\"pele-label\" x=\"0\" y=\"69.6\" text-anchor=\"middle\">A</text></g><g class=\"pele-node pele-service\" data-id=\"b\" transform=\"translate(129,0)\"><rect x=\"-24\" width=\"48\" height=\"48\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><svg class=\"pele-icon\" data-icon=\"server\" x=\"-12\" y=\"12\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 4h18v7H3zM3 13h18v7H3zM7 7.5h.01M7 16.5h.01M11 7.5h6M11 16.5h6\" stroke=\"var(--_fg)\" stroke-width=\"1.5\"/></svg><text class=\"pele-label\" x=\"0\" y=\"69.6\" text-anchor=\"middle\">B</text></g></g></g></svg>",
+  )
+}
+
+///|
+test "icon text cut short ends with an ellipsis after its last text" {
+  inspect(
+    svg(
+      "architecture-beta\n  service s \"aaaa fa:fa-car fa:fa-car fa:fa-car\"[T]\n",
+      icons=host([("fa:fa-car", "<path id=\"car\"/>")]),
+    ),
+    content="64x92 <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-architecture\" viewBox=\"0 0 64 92\" width=\"64\" height=\"92\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"architecture\"><g transform=\"translate(8,8)\"><g class=\"pele-nodes\"><g class=\"pele-node pele-service\" data-id=\"s\" transform=\"translate(24,0)\"><rect x=\"-24\" width=\"48\" height=\"48\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-icon-text\" font-size=\"12\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"0\" y=\"19.2\">aaaa</tspan><tspan x=\"4.02\" y=\"37.2\" text-anchor=\"start\">…</tspan></text><svg class=\"pele-icon\" data-icon=\"fa:fa-car\" x=\"-10.98\" y=\"26.4\" width=\"13.2\" height=\"13.2\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path id=\"car\"/></svg><text class=\"pele-label\" x=\"0\" y=\"69.6\" text-anchor=\"middle\">T</text></g></g></g></svg>",
   )
 }
