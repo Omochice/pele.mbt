@@ -9,6 +9,8 @@ pub(all) struct Span {
   /// The name of the icon the span draws; its `text` is then empty.
   icon : String?
   mut width : Double
+  /// Typeset math the span stands for, drawn in place of its text.
+  math : MathMarkup?
 }
 
 ///|
@@ -20,6 +22,8 @@ pub(all) struct Label {
   height : Double
   size : Double
   line_height : Double
+  /// The height of each line, present only when math makes a line taller than `line_height`.
+  heights : Array[Double]?
 }
 
 ///|
@@ -31,7 +35,15 @@ const ICON_WIDTH : Double = 1.25
 
 ///|
 fn empty_label() -> Label {
-  { lines: [], widths: [], width: 0, height: 0, size: 0, line_height: 0, }
+  {
+    lines: [],
+    widths: [],
+    width: 0,
+    height: 0,
+    size: 0,
+    line_height: 0,
+    heights: None,
+  }
 }
 
 ///|
@@ -158,7 +170,7 @@ fn push_plain(line : Array[Span], text : String, style : Int32) -> Unit {
   match line.last() {
     Some(last) if plain(last) && last.style == style =>
       last.text = last.text + decoded
-    _ => line.push({ text: decoded, style, icon: None, width: 0, })
+    _ => line.push({ text: decoded, style, icon: None, width: 0, math: None, })
   }
 }
 
@@ -215,7 +227,7 @@ fn push_icons(line : Array[Span], text : String, style : Int32) -> Unit {
     search = end
     let icon = @util.slice(text, start, end~)
     if icon_markup(icon) != "" {
-      line.push({ text: "", style, icon: Some(icon), width: 0, })
+      line.push({ text: "", style, icon: Some(icon), width: 0, math: None, })
     } else if @util.code_at(text, last) == ' '.to_int() {
       last += 1
     } else if last == text.length() {
@@ -426,7 +438,13 @@ fn wrap(
         }
         _ => {
           let w = measurer.width(part, size, span.style)
-          current.push({ text: part, style: span.style, icon: None, width: w, })
+          current.push({
+            text: part,
+            style: span.style,
+            icon: None,
+            width: w,
+            math: None,
+          })
           width += w
         }
       }
@@ -518,6 +536,7 @@ fn layout_lines(
     height: lines.length().to_double() * line_height,
     size,
     line_height,
+    heights: None,
   }
 }
 
@@ -583,18 +602,19 @@ pub fn layout_label(
     let width = measurer.width(text, size, base)
     if width <= max_width || !(text.contains(" ") || has_cjk(text)) {
       return {
-        lines: [[{ text, style: base, icon: None, width, }]],
+        lines: [[{ text, style: base, icon: None, width, math: None, }]],
         widths: [width],
         width,
         height: line_height,
         size,
         line_height,
+        heights: None,
       }
     }
     let lines : Array[Array[Span]] = []
     let widths : Array[Double] = []
     wrap(
-      [{ text, style: base, icon: None, width, }],
+      [{ text, style: base, icon: None, width, math: None, }],
       measurer,
       size,
       max_width,
@@ -614,6 +634,7 @@ pub fn layout_label(
       height: lines.length().to_double() * line_height,
       size,
       line_height,
+      heights: None,
     }
   }
   layout_lines(raw, markdown, measurer, size, max_width, base, line_height)

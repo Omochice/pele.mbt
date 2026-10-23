@@ -92,13 +92,14 @@ pub fn literal_label(
   let line_height = (size * 1.5).round()
   {
     lines: lines.mapi((i, line) => {
-      [{ text: line, style, icon: None, width: widths[i], }]
+      [{ text: line, style, icon: None, width: widths[i], math: None, }]
     }),
     widths,
     width,
     height: lines.length().to_double() * line_height,
     size,
     line_height,
+    heights: None,
   }
 }
 
@@ -171,6 +172,7 @@ pub fn break_label(
               style: span.style,
               icon: None,
               width: added,
+              math: None,
             })
         }
         width += added

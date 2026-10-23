@@ -44,6 +44,7 @@ pub(all) struct Label {
   height : Double
   size : Double
   line_height : Double
+  heights : Array[Double]?
 }
 
 pub(all) enum MathBody {
@@ -62,6 +63,7 @@ pub(all) struct Span {
   style : Int32
   icon : String?
   mut width : Double
+  math : MathMarkup?
 }
 
 pub(all) struct TextMeasurer {

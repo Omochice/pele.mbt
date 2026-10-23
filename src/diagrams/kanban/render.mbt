@@ -80,6 +80,7 @@ fn text_block(
         height: label.line_height,
         size: label.size,
         line_height: label.line_height,
+        heights: None,
       }
       let cx = x + (if end { -width } else { width }) / 2
       out.write_string(@svg.label_svg(one, cx, cy, attrs, icons?))

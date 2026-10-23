@@ -31,6 +31,7 @@ fn left_label(
       height: label.line_height,
       size: label.size,
       line_height: label.line_height,
+      heights: None,
     }
     out.write_string(
       @svg.label_svg(

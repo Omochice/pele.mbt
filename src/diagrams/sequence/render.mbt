@@ -255,7 +255,15 @@ priv struct BoxRun {
 
 ///|
 fn no_label() -> @text.Label {
-  { lines: [], widths: [], width: 0, height: 0, size: 0, line_height: 0, }
+  {
+    lines: [],
+    widths: [],
+    width: 0,
+    height: 0,
+    size: 0,
+    line_height: 0,
+    heights: None,
+  }
 }
 
 ///|

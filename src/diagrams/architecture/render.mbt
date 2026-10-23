@@ -101,7 +101,13 @@ fn fit(
     if width > max_width || (cut && i == max_lines - 1) {
       while true {
         guard line.last() is Some(span) else {
-          line.push({ text: "…", style: 0, icon: None, width: dots, })
+          line.push({
+            text: "…",
+            style: 0,
+            icon: None,
+            width: dots,
+            math: None,
+          })
           width = dots
           break
         }

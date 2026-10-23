@@ -363,6 +363,7 @@ fn label_line(label : @text.Label, i : Int32) -> @text.Label {
     height: label.line_height,
     size: label.size,
     line_height: label.line_height,
+    heights: None,
   }
 }
 
