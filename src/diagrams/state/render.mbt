@@ -808,6 +808,7 @@ fn draw(
               title_x(c, view.label.width, crossings) + pad,
               top + view.title_h / 2,
               " class=\"pele-cluster-label\"\{style.text}",
+              icons?=options.icons,
             )
         }
         divide(children[i], left, top + view.title_h, left + c.w, top + c.h)
@@ -837,6 +838,7 @@ fn draw(
             0,
             0,
             " class=\"pele-label\" font-size=\"\{small}\" fill=\"var(--_m)\"",
+            icons?=options.icons,
           )
       }
       _ => {
@@ -848,7 +850,8 @@ fn draw(
           " rx=\"\{@svg.num(@util.js_min(CORNER, h / 2))}\"\{SURFACE}\{style.shape}",
         )
         if view.kind == K_STATE {
-          body = body + @svg.label_svg(view.label, 0, 0, label_attrs)
+          body = body +
+            @svg.label_svg(view.label, 0, 0, label_attrs, icons?=options.icons)
         } else {
           let mut at = PAD_Y - h / 2 + view.label.height
           body = body +
@@ -858,6 +861,7 @@ fn draw(
               0,
               at - view.label.height / 2,
               label_attrs,
+              icons?=options.icons,
             )
           at += 14
           for line in view.lines {
@@ -867,6 +871,7 @@ fn draw(
                 0,
                 at + line.height / 2,
                 " class=\"pele-state-description\" font-size=\"\{small}\"\{style.text}",
+                icons?=options.icons,
               )
             at += line.height
           }
@@ -1076,6 +1081,7 @@ fn draw(
           ce.label_x + pad,
           ce.label_y + pad,
           "",
+          icons?=options.icons,
         ),
       )
     }
