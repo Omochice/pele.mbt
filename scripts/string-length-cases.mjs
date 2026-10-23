@@ -265,6 +265,7 @@ export const CASES = [
   lazy('railroad', 'an ABNF value just short of V8\'s backtracking stack', () => `railroad-abnf-beta\nr = %x1${'.1'.repeat(3355435)} ;\n`, RAISED),
   lazy('railroad', 'an ABNF value at V8\'s backtracking stack', () => `railroad-abnf-beta\nr = %x1${'.1'.repeat(3355436)} ;\n`, RAISED),
   lazy('architecture', 'a title past V8', () => `architecture-beta\ntitle ${'"'.repeat(90000000)}\nservice s(server)[x]\n`, RAISED),
+  lazy('railroad', 'a title past V8', () => `railroad-peg-beta\ntitle ${'"'.repeat(90000000)}\nr <- "a" ;\n`, RAISED),
 ];
 
 // A case whose source is built only when the check reaches it, as a getter in the source's place,
