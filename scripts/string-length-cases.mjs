@@ -401,6 +401,14 @@ export const CASES = [
   lazy('c4', 'one system filled by many &', () => `C4Context\nSystem(s, "x")\nUpdateElementStyle(s, "${'&'.repeat(54000000)}")\n`, RAISED),
   lazy('c4', 'one person colored by many &', () => `C4Context\nPerson(p, "x")\nUpdateElementStyle(p, $fontColor="${'&'.repeat(54000000)}")\n`, RAISED),
   lazy('c4', 'one relation lined by many &', () => `C4Context\nPerson(p, "x")\nPerson(q, "y")\nRel(p, q, "l")\nUpdateRelStyle(p, q, "red", "${'&'.repeat(54000000)}")\n`, RAISED),
+  // A leaf's or a section's name is its data-id; its label is cut to fit its box.
+  lazy('treemap', 'one leaf named by many &', () => `treemap-beta\n"${'&'.repeat(54000000)}": 1\n`, RAISED),
+  lazy('treemap', 'one leaf named past V8', () => `treemap-beta\n"${'&'.repeat(110000000)}": 1\n`, RAISED),
+  lazy('treemap', 'one section named by many &', () => `treemap-beta\n"${'&'.repeat(54000000)}"\n  "b": 1\n`, RAISED),
+  // A fill goes once into the box, whose tint it also turns off; a color into the name and the value.
+  lazy('treemap', 'one leaf filled by many &', () => `treemap-beta\n"a": 1:::cc\nclassDef cc fill:${'&'.repeat(54000000)};\n`, RAISED),
+  lazy('treemap', 'one section filled by many &', () => `treemap-beta\n"s":::cc\n  "a": 1\nclassDef cc fill:${'&'.repeat(54000000)};\n`, RAISED),
+  lazy('treemap', 'one leaf colored by many &', () => `treemap-beta\n"a": 1:::cc\nclassDef cc color:${'&'.repeat(54000000)};\n`, RAISED),
 ];
 
 // A case whose source is built only when the check reaches it, as a getter in the source's place,
