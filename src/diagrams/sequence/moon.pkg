@@ -6,7 +6,6 @@ import {
   "Omochice/pele/types",
   "Omochice/pele/util",
   "moonbitlang/core/double",
-  "moonbitlang/core/json",
 }
 
 import {

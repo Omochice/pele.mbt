@@ -428,7 +428,7 @@ fn entries(value : Json) -> Array[(String, Json)] {
 ///|
 /// Reads menu text as JSON, as `JSON.parse` does; text that is not JSON gives nothing.
 fn menu_json(text : String) -> Json? {
-  Some(@json.parse(text)) catch {
+  Some(@util.parse_json(text)) catch {
     _ => None
   }
 }
