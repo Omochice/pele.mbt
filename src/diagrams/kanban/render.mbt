@@ -65,25 +65,18 @@ fn text_block(
 ) -> String {
   let out = StringBuilder()
   for i, line in label.lines {
-    let cy = y + (i.to_double() + 0.5) * label.line_height
-    if line.length() == 1 && line[0].icon is None {
+    let cy = y + @text.line_middle(label, i)
+    if line.length() == 1 && line[0].icon is None && line[0].math is None {
       let anchor = if end { " text-anchor=\"end\"" } else { "" }
       out.write_string(
         "<text\{@svg.text_style(attrs, line[0].style)} x=\"\{@svg.num(x)}\" y=\"\{@svg.num(cy + label.size * 0.35)}\"\{anchor}>\{@svg.esc(line[0].text)}</text>",
       )
     } else {
       let width = label.widths[i]
-      let one : @text.Label = {
-        lines: [line],
-        widths: [width],
-        width,
-        height: label.line_height,
-        size: label.size,
-        line_height: label.line_height,
-        heights: None,
-      }
       let cx = x + (if end { -width } else { width }) / 2
-      out.write_string(@svg.label_svg(one, cx, cy, attrs, icons?))
+      out.write_string(
+        @svg.label_svg(@text.label_line(label, i), cx, cy, attrs, icons?),
+      )
     }
   }
   out.to_string()
@@ -127,7 +120,6 @@ pub fn render_kanban(
   config : @types.Config,
   options : @types.RenderOptions,
 ) -> @types.Rendered {
-  // pele also holds columns wide enough for $$math$$, which does not reach a typst plugin.
   let size = options.font_size.unwrap_or(16)
   let small = (size * 0.875).round()
   let line = (size * 1.5).round()
@@ -150,11 +142,47 @@ pub fn render_kanban(
     Some(Object(conf)) => conf
     _ => {}
   }
-  let own_width = match conf.get("sectionWidth") {
-    Some(Number(value, ..)) if value > 0 =>
-      @util.js_min(@util.js_max(value, 80), 2000)
-    _ => 200
+  // Math cannot break across lines, so columns widen to hold the widest expression.
+  let mut math_width = 0.0
+  let holds = (raw : String?, font_size : Double, reserved : Double) => {
+    guard raw is Some(raw) && raw.contains("$$") else { return }
+    let label = @text.layout_label(
+      Some(raw),
+      true,
+      measurer,
+      font_size,
+      @double.infinity,
+    )
+    for spans in label.lines {
+      for span in spans {
+        if span.math is Some(math) {
+          math_width = @util.js_max(math_width, math.width + reserved)
+        }
+      }
+    }
   }
+  for section in model.sections {
+    let count = measurer.width(section.items.length().to_string(), small, 0)
+    holds(
+      Some(section.label),
+      size,
+      2 * COLUMN_PAD + 8 + count + 12 + icon_room(section.icon),
+    )
+    for item in section.items {
+      let reserved = 2.0 * (COLUMN_PAD + CARD_PAD)
+      holds(Some(item.label), small, reserved + icon_room(item.icon))
+      holds(item.ticket, small, reserved)
+      holds(item.assigned, small, reserved)
+    }
+  }
+  let own_width = @util.js_max(
+    match conf.get("sectionWidth") {
+      Some(Number(value, ..)) if value > 0 =>
+        @util.js_min(@util.js_max(value, 80), 2000)
+      _ => 200
+    },
+    math_width.ceil(),
+  )
   // A board wider than the width the host has is folded into rows of columns, which then share the row between them.
   let room = match options.max_width {
     Some(max_width) if max_width > 0 => max_width - 2 * pad
