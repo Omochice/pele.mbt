@@ -11,7 +11,7 @@ pub fn build_state_graph(Array[Stmt], Map[String, StateStmt], Map[String, StateC
 
 pub fn parse_state(String, StateDb) -> Array[Stmt] raise @errors.PeleError
 
-pub fn render_state(StateDb, Map[String, Json], @types.RenderOptions) -> @types.Rendered
+pub fn render_state(StateDb, Map[String, Json], @types.RenderOptions) -> @types.Rendered raise @errors.PeleError
 
 pub let state : @types.Diagram
 

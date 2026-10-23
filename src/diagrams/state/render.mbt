@@ -240,7 +240,7 @@ pub fn render_state(
   db : StateDb,
   config : @types.Config,
   options : @types.RenderOptions,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   if !@common.runs_across(Some(db.direction())) {
     return draw(db, config, options, false)
   }
@@ -254,7 +254,7 @@ fn draw(
   config : @types.Config,
   options : @types.RenderOptions,
   turned : Bool,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   let graph = db.graph
   let size = options.font_size.unwrap_or(16)
   let small = (size * 0.875).round()
@@ -698,10 +698,10 @@ fn draw(
       order.push(child)
     }
   }
-  let clusters = StringBuilder()
-  let dividers = StringBuilder()
-  let nodes_out = StringBuilder()
-  let notes_out = StringBuilder()
+  let clusters = @svg.Markup::new()
+  let dividers = @svg.Markup::new()
+  let nodes_out = @svg.Markup::new()
+  let notes_out = @svg.Markup::new()
   // Draws the dashed lines between the regions among a composite's members.
   let divide = (
     items : Array[Int32],
@@ -756,14 +756,14 @@ fn draw(
         } else {
           "\{@svg.num(left)},\{at}H\{@svg.num(right)}"
         }
-        dividers.write_string("<path class=\"pele-divider\" d=\"M\{d}\"/>")
+        dividers.write("<path class=\"pele-divider\" d=\"M\{d}\"/>")
       }
       return
     }
     // Regions that sit neither side by side nor in a stack each get an outline.
     for i in regions {
       let c = cnodes[i]
-      dividers.write_string(
+      dividers.write(
         rect(
           c.x - c.w / 2 + pad,
           c.y - c.h / 2 + pad,
@@ -895,13 +895,13 @@ fn draw(
     }
     let open = "<g class=\"\{kind_classes[view.kind]}\{@svg.class_names(strip_mermaid_classes(node.css_classes))}\" data-id=\"\{@svg.esc_text(node.id)}\""
     if view.kind == K_COMPOSITE {
-      clusters.write_string("\{open}>\{body}</g>")
+      clusters.write("\{open}>\{body}</g>")
     } else {
       let placed = "\{open} transform=\"translate(\{@svg.num(x)},\{@svg.num(y)})\">\{body}</g>"
       if view.kind == K_NOTE {
-        notes_out.write_string(placed)
+        notes_out.write(placed)
       } else {
-        nodes_out.write_string(placed)
+        nodes_out.write(placed)
       }
     }
   }
@@ -948,8 +948,8 @@ fn draw(
       "arrow_point",
     )
   }
-  let edges_out = StringBuilder()
-  let labels_out = StringBuilder()
+  let edges_out = @svg.Markup::new()
+  let labels_out = @svg.Markup::new()
   let loop_seen = FixedArray::make(states, 0)
   let loop_text = FixedArray::make(states, 0.0)
   for i, ce in cedges {
@@ -1067,14 +1067,14 @@ fn draw(
     } else {
       "pele-transition"
     }
-    edges_out.write_string(
+    edges_out.write(
       "<g class=\"pele-edge \{kind}\" data-id=\"\{@svg.esc_text(edge.id)}\">" +
       "<path d=\"\{d}\"/>" +
       @svg.marker(end_type, ex, ey, edx, edy, "var(--_l)") +
       "</g>",
     )
     if label.width > 0 {
-      labels_out.write_string(
+      labels_out.write(
         @svg.edge_label_svg(
           edge.id,
           label,
@@ -1086,42 +1086,44 @@ fn draw(
       )
     }
   }
-  let content = StringBuilder()
-  let clusters_svg = clusters.to_string()
-  if clusters_svg != "" {
-    content.write_string("<g class=\"pele-clusters\">\{clusters_svg}</g>")
+  let content = @svg.Markup::new()
+  if !clusters.is_empty() {
+    content.write_group("<g class=\"pele-clusters\">", clusters, "</g>")
   }
-  let dividers_svg = dividers.to_string()
-  if dividers_svg != "" {
-    content.write_string(
-      "<g class=\"pele-dividers\" stroke-dasharray=\"4 4\"\{RULE}>\{dividers_svg}</g>",
+  if !dividers.is_empty() {
+    content.write_group(
+      "<g class=\"pele-dividers\" stroke-dasharray=\"4 4\"\{RULE}>",
+      dividers,
+      "</g>",
     )
   }
-  let edges_svg = edges_out.to_string()
-  if edges_svg != "" {
-    content.write_string(
-      "<g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\">\{edges_svg}</g>",
+  if !edges_out.is_empty() {
+    content.write_group(
+      "<g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\">",
+      edges_out, "</g>",
     )
   }
-  let labels_svg = labels_out.to_string()
-  if labels_svg != "" {
-    content.write_string(
-      "<g class=\"pele-edge-labels\" font-size=\"\{small}\">\{labels_svg}</g>",
+  if !labels_out.is_empty() {
+    content.write_group(
+      "<g class=\"pele-edge-labels\" font-size=\"\{small}\">",
+      labels_out,
+      "</g>",
     )
   }
-  content.write_string(
-    "<g class=\"pele-nodes\">\{nodes_out.to_string()}\{notes_out.to_string()}</g>",
-  )
-  let titled = @svg.with_title(
+  content.write("<g class=\"pele-nodes\">")
+  content.write_markup(nodes_out)
+  content.write_markup(notes_out)
+  content.write("</g>")
+  let titled = @svg.with_title_markup(
     db.title,
     measurer,
     size,
     pad,
     width,
     height,
-    content.to_string(),
+    content,
   )
-  let svg = @svg.svg_document(
+  let svg = @svg.markup_document(
     "state",
     titled.width,
     titled.height,
