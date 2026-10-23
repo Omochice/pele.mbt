@@ -192,4 +192,8 @@ export const CASES = [
   ['packet', 'one field of many &, drawn down', `packet\n0-31: "${'&'.repeat(62000000)}"\n`, { ...RAISED, maxWidth: 300 }],
   // A point's name is written in its data-id and as its label.
   ['quadrant', 'one point named by many &', `quadrantChart\n${'&'.repeat(54000000)}: [0.5, 0.5]\n`, RAISED],
+  // pele fails these while parsing, as it does a commit id past 4194294 characters; the port fails
+  // as the label passes V8's longest string.
+  ['radar', 'one axis labelled by many &', `radar-beta\naxis a["${'&'.repeat(110000000)}"]\n`, RAISED],
+  ['radar', 'one curve labelled by many &', `radar-beta\naxis a\ncurve c["${'&'.repeat(110000000)}"]{1}\n`, RAISED],
 ];

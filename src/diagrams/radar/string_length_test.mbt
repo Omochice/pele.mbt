@@ -16,3 +16,38 @@ test "graticule rings outgrowing V8's longest string fail as nested too deeply" 
   }
   inspect(failure, content="limit: Diagram is nested too deeply. radar radar")
 }
+
+///|
+fn outcome_of(source : String, options : @types.RenderOptions) -> String {
+  try {
+    @core.render([@radar.radar], source, options) |> ignore
+    "rendered"
+  } catch {
+    @errors.PeleError(failure) =>
+      "\{failure.code.to_string()}: \{failure.message} \{failure.kind.unwrap_or("null")} \{failure.mermaid_type.unwrap_or("null")}"
+  }
+}
+
+///|
+#skip("slow: escapes 110 million characters before it fails")
+test "an axis labelled by over a hundred million entities fails as nested too deeply" {
+  inspect(
+    outcome_of("radar-beta\naxis a[\"\{"&".repeat(110000000)}\"]\n", {
+      ..@types.RenderOptions::default(),
+      limit: Some(1.0 / 0.0),
+    }),
+    content="limit: Diagram is nested too deeply. radar radar",
+  )
+}
+
+///|
+#skip("slow: escapes 110 million characters before it fails")
+test "a curve labelled by over a hundred million entities fails as nested too deeply" {
+  inspect(
+    outcome_of(
+      "radar-beta\naxis a\ncurve c[\"\{"&".repeat(110000000)}\"]{1}\n",
+      { ..@types.RenderOptions::default(), limit: Some(1.0 / 0.0), },
+    ),
+    content="limit: Diagram is nested too deeply. radar radar",
+  )
+}
