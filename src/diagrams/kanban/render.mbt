@@ -14,6 +14,10 @@ const CARD_GAP : Double = 8
 const META_GAP : Double = 4
 
 ///|
+/// Between an icon and the count or text beside it.
+const ICON_GAP : Double = 6
+
+///|
 const CRITICAL : String = "var(--pele-critical,#e45756)"
 
 ///|
@@ -56,12 +60,13 @@ fn text_block(
   x : Double,
   y : Double,
   attrs : String,
+  icons : @types.IconResolver?,
   end~ : Bool = false,
 ) -> String {
   let out = StringBuilder()
   for i, line in label.lines {
     let cy = y + (i.to_double() + 0.5) * label.line_height
-    if line.length() == 1 {
+    if line.length() == 1 && line[0].icon is None {
       let anchor = if end { " text-anchor=\"end\"" } else { "" }
       out.write_string(
         "<text\{@svg.text_style(attrs, line[0].style)} x=\"\{@svg.num(x)}\" y=\"\{@svg.num(cy + label.size * 0.35)}\"\{anchor}>\{@svg.esc(line[0].text)}</text>",
@@ -77,7 +82,7 @@ fn text_block(
         line_height: label.line_height,
       }
       let cx = x + (if end { -width } else { width }) / 2
-      out.write_string(@svg.label_svg(one, cx, cy, attrs))
+      out.write_string(@svg.label_svg(one, cx, cy, attrs, icons?))
     }
   }
   out.to_string()
@@ -121,14 +126,25 @@ pub fn render_kanban(
   config : @types.Config,
   options : @types.RenderOptions,
 ) -> @types.Rendered {
-  // pele also holds columns wide enough for $$math$$ and draws icons from the host's resolver.
-  // Neither reaches a typst plugin, so neither is drawn here.
+  // pele also holds columns wide enough for $$math$$, which does not reach a typst plugin.
   let size = options.font_size.unwrap_or(16)
   let small = (size * 0.875).round()
   let line = (size * 1.5).round()
   let small_line = (small * 1.5).round()
   let measurer = options.text_measurer()
   let pad = options.padding.unwrap_or(8)
+  let glyph = small * 1.25
+  // Whether the host has the icon; one it does not have takes no room.
+  let has = (name : String?) => {
+    name is Some(name) && name != "" && @text.icon_markup(name) != ""
+  }
+  let icon_room = (name : String?) => {
+    if has(name) {
+      glyph + ICON_GAP
+    } else {
+      0
+    }
+  }
   let conf = match config.get("kanban") {
     Some(Object(conf)) => conf
     _ => {}
@@ -185,7 +201,7 @@ pub fn render_kanban(
       true,
       measurer,
       size,
-      card_width - 8 - (count_width + 12),
+      card_width - 8 - (count_width + 12 + icon_room(section.icon)),
       base=@text.STYLE_BOLD,
     )
     head_height = @util.js_max(head_height, title.height)
@@ -194,7 +210,13 @@ pub fn render_kanban(
     let list : Array[Card] = []
     let mut height = 0.0
     for item in section.items {
-      let label = fit_label(Some(item.label), true, measurer, small, text_width)
+      let label = fit_label(
+        Some(item.label),
+        true,
+        measurer,
+        small,
+        text_width - icon_room(item.icon),
+      )
       let ticket = fit_label(item.ticket, false, measurer, small, text_width)
       let assigned = fit_label(
         item.assigned,
@@ -268,11 +290,23 @@ pub fn render_kanban(
         COLUMN_PAD + 4,
         COLUMN_PAD,
         " class=\"pele-cluster-label\" font-weight=\"var(--_hw)\"",
+        options.icons,
       ),
     )
     body.write_string(
       "<text class=\"pele-count\" x=\"\{edge}\" y=\"\{@svg.num(COLUMN_PAD + line / 2 + small * 0.35)}\" text-anchor=\"end\" font-size=\"\{small}\" fill=\"var(--_m)\">\{section.items.length()}</text>",
     )
+    if section.icon is Some(icon) && has(section.icon) {
+      body.write_string(
+        @common.icon_svg(
+          icon,
+          edge - count_widths[index] - ICON_GAP - glyph,
+          COLUMN_PAD + (line - glyph) / 2,
+          glyph,
+          icons?=options.icons,
+        ),
+      )
+    }
     let mut y = head_height
     for card in cards[index] {
       let item = card.item
@@ -288,8 +322,25 @@ pub fn render_kanban(
         )
       }
       inner.write_string(
-        text_block(card.label, CARD_PAD, CARD_PAD, " class=\"pele-label\""),
+        text_block(
+          card.label,
+          CARD_PAD,
+          CARD_PAD,
+          " class=\"pele-label\"",
+          options.icons,
+        ),
       )
+      if item.icon is Some(icon) && has(item.icon) {
+        inner.write_string(
+          @common.icon_svg(
+            icon,
+            card_width - CARD_PAD - glyph,
+            CARD_PAD + (small_line - glyph) / 2,
+            glyph,
+            icons?=options.icons,
+          ),
+        )
+      }
       let bottom = card.height - CARD_PAD
       if item.ticket is Some(ticket) && ticket != "" {
         let top = bottom - card.meta
@@ -306,6 +357,7 @@ pub fn render_kanban(
                 CARD_PAD,
                 top,
                 " class=\"pele-ticket\" fill=\"var(--_m)\"",
+                options.icons,
               ),
             )
           Some(href) => {
@@ -318,6 +370,7 @@ pub fn render_kanban(
                 CARD_PAD,
                 top,
                 " class=\"pele-ticket\" fill=\"var(--_c)\"",
+                options.icons,
               ),
             )
             inner.write_string("</a>")
@@ -332,6 +385,7 @@ pub fn render_kanban(
             card_width - CARD_PAD,
             bottom - card.assigned.height,
             " class=\"pele-assigned\" fill=\"var(--_m)\"",
+            options.icons,
             end=true,
           ),
         )
