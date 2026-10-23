@@ -33,6 +33,8 @@ pub fn empty_call_end(String, Int32) -> Int32
 
 pub let flowchart : @types.Diagram
 
+pub fn has_capital(String) -> Bool
+
 pub fn is_node_char(Int32) -> Bool
 
 pub fn is_valid_shape(String) -> Bool

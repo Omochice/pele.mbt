@@ -95,7 +95,7 @@ fn count_char(ch : Int32, text : String) -> Int32 {
 
 ///|
 /// Whether `toLowerCase` would change the name, for the capitals a shape name plausibly holds.
-fn has_capital(name : String) -> Bool {
+pub fn has_capital(name : String) -> Bool {
   for i in 0..<name.length() {
     let c = @util.code_at(name, i)
     let capital = (c >= 'A' && c <= 'Z') ||
