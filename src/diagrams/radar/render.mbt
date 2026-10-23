@@ -193,9 +193,11 @@ fn draw(
       } else {
         0
       })
-    labels.write(
-      "<g class=\"pele-axis-label\" data-id=\"\{@svg.esc_text(axes[i].name)}\">\{@svg.label_svg(label, cx, cy, "")}</g>",
-    )
+    labels.write("<g class=\"pele-axis-label\" data-id=\"")
+    @svg.write_esc_text(labels, axes[i].name)
+    labels.write("\">")
+    @svg.write_label(labels, label, cx, cy, "")
+    labels.write("</g>")
     x0 = @cmp.minimum(x0, cx - label.width / 2)
     x1 = @cmp.maximum(x1, cx + label.width / 2)
     y0 = @cmp.minimum(y0, cy - label.height / 2)
@@ -213,12 +215,15 @@ fn draw(
       { x: unit[i].x * safe, y: unit[i].y * safe, }
     })
     let color = @svg.series_color(index)
-    let attrs = " class=\"pele-curve\" data-id=\"\{@svg.esc_text(curve.name)}\" fill=\"\{color}\" stroke=\"\{color}\""
+    let element = if graticule == "circle" { "path" } else { "polygon" }
+    shapes.write("<\{element} class=\"pele-curve\" data-id=\"")
+    @svg.write_esc_text(shapes, curve.name)
+    shapes.write("\" fill=\"\{color}\" stroke=\"\{color}\"")
     if graticule == "circle" {
-      shapes.write("<path\{attrs} d=\"")
+      shapes.write(" d=\"")
       write_closed_round_curve(points, tension, segment => shapes.write(segment))
     } else {
-      shapes.write("<polygon\{attrs} points=\"")
+      shapes.write(" points=\"")
       write_polygon(points, point => shapes.write(point))
     }
     shapes.write("\"/>")
@@ -250,12 +255,19 @@ fn draw(
   for index, label in legend {
     let y = legend_top + index.to_double() * ROW + ROW / 2
     let color = @svg.series_color(index)
+    legend_out.write("<g class=\"pele-legend-item\" data-id=\"")
+    @svg.write_esc_text(legend_out, curves[index].name)
     legend_out.write(
-      "<g class=\"pele-legend-item\" data-id=\"\{@svg.esc_text(curves[index].name)}\">" +
-      "<rect x=\"\{@svg.num(legend_x)}\" y=\"\{@svg.num(y - SWATCH / 2)}\" width=\"\{SWATCH}\" height=\"\{SWATCH}\" rx=\"2\" fill=\"\{color}\" fill-opacity=\"0.4\" stroke=\"\{color}\"/>" +
-      @svg.label_svg(label, legend_x + SWATCH + 8 + label.width / 2, y, "") +
-      "</g>",
+      "\"><rect x=\"\{@svg.num(legend_x)}\" y=\"\{@svg.num(y - SWATCH / 2)}\" width=\"\{SWATCH}\" height=\"\{SWATCH}\" rx=\"2\" fill=\"\{color}\" fill-opacity=\"0.4\" stroke=\"\{color}\"/>",
     )
+    @svg.write_label(
+      legend_out,
+      label,
+      legend_x + SWATCH + 8 + label.width / 2,
+      y,
+      "",
+    )
+    legend_out.write("</g>")
   }
   let title = @text.layout_label(
     model.title,
