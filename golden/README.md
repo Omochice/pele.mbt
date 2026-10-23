@@ -36,6 +36,8 @@ node scripts/gen-golden.mjs
 The script deletes everything in `golden/` except this README and then rewrites it.
 Corpus inputs are collected by a port of `loadCorpus` in `vendor/pele/tests/support/corpus.ts`, which takes string literals from `tests/compat/<diagram>/*.spec.{js,ts}` that match a per-diagram keyword and adds `tests/corpus/<diagram>-docs.json`.
 `tests/corpus/agentflow-reference.json` is not included because its entries are objects rather than plain source strings.
+The string literals of `tests/render/math.test.ts` that contain `$$` are added as well, each under the diagram that pele's `detectType` names for it.
+No compat spec puts `$$` in a diagram that typesets math, so without them a math resolver would never be asked for anything.
 
 ## Pinned options
 

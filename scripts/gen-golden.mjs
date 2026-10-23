@@ -12,7 +12,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 // A git worktree has no initialised submodule of its own, so the checkout can be named instead.
 const peleRoot = process.env.PELE_ROOT ?? join(root, 'vendor/pele');
 const goldenDir = join(root, 'golden');
-const { render } = await import(join(peleRoot, 'dist/pele.js'));
+const { detectType, render } = await import(join(peleRoot, 'dist/pele.js'));
 
 // Unset options are those whose default is "undefined means X":
 // maxWidth (no width negotiation), responsive (derived from the diagram's useMaxWidth config),
@@ -97,8 +97,32 @@ function loadCorpus(diagram, keyword) {
   for (const sample of JSON.parse(readFileSync(join(peleRoot, 'tests/corpus', `${diagram}-docs.json`), 'utf8'))) {
     seeds.add(sample);
   }
+  for (const seed of mathSeeds[diagram] ?? []) seeds.add(seed);
   return [...seeds];
 }
+
+// The directory of each pele diagram type whose name differs from it.
+const directoryOf = { gitGraph: 'git', quadrantChart: 'quadrant', treeView: 'treeview' };
+
+// No compat spec puts $$ in a diagram that typesets math, so a math resolver would never be asked
+// for anything. The sources of pele's math render test are added, each under the diagram pele detects.
+function loadMathSeeds() {
+  const seeds = {};
+  const src = readFileSync(join(peleRoot, 'tests/render/math.test.ts'), 'utf8');
+  for (const seed of stringLiterals(src, (raw) => raw.includes('$$'))) {
+    let type;
+    try {
+      type = detectType(seed);
+    } catch {
+      continue;
+    }
+    if (type === null) continue;
+    (seeds[directoryOf[type] ?? type] ??= []).push(seed);
+  }
+  return seeds;
+}
+
+const mathSeeds = loadMathSeeds();
 
 // agentflow-reference.json holds objects ({ src, model, ... }), not plain strings,
 // so it is not part of the corpus.
