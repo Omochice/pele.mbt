@@ -58,17 +58,7 @@ test "markup longer than a doubling StringBuilder can grow to turns into a strin
 }
 
 ///|
-test "a document as long as V8's longest string turns into a string" {
-  let start = @svg.markup_document(
-    "pie",
-    10,
-    20,
-    16,
-    @types.RenderOptions::default(),
-    None,
-    None,
-    @svg.Markup::new(),
-  ).length()
+test "a document up to the port's hold limit turns into a string" {
   let document = @svg.markup_document(
     "pie",
     10,
@@ -77,10 +67,32 @@ test "a document as long as V8's longest string turns into a string" {
     @types.RenderOptions::default(),
     None,
     None,
-    markup_of(@svg.MAX_STRING_LENGTH - start),
+    markup_of(@svg.HOLD_LIMIT),
   )
-  inspect(document.length(), content="536870888")
-  inspect(@util.slice(document, 536870888 - 9), content="aaa</svg>")
+  inspect(document.length() > @svg.HOLD_LIMIT, content="true")
+  inspect(@util.slice(document, document.length() - 9), content="aaa</svg>")
+}
+
+///|
+test "a document past the port's hold limit fails with the port's limit, not V8's" {
+  let content = markup_of(@svg.HOLD_LIMIT + 1)
+  inspect(content.length(), content="400000001")
+  inspect(
+    failure(() => {
+      @svg.markup_document(
+        "pie",
+        10,
+        20,
+        16,
+        @types.RenderOptions::default(),
+        None,
+        None,
+        content,
+      )
+      |> ignore
+    }),
+    content="limit: Diagram output is too large for the wasm port: it would hold more than 400000000 code units, the most the port can hold at once.",
+  )
 }
 
 ///|

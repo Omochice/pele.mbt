@@ -6,6 +6,14 @@
 pub const MAX_STRING_LENGTH : Int32 = 536870888
 
 ///|
+/// The most code units the port holds while it builds a drawing, below the length a `String`
+/// could reach, because the port holds the pieces, the string it makes of them and the answer's
+/// bytes at once, which near V8's longest string would outgrow wasm's 4 GiB of memory.
+/// pele draws up to V8's longest string; the port stops here, which is its one platform-imposed
+/// difference from pele.
+pub const HOLD_LIMIT : Int32 = 400000000
+
+///|
 /// The code units of small writes gathered into one piece.
 const CHUNK_LENGTH : Int32 = 65536
 

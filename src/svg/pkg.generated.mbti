@@ -13,6 +13,8 @@ pub const ARROW : Double = 8
 
 pub const CRITICAL : String = "var(--pele-critical,#e45756)"
 
+pub const HOLD_LIMIT : Int32 = 400000000
+
 pub const LEAD : Double = 6
 
 pub const MAX_STRING_LENGTH : Int32 = 536870888
