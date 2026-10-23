@@ -18,11 +18,13 @@ pub struct C4Db {
   priv rel_index : Map[String, Map[String, C4Rel]]
   priv mut current : C4Element
   priv stack : Array[C4Element]
+  priv mut next_id : Int32
 }
 
 ///|
-fn element_new() -> C4Element {
+fn element_new(id : Int32) -> C4Element {
   {
+    id,
     alias_: "",
     label: "",
     alias_attr: None,
@@ -50,7 +52,7 @@ fn element_new() -> C4Element {
 ///|
 /// An empty model, titled from front matter when `title` is given.
 pub fn C4Db::new(title? : String) -> C4Db {
-  let root = element_new()
+  let root = element_new(0)
   root.alias_ = "global"
   root.label = "global"
   root.type_ = Some("global")
@@ -71,6 +73,7 @@ pub fn C4Db::new(title? : String) -> C4Db {
     rel_index: {},
     current: root,
     stack: [],
+    next_id: 1,
   }
 }
 
@@ -262,7 +265,8 @@ pub fn C4Db::set_acc_description(self : C4Db, descr : String) -> Unit {
 }
 
 ///|
-fn find_or_add(
+fn C4Db::find_or_add(
+  self : C4Db,
   list : Array[C4Element],
   index : Map[String, C4Element],
   alias_ : C4Attr,
@@ -275,7 +279,8 @@ fn find_or_add(
   let el = match found {
     Some(el) => el
     None => {
-      let el = element_new()
+      let el = element_new(self.next_id)
+      self.next_id += 1
       list.push(el)
       match alias_ {
         Text(name) => {
@@ -301,7 +306,7 @@ pub fn C4Db::add_person_or_system(
   kind : String,
   attrs : Array[C4Attr],
 ) -> Unit {
-  let shape = find_or_add(
+  let shape = self.find_or_add(
     self.shapes,
     self.shape_index,
     attrs[0],
@@ -318,7 +323,7 @@ pub fn C4Db::add_container(
   kind : String,
   attrs : Array[C4Attr],
 ) -> Unit {
-  let shape = find_or_add(
+  let shape = self.find_or_add(
     self.shapes,
     self.shape_index,
     attrs[0],
@@ -360,7 +365,7 @@ fn C4Db::boundary(
   attrs : Array[C4Attr],
   fallback : String,
 ) -> C4Element {
-  let boundary = find_or_add(
+  let boundary = self.find_or_add(
     self.boundaries,
     self.boundary_index,
     attrs[0],

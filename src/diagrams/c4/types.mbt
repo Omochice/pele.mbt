@@ -16,6 +16,8 @@ pub(all) enum C4Attr {
 /// A shape or a boundary.
 /// pele keeps both in one interface too, since style updates and relations reach either by alias.
 pub(all) struct C4Element {
+  /// Tells elements apart, as pele does by object identity.
+  id : Int32
   mut alias_ : String
   mut label : String
   /// A named argument written where the alias or the label belongs; it is applied to the field it names.

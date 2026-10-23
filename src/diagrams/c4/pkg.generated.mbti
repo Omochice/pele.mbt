@@ -70,6 +70,7 @@ pub fn C4Db::update_layout_config(Self, Array[C4Attr]) -> Unit
 pub fn C4Db::update_rel_style(Self, Array[C4Attr]) -> Unit
 
 pub(all) struct C4Element {
+  id : Int32
   mut alias_ : String
   mut label : String
   mut alias_attr : C4Named?
