@@ -24,24 +24,51 @@ fn is_unsafe_key(key : String) -> Bool {
 }
 
 ///|
-/// Objects still to merge wait on a stack of their own, so nesting is limited by memory and not by the call stack.
-/// Merging them later rather than at once gives the same config, because no two of them share an object.
+/// One object being merged, as one call of pele's recursive `merge` holds it.
+priv struct MergeFrame {
+  into : Map[String, Json]
+  from : Array[(String, Json)]
+  mut next : Int32
+  /// The object and key a fresh copy is stored under once it is complete, or `None` when `into` was already in the config.
+  attach : (Map[String, Json], String)?
+}
+
+///|
+/// Objects being merged wait on a stack of their own, so nesting is limited by memory and not by the call stack.
+/// The stack walks the objects in the order pele's recursion does and stores a fresh copy only once it is complete, as pele's `target[key] = merge({}, value)` does, so that a merge stopped partway leaves what pele's leaves.
 fn merge(target : @types.Config, source : @types.Config) -> @types.Config {
-  let pending = [(target, source)]
-  while pending.pop() is Some((into, from)) {
-    for key, value in from {
-      if is_unsafe_key(key) {
-        continue
+  let frames = [
+    { into: target, from: source.to_array(), next: 0, attach: None, },
+  ]
+  while frames.last() is Some(frame) {
+    if frame.next >= frame.from.length() {
+      frames.pop() |> ignore
+      if frame.attach is Some((parent, key)) {
+        parent[key] = Json::object(frame.into)
       }
-      match (value, is_record(into.get(key))) {
-        (Object(incoming), Some(current)) => pending.push((current, incoming))
-        (Object(incoming), None) => {
-          let copy = Map([])
-          into[key] = Json::object(copy)
-          pending.push((copy, incoming))
-        }
-        _ => into[key] = value
-      }
+      continue
+    }
+    let (key, value) = frame.from[frame.next]
+    frame.next += 1
+    if is_unsafe_key(key) {
+      continue
+    }
+    match (value, is_record(frame.into.get(key))) {
+      (Object(incoming), Some(current)) =>
+        frames.push({
+          into: current,
+          from: incoming.to_array(),
+          next: 0,
+          attach: None,
+        })
+      (Object(incoming), None) =>
+        frames.push({
+          into: Map([]),
+          from: incoming.to_array(),
+          next: 0,
+          attach: Some((frame.into, key)),
+        })
+      _ => frame.into[key] = value
     }
   }
   target
