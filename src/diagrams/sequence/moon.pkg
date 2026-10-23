@@ -10,5 +10,7 @@ import {
 
 import {
   "Omochice/pele/core",
+  "Omochice/pele/errors",
   "Omochice/pele/preprocess",
+  "Omochice/pele/types",
 } for "test"
