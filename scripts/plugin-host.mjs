@@ -9,7 +9,8 @@ import { countCallDepth } from './call-depth.mjs';
  * @param {{ callDepthLimit?: number }} [options] with `callDepthLimit`, the plugin traps past that
  *   many call frames as it would in typst, and each call reports the deepest it went.
  * @returns {{ call: (source: Buffer, optionBytes: Buffer) => { code: number, result: string, depth?: number } }}
- *   `call` gives the plugin's status code and result text, and throws when the plugin traps.
+ *   `call` gives the status code and result text of the `render` export, or of the export named by its third argument, and throws when the plugin traps.
+ *   `exported` lists the names the plugin exports.
  * @throws {Error} when the plugin is not built or imports more than typst_env.
  */
 export function loadPlugin(wasmPath, { callDepthLimit } = {}) {
@@ -21,7 +22,7 @@ export function loadPlugin(wasmPath, { callDepthLimit } = {}) {
   if (foreign.length > 0) throw new Error(`the plugin imports more than typst_env: ${JSON.stringify(foreign)}`);
 
   // A fresh instance per call, because a trapped instance is left in an undefined state.
-  function call(source, optionBytes) {
+  function call(source, optionBytes, entry = 'render') {
     const args = Buffer.concat([source, optionBytes]);
     let instance;
     let result;
@@ -34,9 +35,9 @@ export function loadPlugin(wasmPath, { callDepthLimit } = {}) {
         },
       },
     });
-    const code = instance.exports.render(source.length, optionBytes.length);
+    const code = instance.exports[entry](source.length, optionBytes.length);
     return { code, result, depth: instance.exports.call_depth_max?.value };
   }
 
-  return { call };
+  return { call, exported: WebAssembly.Module.exports(module).map((e) => e.name) };
 }

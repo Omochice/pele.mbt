@@ -40,12 +40,19 @@ const profiles = Object.entries(manifest.profiles)
   }));
 
 let call;
+let exported;
 try {
-  ({ call } = loadPlugin(wasmPath, { callDepthLimit: TYPST_CALL_DEPTH }));
+  ({ call, exported } = loadPlugin(wasmPath, { callDepthLimit: TYPST_CALL_DEPTH }));
 } catch (error) {
   console.error(error.message);
   process.exit(1);
 }
+const missing = ['render', 'try_render'].filter((name) => !exported.includes(name));
+if (missing.length > 0) {
+  console.error('the plugin does not export', missing);
+  process.exit(1);
+}
+
 // The call that went deepest, against typst's limit that the plugin is held to here.
 let deepest = { depth: 0, label: '' };
 
@@ -75,6 +82,11 @@ function compare(id, dir, profile) {
   } catch (error) {
     if (error instanceof WebAssembly.RuntimeError) return { kind: 'trap', detail: error.message };
     throw error;
+  }
+  // typst cannot catch a plugin error, so its package reads failures from this export instead.
+  const lenient = call(source, profile.optionBytes, 'try_render');
+  if (lenient.code !== 0 || lenient.result !== outcome.result) {
+    return { kind: 'fail', detail: `try_render gave status ${lenient.code} and ${lenient.result === outcome.result ? 'the same' : 'a different'} result` };
   }
   if (outcome.depth > deepest.depth) deepest = { depth: outcome.depth, label: `${basename(dir)} ${profile.name}/${id}` };
   let actual;
