@@ -1,6 +1,7 @@
 ///|
 /// Mermaid's StateDB in its version 2 form, which is what Mermaid uses for both `stateDiagram` and `stateDiagram-v2`.
-/// The legacy version, which numbers `[*]` states, is not ported.
+/// Mermaid's legacy version, which numbers `[*]` states, has no counterpart here because pele has none to port.
+/// pele detects `stateDiagram` and `stateDiagram-v2` as the same type and its `parse` builds this form for every source while ignoring the config, so no input or option reaches the legacy numbering.
 pub struct StateDb {
   mut root_doc : Array[Stmt]
   mut states : Map[String, StateStmt]
