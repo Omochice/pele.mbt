@@ -24,6 +24,45 @@ fn is_unsafe_key(key : String) -> Bool {
 }
 
 ///|
+/// The index an object key stands for when JavaScript treats it as an array index, or -1.
+fn array_index(key : String) -> Int64 {
+  let n = key.length()
+  if n == 0 || n > 10 || (n > 1 && @util.code_at(key, 0) == 48) {
+    return -1
+  }
+  let mut value = 0L
+  for i in 0..<n {
+    let c = @util.code_at(key, i)
+    if !@util.is_digit(c) {
+      return -1
+    }
+    value = value * 10 + (c - 48).to_int64()
+  }
+  if value < 4294967295L {
+    value
+  } else {
+    -1
+  }
+}
+
+///|
+/// The entries of an object in the order `Object.keys` lists them: array indexes first in ascending order, then the other keys as they were written.
+fn js_entries(fields : Map[String, Json]) -> Array[(String, Json)] {
+  let indexed = []
+  let named = []
+  for key, value in fields {
+    let index = array_index(key)
+    if index >= 0 {
+      indexed.push((index, key, value))
+    } else {
+      named.push((key, value))
+    }
+  }
+  indexed.sort_by((a, b) => a.0.compare(b.0))
+  indexed.map(entry => (entry.1, entry.2)) + named
+}
+
+///|
 /// How many objects deep pele's recursive `merge` reaches before V8 runs out of stack, counting the directive's own object.
 /// pele catches the RangeError together with the directive's JSON errors, so a deeper directive keeps only what was merged before the stack ran out.
 /// The reach depends on everything that takes stack before the merge, so the reference is one fixed invocation: `render()` of pele's dist/pele.js called by scripts/pele-render.mjs in a fresh process of node v24.21.0 (V8 13.6.233.17-node.53, arm64 macOS) with the default stack size and JIT flags, an empty environment, and nothing on the command line but that script's relative path, where 4,468 objects merge and 4,469 do not in each of 40 runs.
@@ -49,7 +88,7 @@ priv struct MergeFrame {
 /// It stops where pele's stops, at `MERGE_MAX_DEPTH`.
 fn merge(target : @types.Config, source : @types.Config) -> @types.Config {
   let frames = [
-    { into: target, from: source.to_array(), next: 0, attach: None, },
+    { into: target, from: js_entries(source), next: 0, attach: None, },
   ]
   while frames.last() is Some(frame) {
     if frame.next >= frame.from.length() {
@@ -72,14 +111,14 @@ fn merge(target : @types.Config, source : @types.Config) -> @types.Config {
       (Object(incoming), Some(current)) =>
         frames.push({
           into: current,
-          from: incoming.to_array(),
+          from: js_entries(incoming),
           next: 0,
           attach: None,
         })
       (Object(incoming), None) =>
         frames.push({
           into: Map([]),
-          from: incoming.to_array(),
+          from: js_entries(incoming),
           next: 0,
           attach: Some((frame.into, key)),
         })
