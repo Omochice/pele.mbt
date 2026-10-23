@@ -367,17 +367,18 @@ fn draw(
         px(end + TAIL, c),
         py(end + TAIL, c),
       )
+      branches.write("<g class=\"pele-branch\" data-id=\"")
+      @svg.write_esc_text(branches, model.lanes[i])
       branches.write(
-        "<g class=\"pele-branch\" data-id=\"\{@svg.esc_text(model.lanes[i])}\">" +
-        "<path class=\"pele-lane\" d=\"M\{point(-LABEL_GAP, c)}L\{point(end + TAIL, c)}\" stroke=\"\{color}\" stroke-dasharray=\"2 4\"/>",
+        "\"><path class=\"pele-lane\" d=\"M\{point(-LABEL_GAP, c)}L\{point(end + TAIL, c)}\" stroke=\"\{color}\" stroke-dasharray=\"2 4\"/>",
       )
       if !name.lines.is_empty() {
         bounds.grow(cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2)
         branches.write(
-          "<rect x=\"\{@svg.num(cx - w / 2)}\" y=\"\{@svg.num(cy - h / 2)}\" width=\"\{@svg.num(w)}\" height=\"\{@svg.num(h)}\" fill=\"\{color}\"\{@svg.ROUNDED}/>" +
-          @svg.label_svg(
-            name, cx, cy, " class=\"pele-label\" fill=\"var(--_bg)\"",
-          ),
+          "<rect x=\"\{@svg.num(cx - w / 2)}\" y=\"\{@svg.num(cy - h / 2)}\" width=\"\{@svg.num(w)}\" height=\"\{@svg.num(h)}\" fill=\"\{color}\"\{@svg.ROUNDED}/>",
+        )
+        @svg.write_label(
+          branches, name, cx, cy, " class=\"pele-label\" fill=\"var(--_bg)\"",
         )
       }
       branches.write("</g>")
@@ -501,7 +502,9 @@ fn draw(
       commit.message != ""
     let body = @svg.Markup::new()
     if written {
-      body.write("<title>\{@svg.esc_text(commit.message)}</title>")
+      body.write("<title>")
+      @svg.write_esc_text(body, commit.message)
+      body.write("</title>")
     }
     body.write(symbol(commit_type, x, y, @svg.series_color(view.lane)))
     if view.label is Some(label) && !label.lines.is_empty() {
@@ -533,17 +536,17 @@ fn draw(
         )
         body.write(
           "<g class=\"pele-commit-label\" transform=\"rotate(\{if flip { 45 } else { -45 }} \{@svg.num(ax)} \{@svg.num(ay)})\">" +
-          back(ax - w / 2, ay) +
-          @svg.label_svg(label, ax - w / 2, ay, "") +
-          "</g>",
+          back(ax - w / 2, ay),
         )
+        @svg.write_label(body, label, ax - w / 2, ay, "")
+        body.write("</g>")
       } else {
         let cx = if vertical { x - DOT - 6 - w / 2 } else { x }
         let cy = if vertical { y } else { y + DOT + 6 + h / 2 }
         bounds.grow(cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2)
-        body.write(
-          "<g class=\"pele-commit-label\">\{back(cx, cy)}\{@svg.label_svg(label, cx, cy, "")}</g>",
-        )
+        body.write("<g class=\"pele-commit-label\">\{back(cx, cy)}")
+        @svg.write_label(body, label, cx, cy, "")
+        body.write("</g>")
       }
     }
     // Beside the lane the tags form a row; above it they stack, the first one furthest out.
@@ -561,15 +564,16 @@ fn draw(
       body.write(
         "<g class=\"pele-tag\">" +
         "<path d=\"M\{@svg.num(left)},\{@svg.num(cy)}L\{@svg.num(left + NOTCH)},\{@svg.num(cy - h / 2)}H\{@svg.num(left + w)}V\{@svg.num(cy + h / 2)}H\{@svg.num(left + NOTCH)}Z\" fill=\"var(--_s)\" stroke=\"var(--_b)\" stroke-linejoin=\"round\"/>" +
-        "<circle cx=\"\{@svg.num(left + NOTCH)}\" cy=\"\{@svg.num(cy)}\" r=\"1.5\" fill=\"var(--_b)\"/>" +
-        @svg.label_svg(
-          tag,
-          left + NOTCH + 4 + tag.width / 2,
-          cy,
-          " fill=\"var(--_fg)\"",
-        ) +
-        "</g>",
+        "<circle cx=\"\{@svg.num(left + NOTCH)}\" cy=\"\{@svg.num(cy)}\" r=\"1.5\" fill=\"var(--_b)\"/>",
       )
+      @svg.write_label(
+        body,
+        tag,
+        left + NOTCH + 4 + tag.width / 2,
+        cy,
+        " fill=\"var(--_fg)\"",
+      )
+      body.write("</g>")
       t += if vertical { 1 } else { -1 }
     }
     let merge = if commit.commit_type is Merge && !(commit_type is Merge) {
@@ -577,11 +581,11 @@ fn draw(
     } else {
       ""
     }
-    commits.write_group(
-      "<g class=\"pele-commit pele-commit-\{class_name(commit_type)}\{merge}\" data-id=\"\{@svg.esc_text(commit.id)}\">",
-      body,
-      "</g>",
+    commits.write(
+      "<g class=\"pele-commit pele-commit-\{class_name(commit_type)}\{merge}\" data-id=\"",
     )
+    @svg.write_esc_text(commits, commit.id)
+    commits.write_group("\">", body, "</g>")
   }
   if bounds.min_x > bounds.max_x {
     bounds.grow(0, 0, 0, 0)
