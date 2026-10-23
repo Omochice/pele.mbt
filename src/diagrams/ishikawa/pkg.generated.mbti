@@ -11,7 +11,7 @@ pub let ishikawa : @types.Diagram
 
 pub fn parse_ishikawa(String, title? : String) -> IshikawaModel raise @errors.PeleError
 
-pub fn render_ishikawa(IshikawaModel, @types.RenderOptions) -> @types.Rendered
+pub fn render_ishikawa(IshikawaModel, @types.RenderOptions) -> @types.Rendered raise @errors.PeleError
 
 // Errors
 

@@ -184,7 +184,7 @@ fn arrange(
 pub fn render_ishikawa(
   model : IshikawaModel,
   options : @types.RenderOptions,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   @common.turn_to_fit(options, down => draw(model, options, down))
 }
 
@@ -193,7 +193,7 @@ fn draw(
   model : IshikawaModel,
   options : @types.RenderOptions,
   down : Bool,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   if down {
     return vertical_causes(model, options)
   }
@@ -210,7 +210,7 @@ fn draw(
     base=@text.STYLE_BOLD,
   )
   let title_height = if title.height > 0 { title.height + 12 } else { 0 }
-  let body = StringBuilder()
+  let body = @svg.Markup::new()
   let mut min_x = 0.0
   let mut max_x = 0.0
   let mut min_y = 0.0
@@ -259,7 +259,7 @@ fn draw(
     min_x = tail
     min_y = -head_h / 2
     max_y = head_h / 2
-    let groups = StringBuilder()
+    let groups = @svg.Markup::new()
     for i, category in categories {
       let sign = if i % 2 == 0 { -1.0 } else { 1.0 }
       let ax = xs[i]
@@ -268,25 +268,25 @@ fn draw(
       let end_y = sign * category.rise
       // The bone stops short of the spine to leave its arrowhead a clean point.
       let trim = @svg.ARROW - 1
-      let d = StringBuilder()
-      d.write_string(
+      let d = @svg.Markup::new()
+      d.write(
         "M\{@svg.num(ax - SLANT / length * trim)},\{@svg.num(sign * trim / length)}L\{@svg.num(end_x)},\{@svg.num(end_y)}",
       )
-      let texts = StringBuilder()
+      let texts = @svg.Markup::new()
       for bone in category.bones {
         let y = sign * bone.rise
         if bone.depth % 2 == 0 {
-          d.write_string(
+          d.write(
             "M\{@svg.num(px(bone.at, bone.rise))},\{@svg.num(y)}H\{@svg.num(px(bone.text_end + TEXT_GAP, bone.rise))}",
           )
         } else {
           let from = category.bones[bone.parent].rise
-          d.write_string(
+          d.write(
             "M\{@svg.num(px(bone.at, from))},\{@svg.num(sign * from)}L\{@svg.num(px(bone.at, bone.rise))},\{@svg.num(y)}",
           )
         }
         let right = px(bone.text_end, bone.rise)
-        texts.write_string(
+        texts.write(
           @svg.label_svg(
             bone.label,
             right - bone.label.width / 2,
@@ -305,9 +305,13 @@ fn draw(
       max_x = @util.js_max(max_x, end_x + category.box_w / 2)
       min_y = @util.js_min(min_y, box_y - category.box_h / 2)
       max_y = @util.js_max(max_y, box_y + category.box_h / 2)
-      groups.write_string(
-        "<g class=\"pele-ishikawa-category\" data-id=\"\{@svg.esc_text(category.node.text)}\">" +
-        "<path class=\"pele-ishikawa-bones\" d=\"\{d.to_string()}\" fill=\"none\" stroke=\"var(--_l)\"/>" +
+      groups.write(
+        "<g class=\"pele-ishikawa-category\" data-id=\"\{@svg.esc_text(category.node.text)}\">",
+      )
+      groups.write_group(
+        "<path class=\"pele-ishikawa-bones\" d=\"", d, "\" fill=\"none\" stroke=\"var(--_l)\"/>",
+      )
+      groups.write(
         @svg.marker(
           "arrow_point",
           ax,
@@ -317,20 +321,24 @@ fn draw(
           "var(--_l)",
         ) +
         "<rect x=\"\{@svg.num(end_x - category.box_w / 2)}\" y=\"\{@svg.num(box_y - category.box_h / 2)}\" width=\"\{@svg.num(category.box_w)}\" height=\"\{@svg.num(category.box_h)}\" fill=\"var(--_s)\" stroke=\"var(--_b)\"\{@svg.ROUNDED}/>" +
-        @svg.label_svg(category.label, end_x, box_y, " class=\"pele-label\"") +
-        (if texts.is_empty() {
-          ""
-        } else {
-          "<g class=\"pele-ishikawa-causes\" font-size=\"\{small}\">\{texts.to_string()}</g>"
-        }) +
-        "</g>",
+        @svg.label_svg(category.label, end_x, box_y, " class=\"pele-label\""),
       )
+      if !texts.is_empty() {
+        groups.write_group(
+          "<g class=\"pele-ishikawa-causes\" font-size=\"\{small}\">",
+          texts,
+          "</g>",
+        )
+      }
+      groups.write("</g>")
     }
     let r = head_h / 2
-    body.write_string(
+    body.write(
       "<path class=\"pele-ishikawa-spine\" d=\"M\{@svg.num(tail)},0H\{@svg.num(-(@svg.ARROW - 1))}\" fill=\"none\" stroke=\"var(--_l)\"/>" +
-      @svg.marker("arrow_point", 0, 0, 1, 0, "var(--_l)") +
-      groups.to_string() +
+      @svg.marker("arrow_point", 0, 0, 1, 0, "var(--_l)"),
+    )
+    body.write_markup(groups)
+    body.write(
       "<g class=\"pele-ishikawa-head\" data-id=\"\{@svg.esc_text(root.text)}\">" +
       "<path d=\"M0,\{@svg.num(-r)}H\{@svg.num(head_w - r)}A\{@svg.num(r)},\{@svg.num(r)} 0 0 1 \{@svg.num(head_w - r)},\{@svg.num(r)}H0Z\" fill=\"var(--_s)\" stroke=\"var(--_b)\" stroke-linejoin=\"round\"/>" +
       @svg.label_svg(
@@ -347,19 +355,24 @@ fn draw(
   let height = (max_y - min_y + title_height + 2 * pad).ceil()
   let ox = pad + (inner - (max_x - min_x)) / 2 - min_x
   let oy = pad + title_height - min_y
-  let content = @svg.label_svg(
+  let content = @svg.Markup::new()
+  content.write(
+    @svg.label_svg(
       title,
       width / 2,
       pad + title.height / 2,
       " class=\"pele-title\" font-weight=\"var(--_tw)\"",
-    ) +
-    (if body.is_empty() {
-      ""
-    } else {
-      "<g transform=\"translate(\{@svg.num(ox)},\{@svg.num(oy)})\">\{body.to_string()}</g>"
-    })
+    ),
+  )
+  if !body.is_empty() {
+    content.write_group(
+      "<g transform=\"translate(\{@svg.num(ox)},\{@svg.num(oy)})\">",
+      body,
+      "</g>",
+    )
+  }
   {
-    svg: @svg.svg_document(
+    svg: @svg.markup_document(
       "ishikawa",
       width,
       height,
@@ -392,7 +405,7 @@ priv struct Entry {
 fn vertical_causes(
   model : IshikawaModel,
   options : @types.RenderOptions,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   let size = options.font_size.unwrap_or(16)
   let small = (size * 0.875).round()
   let measurer = options.text_measurer()
@@ -426,8 +439,8 @@ fn vertical_causes(
   )
   let mut y = pad + (if title.height != 0 { title.height + 12 } else { 0 })
   let mut width = title.width
-  let nodes = StringBuilder()
-  let edges = StringBuilder()
+  let nodes = @svg.Markup::new()
+  let edges = @svg.Markup::new()
   for entry in order {
     entry.x = pad + entry.depth.to_double() * indent
     let label_room = @util.js_max(
@@ -461,15 +474,15 @@ fn vertical_causes(
       1 => "pele-ishikawa-category"
       _ => "pele-ishikawa-cause"
     }
-    nodes.write_string(
+    nodes.write(
       "<g class=\"pele-node \{class_name}\" data-id=\"\{@svg.esc_text(entry.node.text)}\">",
     )
     if framed {
-      nodes.write_string(
+      nodes.write(
         "<rect x=\"\{@svg.num(entry.x)}\" y=\"\{@svg.num(entry.y)}\" width=\"\{@svg.num(entry.w)}\" height=\"\{@svg.num(entry.h)}\" rx=\"\{if entry.depth == 0 { 12 } else { 4 }}\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/>",
       )
     }
-    nodes.write_string(
+    nodes.write(
       @svg.label_svg(
         label,
         entry.x + entry.w / 2,
@@ -481,23 +494,26 @@ fn vertical_causes(
     if entry.parent >= 0 {
       let parent = order[entry.parent]
       let gx = parent.x + indent / 2
-      edges.write_string(
+      edges.write(
         "<path class=\"pele-edge\" d=\"M\{@svg.num(gx)},\{@svg.num(parent.y + parent.h)}V\{@svg.num(entry.y + entry.h / 2)}H\{@svg.num(entry.x)}\" fill=\"none\" stroke=\"var(--_b)\"/>",
       )
     }
   }
   let total_width = (width + 2 * pad).ceil()
   let height = (@util.js_max(pad + title.height, y - 12) + pad).ceil()
-  let content = @svg.label_svg(
+  let content = @svg.Markup::new()
+  content.write(
+    @svg.label_svg(
       title,
       total_width / 2,
       pad + title.height / 2,
       " class=\"pele-title\" font-weight=\"var(--_tw)\"",
-    ) +
-    edges.to_string() +
-    nodes.to_string()
+    ),
+  )
+  content.write_markup(edges)
+  content.write_markup(nodes)
   {
-    svg: @svg.svg_document(
+    svg: @svg.markup_document(
       "ishikawa",
       total_width,
       height,
