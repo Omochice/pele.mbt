@@ -102,43 +102,57 @@ priv struct Loop {
 
 ///|
 /// Writes a measured label starting at `x`, with the baseline of its first line at `y`.
-/// pele also places icons and math here; labels in this port hold neither.
+/// Icon spans are drawn in place by `icons`, and the text after one is positioned anew.
+/// pele also places math here; labels in this port hold none.
 fn text_left(
   label : @text.Label,
   x : Double,
   y : Double,
   attrs : String,
+  icons : @types.IconResolver?,
 ) -> String {
   let lines = label.lines
   if lines.length() == 0 {
     return ""
   }
-  if lines.length() == 1 && lines[0].length() == 1 && lines[0][0].style == 0 {
+  if lines.length() == 1 &&
+    lines[0].length() == 1 &&
+    lines[0][0].icon is None &&
+    lines[0][0].style == 0 {
     return "<text\{attrs} x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\">\{@svg.esc(lines[0][0].text)}</text>"
   }
   let shared = @svg.shared_style(label)
   let shift = label.size * 0.35
   let top = y - shift - label.line_height / 2
   let body = StringBuilder()
+  let extra = StringBuilder()
   for i, line in lines {
     let middle = top + (i.to_double() + 0.5) * label.line_height
     let line_y = middle + shift
+    let has_icon = line.iter().any(span => span.icon is Some(_))
+    let mut sx = x
     let mut placed = false
     for span in line {
-      if span.text != "" {
-        let pos = if placed {
-          ""
+      if span.icon is Some(name) {
+        let side = label.size * 1.1
+        extra.write_string(
+          @common.icon_svg(name, sx, line_y - shift - side / 2, side, icons?),
+        )
+      } else if span.text != "" {
+        let pos = if has_icon || !placed {
+          " x=\"\{@svg.num(sx)}\" y=\"\{@svg.num(line_y)}\""
         } else {
-          " x=\"\{@svg.num(x)}\" y=\"\{@svg.num(line_y)}\""
+          ""
         }
         body.write_string(
           "<tspan\{pos}\{@svg.span_style(span.style & shared.lnot())}>\{@svg.esc(span.text)}</tspan>",
         )
         placed = true
       }
+      sx += span.width
     }
   }
-  "<text\{@svg.text_style(attrs, shared)} xml:space=\"preserve\">\{body.to_string()}</text>"
+  "<text\{@svg.text_style(attrs, shared)} xml:space=\"preserve\">\{body.to_string()}</text>\{extra.to_string()}"
 }
 
 ///|
@@ -531,6 +545,7 @@ fn draw(
           title_x,
           y + 8 + view.label.height / 2,
           " class=\"pele-cluster-label\" fill=\"var(--_m)\"\{view.style.text}",
+          icons?=options.icons,
         ) +
         "</g>",
       )
@@ -551,6 +566,7 @@ fn draw(
         0
       },
       " class=\"pele-label\"\{text}",
+      icons?=options.icons,
     )
     let display = @text.decode_entities(
       if node.alias_name != "" {
@@ -606,6 +622,7 @@ fn draw(
             x0 + view.cols[0],
             baseline,
             " class=\"pele-er-type\" fill=\"var(--_m)\"\{text}",
+            options.icons,
           ),
         )
         cells.write_string(
@@ -614,6 +631,7 @@ fn draw(
             x0 + view.cols[1],
             baseline,
             " class=\"pele-er-name\"\{text}",
+            options.icons,
           ),
         )
         cells.write_string(
@@ -622,6 +640,7 @@ fn draw(
             x0 + view.cols[2],
             baseline,
             " class=\"pele-er-keys\" font-size=\"\{view.key_size}\" fill=\"var(--_m)\"\{text}",
+            options.icons,
           ),
         )
         cells.write_string(
@@ -630,6 +649,7 @@ fn draw(
             x0 + view.cols[3],
             baseline,
             " class=\"pele-er-comment\" fill=\"var(--_m)\"\{text}",
+            options.icons,
           ),
         )
         y += row.h
@@ -756,7 +776,14 @@ fn draw(
     )
     if label.width > 0 {
       labels_out.write_string(
-        @svg.edge_label_svg(edge.id, label, ce.label_x, ce.label_y, ""),
+        @svg.edge_label_svg(
+          edge.id,
+          label,
+          ce.label_x,
+          ce.label_y,
+          "",
+          icons?=options.icons,
+        ),
       )
     }
   }
