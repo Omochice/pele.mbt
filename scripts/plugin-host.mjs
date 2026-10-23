@@ -29,11 +29,13 @@ export function loadPlugin(wasmPath, { callDepthLimit } = {}) {
     let instance;
     let bytes;
     const memory = () => new Uint8Array(instance.exports.memory.buffer);
+    // An i32 reaches JavaScript signed, so an address past 2 GiB arrives negative and has to be read
+    // back as the unsigned offset typst takes it for.
     instance = new WebAssembly.Instance(module, {
       typst_env: {
-        wasm_minimal_protocol_write_args_to_buffer: (ptr) => memory().set(args, ptr),
+        wasm_minimal_protocol_write_args_to_buffer: (ptr) => memory().set(args, ptr >>> 0),
         wasm_minimal_protocol_send_result_to_host: (ptr, len) => {
-          bytes = Buffer.from(memory().slice(ptr, ptr + len));
+          bytes = Buffer.from(memory().slice(ptr >>> 0, (ptr >>> 0) + (len >>> 0)));
         },
       },
     });
