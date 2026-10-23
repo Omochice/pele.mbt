@@ -328,6 +328,7 @@ export const CASES = [
   lazy('c4', 'a title past V8', () => `C4Context\ntitle ${'"'.repeat(90000000)}\nPerson(p, "x")\n`, RAISED),
   lazy('cynefin', 'a title past V8', () => `cynefin-beta\ntitle ${'"'.repeat(90000000)}\ncomplex\n  "x"\n`, RAISED),
   lazy('git', 'a title past V8', () => `gitGraph\ntitle ${'"'.repeat(90000000)}\ncommit\n`, RAISED),
+  lazy('treeview', 'a title past V8', () => `treeView-beta\ntitle ${'"'.repeat(90000000)}\n  a\n`, RAISED),
   lazy('wardley', 'a title past V8', () => `wardley-beta\ntitle ${'"'.repeat(90000000)}\ncomponent A [0.2, 0.2]\n`, RAISED),
   lazy('pie', 'a title past V8', () => `pie\ntitle ${'"'.repeat(90000000)}\n"a":1\n`, RAISED),
   lazy('packet', 'a title past V8', () => `packet\ntitle ${'"'.repeat(90000000)}\n0-31: "a"\n`, RAISED),
