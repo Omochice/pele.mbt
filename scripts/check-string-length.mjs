@@ -1,19 +1,22 @@
-// Renders diagrams whose SVG outgrows the longest string V8 can make through the wasm plugin
-// and through pele's dist bundle, and checks that both fail with the same error.
-// pele's concatenation throws a RangeError there, which pele reports as a `limit` error, before
-// its output limit is ever checked.
+// Renders diagrams whose SVG comes near or past the longest string V8 can make, through the wasm
+// plugin and through pele's dist bundle, and checks that the plugin answers as pele does.
+// pele's concatenation throws a RangeError past that length, which pele reports as a `limit` error
+// before its output limit is ever checked; below it pele draws the SVG, and so must the plugin,
+// however far past what a doubling StringBuilder could hold the SVG is.
+// Each drawing is also rendered through the theme typst sends, which has to answer without trapping.
 //
-// Usage: node scripts/check-string-length.mjs
+// Usage: node scripts/check-string-length.mjs [diagram ...]
 // Build the plugin first with `moon build --target wasm --release`.
 // PELE_ROOT points at a pele checkout with dist/ when vendor/pele is not initialized.
-// Each input makes pele and the plugin produce over half a billion characters, so a run takes a
-// minute or more.
+// Each input makes pele and the plugin produce hundreds of millions of characters, so a case takes
+// half a minute or more, and the plugin may grow its memory to 4 GiB.
 
 import { constants } from 'node:buffer';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { isDeepStrictEqual } from 'node:util';
 import { loadPlugin } from './plugin-host.mjs';
+import { CASES } from './string-length-cases.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const peleRoot = process.env.PELE_ROOT ?? join(root, 'vendor/pele');
@@ -27,24 +30,8 @@ if (constants.MAX_STRING_LENGTH !== V8_MAX_STRING_LENGTH) {
   process.exit(1);
 }
 
-const names = (prefix, count) => Array.from({ length: count }, (_, i) => `${prefix}${i}`);
-const RAISED = { limit: Number.MAX_VALUE };
-
-// The same inputs as src/diagrams/flowchart/string_length_test.mbt.
-const CASES = [
-  [
-    'edges under the default options',
-    `graph TD\nlinkStyle default stroke:#${'a'.repeat(49000)}\n${names('a', 60).join(' & ')} <--> ${names('b', 61).join(' & ')}\n`,
-    {},
-  ],
-  ['nodes', `graph TD\nclassDef c fill:#${'a'.repeat(50000)}\n${names('n', 10700).map((name) => `${name}:::c`).join(';')}\n`, RAISED],
-  [
-    'nodes and edges only together',
-    `graph TD\nclassDef default fill:#${'a'.repeat(50000)}\nlinkStyle default stroke:#${'a'.repeat(50000)}\n${names('n', 3600).join('-->')}\n`,
-    RAISED,
-  ],
-];
-
+const requested = process.argv.slice(2);
+const cases = requested.length > 0 ? CASES.filter(([diagram]) => requested.includes(diagram)) : CASES;
 const { render } = await import(pathToFileURL(join(peleRoot, 'dist/pele.js')).href);
 const plugin = loadPlugin(wasmPath);
 
@@ -54,30 +41,76 @@ function outcome(error) {
 
 function peleOutcome(text, options) {
   try {
-    return { svgLength: render(text, options).svg.length };
+    const { svg } = render(text, options);
+    return { svgLength: svg.length, svg: Buffer.from(svg) };
   } catch (error) {
     return outcome(error);
   }
 }
 
+// The SVG of a drawing's answer, unescaped from its JSON string as UTF-8 bytes.
+// An answer can be longer than V8's longest string, so it is read as bytes rather than parsed.
+function svgOfAnswer(bytes) {
+  const opening = Buffer.from('{"svg":"');
+  const out = Buffer.alloc(bytes.length);
+  let o = 0;
+  let i = opening.length;
+  for (; bytes[i] !== 0x22; i++) {
+    if (bytes[i] !== 0x5c) {
+      out[o++] = bytes[i];
+      continue;
+    }
+    i++;
+    const escape = String.fromCharCode(bytes[i]);
+    if (escape === 'u') {
+      out[o++] = parseInt(bytes.subarray(i + 1, i + 5).toString('latin1'), 16);
+      i += 4;
+    } else {
+      out[o++] = { n: 10, r: 13, t: 9, b: 8, f: 12 }[escape] ?? bytes[i];
+    }
+  }
+  const svg = out.subarray(0, o);
+  let svgLength = 0;
+  for (const b of svg) {
+    if ((b & 0xc0) !== 0x80) svgLength += b >= 0xf0 ? 2 : 1;
+  }
+  return { svgLength, svg };
+}
+
 function pluginOutcome(text, options) {
   try {
-    const { code, result } = plugin.call(Buffer.from(text), Buffer.from(JSON.stringify(options)));
-    const json = JSON.parse(result);
-    return code === 0 ? { svgLength: json.svg.length } : outcome(json.error);
+    const { code, bytes, memory } = plugin.call(Buffer.from(text), Buffer.from(JSON.stringify(options)));
+    const mib = Math.round(memory / 2 ** 20);
+    if (code !== 0) return { ...outcome(JSON.parse(bytes.toString('utf8')).error), mib };
+    return { ...svgOfAnswer(bytes), mib };
   } catch (error) {
     return { trap: String(error) };
   }
 }
 
+function summary(result) {
+  const { svg, mib, ...rest } = result;
+  return JSON.stringify(rest);
+}
+
 console.log(`node ${process.version} ${process.arch}, longest string ${constants.MAX_STRING_LENGTH}`);
 let failed = 0;
-for (const [name, text, options] of CASES) {
+for (const [diagram, name, text, options] of cases) {
   const want = peleOutcome(text, options);
   const got = pluginOutcome(text, options);
-  const pass = isDeepStrictEqual(want, got);
+  let pass;
+  let note = `plugin memory grown to ${got.mib} MiB`;
+  if (want.svg) {
+    pass = got.svg !== undefined && got.svg.equals(want.svg);
+    const themed = pluginOutcome(text, { ...options, theme: {} });
+    if (themed.trap || themed.code !== undefined) pass = false;
+    note += `, through the theme ${themed.trap ?? `${themed.mib} MiB`}`;
+  } else {
+    const { mib, ...error } = got;
+    pass = isDeepStrictEqual(want, error);
+  }
   if (!pass) failed++;
-  console.log(`${pass ? 'PASS' : 'FAIL'} ${name}: pele ${JSON.stringify(want)}${pass ? '' : `, plugin ${JSON.stringify(got)}`}`);
+  console.log(`${pass ? 'PASS' : 'FAIL'} ${diagram}: ${name}: pele ${summary(want)}${pass ? '' : `, plugin ${summary(got)}`}; ${note}`);
 }
-console.log(`\ntotal ${CASES.length - failed}/${CASES.length} passed`);
+console.log(`\ntotal ${cases.length - failed}/${cases.length} passed`);
 process.exit(failed > 0 ? 1 : 0);

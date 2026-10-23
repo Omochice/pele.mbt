@@ -8,8 +8,10 @@ import { countCallDepth } from './call-depth.mjs';
  * @param {string} wasmPath
  * @param {{ callDepthLimit?: number }} [options] with `callDepthLimit`, the plugin traps past that
  *   many call frames as it would in typst, and each call reports the deepest it went.
- * @returns {{ call: (source: Buffer, optionBytes: Buffer) => { code: number, result: string, depth?: number } }}
+ * @returns {{ call: (source: Buffer, optionBytes: Buffer) => { code: number, result: string, bytes: Buffer, memory: number, depth?: number } }}
  *   `call` gives the status code and result text of the `render` export, or of the export named by its third argument, and throws when the plugin traps.
+ *   The result is also given as its bytes, which is the only form of an answer longer than V8's longest string, and the text is decoded from them when it is first read.
+ *   `memory` is the size the plugin's memory grew to, which is the most it held at once, as wasm memory never shrinks.
  *   `exported` lists the names the plugin exports.
  * @throws {Error} when the plugin is not built or imports more than typst_env.
  */
@@ -25,18 +27,28 @@ export function loadPlugin(wasmPath, { callDepthLimit } = {}) {
   function call(source, optionBytes, entry = 'render') {
     const args = Buffer.concat([source, optionBytes]);
     let instance;
-    let result;
+    let bytes;
     const memory = () => new Uint8Array(instance.exports.memory.buffer);
     instance = new WebAssembly.Instance(module, {
       typst_env: {
         wasm_minimal_protocol_write_args_to_buffer: (ptr) => memory().set(args, ptr),
         wasm_minimal_protocol_send_result_to_host: (ptr, len) => {
-          result = Buffer.from(memory().slice(ptr, ptr + len)).toString('utf8');
+          bytes = Buffer.from(memory().slice(ptr, ptr + len));
         },
       },
     });
     const code = instance.exports[entry](source.length, optionBytes.length);
-    return { code, result, depth: instance.exports.call_depth_max?.value };
+    let result;
+    return {
+      code,
+      bytes,
+      get result() {
+        result ??= bytes.toString('utf8');
+        return result;
+      },
+      memory: instance.exports.memory.buffer.byteLength,
+      depth: instance.exports.call_depth_max?.value,
+    };
   }
 
   return { call, exported: WebAssembly.Module.exports(module).map((e) => e.name) };
