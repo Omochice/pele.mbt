@@ -170,4 +170,7 @@ export const CASES = [
   // backtracking stack past 4194294 characters; the port, which has no such stack, fails as the
   // id is written twice past V8's longest string, with the same error.
   ['git', 'one commit id of many &', `gitGraph\ncommit id: "${'&'.repeat(54000000)}"\n`, RAISED],
+  // An entry's name is written in its data-id and as its text.
+  ['treeview', 'one entry named by many &', `treeView-beta\n  "${'&'.repeat(54000000)}"\n`, RAISED],
+  ['treeview', 'one entry described by many &', `treeView-beta\n  a "${'&'.repeat(110000000)}"\n`, RAISED],
 ];
