@@ -3,14 +3,19 @@ package "Omochice/pele/diagrams/architecture"
 
 import {
   "Omochice/pele/errors",
+  "Omochice/pele/types",
 }
 
 // Values
+pub let architecture : @types.Diagram
+
 pub fn parse_architecture(String) -> ArchitectureAst raise @errors.PeleError
 
 pub fn place_on_grid(Array[ArchNode], Array[ArchGroup], Array[ArchEdge], Array[ArchLayoutHint]) -> Grid
 
 pub fn populate(ArchitectureAst, ArchitectureDb) -> Unit raise @errors.PeleError
+
+pub fn render_architecture(ArchitectureDb, Map[String, Json], @types.RenderOptions) -> @types.Rendered
 
 // Errors
 
