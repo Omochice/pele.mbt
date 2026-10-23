@@ -135,7 +135,14 @@ const NESTING = [
   ['label of nested tags', { text: `graph TD\nA["${'<b>'.repeat(DEEP)}x${'</b>'.repeat(DEEP)}"]\n` }],
   ['label of nested emphasis', { text: 'graph TD\nA["`' + '**a _b '.repeat(DEEP) + 'x' + ' b_ a**'.repeat(DEEP) + '`"]\n' }],
   ['config option of nested objects', { text: 'graph TD\nA-->B\n', options: { config: JSON.parse(`{"x":${deepObject}}`) } }],
+  // pele writes this one with String(), whose recursion outgrows V8's stack between these two depths.
+  ['legend position of 1,000 nested arrays', { text: legendPosition(1000) }],
+  ['legend position of 5,000 nested arrays', { text: legendPosition(5000) }],
 ];
+
+function legendPosition(depth) {
+  return `%%{init: {"pie": {"legendPosition": ${'['.repeat(depth)}"left"${']'.repeat(depth)}}}}%%\npie\n"a": 1\n`;
+}
 
 async function collect() {
   // Files rather than data: URLs, whose decoding in node overflows the small stacks --stack-sizes asks for.
