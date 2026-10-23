@@ -8,11 +8,15 @@ import {
 }
 
 // Values
+pub let agentflow : @types.Diagram
+
 pub fn build_agent_graph(AgentflowDb, Int32, default_curve? : String) -> AgentGraph
 
 pub fn parse_agentflow(String, AgentflowDb, raw? : Bool) -> Unit raise @errors.PeleError
 
 pub fn parse_model(String, Map[String, Json], String?, Int32, @types.ParseLimits) -> AgentflowDb raise @errors.PeleError
+
+pub fn render_agentflow(AgentflowDb, Map[String, Json], @types.RenderOptions) -> @types.Rendered
 
 pub let token_names : Array[String]
 

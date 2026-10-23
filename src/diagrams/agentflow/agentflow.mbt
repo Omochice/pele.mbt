@@ -28,3 +28,15 @@ pub fn parse_model(
   parse_agentflow(source, db)
   db
 }
+
+///|
+/// The agentflow diagram type.
+pub let agentflow : @types.Diagram = {
+  kind: "agentflow",
+  section: None,
+  keep_comments: true,
+  parse: (source, config, title, line_offset, limits) => {
+    let db = parse_model(source, config, title, line_offset, limits)
+    { render: (config, options) => render_agentflow(db, config, options), }
+  },
+}
