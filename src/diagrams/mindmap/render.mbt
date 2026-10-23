@@ -244,13 +244,12 @@ fn draw(
   let total_width = (width + 2 * pad).ceil()
   let total_height = (max_y - min_y + title_height + 2 * pad).ceil()
   let content = @svg.Markup::new()
-  content.write(
-    @svg.label_svg(
-      title,
-      total_width / 2,
-      pad + title.height / 2,
-      " class=\"pele-title\" font-weight=\"var(--_tw)\"",
-    ),
+  @svg.write_label(
+    content,
+    title,
+    total_width / 2,
+    pad + title.height / 2,
+    " class=\"pele-title\" font-weight=\"var(--_tw)\"",
   )
   content.write_group(
     "<g transform=\"translate(\{@svg.num(pad - min_x + (width - max_x + min_x) / 2)},\{@svg.num(pad + title_height - min_y)})\">",
