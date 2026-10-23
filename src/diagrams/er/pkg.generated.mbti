@@ -17,7 +17,7 @@ pub fn er_marker(String, Double, Double, Double, Double) -> String
 
 pub fn parse_er(String, ErDb) -> Unit raise @errors.PeleError
 
-pub fn render_er(ErDb, Map[String, Json], @types.RenderOptions) -> @types.Rendered
+pub fn render_er(ErDb, Map[String, Json], @types.RenderOptions) -> @types.Rendered raise @errors.PeleError
 
 pub fn tokenize(String) -> Tokens
 

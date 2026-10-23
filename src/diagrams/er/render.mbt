@@ -185,7 +185,7 @@ pub fn render_er(
   db : ErDb,
   config : @types.Config,
   options : @types.RenderOptions,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   if !@common.runs_across(Some(db.direction)) {
     return draw(db, config, options, false)
   }
@@ -210,7 +210,7 @@ fn draw(
   config : @types.Config,
   options : @types.RenderOptions,
   turned : Bool,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   let graph = build_er_graph(db)
   let size = options.font_size.unwrap_or(16)
   let small_size = (size * 0.875).round()
@@ -532,8 +532,8 @@ fn draw(
       @svg.mark_crossings(crossings, e.route)
     }
   }
-  let clusters = StringBuilder()
-  let nodes_out = StringBuilder()
+  let clusters = @svg.Markup::new()
+  let nodes_out = @svg.Markup::new()
   for i, view in views {
     let c = cnodes[i]
     let node = view.node
@@ -549,7 +549,7 @@ fn draw(
         crossings,
         GROUP_PAD,
       )
-      clusters.write_string(
+      clusters.write(
         "<g class=\"pele-cluster\{classes}\" data-id=\"\{@svg.esc_text(node.id)}\">" +
         "<rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(c.w)}\" height=\"\{@svg.num(c.h)}\" fill=\"var(--_a)\" fill-opacity=\"0.5\" stroke=\"var(--_b)\"\{@svg.rounded(view.style.shape)}/>" +
         @svg.label_svg(
@@ -681,7 +681,7 @@ fn draw(
       name +
       "<g class=\"pele-er-attributes\" font-size=\"\{view.row_size}\">\{cells.to_string()}</g>"
     }
-    nodes_out.write_string(
+    nodes_out.write(
       "<g class=\"pele-node pele-entity\{classes}\" data-id=\"\{@svg.esc_text(node.label)}\" transform=\"translate(\{@svg.num(c.x)},\{@svg.num(c.y)})\">\{body}</g>",
     )
   }
@@ -702,8 +702,8 @@ fn draw(
       at += loop_.band
     }
   }
-  let edges_out = StringBuilder()
-  let labels_out = StringBuilder()
+  let edges_out = @svg.Markup::new()
+  let labels_out = @svg.Markup::new()
   for i, ce in cedges {
     let edge = drawn[i]
     let label = edge_labels[i]
@@ -779,7 +779,7 @@ fn draw(
     }
     let kind = if edge.dashed { "non-identifying" } else { "identifying" }
     let dash = if edge.dashed { " stroke-dasharray=\"4 3\"" } else { "" }
-    edges_out.write_string(
+    edges_out.write(
       "<g class=\"pele-edge pele-er-\{kind}\" data-id=\"\{@svg.esc_text(edge.id)}\">" +
       "<path d=\"\{d}\"\{dash}/>" +
       start +
@@ -787,7 +787,7 @@ fn draw(
       "</g>",
     )
     if label.width > 0 {
-      labels_out.write_string(
+      labels_out.write(
         @svg.edge_label_svg(
           edge.id,
           label,
@@ -799,8 +799,8 @@ fn draw(
       )
     }
   }
-  let content = StringBuilder()
-  content.write_string(
+  let content = @svg.Markup::new()
+  content.write(
     @svg.label_svg(
       title,
       width / 2,
@@ -808,24 +808,24 @@ fn draw(
       " class=\"pele-title\" font-weight=\"var(--_tw)\"",
     ),
   )
-  let clusters_svg = clusters.to_string()
-  if clusters_svg != "" {
-    content.write_string("<g class=\"pele-clusters\">\{clusters_svg}</g>")
+  if !clusters.is_empty() {
+    content.write_group("<g class=\"pele-clusters\">", clusters, "</g>")
   }
-  let edges_svg = edges_out.to_string()
-  if edges_svg != "" {
-    content.write_string(
-      "<g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\">\{edges_svg}</g>",
+  if !edges_out.is_empty() {
+    content.write_group(
+      "<g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\">",
+      edges_out, "</g>",
     )
   }
-  let labels_svg = labels_out.to_string()
-  if labels_svg != "" {
-    content.write_string(
-      "<g class=\"pele-edge-labels\" font-size=\"\{small_size}\">\{labels_svg}</g>",
+  if !labels_out.is_empty() {
+    content.write_group(
+      "<g class=\"pele-edge-labels\" font-size=\"\{small_size}\">",
+      labels_out,
+      "</g>",
     )
   }
-  content.write_string("<g class=\"pele-nodes\">\{nodes_out.to_string()}</g>")
-  let svg = @svg.svg_document(
+  content.write_group("<g class=\"pele-nodes\">", nodes_out, "</g>")
+  let svg = @svg.markup_document(
     "er",
     width,
     height,
@@ -833,7 +833,7 @@ fn draw(
     options,
     db.acc_title,
     db.acc_descr,
-    content.to_string(),
+    content,
   )
   { svg, width, height, links, }
 }
