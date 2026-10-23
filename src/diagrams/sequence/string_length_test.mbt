@@ -110,3 +110,41 @@ test "a participant named by tens of millions of entities fails as nested too de
     content="limit: Diagram is nested too deeply. sequence sequence",
   )
 }
+
+///|
+/// The outcome of rendering `source` with no source or output limit: the SVG's length, or the error.
+fn drawn_or_failed(source : String) -> String {
+  try {
+    let rendered = @core.render([@sequence.sequence], source, {
+      ..@types.RenderOptions::default(),
+      limit: Some(1.0 / 0.0),
+      output_limit: Some(1.0 / 0.0),
+    })
+    rendered.svg.length().to_string()
+  } catch {
+    @errors.PeleError(failure) =>
+      "\{failure.code.to_string()}: \{failure.message} \{failure.kind.unwrap_or("null")} \{failure.mermaid_type.unwrap_or("null")}"
+  }
+}
+
+///|
+#skip("slow: draws over 270 million code units")
+test "a block color escaped past what a doubling StringBuilder holds is drawn as pele draws it" {
+  inspect(
+    drawn_or_failed(
+      "sequenceDiagram\nrect \{"&".repeat(54000000)}\nA->>B: x\nend\n",
+    ),
+    content="270002468",
+  )
+}
+
+///|
+#skip("slow: escapes over 536 million code units before it fails")
+test "a block color escaped past V8's longest string fails as nested too deeply" {
+  inspect(
+    drawn_or_failed(
+      "sequenceDiagram\nrect \{"&".repeat(110000000)}\nA->>B: x\nend\n",
+    ),
+    content="limit: Diagram is nested too deeply. sequence sequence",
+  )
+}

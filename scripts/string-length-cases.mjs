@@ -497,6 +497,9 @@ export const CASES = [
   lazy('usecase', 'one use case named by many &', () => `usecase-beta\n"${'&'.repeat(54000000)}"\n`, RAISED),
   // A plain label is laid out from its text with each `&` as a five-unit reference, which pele cannot make past V8's longest string.
   lazy('usecase', 'one use case label of many &, past V8', () => `usecase-beta\nU("${'&'.repeat(110000000)}")\n`, RAISED),
+  // A shaded block's color is written as the fill of its style, unchecked.
+  lazy('sequence', 'one block color of many &', () => `sequenceDiagram\nrect ${'&'.repeat(54000000)}\nA->>B: x\nend\n`, RAISED),
+  lazy('sequence', 'one block color of many &, past V8', () => `sequenceDiagram\nrect ${'&'.repeat(110000000)}\nA->>B: x\nend\n`, RAISED),
   // `%c` formats a date as about 21 code units, so an axis format of many of them makes one long tick label.
   lazy('gantt', 'an axis format of many %c', () => `gantt\ndateFormat YYYY-MM-DD\naxisFormat ${'%c'.repeat(13000000)}\nsection s\nt :2026-01-01, 1d\n`, RAISED),
   lazy('gantt', 'an axis format of many %c, past V8', () => `gantt\ndateFormat YYYY-MM-DD\naxisFormat ${'%c'.repeat(30000000)}\nsection s\nt :2026-01-01, 1d\n`, RAISED),
