@@ -166,4 +166,8 @@ export const CASES = [
   ['sequence', 'host icons in one message label', `sequenceDiagram\nA->>B: ${Array(5400).fill('fa:fa-x').join(' ')}\n`, ICONS],
   // A participant without an alias is labelled with its name, which its data-ids and lifeline repeat.
   ['sequence', 'one participant named by many &', `sequenceDiagram\nparticipant ${'&'.repeat(54000000)}\n`, RAISED],
+  // pele fails this while parsing, because its pattern for a quoted string runs out of V8's
+  // backtracking stack past 4194294 characters; the port, which has no such stack, fails as the
+  // id is written twice past V8's longest string, with the same error.
+  ['git', 'one commit id of many &', `gitGraph\ncommit id: "${'&'.repeat(54000000)}"\n`, RAISED],
 ];
