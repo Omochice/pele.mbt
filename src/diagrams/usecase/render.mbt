@@ -354,30 +354,29 @@ fn strip_prefix(classes : String, prefix : String, word : Bool) -> String {
 }
 
 ///|
-/// A label whose lines start at `x`, centered on `cy` as a whole.
-fn left_label(
+/// Writes a label whose lines start at `x`, centered on `cy` as a whole.
+fn write_left_label(
+  out : @svg.Markup,
   label : @text.Label,
   x : Double,
   cy : Double,
   attrs : String,
   icons? : @types.IconResolver,
-) -> String {
+) -> Unit raise @errors.PeleError {
   if label.lines.length() < 2 {
-    return @svg.label_svg(label, x + label.width / 2, cy, attrs, icons?)
+    @svg.write_label(out, label, x + label.width / 2, cy, attrs, icons?)
+    return
   }
-  let out = StringBuilder()
   for i in 0..<label.lines.length() {
-    out.write_string(
-      @svg.label_svg(
-        @text.label_line(label, i),
-        x + label.widths[i] / 2,
-        cy - label.height / 2 + @text.line_middle(label, i),
-        attrs,
-        icons?,
-      ),
+    @svg.write_label(
+      out,
+      @text.label_line(label, i),
+      x + label.widths[i] / 2,
+      cy - label.height / 2 + @text.line_middle(label, i),
+      attrs,
+      icons?,
     )
   }
-  out.to_string()
 }
 
 ///|
@@ -696,12 +695,18 @@ fn draw(
       let y = c.y - c.h / 2
       let box = " fill=\"var(--_a)\" fill-opacity=\"0.5\" stroke=\"var(--_b)\"\{shape}"
       let title_attrs = " class=\"pele-cluster-label\" fill=\"var(--_m)\"\{text_attrs}"
-      let body = if node.boundary_type is Some("package") {
+      clusters.write(
+        "<g class=\"pele-cluster pele-boundary\{classes}\" data-id=\"\{id}\">",
+      )
+      if node.boundary_type is Some("package") {
         let tab_w = @util.js_min(view.label.width + 2 * TAB_PAD + 8, c.w)
         let tab_h = view.label.height + 2 * TAB_PAD
-        "<rect class=\"pele-boundary-tab\" x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(tab_w)}\" height=\"\{@svg.num(tab_h)}\"\{box}/>" +
-        "<rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y + tab_h)}\" width=\"\{@svg.num(c.w)}\" height=\"\{@svg.num(c.h - tab_h)}\"\{box}/>" +
-        @svg.label_svg(
+        clusters.write(
+          "<rect class=\"pele-boundary-tab\" x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(tab_w)}\" height=\"\{@svg.num(tab_h)}\"\{box}/>" +
+          "<rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y + tab_h)}\" width=\"\{@svg.num(c.w)}\" height=\"\{@svg.num(c.h - tab_h)}\"\{box}/>",
+        )
+        @svg.write_label(
+          clusters,
           view.label,
           x + tab_w / 2,
           y + tab_h / 2,
@@ -709,8 +714,11 @@ fn draw(
           icons?=options.icons,
         )
       } else {
-        "<rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(c.w)}\" height=\"\{@svg.num(c.h)}\"\{@svg.rounded(box)}/>" +
-        @svg.label_svg(
+        clusters.write(
+          "<rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(c.w)}\" height=\"\{@svg.num(c.h)}\"\{@svg.rounded(box)}/>",
+        )
+        @svg.write_label(
+          clusters,
           view.label,
           title_x(c, view.label.width, crossings),
           y + 8 + view.label.height / 2,
@@ -718,41 +726,42 @@ fn draw(
           icons?=options.icons,
         )
       }
-      clusters.write(
-        "<g class=\"pele-cluster pele-boundary\{classes}\" data-id=\"\{id}\">\{body}</g>",
-      )
+      clusters.write("</g>")
       continue
     }
-    let (kind, body) = match view.kind {
+    let body = @svg.Markup::new()
+    let kind = match view.kind {
       Actor => {
         let top = -h / 2
         let stereotype_y = top +
           FIGURE_H +
           FIGURE_GAP +
           view.stereotype.height / 2
-        (
-          "pele-actor",
-          "<g class=\"pele-actor-figure\" transform=\"translate(0,\{@svg.num(top + FIGURE_H / 2)})\">\{figure(view, options.icons)}</g>" +
-          @svg.label_svg(
-            view.stereotype,
-            0,
-            stereotype_y,
-            " class=\"pele-stereotype\" font-size=\"\{tiny}\" fill=\"var(--_m)\"",
-            icons?=options.icons,
-          ) +
-          @svg.label_svg(
-            view.label,
-            0,
-            h / 2 - view.label.height / 2,
-            " class=\"pele-label\"\{text_attrs}",
-            icons?=options.icons,
-          ),
+        body.write(
+          "<g class=\"pele-actor-figure\" transform=\"translate(0,\{@svg.num(top + FIGURE_H / 2)})\">\{figure(view, options.icons)}</g>",
         )
+        @svg.write_label(
+          body,
+          view.stereotype,
+          0,
+          stereotype_y,
+          " class=\"pele-stereotype\" font-size=\"\{tiny}\" fill=\"var(--_m)\"",
+          icons?=options.icons,
+        )
+        @svg.write_label(
+          body,
+          view.label,
+          0,
+          h / 2 - view.label.height / 2,
+          " class=\"pele-label\"\{text_attrs}",
+          icons?=options.icons,
+        )
+        "pele-actor"
       }
       Json => {
         let x0 = -w / 2
         let mut y = -h / 2 + view.head_h
-        let cells = StringBuilder()
+        let cells = @svg.Markup::new()
         let mut lines = "M\{@svg.num(x0)},\{@svg.num(y)}H\{@svg.num(x0 + w)}"
         if view.key_w > 0 {
           lines += "M\{@svg.num(x0 + view.key_w)},\{@svg.num(y)}V\{@svg.num(h / 2)}"
@@ -764,39 +773,38 @@ fn draw(
               (small * 1.5).round(),
             ) +
             ROW_PAD
-          cells.write_string(
-            @svg.label_svg(
-              key,
-              x0 + CELL_PAD + key.width / 2,
-              y + row_h / 2,
-              " class=\"pele-json-key\" fill=\"var(--_m)\"",
-              icons?=options.icons,
-            ),
+          @svg.write_label(
+            cells,
+            key,
+            x0 + CELL_PAD + key.width / 2,
+            y + row_h / 2,
+            " class=\"pele-json-key\" fill=\"var(--_m)\"",
+            icons?=options.icons,
           )
-          cells.write_string(
-            left_label(
-              value,
-              x0 + view.key_w + CELL_PAD,
-              y + row_h / 2,
-              " class=\"pele-json-value\"\{text_attrs}",
-              icons?=options.icons,
-            ),
+          write_left_label(
+            cells,
+            value,
+            x0 + view.key_w + CELL_PAD,
+            y + row_h / 2,
+            " class=\"pele-json-value\"\{text_attrs}",
+            icons?=options.icons,
           )
           y += row_h
         }
-        (
-          "pele-json",
+        body.write(
           "<rect x=\"\{@svg.num(x0)}\" y=\"\{@svg.num(-h / 2)}\" width=\"\{@svg.num(w)}\" height=\"\{@svg.num(h)}\"\{@svg.rounded(SHAPE_ATTRS + shape)}/>" +
-          "<path class=\"pele-json-lines\" d=\"\{lines}\" fill=\"none\" stroke=\"var(--_b)\"\{view.style.line}/>" +
-          @svg.label_svg(
-            view.label,
-            0,
-            -h / 2 + view.head_h / 2,
-            " class=\"pele-label\" font-weight=\"var(--_hw)\"\{text_attrs}",
-            icons?=options.icons,
-          ) +
-          "<g font-size=\"\{small}\">\{cells.to_string()}</g>",
+          "<path class=\"pele-json-lines\" d=\"\{lines}\" fill=\"none\" stroke=\"var(--_b)\"\{view.style.line}/>",
         )
+        @svg.write_label(
+          body,
+          view.label,
+          0,
+          -h / 2 + view.head_h / 2,
+          " class=\"pele-label\" font-weight=\"var(--_hw)\"\{text_attrs}",
+          icons?=options.icons,
+        )
+        body.write_group("<g font-size=\"\{small}\">", cells, "</g>")
+        "pele-json"
       }
       _ => {
         let note = node.shape == "note"
@@ -828,28 +836,30 @@ fn draw(
           )
         }
         let note_size = if note { " font-size=\"\{small}\"" } else { "" }
-        (
-          kind,
-          outline +
-          @svg.label_svg(
-            view.stereotype,
-            0,
-            -view.label.height / 2,
-            " class=\"pele-stereotype\" font-size=\"\{tiny}\" fill=\"var(--_m)\"",
-            icons?=options.icons,
-          ) +
-          @svg.label_svg(
-            view.label,
-            0,
-            view.stereotype.height / 2,
-            " class=\"pele-label\"\{note_size}\{text_attrs}",
-            icons?=options.icons,
-          ),
+        body.write(outline)
+        @svg.write_label(
+          body,
+          view.stereotype,
+          0,
+          -view.label.height / 2,
+          " class=\"pele-stereotype\" font-size=\"\{tiny}\" fill=\"var(--_m)\"",
+          icons?=options.icons,
         )
+        @svg.write_label(
+          body,
+          view.label,
+          0,
+          view.stereotype.height / 2,
+          " class=\"pele-label\"\{note_size}\{text_attrs}",
+          icons?=options.icons,
+        )
+        kind
       }
     }
-    nodes_out.write(
-      "<g class=\"pele-node \{kind}\{classes}\" data-id=\"\{id}\" transform=\"translate(\{@svg.num(c.x)},\{@svg.num(c.y)})\">\{body}</g>",
+    nodes_out.write_group(
+      "<g class=\"pele-node \{kind}\{classes}\" data-id=\"\{id}\" transform=\"translate(\{@svg.num(c.x)},\{@svg.num(c.y)})\">",
+      body,
+      "</g>",
     )
   }
   let edges_out = @svg.Markup::new()
@@ -966,15 +976,14 @@ fn draw(
         Some(resolved) => resolved.text
         None => ""
       }
-      labels_out.write(
-        @svg.edge_label_svg(
-          edge.id,
-          label,
-          ce.label_x,
-          ce.label_y,
-          (if semantic { " fill=\"var(--_m)\"" } else { "" }) + text_attrs,
-          icons?=options.icons,
-        ),
+      @svg.write_edge_label(
+        labels_out,
+        edge.id,
+        label,
+        ce.label_x,
+        ce.label_y,
+        (if semantic { " fill=\"var(--_m)\"" } else { "" }) + text_attrs,
+        icons?=options.icons,
       )
     }
   }
