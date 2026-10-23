@@ -74,7 +74,7 @@ priv struct View {
   index : Int32
   shape : String
   label : @text.Label
-  style : @svg.ResolvedStyle
+  style : @svg.RawStyle
   mask : Int32
   dx : Double
   mut dy : Double
@@ -594,7 +594,7 @@ pub fn render_block(
 ///|
 /// The style of a block: its classes, or the default class when it has none, and then its own styles.
 /// A style list is split on commas only, so one entry can still hold several declarations.
-fn style_of(db : BlockDb, block : Block) -> @svg.ResolvedStyle {
+fn style_of(db : BlockDb, block : Block) -> @svg.RawStyle {
   let declarations = []
   let add = (styles : Array[String]) => {
     for style in styles {
@@ -614,7 +614,7 @@ fn style_of(db : BlockDb, block : Block) -> @svg.ResolvedStyle {
     }
   }
   add(block.styles)
-  @svg.resolve_style(declarations)
+  @svg.resolve_raw_style(declarations)
 }
 
 ///|
@@ -653,7 +653,7 @@ fn draw(
   let view = (block : Block, index : Int32) => {
     let kind_name = block.kind
     let style = if kind_name == "space" {
-      @svg.resolve_style([])
+      @svg.resolve_raw_style([])
     } else {
       style_of(db, block)
     }
@@ -942,19 +942,23 @@ fn draw(
       continue
     }
     let classes = @svg.class_names(v.block.classes.join(" "))
-    let id = @svg.esc_text(v.block.id)
     if v.kind is Composite {
       let c = v.cell
       let top = c.y - c.h / 2
+      clusters.write("<g class=\"pele-cluster\{classes}\" data-id=\"")
+      @svg.write_esc_text(clusters, v.block.id)
       clusters.write(
-        "<g class=\"pele-cluster\{classes}\" data-id=\"\{id}\"><rect x=\"\{@svg.num(c.x - c.w / 2)}\" y=\"\{@svg.num(top)}\" width=\"\{@svg.num(c.w)}\" height=\"\{@svg.num(c.h)}\" fill=\"var(--_a)\" fill-opacity=\"0.5\" stroke=\"var(--_b)\"\{@svg.rounded(v.style.shape)}/>",
+        "\"><rect x=\"\{@svg.num(c.x - c.w / 2)}\" y=\"\{@svg.num(top)}\" width=\"\{@svg.num(c.w)}\" height=\"\{@svg.num(c.h)}\" fill=\"var(--_a)\" fill-opacity=\"0.5\" stroke=\"var(--_b)\"",
       )
-      @svg.write_label(
+      @svg.write_rounded_style(clusters, v.style.shape)
+      clusters.write("/>")
+      @svg.write_label_styled(
         clusters,
         v.label,
         c.x,
         top + (c.head + gap) / 2 + 2,
-        " class=\"pele-cluster-label\" fill=\"var(--_m)\"\{v.style.text}",
+        " class=\"pele-cluster-label\" fill=\"var(--_m)\"",
+        v.style.text,
         icons?=options.icons,
       )
       clusters.write("</g>")
@@ -963,27 +967,37 @@ fn draw(
     let arrow = v.kind is Arrow
     let shape_class = if arrow { "block-arrow" } else { v.shape }
     nodes.write(
-      "<g class=\"pele-node pele-shape-\{shape_class}\{classes}\" data-id=\"\{id}\" transform=\"translate(\{@svg.num(v.x())},\{@svg.num(v.y())})\">",
+      "<g class=\"pele-node pele-shape-\{shape_class}\{classes}\" data-id=\"",
     )
+    @svg.write_esc_text(nodes, v.block.id)
     nodes.write(
-      if arrow {
-        draw_arrow(v.mask, v.bw, v.bh, SHAPE_ATTRS + v.style.shape)
-      } else {
-        @svg.draw_shape(
-          v.shape,
-          v.bw,
-          v.bh,
-          SHAPE_ATTRS + v.style.shape,
-          LINE_ATTRS + v.style.line,
-        )
-      },
+      "\" transform=\"translate(\{@svg.num(v.x())},\{@svg.num(v.y())})\">",
     )
-    @svg.write_label(
+    if arrow {
+      // The attributes close the arrow's one polygon, so its style goes just before the `/>`.
+      let drawn = draw_arrow(v.mask, v.bw, v.bh, SHAPE_ATTRS)
+      nodes.write(@util.slice(drawn, 0, end=-2))
+      @svg.write_style(nodes, v.style.shape)
+      nodes.write("/>")
+    } else {
+      @svg.write_shape_styled(
+        nodes,
+        v.shape,
+        v.bw,
+        v.bh,
+        SHAPE_ATTRS,
+        v.style.shape,
+        LINE_ATTRS,
+        v.style.line,
+      )
+    }
+    @svg.write_label_styled(
       nodes,
       v.label,
       v.dx,
       v.dy,
-      " class=\"pele-label\"\{v.style.text}",
+      " class=\"pele-label\"",
+      v.style.text,
       icons?=options.icons,
     )
     nodes.write("</g>")
@@ -1011,7 +1025,6 @@ fn draw(
       }
       trace(points, @svg.marker_trim(start_type), @svg.marker_trim(end_type))
     }
-    let id = @svg.esc_text(edge.id)
     let thick = if edge.thickness == "thick" {
       " stroke-width=\"2.5\""
     } else {
@@ -1022,9 +1035,9 @@ fn draw(
     } else {
       ""
     }
-    edges.write(
-      "<g class=\"pele-edge\" data-id=\"\{id}\"><path d=\"\{path.d}\"\{thick}\{dotted}/>",
-    )
+    edges.write("<g class=\"pele-edge\" data-id=\"")
+    @svg.write_esc_text(edges, edge.id)
+    edges.write("\"><path d=\"\{path.d}\"\{thick}\{dotted}/>")
     edges.write(
       @svg.marker(start_type, path.sx, path.sy, path.sdx, path.sdy, "var(--_l)"),
     )
@@ -1033,7 +1046,7 @@ fn draw(
     )
     edges.write("</g>")
     if route.label.width > 0 {
-      @svg.write_edge_label(
+      @svg.write_edge_label_chunked(
         labels,
         edge.id,
         route.label,
