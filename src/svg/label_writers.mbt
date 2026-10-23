@@ -13,14 +13,20 @@ pub fn write_label_styled(
   css : String,
   icons? : @types.IconResolver,
 ) -> Unit raise @errors.PeleError {
-  write_label_around(
+  write_label_parts(
     out,
     label,
     cx,
     cy,
-    out => out.write(attrs),
-    attrs,
-    css,
+    out => {
+      out.write(attrs)
+      write_style(out, css)
+    },
+    // An escaped style holds no `"`, so it neither holds nor completes ` font-weight="` or
+    // ` font-style="`.
+    () => attrs.contains(" font-weight=\""),
+    () => attrs.contains(" font-style=\""),
+    () => attrs + attribute(css),
     icons?,
   )
 }
@@ -40,7 +46,8 @@ pub fn write_label_with_id(
   css : String,
   icons? : @types.IconResolver,
 ) -> Unit raise @errors.PeleError {
-  write_label_around(
+  let attrs = before + after
+  write_label_parts(
     out,
     label,
     cx,
@@ -49,126 +56,13 @@ pub fn write_label_with_id(
       out.write(before)
       write_esc_text(out, id)
       out.write(after)
+      write_style(out, css)
     },
-    before + after,
-    css,
+    () => attrs.contains(" font-weight=\""),
+    () => attrs.contains(" font-style=\""),
+    () => attrs + attribute(css),
     icons?,
   )
-}
-
-///|
-/// Writes a measured label as `write_label` does, with `write_attrs` writing its attributes
-/// before the `style` attribute of `css`.
-/// `attrs` stands for what `write_attrs` writes wherever the attributes are looked into, for a
-/// weight, a font style or a color, which a data-id it leaves out never holds.
-fn write_label_around(
-  out : Markup,
-  label : @text.Label,
-  cx : Double,
-  cy : Double,
-  write_attrs : (Markup) -> Unit raise @errors.PeleError,
-  attrs : String,
-  css : String,
-  icons? : @types.IconResolver,
-) -> Unit raise @errors.PeleError {
-  let lines = label.lines
-  if lines.is_empty() {
-    return
-  }
-  let lh = label.line_height
-  let shift = label.size * 0.35
-  let mut top = cy - label.height / 2
-  if lines.length() == 1 &&
-    lines[0].length() == 1 &&
-    lines[0][0].icon is None &&
-    lines[0][0].math is None &&
-    lines[0][0].style == 0 {
-    out.write("<text")
-    write_attrs(out)
-    write_style(out, css)
-    out.write(
-      " x=\"\{num(cx)}\" y=\"\{num(top + lh / 2 + shift)}\" text-anchor=\"middle\">",
-    )
-    out.write_esc(lines[0][0].text)
-    out.write("</text>")
-    return
-  }
-  let shared = shared_style(label)
-  let mut look : MathLook? = None
-  let body = Markup::new()
-  let extra = Markup::new()
-  for i, line in lines {
-    let h = match label.heights {
-      Some(heights) => heights[i]
-      None => lh
-    }
-    let mid = top + h / 2
-    let y = mid + shift
-    if line.iter().any(span => span.icon is Some(_) || span.math is Some(_)) {
-      let mut x = cx - label.widths[i] / 2
-      for span in line {
-        if span.math is Some(math) {
-          let box = "x=\"\{num(x)}\" y=\"\{num(mid - math.height / 2)}\" width=\"\{num(math.width)}\" height=\"\{num(math.height)}\""
-          let math_look = match look {
-            Some(math_look) => math_look
-            None => {
-              let math_look = MathLook::of(attrs + attribute(css))
-              look = Some(math_look)
-              math_look
-            }
-          }
-          match math_look.halo {
-            None => write_math(extra, math, box, label.size, math_look.attrs)
-            Some(halo) =>
-              extra.write("<rect \{box} rx=\"2\" fill=\"\{halo}\"/>")
-          }
-        } else if span.icon is Some(name) {
-          let side = label.size * 1.1
-          let drawing = match icons {
-            Some(resolve) => resolve(name).unwrap_or("")
-            None => ""
-          }
-          extra.write("<svg class=\"pele-icon\" data-icon=\"")
-          write_esc_text(extra, name)
-          extra.write(
-            "\" x=\"\{num(x)}\" y=\"\{num(mid - side / 2)}\" width=\"\{num(side)}\" height=\"\{num(side)}\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\">",
-          )
-          extra.write(drawing)
-          extra.write("</svg>")
-        } else if span.text != "" {
-          body.write(
-            "<tspan x=\"\{num(x)}\" y=\"\{num(y)}\" text-anchor=\"start\"\{span_style(span.style & shared.lnot())}>",
-          )
-          body.write_esc(span.text)
-          body.write("</tspan>")
-        }
-        x += span.width
-      }
-    } else {
-      for j, span in line {
-        let pos = if j == 0 { " x=\"\{num(cx)}\" y=\"\{num(y)}\"" } else { "" }
-        body.write("<tspan\{pos}\{span_style(span.style & shared.lnot())}>")
-        body.write_esc(span.text)
-        body.write("</tspan>")
-      }
-      if line.is_empty() {
-        body.write("<tspan x=\"\{num(cx)}\" y=\"\{num(y)}\"> </tspan>")
-      }
-    }
-    top += h
-  }
-  // An escaped style holds no `"`, so whether the attributes give a weight or a style of their
-  // own is found in `attrs` alone, and the emphasis goes after the style as `text_style` puts it.
-  out.write("<text")
-  write_attrs(out)
-  write_style(out, css)
-  out.write(
-    @util.slice(text_style(attrs, shared), attrs.length()) +
-    " text-anchor=\"middle\" xml:space=\"preserve\">",
-  )
-  out.write_markup(body)
-  out.write("</text>")
-  out.write_markup(extra)
 }
 
 ///|

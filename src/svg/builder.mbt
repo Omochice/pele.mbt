@@ -160,6 +160,36 @@ pub fn write_label(
   attrs : String,
   icons? : @types.IconResolver,
 ) -> Unit raise @errors.PeleError {
+  write_label_parts(
+    out,
+    label,
+    cx,
+    cy,
+    out => out.write(attrs),
+    () => attrs.contains(" font-weight=\""),
+    () => attrs.contains(" font-style=\""),
+    () => attrs,
+    icons?,
+  )
+}
+
+///|
+/// Writes a measured label to `out` as `write_label` draws it under the attributes `write_attrs`
+/// writes, which hold ` font-weight="` when `weighted` says so and ` font-style="` when `styled`
+/// does, and which `math_attrs` gives as one string to math the label typesets.
+/// The attributes are asked about only when the label needs them, so that a writer whose
+/// attributes are too long for one string can tell from its parts.
+fn write_label_parts(
+  out : Markup,
+  label : @text.Label,
+  cx : Double,
+  cy : Double,
+  write_attrs : (Markup) -> Unit raise @errors.PeleError,
+  weighted : () -> Bool,
+  styled : () -> Bool,
+  math_attrs : () -> String,
+  icons? : @types.IconResolver,
+) -> Unit raise @errors.PeleError {
   let lines = label.lines
   if lines.is_empty() {
     return
@@ -172,8 +202,10 @@ pub fn write_label(
     lines[0][0].icon is None &&
     lines[0][0].math is None &&
     lines[0][0].style == 0 {
+    out.write("<text")
+    write_attrs(out)
     out.write(
-      "<text\{attrs} x=\"\{num(cx)}\" y=\"\{num(top + lh / 2 + shift)}\" text-anchor=\"middle\">",
+      " x=\"\{num(cx)}\" y=\"\{num(top + lh / 2 + shift)}\" text-anchor=\"middle\">",
     )
     out.write_esc(lines[0][0].text)
     out.write("</text>")
@@ -198,7 +230,7 @@ pub fn write_label(
           let math_look = match look {
             Some(math_look) => math_look
             None => {
-              let math_look = MathLook::of(attrs)
+              let math_look = MathLook::of(math_attrs())
               look = Some(math_look)
               math_look
             }
@@ -214,8 +246,10 @@ pub fn write_label(
             Some(resolve) => resolve(name).unwrap_or("")
             None => ""
           }
+          extra.write("<svg class=\"pele-icon\" data-icon=\"")
+          write_esc_text(extra, name)
           extra.write(
-            "<svg class=\"pele-icon\" data-icon=\"\{esc_text(name)}\" x=\"\{num(x)}\" y=\"\{num(mid - side / 2)}\" width=\"\{num(side)}\" height=\"\{num(side)}\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\">",
+            "\" x=\"\{num(x)}\" y=\"\{num(mid - side / 2)}\" width=\"\{num(side)}\" height=\"\{num(side)}\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\">",
           )
           extra.write(drawing)
           extra.write("</svg>")
@@ -241,10 +275,16 @@ pub fn write_label(
     }
     top += h
   }
+  out.write("<text")
+  write_attrs(out)
+  if (shared & @text.STYLE_BOLD) != 0 && !weighted() {
+    out.write(BOLD_ATTR)
+  }
+  if (shared & @text.STYLE_ITALIC) != 0 && !styled() {
+    out.write(ITALIC_ATTR)
+  }
   out.write_group(
-    "<text\{text_style(attrs, shared)} text-anchor=\"middle\" xml:space=\"preserve\">",
-    body,
-    "</text>",
+    " text-anchor=\"middle\" xml:space=\"preserve\">", body, "</text>",
   )
   out.write_markup(extra)
 }
