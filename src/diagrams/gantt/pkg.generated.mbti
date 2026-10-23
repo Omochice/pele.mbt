@@ -20,9 +20,59 @@ pub fn parse_strict(String, String, @date.JsDate) -> @date.JsDate?
 
 pub fn time_format(String, @date.JsDate) -> String
 
+pub fn tokenize(String) -> Tokens
+
 // Errors
 
 // Types and methods
+pub(all) enum Tok {
+  End
+  Error
+  OpenDirective
+  AccTitle
+  AccTitleValue
+  AccDescr
+  AccDescrValue
+  AccDescrMultilineValue
+  Nl
+  Href
+  CallbackName
+  CallbackArgs
+  Click
+  Gantt
+  DateFormat
+  InclusiveEndDates
+  TopAxis
+  AxisFormat
+  TickInterval
+  Includes
+  Excludes
+  TodayMarker
+  WeekdayMonday
+  WeekdayTuesday
+  WeekdayWednesday
+  WeekdayThursday
+  WeekdayFriday
+  WeekdaySaturday
+  WeekdaySunday
+  WeekendFriday
+  WeekendSaturday
+  Date
+  Title
+  AccDescription
+  Section
+  TaskTxt
+  TaskData
+  Colon
+  Eof
+}
+pub fn Tok::name(Self) -> String
+
+pub(all) struct Tokens {
+  types : Array[Tok]
+  texts : Array[String]
+  starts : Array[Int32]
+}
 
 // Type aliases
 
