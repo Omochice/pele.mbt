@@ -1,0 +1,76 @@
+# pele for typst
+
+This package draws Mermaid diagrams in typst documents with pele, a Mermaid to SVG renderer, ported to MoonBit and compiled to a WebAssembly plugin.
+It needs no network access and no external program.
+
+## Building
+
+The plugin is not tracked by the repository, so it is built from the sources and copied next to `lib.typ`.
+
+```sh
+node scripts/build-typst.mjs
+```
+
+The script runs `moon build --target wasm --release` with the `moon` found on `PATH`, or the one `$MOON` names.
+
+## Usage
+
+`mermaid` renders Mermaid text and places it as an image.
+Without a `width` or `height`, a diagram keeps its own size but shrinks to fit the space it is placed in.
+
+```typ
+#import "typst/lib.typ": mermaid
+
+#mermaid("graph TD\n  A --> B")
+
+#show raw.where(lang: "mermaid"): it => mermaid(it)
+```
+
+`render` takes the same arguments and returns pele's whole result as a dictionary of `svg`, `width`, `height`, `links`, `type` and `mermaidType`.
+When pele cannot render the text, both panic with pele's message.
+
+Named arguments other than `theme`, `width`, `height`, `alt` and `fit` are passed to pele as its render options, under pele's own names such as `maxWidth`, `fontSize`, `fontFamily`, `config` or `now`.
+A plugin cannot read the clock, so a gantt chart is drawn as of the Unix epoch unless `now` gives the time in milliseconds.
+
+## Theme
+
+pele colors its SVG with CSS custom properties, which typst does not resolve, so the package resolves them in the plugin before typst reads the SVG.
+`theme` sets their values, keyed by the name of pele's `--pele-*` property without `--pele-`.
+
+```typ
+#mermaid(theme: (bg: rgb("#1e1e2e"), fg: white, accent: blue, radius: 8pt, series-1: teal), "pie\n  \"A\": 1")
+```
+
+The keys are `bg`, `fg`, `muted`, `line`, `surface`, `surface-alt`, `border`, `accent`, `critical`, `radius`, `font`, `font-mono`, `heading-weight`, `title-weight`, `bold-weight` and `series-1` to `series-8`.
+A color is written as its hex code, a length as a number of the SVG's units, and anything else as its string.
+An absent key keeps pele's own value.
+A value holding `;`, `{` or `}` is ignored, as it could end the declaration it is written into.
+
+typst resolves no generic font family such as `sans-serif` or `monospace`, and draws such text in its default serif font.
+The theme therefore names `Arial, Helvetica, Liberation Sans, Arimo` for `font`, as pele lays labels out with Arial's metrics, and `DejaVu Sans Mono`, which ships with typst, for `font-mono`.
+Either default gives way to `fontFamily` or `fontFamilyMono`, or to the theme's own key.
+
+`theme: none` returns pele's SVG unchanged, which typst draws without its colors.
+
+## Why the SVG is rewritten
+
+Compiling a document that embeds pele's SVG with typst 0.15.1 showed the following.
+
+- A fill or stroke written as `var(...)` is not resolved, so every shape is filled black and every line that has only such a stroke is not drawn.
+- The parser of the `style` attribute stops at the first custom property declaration, so the root's `color`, `font` and `font-family`, which come after pele's `--_*` aliases, are lost.
+- A corner radius in `style`, as pele writes `style="rx:..."`, is ignored, while the `rx` attribute is honored.
+- A generic font family falls back to typst's serif font, while named families and lists of them are honored.
+
+With a theme, the plugin therefore replaces every reference with its value, drops the custom property declarations and moves corner radii into `rx` and `ry` attributes.
+Without a theme, the plugin returns pele's output byte for byte.
+
+## Limitations
+
+- typst does not evaluate `color-mix()`, so the halo pele draws behind the titles of nested clusters is left out.
+- Labels are always measured with pele's Arial metrics, so text in a font with other metrics may not fit its box.
+- Icons and math, which pele takes as functions, are not supported.
+
+## Checking
+
+`node scripts/check-typst.mjs` compiles every document under `examples` and `tests` with the `typst` found on `PATH`, or the one `$TYPST` names.
+A document passes when it compiles without an error or a warning, and a test named `*.fail.typ` passes when it fails with the message its first line names after `// error:`.
