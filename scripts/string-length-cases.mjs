@@ -125,6 +125,9 @@ export const CASES = [
   ['info', 'a title past V8', `info\ntitle ${'"'.repeat(90000000)}\n`, RAISED],
   ['info', 'an accessible description longer than a doubling StringBuilder holds', `info\naccDescr: ${'&'.repeat(60000000)}\n`, RAISED],
   ['info', 'an accessible description past V8', `info\naccDescr: ${'&'.repeat(110000000)}\n`, RAISED],
+  // `<` rather than `&`, which YAML reads as an anchor.
+  ['sequence', 'a front matter title longer than a doubling StringBuilder holds', `---\ntitle: ${'<'.repeat(70000000)}\n---\nsequenceDiagram\nA->>B: x\n`, RAISED],
+  ['sequence', 'a title past V8', `sequenceDiagram\ntitle ${'"'.repeat(90000000)}\nA->>B: x\n`, RAISED],
   ['block', 'host icons in one block label', `block-beta\nA["${Array(5400).fill('fa:fa-x').join(' ')}"]\n`, ICONS],
   ['cynefin', 'host icons in one item', `cynefin-beta\ncomplex\n  "${Array(5400).fill('fa:fa-x').join(' ')}"\n`, ICONS],
   ['gantt', 'host icons in one section label', `gantt\ndateFormat YYYY-MM-DD\nsection ${Array(5400).fill('fa:fa-x').join(' ')}\nt :2026-01-01, 1d\n`, ICONS],
