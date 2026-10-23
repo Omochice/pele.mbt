@@ -148,6 +148,9 @@ pub fn decode_entities(text : String) -> String {
       None => at = @util.index_of(restored, "&", from=at + 1)
     }
   }
+  if last == 0 {
+    return restored
+  }
   @util.write_range(out, restored, last, restored.length())
   out.to_string()
 }
