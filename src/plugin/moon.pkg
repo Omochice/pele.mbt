@@ -24,6 +24,7 @@ import {
   "Omochice/pele/diagrams/timeline",
   "Omochice/pele/diagrams/treemap",
   "Omochice/pele/diagrams/treeview",
+  "Omochice/pele/diagrams/usecase",
   "Omochice/pele/diagrams/venn",
   "Omochice/pele/diagrams/wardley",
   "Omochice/pele/diagrams/xychart",
