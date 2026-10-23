@@ -199,8 +199,7 @@ Moving their call sites to the writers is follow-up work.
 
 `write_esc` and `write_esc_text` in `src/svg/escape.mbt` write escaped text to `Markup` a chunk at a time, and `write_label` writes each span's text with them, because a span of tens of millions of `&` escapes to more than a doubling StringBuilder holds; `write_left_label` in `src/diagrams/common/` writes a label drawn line by line from its start.
 The mindmap, sequence, git graph, tree view, Wardley map, pie, event model, Ishikawa, journey, packet, quadrant, radar, railroad, sankey, timeline, Venn and XY chart diagrams write their labels, and the data-ids and titles that repeat a label's text, with these writers, so one label of thousands of host icons or of tens of millions of `&` fails with the `limit` error where pele does; the cases from the mindmap's "host icons in one node label" on check it, and only their diagram titles and the Wardley map's annotation numbers are still written with `label_svg`.
-pele reads a quoted string in the git graph, pie, packet, radar, Wardley map and a railroad terminal with a pattern that runs out of V8's backtracking stack past 4194294 characters, and reports that as the `limit` error while parsing, so a quoted label there reaches V8's longest string only through host icons the label draws; their cases of `&` fail in pele while parsing and in the port once the label is written past V8's longest string.
-The port reads such a string without that limit, so a quoted string of 4194295 to tens of millions of characters is drawn by the port where pele gives the `limit` error.
+pele reads a quoted string in the git graph, pie, packet, radar, Wardley map, Cynefin, architecture and a railroad terminal with a pattern that runs out of V8's backtracking stack past 4194294 characters, and reports that as the `limit` error while parsing, so a quoted label there reaches V8's longest string only through host icons the label draws; their cases of `&` fail in pele and in the port while lexing, as the next section describes.
 pele runs out of memory laying out a timeline event or a quadrant label of a hundred million characters, so those labels have no case past V8's longest string.
 
 ### Allocator
@@ -234,3 +233,24 @@ No block can therefore pass 1040187380 bytes, 32 MiB less than before, which the
 `scripts/build-typst.mjs` writes the mended plugin to `typst/plugin.wasm`, and `scripts/plugin-host.mjs` mends the plugin it loads, so every check runs the allocator typst runs; both fail when the allocator's code is not as expected, as after an upgrade of moonc, which then has to be checked for the same bug.
 `moon test` runs the allocator unmended, so its tests that hold a string of 2^28 code units or more pass only because they make that request in a heap without a smaller free block of its class.
 The git graph cases "a branch named by 140M a, drawn into a block of 512 MiB or more" and "a branch named by 270M a, read into a block of 512 MiB or more" check the mended plugin, and the first fails without the mend.
+### V8's backtracking stack
+
+A regular expression that repeats a group with more than one way through it, such as `(?:a|bc)*`, keeps a few slots of V8's backtracking stack for every repetition until the match ends.
+That stack holds 64 MiB of four-byte slots, and V8 throws a `RangeError` once a match fills all but the 32 it keeps as slack, so pele reports a long enough match of such a pattern as the `limit` error "Diagram is nested too deeply.", tagged with the diagram's type unless it happens before detection.
+`BACKTRACK_STACK_SLOTS` in `src/util/backtrack.mbt` is that size, and each scanner that answers as one of these patterns counts the slots its match takes and raises the error where V8 throws.
+The table below lists the slots each pattern takes, measured under node 24.21 and checked against V8 on random inputs near the point where it throws.
+They do not depend on the rest of the input, except for the font list, whose pattern has the `u` flag and which V8 matches as two-byte text once it holds a character past Latin-1.
+
+| Pattern | Where pele runs it | Slots |
+| --- | --- | --- |
+| `"([^"\\]\|\\.)*"\|'([^'\\]\|\\.)*'` | a quoted string in the git graph, pie, packet, radar, Wardley map, Cynefin, architecture and railroad, in `src/diagrams/common/tokens.mbt` | four for each character or escape pair, and four more for a closed `"` string, whose `'` alternative stays untried |
+| `\[(?:"([^"\\]\|\\.)*"\|'([^'\\]\|\\.)*'\|[^\[\]\r\n]+)\]` | an architecture label | as a quoted string, with four more when `]` closes the quote |
+| `%[xXdDbB][0-9A-Fa-f]+(?:-[0-9A-Fa-f]+\|\.[0-9A-Fa-f]+)*` | an ABNF numeric value | five for each part after the first |
+| `[A-Za-z](?:[A-Za-z0-9_()&]\|-(?!>))*(?:[ \t]+[A-Za-z(](?:[A-Za-z0-9_()&]\|-(?!>))*)*` | a Wardley name | three, two for each character after a word's first, five for each further word, and one or two more where an arrow or blanks before no word end it |
+| `(?:\r?\n)+` and `(?:\r?\n)*\s*\n` | a run of line breaks in a flowchart, and the line breaks after the flowchart and agentflow keywords | two for each line break, and two more when a later line break in the blanks ends the second |
+| `%{2}{\s*(?:(\w+)\s*:\|(\w+))\s*(?:(\w+)\|((?:(?!}%{2}).\|\r?\n)*))?\s*(?:}%{2})?` | every `%%{...}%%` directive, in the trimmed text and in the text itself, before detection | two for each character of the body, and 28 more after a colon or 26 without one |
+| `^\s*FAMILY(?:\s*,\s*FAMILY)*\s*$` | the host's font lists, as every diagram draws its root element | in a Latin-1 list eleven for each font tried after the first; in a two-byte list four for it, two for each blank and quoted character, and four for each unquoted character after a font's first; four more for an unclosed quote in either |
+
+A closed `"` string therefore fails past 4194294 characters or escape pairs, and a `'` string or one left unclosed, which runs to the end of the text, past 4194295.
+Every other pattern in pele's sources repeats only single characters, greedily or lazily, which V8 matches without keeping slots, except the tree view's bare name, which pele never runs because a scanner of its own answers for it.
+Each pattern has cases in `scripts/string-length-cases.mjs` named "at V8's backtracking stack", each next to one "just short of" it, and tests next to its scanner or skipped ones in the diagrams' `string_length_test.mbt`.
