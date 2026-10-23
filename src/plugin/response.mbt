@@ -45,7 +45,8 @@ const RESPONSE_LIMIT : Int32 = 1000000000
 
 ///|
 /// The reply as UTF-8 JSON, with the status the plugin returns: 0 for a drawing and 1 for a failure.
-/// A drawing whose answer would be longer than `limit` bytes fails as a limit error instead.
+/// A drawing or a rejected diagram whose answer would be longer than `limit` bytes fails as a
+/// limit error instead.
 /// The SVG is written into the answer through the theme when there is one.
 fn encode(
   reply : Reply,
@@ -53,11 +54,7 @@ fn encode(
 ) -> (Int32, FixedArray[Byte]) {
   let (result, theme) = match reply {
     Drawn(result, theme) => (result, theme)
-    Refused(failure) =>
-      return (
-        1,
-        @utf8.encode(pele_failure(failure).stringify()).to_fixedarray(),
-      )
+    Refused(failure) => return refused(failure, limit)
     Failed(json) => return (1, @utf8.encode(json.stringify()).to_fixedarray())
   }
   let write_svg = (out : &Logger) => {
@@ -79,6 +76,28 @@ fn encode(
     limit,
     Some(result.kind),
     Some(result.mermaid_type),
+  )
+}
+
+///|
+/// The answer to a rejected diagram, whose message, which can quote a line of hundreds of
+/// millions of characters, is written into it as a drawing's SVG is.
+fn refused(
+  failure : @errors.Failure,
+  limit : Int32,
+) -> (Int32, FixedArray[Byte]) {
+  let shell = pele_failure({ ..failure, message: "", }).stringify()
+  let slot = "\"message\":\""
+  let at = @util.index_of(shell, slot + "\"")
+  guard at >= 0 else { abort("a failure's JSON has no message") }
+  spliced(
+    1,
+    shell,
+    at + slot.length(),
+    out => out.write_string(failure.message),
+    limit,
+    failure.kind,
+    failure.mermaid_type,
   )
 }
 
