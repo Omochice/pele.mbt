@@ -478,13 +478,12 @@ pub fn render_gantt(
     vert_lines.write(
       "<path class=\"pele-vert\" data-id=\"\{id}\" d=\"M\{@svg.num(vx)},\{@svg.num(plot_top - grid_lead)}V\{@svg.num(plot_bottom)}\"/>",
     )
-    vert_labels.write(
-      @svg.label_svg(
-        label,
-        cx,
-        vert_top + line.to_double() * vert_line + vert_line / 2,
-        " class=\"pele-vert-label\" data-id=\"\{id}\"",
-      ),
+    @svg.write_label(
+      vert_labels,
+      label,
+      cx,
+      vert_top + line.to_double() * vert_line + vert_line / 2,
+      " class=\"pele-vert-label\" data-id=\"\{id}\"",
     )
   }
   let width = (@util.js_max(extent, pad + title.width) + pad).ceil()
@@ -517,14 +516,13 @@ pub fn render_gantt(
       )
     }
     let label = section_labels[section]
-    section_out.write(
-      @svg.label_svg(
-        label,
-        pad + 8 + label.width / 2,
-        y + h / 2,
-        " class=\"pele-section-label\" data-id=\"\{@svg.esc_text(section)}\"",
-        icons?=options.icons,
-      ),
+    @svg.write_label(
+      section_out,
+      label,
+      pad + 8 + label.width / 2,
+      y + h / 2,
+      " class=\"pele-section-label\" data-id=\"\{@svg.esc_text(section)}\"",
+      icons?=options.icons,
     )
     row = end
   }
@@ -625,19 +623,27 @@ pub fn render_gantt(
         text_fill = " fill=\"var(--_m)\""
       }
     }
-    let mut body = shape +
-      @svg.label_svg(
-        bar.label,
-        bar.label_x,
-        cy,
-        " class=\"pele-label\"\{text_fill}",
-      )
-    if model.links.get(task.id) is Some(url) {
-      body = @url.linked(body, url, task.id, links, options)
+    let body = @svg.Markup::new()
+    body.write(shape)
+    @svg.write_label(
+      body,
+      bar.label,
+      bar.label_x,
+      cy,
+      " class=\"pele-label\"\{text_fill}",
+    )
+    let link_start = match model.links.get(task.id) {
+      Some(url) => @url.link_start(url, task.id, links, options)
+      None => None
     }
     tasks_out.write(
-      "<g class=\"\{classes.to_string()}\" data-id=\"\{@svg.esc_text(task.id)}\">\{body}</g>",
+      "<g class=\"\{classes.to_string()}\" data-id=\"\{@svg.esc_text(task.id)}\">",
     )
+    match link_start {
+      Some(start) => tasks_out.write_group(start, body, "</a>")
+      None => tasks_out.write_markup(body)
+    }
+    tasks_out.write("</g>")
   }
   let mut today = ""
   if model.today_marker != "off" && now >= start && now <= stop && stop > start {
