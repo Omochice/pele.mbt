@@ -73,3 +73,82 @@ test "a front matter title outgrowing V8's longest string fails as nested too de
   }
   inspect(failure, content="limit: Diagram is nested too deeply. er er")
 }
+
+///|
+/// The outcome of rendering `source` with no source or output limit: the SVG's length, or the error.
+fn drawn_or_failed(source : String) -> String {
+  try {
+    let rendered = @core.render([@er.er], source, {
+      ..@types.RenderOptions::default(),
+      limit: Some(1.0 / 0.0),
+      output_limit: Some(1.0 / 0.0),
+    })
+    rendered.svg.length().to_string()
+  } catch {
+    @errors.PeleError(failure) =>
+      "\{failure.code.to_string()}: \{failure.message} \{failure.kind.unwrap_or("null")} \{failure.mermaid_type.unwrap_or("null")}"
+  }
+}
+
+///|
+#skip("slow: draws over 270 million code units")
+test "an aliased entity name escaped past what a doubling StringBuilder holds is drawn as pele draws it" {
+  inspect(
+    drawn_or_failed("erDiagram\n\"\{"&".repeat(54000000)}\"[\"x\"] {\n}\n"),
+    content="270000969",
+  )
+}
+
+///|
+#skip("slow: escapes over 536 million code units before it fails")
+test "an entity name escaped twice past V8's longest string fails as nested too deeply" {
+  inspect(
+    drawn_or_failed("erDiagram\n\"\{"&".repeat(54000000)}\" {\n}\n"),
+    content="limit: Diagram is nested too deeply. er er",
+  )
+}
+
+///|
+#skip("slow: draws over 270 million code units")
+test "an attribute comment escaped past what a doubling StringBuilder holds is drawn as pele draws it" {
+  inspect(
+    drawn_or_failed(
+      "erDiagram\nA {\n  string name \"\{"&".repeat(54000000)}\"\n}\n",
+    ),
+    content="270001692",
+  )
+}
+
+///|
+#skip("slow: draws over 270 million code units")
+test "a subgraph id escaped past what a doubling StringBuilder holds is drawn as pele draws it" {
+  inspect(
+    drawn_or_failed(
+      "erDiagram\nsubgraph \"\{"&".repeat(54000000)}\"[\"x\"]\nA\nend\n",
+    ),
+    content="270001255",
+  )
+}
+
+///|
+#skip("slow: escapes over 536 million code units before it fails")
+test "an internal link escaped past V8's longest string fails as nested too deeply" {
+  inspect(
+    drawn_or_failed(
+      "erDiagram\nA[\"\{"&".repeat(54000000)}\"] {\n}\nclass A internal-link\n",
+    ),
+    content="limit: Diagram is nested too deeply. er er",
+  )
+}
+
+///|
+#skip("slow: escapes over 536 million code units before it fails")
+test "a relationship of an entity named past V8's longest string fails as nested too deeply" {
+  let name = "&".repeat(54000000)
+  inspect(
+    drawn_or_failed(
+      "erDiagram\n\"\{name}\"[\"x\"] {\n}\n\"\{name}\" ||--o{ B : \"r\"\n",
+    ),
+    content="limit: Diagram is nested too deeply. er er",
+  )
+}

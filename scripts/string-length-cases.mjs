@@ -448,6 +448,15 @@ export const CASES = [
   // A text holding a `#35;` code is shown with every `&` escaped and the whole decoded back.
   lazy('railroad', 'one special sequence with a code and many &', () => `railroad-ebnf-beta\nr = ? #35;${'&'.repeat(54000000)} ? ;\n`, RAISED),
   lazy('railroad', 'one special sequence with a code past V8', () => `railroad-ebnf-beta\nr = ? #35;${'&'.repeat(110000000)} ? ;\n`, RAISED),
+  // An entity's name is written in its data-id and, unless an alias takes its place, as its label.
+  lazy('er', 'one aliased entity named by many &', () => `erDiagram\n"${'&'.repeat(54000000)}"["x"] {\n}\n`, RAISED),
+  lazy('er', 'one entity named by many &', () => `erDiagram\n"${'&'.repeat(54000000)}" {\n}\n`, RAISED),
+  lazy('er', 'one attribute comment of many &', () => `erDiagram\nA {\n  string name "${'&'.repeat(54000000)}"\n}\n`, RAISED),
+  lazy('er', 'one subgraph id of many &', () => `erDiagram\nsubgraph "${'&'.repeat(54000000)}"["x"]\nA\nend\n`, RAISED),
+  // An internal link writes the entity's label in its href and its data-href as well.
+  lazy('er', 'one internal link of many &', () => `erDiagram\nA["${'&'.repeat(54000000)}"] {\n}\nclass A internal-link\n`, RAISED),
+  // A relationship's id holds the names of its entities.
+  lazy('er', 'one relationship of an entity named by many &', () => `erDiagram\n"${'&'.repeat(54000000)}"["x"] {\n}\n"${'&'.repeat(54000000)}" ||--o{ B : "r"\n`, RAISED),
   lazy('requirement', 'one field of many &', () => `requirementDiagram\nrequirement r {\n  text: "${'&'.repeat(54000000)}"\n}\n`, RAISED),
   // A requirement's name is written in its data-id and as its label.
   lazy('requirement', 'one requirement named by many &', () => `requirementDiagram\nrequirement "${'&'.repeat(54000000)}" {\n}\n`, RAISED),
