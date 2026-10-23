@@ -114,7 +114,7 @@ fn render_cynefin(
   model : CynefinModel,
   config : @types.Config,
   options : @types.RenderOptions,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   let num = @svg.num
   let size = options.font_size.unwrap_or(16)
   let small = (size * 0.8125).round()
@@ -291,10 +291,10 @@ fn render_cynefin(
   let oval = ellipse_path(cx, cy, rx, ry)
   let ellipse = "<path d=\"\{oval}\" fill=\"var(--_bg)\"/>" +
     "<path class=\"pele-cynefin-region\" data-id=\"confusion\" d=\"\{oval}\" fill=\"\{@svg.series_color(CONFUSION_COLOR)}\" fill-opacity=\"0.18\" stroke=\"var(--_b)\" stroke-dasharray=\"4 2\"/>"
-  let draw_block = (b : Block) => {
-    let out = StringBuilder()
+  fn draw_block(b : Block) -> @svg.Markup raise @errors.PeleError {
+    let out = @svg.Markup::new()
     let mut y = b.cy - b.h / 2
-    out.write_string(
+    out.write(
       @svg.label_svg(
         b.title,
         b.cx,
@@ -304,7 +304,7 @@ fn render_cynefin(
     )
     y += b.title.height
     for s in b.subtitles {
-      out.write_string(
+      out.write(
         @svg.label_svg(
           s,
           b.cx,
@@ -329,7 +329,7 @@ fn render_cynefin(
       }
       let dashes = if item.overflow { " stroke-dasharray=\"3 2\"" } else { "" }
       let muted = if item.overflow { " fill=\"var(--_m)\"" } else { "" }
-      out.write_string(
+      out.write(
         "<g class=\"pele-node\{overflow_class}\"\{data_id}>" +
         "<rect x=\"\{num(b.cx - item.w / 2)}\" y=\"\{num(y)}\" width=\"\{num(item.w)}\" height=\"\{num(item.h)}\" fill=\"var(--_bg)\" stroke=\"var(--_b)\"\{dashes}\{@svg.ROUNDED}/>" +
         @svg.label_svg(
@@ -343,21 +343,28 @@ fn render_cynefin(
       )
       y += item.h
     }
-    "<g class=\"pele-cynefin-domain\" data-id=\"\{b.name}\">\{out.to_string()}</g>"
+    out
   }
   let placed : Map[String, Block] = Map([])
-  let domains = StringBuilder()
+  let domains = @svg.Markup::new()
+  fn write_block(b : Block) -> Unit raise @errors.PeleError {
+    domains.write_group(
+      "<g class=\"pele-cynefin-domain\" data-id=\"\{b.name}\">",
+      draw_block(b),
+      "</g>",
+    )
+  }
   for index, q in quadrants {
     let b = blocks[index]
     b.cx = x0 + quad_w * (q.column.to_double() + 0.5)
     b.cy = y0 + quad_h * (q.row.to_double() + 0.5)
     placed[q.name] = b
-    domains.write_string(draw_block(b))
+    write_block(b)
   }
   confusion.cx = cx
   confusion.cy = cy
   placed["confusion"] = confusion
-  domains.write_string(draw_block(confusion))
+  write_block(confusion)
   let inside = (b : Block, x : Double, y : Double) => {
     if b.name == "confusion" {
       let u = (x - cx) / (rx + 4)
@@ -367,7 +374,7 @@ fn render_cynefin(
       (x - b.cx).abs() <= b.w / 2 + 8 && (y - b.cy).abs() <= b.h / 2 + 8
     }
   }
-  let edges = StringBuilder()
+  let edges = @svg.Markup::new()
   let seen : Map[String, Int32] = Map([])
   for transition in model.transitions {
     guard (placed.get(transition.from), placed.get(transition.to))
@@ -504,7 +511,7 @@ fn render_cynefin(
       }
       None => ""
     }
-    edges.write_string(
+    edges.write(
       "<g class=\"pele-edge\" data-id=\"\{transition.from}-\{transition.to}\">" +
       "<path d=\"M\{num(sx)},\{num(sy)}Q\{num(qx)},\{num(qy)} \{num(ex)},\{num(ey)}\" fill=\"none\" stroke=\"var(--_l)\"/>" +
       head +
@@ -515,24 +522,26 @@ fn render_cynefin(
   let total_width = @util.js_max(width, title.width) + 2.0 * pad
   let total_width = total_width.ceil()
   let total_height = (height + title_height + 2.0 * pad).ceil()
-  let edge_group = if edges.is_empty() {
-    ""
-  } else {
-    "<g class=\"pele-edges\">\{edges.to_string()}</g>"
-  }
-  let content = @svg.label_svg(
+  let content = @svg.Markup::new()
+  content.write(
+    @svg.label_svg(
       title,
       x0 + width / 2,
       pad + title.height / 2,
       " class=\"pele-title\" font-weight=\"var(--_tw)\"",
-    ) +
+    ),
+  )
+  content.write(
     "<g class=\"pele-cynefin-regions\">\{fills.to_string()}</g>" +
     boundaries +
-    ellipse +
-    domains.to_string() +
-    edge_group
+    ellipse,
+  )
+  content.write_markup(domains)
+  if !edges.is_empty() {
+    content.write_group("<g class=\"pele-edges\">", edges, "</g>")
+  }
   {
-    svg: @svg.svg_document(
+    svg: @svg.markup_document(
       "cynefin",
       total_width,
       total_height,
