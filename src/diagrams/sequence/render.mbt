@@ -328,7 +328,7 @@ pub fn render_sequence(
   db : SeqDb,
   config : @types.Config,
   options : @types.RenderOptions,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   @common.tighten(options, tight => draw(db, config, options, tight))
 }
 
@@ -338,7 +338,7 @@ fn draw(
   config : @types.Config,
   options : @types.RenderOptions,
   tight : Bool,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   let n = @svg.num
   let infinity = @double.infinity
   let conf : Map[String, Json] = match config.get("sequence") {
@@ -902,12 +902,12 @@ fn draw(
   // They are written in reverse, so that the inner ones end up on top.
   let rects_out : Array[String] = []
   let activations_out : Array[String] = []
-  let frames_out = StringBuilder()
-  let edges_out = StringBuilder()
-  let labels_out = StringBuilder()
-  let notes_out = StringBuilder()
-  let actors_out = StringBuilder()
-  let crosses_out = StringBuilder()
+  let frames_out = @svg.Markup::new()
+  let edges_out = @svg.Markup::new()
+  let labels_out = @svg.Markup::new()
+  let notes_out = @svg.Markup::new()
+  let actors_out = @svg.Markup::new()
+  let crosses_out = @svg.Markup::new()
   let end_activation = (col : Column, end : Double) => {
     let start = col.activations.unsafe_pop()
     let bottom = @util.js_max(end, start + ACT_MIN)
@@ -923,7 +923,7 @@ fn draw(
     let cx = col.x
     let cy = line_y + 16
     col.life_end = cy
-    crosses_out.write_string(
+    crosses_out.write(
       "<path class=\"pele-destroy\" data-id=\"\{@svg.esc_text(col.id)}\" d=\"M\{n(cx - 6)},\{n(cy - 6)}L\{n(cx + 6)},\{n(cy + 6)}M\{n(cx + 6)},\{n(cy - 6)}L\{n(cx - 6)},\{n(cy + 6)}\"/>",
     )
     cy + 6
@@ -980,16 +980,14 @@ fn draw(
           "<rect class=\"pele-rect\" x=\"\{x}\" y=\"\{n(frame.top)}\" width=\"\{w}\" height=\"\{n(bottom - frame.top)}\"\{@svg.rounded(opacity + fill)}/>",
         )
       } else {
-        let inner = StringBuilder()
-        inner.write_string(
+        let inner = @svg.Markup::new()
+        inner.write(
           "<rect x=\"\{x}\" y=\"\{n(frame.top)}\" width=\"\{w}\" height=\"\{n(bottom - frame.top)}\" fill=\"none\"\{@svg.ROUNDED}/>",
         )
         for k, dy in frame.divider_y {
           let label = frame.divider_labels[k]
-          inner.write_string(
-            "<path d=\"M\{x},\{n(dy)}H\{n(frame.x1)}\"\{DASH}/>",
-          )
-          inner.write_string(
+          inner.write("<path d=\"M\{x},\{n(dy)}H\{n(frame.x1)}\"\{DASH}/>")
+          inner.write(
             backed(
               label,
               frame.x0 + 8 + label.width / 2,
@@ -998,13 +996,13 @@ fn draw(
             ),
           )
         }
-        inner.write_string(
+        inner.write(
           "<rect x=\"\{x}\" y=\"\{n(frame.top)}\" width=\"\{n(frame.tab_w)}\" height=\"\{TAB_H}\" fill=\"var(--_s)\"\{@svg.ROUNDED}/>",
         )
-        inner.write_string(
+        inner.write(
           "<text class=\"pele-frame-kind\" x=\"\{n(frame.x0 + frame.tab_w / 2)}\" y=\"\{n(frame.top + TAB_H / 2 + tiny * 0.35)}\" text-anchor=\"middle\" font-size=\"\{tiny}\" font-weight=\"var(--_hw)\" fill=\"var(--_m)\" stroke=\"none\">\{frame.kind}</text>",
         )
-        inner.write_string(
+        inner.write(
           backed(
             frame.title,
             frame.x0 + frame.tab_w + 8 + frame.title.width / 2,
@@ -1012,8 +1010,10 @@ fn draw(
             FRAME_LABEL,
           ),
         )
-        frames_out.write_string(
-          "<g class=\"pele-frame pele-frame-\{frame.kind}\">\{inner}</g>",
+        frames_out.write_group(
+          "<g class=\"pele-frame pele-frame-\{frame.kind}\">",
+          inner,
+          "</g>",
         )
       }
       y = bottom
@@ -1034,10 +1034,10 @@ fn draw(
         x += left_edge(a, 0) - a.x
       }
       widen(x, x + view.w)
-      notes_out.write_string(
+      notes_out.write(
         "<g class=\"pele-note\" data-id=\"i\{@svg.esc_text(m.id)}\"><rect x=\"\{n(x)}\" y=\"\{n(top)}\" width=\"\{n(view.w)}\" height=\"\{n(h)}\"\{@svg.ROUNDED}/>",
       )
-      notes_out.write_string(
+      notes_out.write(
         @svg.label_svg(
           view.label,
           x + view.w / 2,
@@ -1046,7 +1046,7 @@ fn draw(
           icons?=options.icons,
         ),
       )
-      notes_out.write_string("</g>")
+      notes_out.write("</g>")
       y = top + h
     } else if views[i] is Some(view) {
       let st = line_style(kind)
@@ -1143,7 +1143,7 @@ fn draw(
         inner.write_string("<path d=\"\{d}\"\{attrs}/>" + heads + drawn)
         widen(a.x, out + 8 + label.width)
         if label.width > 0 {
-          labels_out.write_string(
+          labels_out.write(
             "<g class=\"pele-edge-label\" data-id=\"i\{@svg.esc_text(m.id)}\">\{@svg.label_svg(label, out + 8 + label.width / 2, (top + bottom) / 2, "", icons?=options.icons)}</g>",
           )
         }
@@ -1228,7 +1228,7 @@ fn draw(
             (l + r) / 2
           }
           widen(cx - label.width / 2, cx + label.width / 2)
-          labels_out.write_string(
+          labels_out.write(
             "<g class=\"pele-edge-label\" data-id=\"i\{@svg.esc_text(m.id)}\">\{backed(label, cx, line_y - 4 - label.height / 2, "")}</g>",
           )
         }
@@ -1236,7 +1236,7 @@ fn draw(
           y = line_y + b.size.h / 2 - 6
         }
       }
-      edges_out.write_string(
+      edges_out.write(
         "<g class=\"pele-edge pele-message\" data-id=\"i\{@svg.esc_text(m.id)}\">\{inner}</g>",
       )
       y = @util.js_max(y, line_y)
@@ -1262,21 +1262,21 @@ fn draw(
         continue
       }
       foot_h = @util.js_max(foot_h, col.size.h)
-      actors_out.write_string(actor_svg(col, y, true))
+      actors_out.write(actor_svg(col, y, true))
     }
     bottom = y + foot_h
   }
-  let lifelines = StringBuilder()
+  let lifelines = @svg.Markup::new()
   for col in cols {
-    actors_out.write_string(actor_svg(col, col.top, false))
+    actors_out.write(actor_svg(col, col.top, false))
     let end = if col.life_end >= 0 { col.life_end } else { y }
     if end > col.life_start {
-      lifelines.write_string(
+      lifelines.write(
         "<path class=\"pele-lifeline\" data-id=\"\{@svg.esc_text(col.id)}\" d=\"M\{n(col.x)},\{n(col.life_start)}V\{n(end)}\"/>",
       )
     }
   }
-  let boxes_out = StringBuilder()
+  let boxes_out = @svg.Markup::new()
   for run in runs {
     let x0 = run_left(run)
     let x1 = run_right(run)
@@ -1290,10 +1290,10 @@ fn draw(
       Some(name) if name != "" => " data-id=\"\{@svg.esc_text(name)}\""
       _ => ""
     }
-    boxes_out.write_string(
+    boxes_out.write(
       "<g class=\"pele-cluster pele-box\"\{id}><rect x=\"\{n(x0)}\" y=\"0\" width=\"\{n(x1 - x0)}\" height=\"\{n(bottom + box_pad)}\" fill=\"var(--_a)\" stroke=\"var(--_b)\"\{@svg.rounded(opacity + fill)}/>",
     )
-    boxes_out.write_string(
+    boxes_out.write(
       @svg.label_svg(
         run.title,
         (x0 + x1) / 2,
@@ -1302,7 +1302,7 @@ fn draw(
         icons?=options.icons,
       ),
     )
-    boxes_out.write_string("</g>")
+    boxes_out.write("</g>")
   }
   if runs.length() > 0 {
     bottom += box_pad
@@ -1342,54 +1342,54 @@ fn draw(
   }
   let width = (max_x - min_x + 2 * pad).ceil()
   let height = (bottom - min_y + 2 * pad).ceil()
-  let content = StringBuilder()
-  content.write_string(
+  let content = @svg.Markup::new()
+  content.write(
     "<g transform=\"translate(\{n(pad - min_x)},\{n(pad - min_y)})\">",
   )
-  content.write_string(title_out)
-  let group = (open : String, body : String) => {
-    if body != "" {
-      content.write_string(open + body + "</g>")
+  content.write(title_out)
+  fn group(open : String, body : @svg.Markup) -> Unit raise @errors.PeleError {
+    if !body.is_empty() {
+      content.write_group(open, body, "</g>")
     }
   }
+
+  fn reversed(pieces : Array[String]) -> @svg.Markup raise @errors.PeleError {
+    let out = @svg.Markup::new()
+    for piece in pieces.rev_iter() {
+      out.write(piece)
+    }
+    out
+  }
+
+  group("<g class=\"pele-boxes\" font-size=\"\{small}\">", boxes_out)
+  group("<g class=\"pele-rects\" fill=\"var(--_a)\">", reversed(rects_out))
   group(
-    "<g class=\"pele-boxes\" font-size=\"\{small}\">",
-    boxes_out.to_string(),
+    "<g class=\"pele-lifelines\" fill=\"none\" stroke=\"var(--_b)\">", lifelines,
   )
-  rects_out.rev_in_place()
-  group("<g class=\"pele-rects\" fill=\"var(--_a)\">", rects_out.join(""))
-  group(
-    "<g class=\"pele-lifelines\" fill=\"none\" stroke=\"var(--_b)\">",
-    lifelines.to_string(),
-  )
-  activations_out.rev_in_place()
   group(
     "<g class=\"pele-activations\" fill=\"var(--_s)\" stroke=\"var(--_b)\">",
-    activations_out.join(""),
+    reversed(activations_out),
   )
   group(
     "<g class=\"pele-frames\" font-size=\"\{small}\" stroke=\"var(--_b)\">",
-    frames_out.to_string(),
+    frames_out,
   )
   group(
     "<g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\">",
-    edges_out.to_string(),
+    edges_out,
   )
   group(
     "<g class=\"pele-destroys\" fill=\"none\" stroke=\"var(--_l)\" stroke-width=\"1.5\" stroke-linecap=\"round\">",
-    crosses_out.to_string(),
+    crosses_out,
   )
-  group(
-    "<g class=\"pele-edge-labels\" font-size=\"\{small}\">",
-    labels_out.to_string(),
-  )
+  group("<g class=\"pele-edge-labels\" font-size=\"\{small}\">", labels_out)
   group(
     "<g class=\"pele-notes\" font-size=\"\{small}\" fill=\"var(--_a)\" stroke=\"var(--_b)\">",
-    notes_out.to_string(),
+    notes_out,
   )
-  group("<g class=\"pele-nodes\">", actors_out.to_string())
-  content.write_string("</g>")
-  let svg = @svg.svg_document(
+  group("<g class=\"pele-nodes\">", actors_out)
+  content.write("</g>")
+  let svg = @svg.markup_document(
     "sequence",
     width,
     height,
@@ -1397,7 +1397,7 @@ fn draw(
     options,
     db.acc_title,
     db.acc_descr,
-    content.to_string(),
+    content,
   )
   { svg, width, height, links: [], }
 }

@@ -130,7 +130,7 @@ pub fn number_messages(Array[SeqMessage], Bool) -> Numbering
 
 pub fn parse_sequence(String, SeqDb) -> Unit raise @errors.PeleError
 
-pub fn render_sequence(SeqDb, Map[String, Json], @types.RenderOptions) -> @types.Rendered
+pub fn render_sequence(SeqDb, Map[String, Json], @types.RenderOptions) -> @types.Rendered raise @errors.PeleError
 
 pub let sequence : @types.Diagram
 
