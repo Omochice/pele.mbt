@@ -25,3 +25,18 @@ test "other values convert to numbers as Number() reads them" {
     content="NaN 5 0 NaN 1 0 0 NaN",
   )
 }
+
+///|
+test "arrays are written as String() joins them, nested ones flattened" {
+  let values : Array[Json] = [
+    [1, [2, [3, null]], null, {}, true, "x", [[]], []],
+    [[["a"], "b"], []],
+    [],
+    [null],
+    [-0.0, 1.5, 1.0e21],
+  ]
+  inspect(
+    values.map(@util.js_string).join("|"),
+    content="1,2,3,,,[object Object],true,x,,|a,b,|||0,1.5,1e+21",
+  )
+}
