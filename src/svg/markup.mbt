@@ -27,11 +27,15 @@ const SHARED_LENGTH : Int32 = 1024
 /// It keeps its pieces apart until it is turned into a string, because a `StringBuilder` doubles
 /// its buffer and wasm's allocator refuses the block of 1 GiB that would follow 2^28 code units,
 /// while a string allocated at its final size can be as long as V8's longest.
+/// Past `HOLD_LIMIT` it drops its pieces and only counts, because holding, materializing and
+/// answering with markup that long would outgrow wasm's memory; `markup_document` reports the
+/// `limit` error for markup that is no longer held.
 struct Markup {
-  pieces : Array[String]
+  mut pieces : Array[String]
   mut tail : StringBuilder
   mut tail_length : Int32
   mut length : Int32
+  mut held : Bool
   used : Set[String]
 }
 
@@ -43,8 +47,15 @@ pub fn Markup::new() -> Markup {
     tail: StringBuilder(),
     tail_length: 0,
     length: 0,
+    held: true,
     used: Set([]),
   }
+}
+
+///|
+/// Whether the markup still holds its pieces, which it does up to `HOLD_LIMIT`.
+pub fn Markup::is_held(self : Markup) -> Bool {
+  self.held
 }
 
 ///|
@@ -68,6 +79,13 @@ fn Markup::lengthen(
     raise @errors.nested_too_deeply()
   }
   self.length += count
+  // Dropping the pieces frees them under reference counting, so holding never passes `HOLD_LIMIT`.
+  if self.held && self.length > HOLD_LIMIT {
+    self.held = false
+    self.pieces = []
+    self.tail = StringBuilder()
+    self.tail_length = 0
+  }
 }
 
 ///|
@@ -81,6 +99,9 @@ fn Markup::flush(self : Markup) -> Unit {
 
 ///|
 fn Markup::append(self : Markup, piece : String) -> Unit {
+  if !self.held {
+    return
+  }
   if piece.length() >= SHARED_LENGTH {
     self.flush()
     self.pieces.push(piece)
@@ -157,15 +178,27 @@ fn exact_builder(length : Int32) -> StringBuilder {
 
 ///|
 /// The markup as a string.
+/// Aborts for markup the port no longer holds, which `markup_document` fails before reaching.
 pub fn Markup::to_string(self : Markup) -> String {
+  guard self.held else { abort("SVG markup past the port's hold limit") }
   let out = exact_builder(self.length)
   self.write_to(out)
   out.to_string()
 }
 
 ///|
+/// The `limit` error for a drawing the port cannot hold, naming its hold limit.
+pub fn too_large_to_hold() -> @errors.PeleError {
+  @errors.pele_error(
+    "Diagram output is too large for the wasm port: it would hold more than \{HOLD_LIMIT} code units, the most the port can hold at once.",
+    code=Limit,
+  )
+}
+
+///|
 /// Wraps diagram content in the root `svg` element as `svg_document` does.
-/// Raises pele's `limit` error, before concatenating, when the document would be longer than V8 allows.
+/// Raises pele's `limit` error, before concatenating, when the document would be longer than V8
+/// allows, or the port's own `limit` error when it is longer than the port can hold.
 pub fn markup_document(
   kind : String,
   width : Double,
@@ -189,6 +222,9 @@ pub fn markup_document(
   let end = "</svg>"
   if start.length() + end.length() > MAX_STRING_LENGTH - content.length {
     raise @errors.nested_too_deeply()
+  }
+  if !content.held {
+    raise too_large_to_hold()
   }
   let out = exact_builder(start.length() + content.length + end.length())
   out.write_string(start)

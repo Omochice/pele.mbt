@@ -93,6 +93,8 @@ pub fn title_crossed(@layout.CNode, Double, Double, Crossings) -> Bool
 
 pub fn title_label(String?, @text.TextMeasurer, Double, Double) -> @text.Label
 
+pub fn too_large_to_hold() -> @errors.PeleError
+
 pub fn with_title(String?, @text.TextMeasurer, Double, Double, Double, Double, String) -> Titled
 
 pub fn with_title_markup(String?, @text.TextMeasurer, Double, Double, Double, Double, Markup) -> TitledMarkup raise @errors.PeleError
@@ -120,6 +122,7 @@ pub(all) struct EdgePath {
 
 type Markup
 pub fn Markup::is_empty(Self) -> Bool
+pub fn Markup::is_held(Self) -> Bool
 pub fn Markup::length(Self) -> Int32
 pub fn Markup::new() -> Self
 pub fn Markup::to_string(Self) -> String
