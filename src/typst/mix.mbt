@@ -109,19 +109,32 @@ fn color_mix(body : String) -> Srgb? {
 ///|
 /// `value` with every `color-mix()` it can evaluate replaced by the hex code of its color.
 fn evaluate_mixes(value : String) -> String {
-  let lower = ascii_lower(value)
-  let out = StringBuilder()
-  let mut copied = 0
+  // Only each mix is lowercased, and the value is built anew only around a mix it evaluates, at
+  // its final size, because a style can be hundreds of millions of code units long.
+  let mixes : Array[(Int32, Int32, String)] = []
   let mut from = 0
   while true {
-    let at = @util.index_of(lower, "color-mix(", from~)
-    guard at >= 0 && closing_paren(lower, at + 9) is Some(close) else { break }
-    if parse_color(@util.slice(lower, at, end=close + 1)) is Some(color) {
-      @util.write_range(out, value, copied, at)
-      out.write_string(color.to_hex())
-      copied = close + 1
+    let at = index_ignoring_case(value, "color-mix(", from)
+    guard at >= 0 && closing_paren(value, at + 9) is Some(close) else { break }
+    if parse_color(ascii_lower(@util.slice(value, at, end=close + 1)))
+      is Some(color) {
+      mixes.push((at, close, color.to_hex()))
     }
     from = close + 1
+  }
+  if mixes.is_empty() {
+    return value
+  }
+  let mut length = value.length()
+  for mix in mixes {
+    length += mix.2.length() - (mix.1 + 1 - mix.0)
+  }
+  let out = StringBuilder(size_hint=length * 2)
+  let mut copied = 0
+  for mix in mixes {
+    @util.write_range(out, value, copied, mix.0)
+    out.write_string(mix.2)
+    copied = mix.1 + 1
   }
   @util.write_range(out, value, copied, value.length())
   out.to_string()

@@ -55,8 +55,20 @@ fn definitions(svg : String) -> Map[String, String] {
   each_tag(svg, tag => {
     for attribute in tag.attributes {
       guard attribute.name == "style" else { continue }
-      for declaration in attribute.value.split(";") {
-        let declaration = declaration.to_owned()
+      let style = attribute.value
+      // Only a declaration that starts with `--` defines a property, so the others are passed over
+      // without being copied, which a style of millions of declarations could not afford.
+      let mut start = 0
+      while start <= style.length() {
+        let end = declaration_end(style, start)
+        let custom = is_custom_property(style, start, end)
+        let declaration = if custom {
+          @util.slice(style, start, end~)
+        } else {
+          ""
+        }
+        start = end + 1
+        guard custom else { continue }
         guard declaration.find(":") is Some(colon) else { continue }
         let name = css_trim(@util.slice(declaration, 0, end=colon))
         if name.has_prefix("--") && !found.contains(name) {
@@ -140,17 +152,23 @@ fn Resolver::substitute(
 ///|
 /// The declarations of `style` with their references resolved, leaving out custom properties and the declarations that do not resolve.
 fn Resolver::style(self : Resolver, style : String) -> String {
-  let kept = []
-  for declaration in style.split(";") {
-    let declaration = declaration.to_owned()
-    if css_trim(declaration).has_prefix("--") {
-      continue
+  let mut next_reference = @util.index_of(style, "var(")
+  rebuild(style, (start, end) => {
+    if is_custom_property(style, start, end) {
+      return Drop
     }
-    if self.substitute(declaration, 0) is Some(resolved) {
-      kept.push(resolved)
+    if next_reference >= 0 && next_reference < start {
+      next_reference = @util.index_of(style, "var(", from=start)
     }
-  }
-  kept.join(";")
+    // A reference holds no `;`, so one that starts in the declaration lies within it.
+    guard next_reference >= 0 && next_reference < end else { return Keep }
+    let declaration = @util.slice(style, start, end~)
+    match self.substitute(declaration, 0) {
+      Some(resolved) if resolved == declaration => Keep
+      Some(resolved) => Replace(resolved)
+      None => Drop
+    }
+  })
 }
 
 ///|

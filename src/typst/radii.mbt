@@ -22,27 +22,20 @@ fn hoist_attributes(attributes : Array[Attribute]) -> Array[Attribute] {
     return attributes
   }
   let radii : Array[Attribute] = []
-  let kept = []
-  for declaration in attributes[at].value.split(";") {
-    let declaration = declaration.to_owned()
-    guard declaration.find(":") is Some(colon) else {
-      kept.push(declaration)
-      continue
-    }
-    let property = css_trim(@util.slice(declaration, 0, end=colon))
-    guard property == "rx" || property == "ry" else {
-      kept.push(declaration)
-      continue
-    }
+  let source = attributes[at].value
+  let style = rebuild(source, (start, end) => {
+    guard radius_colon(source, start, end) is Some(colon) else { return Keep }
+    let property = css_trim(@util.slice(source, start, end=colon))
     let radius = {
       name: property,
-      value: css_trim(@util.slice(declaration, colon + 1)),
+      value: css_trim(@util.slice(source, colon + 1, end~)),
     }
     match find_attribute(radii, property) {
       Some(i) => radii[i] = radius
       None => radii.push(radius)
     }
-  }
+    Drop
+  })
   if radii.is_empty() {
     return attributes
   }
@@ -54,7 +47,6 @@ fn hoist_attributes(attributes : Array[Attribute]) -> Array[Attribute] {
           out.push(radius)
         }
       }
-      let style = kept.join(";")
       if style != "" {
         out.push({ ..attribute, value: style, })
       }
