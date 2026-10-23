@@ -4,6 +4,7 @@
 // before its output limit is ever checked; below it pele draws the SVG, and so must the plugin,
 // however far past what a doubling StringBuilder could hold the SVG is.
 // Each drawing is also rendered through the theme typst sends, which has to answer without trapping.
+// A case's options are written as the plugin's JSON, and pele is given the callbacks they stand for.
 //
 // Usage: node scripts/check-string-length.mjs [diagram ...]
 // Build the plugin first with `moon build --target wasm --release`.
