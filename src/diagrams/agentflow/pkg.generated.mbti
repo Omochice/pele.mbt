@@ -1,7 +1,17 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "Omochice/pele/diagrams/agentflow"
 
+import {
+  "Omochice/pele/diagrams/flowchart",
+  "Omochice/pele/errors",
+  "Omochice/pele/types",
+}
+
 // Values
+pub fn parse_agentflow(String, AgentflowDb, raw? : Bool) -> Unit raise @errors.PeleError
+
+pub fn parse_model(String, Map[String, Json], String?, Int32, @types.ParseLimits) -> AgentflowDb raise @errors.PeleError
+
 pub let token_names : Array[String]
 
 pub fn tokenize(String) -> Tokens
@@ -9,6 +19,66 @@ pub fn tokenize(String) -> Tokens
 // Errors
 
 // Types and methods
+pub(all) struct AgentEdge {
+  start : String
+  end : String
+  mut kind : String?
+  mut text : String
+  mut label_type : @flowchart.LabelType
+  mut stroke : String?
+  mut edge_semantic : String?
+  mut length : Int32?
+  mut style : Array[String]?
+  classes : Array[String]
+  mut id : String
+  mut is_user_defined_id : Bool
+  mut interpolate : Json?
+  mut animate : Json?
+  mut animation : Json?
+  mut metadata : Map[String, Json]?
+}
+
+pub(all) struct AgentNode {
+  id : String
+  mut text : String?
+  mut label_type : @flowchart.LabelType
+  mut kind : String?
+  styles : Array[String]
+  classes : Array[String]
+  mut dir : String?
+  mut props : Map[String, String]?
+  mut link : String?
+  mut link_target : String?
+  mut metadata : Map[String, Json]?
+  is_connector : Bool
+}
+
+pub(all) struct AgentSubgraph {
+  id : String
+  mut nodes : Array[String]
+  mut title : String
+  classes : Array[String]
+  mut dir : String?
+  label_type : @flowchart.LabelType
+  mut metadata : Map[String, Json]?
+}
+
+pub struct AgentflowDb {
+  direction : String?
+  nodes : Map[String, AgentNode]
+  edges : Array[AgentEdge]
+  subgraphs : Array[AgentSubgraph]
+  connectors : Map[String, AgentNode]
+  classes : Map[String, @flowchart.FlowClassDef]
+  tooltips : Map[String, String]
+  default_edge_style : Array[String]?
+  default_interpolate : String?
+  mut title : String?
+  acc_title : String?
+  acc_descr : String?
+}
+pub fn AgentflowDb::new(max_edges? : Int32, inherit_dir? : Bool, direction? : String) -> Self
+
 pub(all) struct Tokens {
   types : Array[Int32]
   texts : Array[String]
