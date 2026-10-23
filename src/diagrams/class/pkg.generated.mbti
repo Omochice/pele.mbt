@@ -6,6 +6,8 @@ import {
 }
 
 // Values
+pub fn build_class_graph(ClassDb, hierarchical? : Bool) -> ClassGraph
+
 pub fn parse_class(String, ClassDb) -> Unit raise @errors.PeleError
 
 pub fn tokenize(String) -> Tokens
@@ -47,6 +49,11 @@ pub fn ClassDb::set_css_style(Self, String, Array[String]) -> Unit
 pub fn ClassDb::set_direction(Self, String) -> Unit
 pub fn ClassDb::set_link(Self, String, String, target? : String) -> Unit
 pub fn ClassDb::set_tooltip(Self, String, String?) -> Unit
+
+pub(all) struct ClassGraph {
+  nodes : Array[GraphNode]
+  edges : Array[GraphEdge]
+}
 
 pub(all) struct ClassInterface {
   id : String
@@ -104,6 +111,32 @@ pub(all) struct DisplayDetails {
   css_style : String
 }
 
+pub(all) struct GraphEdge {
+  id : String
+  start : String
+  end : String
+  source : Int32
+  target : Int32
+  label : String?
+  arrow_type_start : String
+  arrow_type_end : String
+  start_label_right : String
+  end_label_left : String
+  pattern : String
+  classes : String
+}
+
+pub(all) struct GraphNode {
+  id : String
+  label : String
+  is_group : Bool
+  shape : NodeShape
+  parent_id : String?
+  mut parent : Int32
+  class_node : ClassNode?
+  color_index : Int32?
+}
+
 pub(all) enum MemberType {
   Method
   Attribute
@@ -118,6 +151,14 @@ pub(all) struct NamespaceNode {
   mut parent : String?
   mut explicit : Bool
 }
+
+pub(all) enum NodeShape {
+  Rect
+  ClassBox
+  NoteBox
+  InterfaceRing
+}
+pub fn NodeShape::name(Self) -> String
 
 pub(all) struct RelationKind {
   type1 : Int32?
