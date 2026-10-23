@@ -212,8 +212,10 @@ fn draw(
       continue
     }
     let end = angle + share * @math.PI * 2
+    slices.write("<path class=\"pele-slice\" data-id=\"")
+    @svg.write_esc_text(slices, entry.0)
     slices.write(
-      "<path class=\"pele-slice\" data-id=\"\{@svg.esc_text(entry.0)}\" d=\"\{slice(angle, end, radius, inner)}\" fill=\"\{@svg.series_color(index)}\"/>",
+      "\" d=\"\{slice(angle, end, radius, inner)}\" fill=\"\{@svg.series_color(index)}\"/>",
     )
     let mid = (angle + end) / 2
     let text = @util.to_fixed0(share * 100) + "%"
@@ -264,12 +266,19 @@ fn draw(
   let legend_out = @svg.Markup::new()
   for index, label in legend {
     let y = ly + index.to_double() * ROW + ROW / 2
+    legend_out.write("<g class=\"pele-legend-item\" data-id=\"")
+    @svg.write_esc_text(legend_out, entries[index].0)
     legend_out.write(
-      "<g class=\"pele-legend-item\" data-id=\"\{@svg.esc_text(entries[index].0)}\">" +
-      "<rect x=\"\{@svg.num(lx)}\" y=\"\{@svg.num(y - SWATCH / 2)}\" width=\"\{SWATCH}\" height=\"\{SWATCH}\" rx=\"2\" fill=\"\{@svg.series_color(index)}\"/>" +
-      @svg.label_svg(label, lx + SWATCH + 8 + label.width / 2, y, "") +
-      "</g>",
+      "\"><rect x=\"\{@svg.num(lx)}\" y=\"\{@svg.num(y - SWATCH / 2)}\" width=\"\{SWATCH}\" height=\"\{SWATCH}\" rx=\"2\" fill=\"\{@svg.series_color(index)}\"/>",
     )
+    @svg.write_label(
+      legend_out,
+      label,
+      lx + SWATCH + 8 + label.width / 2,
+      y,
+      "",
+    )
+    legend_out.write("</g>")
   }
   let total_width = (width + 2 * pad).ceil()
   let total_height = (height + title_height + 2 * pad).ceil()
