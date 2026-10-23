@@ -354,20 +354,6 @@ fn strip_prefix(classes : String, prefix : String, word : Bool) -> String {
 }
 
 ///|
-fn label_line(label : @text.Label, i : Int32) -> @text.Label {
-  let width = label.widths[i]
-  {
-    lines: [label.lines[i]],
-    widths: [width],
-    width,
-    height: label.line_height,
-    size: label.size,
-    line_height: label.line_height,
-    heights: None,
-  }
-}
-
-///|
 /// A label whose lines start at `x`, centered on `cy` as a whole.
 fn left_label(
   label : @text.Label,
@@ -383,9 +369,9 @@ fn left_label(
   for i in 0..<label.lines.length() {
     out.write_string(
       @svg.label_svg(
-        label_line(label, i),
+        @text.label_line(label, i),
         x + label.widths[i] / 2,
-        cy - label.height / 2 + (i.to_double() + 0.5) * label.line_height,
+        cy - label.height / 2 + @text.line_middle(label, i),
         attrs,
         icons?,
       ),
