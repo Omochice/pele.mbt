@@ -47,6 +47,54 @@ test "title_label wraps a title wider than the room for it" {
 }
 
 ///|
+test "with_title puts the title above the content and widens the picture for it" {
+  // The expected documents were taken from pele v1.8.0's withTitle.
+  let check = (
+    title : String?,
+    size : Double,
+    pad : Double,
+    width : Double,
+    height : Double,
+    expected : String,
+  ) => {
+    let titled = @svg.with_title(
+      title, @text.metrics_measurer, size, pad, width, height, "<g/>",
+    )
+    assert_eq(
+      "\{titled.width} x \{titled.height} \{titled.content}",
+      expected,
+      msg=title.unwrap_or("-"),
+    )
+  }
+  check(
+    Some("Sales"),
+    16,
+    8,
+    300.5,
+    120.25,
+    "300.5 x 157 <text class=\"pele-title\" font-weight=\"var(--_tw)\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"150.25\" y=\"25.6\">Sales</tspan></text><g transform=\"translate(0,36)\"><g/></g>",
+  )
+  check(
+    Some("A title much wider than the diagram under it"),
+    16,
+    8,
+    60,
+    40,
+    "351 x 76 <text class=\"pele-title\" font-weight=\"var(--_tw)\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"175.5\" y=\"25.6\">A title much wider than the diagram under it</tspan></text><g transform=\"translate(145.5,36)\"><g/></g>",
+  )
+  check(None, 16, 8, 100, 50, "100 x 50 <g/>")
+  check(Some(""), 16, 8, 100, 50, "100 x 50 <g/>")
+  check(
+    Some("Two<br>lines"),
+    20,
+    12,
+    200,
+    99.5,
+    "200 x 172 <text class=\"pele-title\" font-weight=\"var(--_tw)\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"100\" y=\"34\">Two</tspan><tspan x=\"100\" y=\"64\">lines</tspan></text><g transform=\"translate(0,72)\"><g/></g>",
+  )
+}
+
+///|
 test "title_label is empty without a title" {
   inspect(
     describe(@svg.title_label(Some(""), @text.metrics_measurer, 16, 4000)),

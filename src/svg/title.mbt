@@ -1,4 +1,27 @@
 ///|
+/// A picture with a title put above it.
+pub(all) struct Titled {
+  width : Double
+  height : Double
+  content : String
+}
+
+///|
+/// Puts a diagram title above content that was laid out without one.
+pub fn with_title(
+  title : String?,
+  measurer : @text.TextMeasurer,
+  size : Double,
+  pad : Double,
+  width : Double,
+  height : Double,
+  content : String,
+) -> Titled {
+  ignore((title, measurer, size, pad))
+  { width, height, content, }
+}
+
+///|
 /// A diagram title, set in bold as text whatever it holds, as Mermaid draws it.
 /// Returns an empty label without a title.
 pub fn title_label(
