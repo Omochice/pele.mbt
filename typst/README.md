@@ -49,7 +49,7 @@ A value holding `;`, `{` or `}` is ignored, as it could end the declaration it i
 pele outlines a cluster title that edges run through with `color-mix(in srgb, …)` of `surface-alt` and `bg`, which typst does not evaluate, so the plugin computes the mix to a hex code as CSS Color 5 defines it.
 It reads the colors written as a hex code of 3, 4, 6 or 8 digits, `rgb()` or `rgba()` in either the comma or the space separated form, a named color, `transparent`, or another such mix in sRGB.
 A mix in another color space, or of any other color such as `hsl()`, `oklch()` or `currentColor`, is left as written, and typst draws nothing where it paints.
-Its channels are rounded half up to bytes, as browsers round the channels of `rgb()`.
+Its channels are rounded half up to bytes, as Chrome rounds the channels of `rgb()`.
 
 typst resolves no generic font family such as `sans-serif` or `monospace`, and draws such text in its default serif font.
 The theme therefore names `Arial, Helvetica, Liberation Sans, Arimo` for `font`, as pele lays labels out with Arial's metrics unless it is given a measurer, and `DejaVu Sans Mono`, which ships with typst, for `font-mono`.
