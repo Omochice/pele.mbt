@@ -57,14 +57,16 @@ fn metrics_width(text : String, size : Double, style : Int32) -> Double {
   } else {
     regular_advances
   }
-  let mut units = 0
+  // pele sums in a JavaScript number, exact for any text a string holds, which an Int32 is not
+  // past about two million wide characters.
+  let mut units : Int64 = 0
   for i in 0..<text.length() {
     let c = text.unsafe_get(i).to_int()
     if c < 32 {
       continue
     }
     if c < 127 {
-      units += if mono { 600 } else { table[c - 32] }
+      units += if mono { 600 } else { table[c - 32].to_int64() }
     } else if is_zero_width(c) {
       continue
     } else if is_wide(c) {
