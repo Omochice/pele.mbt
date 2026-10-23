@@ -82,13 +82,6 @@ fn write_polygon(
 }
 
 ///|
-fn polygon(points : Array[Point]) -> String {
-  let out = StringBuilder()
-  write_polygon(points, point => out.write_string(point))
-  out.to_string()
-}
-
-///|
 fn is_finite(value : Double) -> Bool {
   !value.is_nan() && !value.is_inf()
 }
@@ -98,7 +91,7 @@ fn render_radar(
   model : RadarModel,
   config : @types.Config,
   options : @types.RenderOptions,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   let natural = number_option(config, "width", 320, 1, 4000)
   @common.fit_width(options, natural, 160, (width, tight) => {
     let height = number_option(config, "height", 320, 1, 4000) * width / natural
@@ -115,7 +108,7 @@ fn draw(
   width : Double,
   height : Double,
   tight : Bool,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   let size = options.font_size.unwrap_or(16)
   let small = (size * 0.875).round()
   let measurer = options.text_measurer()
@@ -155,26 +148,26 @@ fn draw(
   let mut x1 = width / 2 + number_option(config, "marginRight", 16, 0, 2000)
   let mut y0 = -height / 2 - number_option(config, "marginTop", 16, 0, 2000)
   let mut y1 = height / 2 + number_option(config, "marginBottom", 16, 0, 2000)
-  let grid = StringBuilder()
+  let grid = @svg.Markup::new()
   let mut i = 0
   while i.to_double() < ticks {
     let r = @cmp.minimum(radius, radius * (i + 1).to_double() / ticks)
     if graticule == "circle" {
-      grid.write_string("<circle r=\"\{@svg.num(r)}\"/>")
+      grid.write("<circle r=\"\{@svg.num(r)}\"/>")
     } else {
-      grid.write_string(
-        "<polygon points=\"\{polygon(unit.map(u => { x: u.x * r, y: u.y * r }))}\"/>",
-      )
+      grid.write("<polygon points=\"")
+      write_polygon(unit.map(u => { x: u.x * r, y: u.y * r, }), point => {
+        grid.write(point)
+      })
+      grid.write("\"/>")
     }
     i += 1
   }
-  let spokes = StringBuilder()
-  let labels = StringBuilder()
+  let spokes = @svg.Markup::new()
+  let labels = @svg.Markup::new()
   for i, u in unit {
     let reach = radius * axis_scale
-    spokes.write_string(
-      "M0,0L\{@svg.num(u.x * reach)},\{@svg.num(u.y * reach)}",
-    )
+    spokes.write("M0,0L\{@svg.num(u.x * reach)},\{@svg.num(u.y * reach)}")
     let label = @text.layout_label(
       Some(axes[i].label),
       false,
@@ -200,7 +193,7 @@ fn draw(
       } else {
         0
       })
-    labels.write_string(
+    labels.write(
       "<g class=\"pele-axis-label\" data-id=\"\{@svg.esc_text(axes[i].name)}\">\{@svg.label_svg(label, cx, cy, "")}</g>",
     )
     x0 = @cmp.minimum(x0, cx - label.width / 2)
@@ -208,7 +201,7 @@ fn draw(
     y0 = @cmp.minimum(y0, cy - label.height / 2)
     y1 = @cmp.maximum(y1, cy + label.height / 2)
   }
-  let shapes = StringBuilder()
+  let shapes = @svg.Markup::new()
   for index, curve in curves {
     // Mermaid leaves out a curve that does not have a value for every axis.
     if curve.entries.length() != count {
@@ -222,12 +215,13 @@ fn draw(
     let color = @svg.series_color(index)
     let attrs = " class=\"pele-curve\" data-id=\"\{@svg.esc_text(curve.name)}\" fill=\"\{color}\" stroke=\"\{color}\""
     if graticule == "circle" {
-      shapes.write_string(
-        "<path\{attrs} d=\"\{closed_round_curve(points, tension)}\"/>",
-      )
+      shapes.write("<path\{attrs} d=\"")
+      write_closed_round_curve(points, tension, segment => shapes.write(segment))
     } else {
-      shapes.write_string("<polygon\{attrs} points=\"\{polygon(points)}\"/>")
+      shapes.write("<polygon\{attrs} points=\"")
+      write_polygon(points, point => shapes.write(point))
     }
+    shapes.write("\"/>")
   }
   let legend = if model.options.show_legend {
     curves.map(curve => {
@@ -252,11 +246,11 @@ fn draw(
     y0 = @cmp.minimum(y0, -legend_height / 2)
     y1 = @cmp.maximum(y1, legend_height / 2)
   }
-  let legend_out = StringBuilder()
+  let legend_out = @svg.Markup::new()
   for index, label in legend {
     let y = legend_top + index.to_double() * ROW + ROW / 2
     let color = @svg.series_color(index)
-    legend_out.write_string(
+    legend_out.write(
       "<g class=\"pele-legend-item\" data-id=\"\{@svg.esc_text(curves[index].name)}\">" +
       "<rect x=\"\{@svg.num(legend_x)}\" y=\"\{@svg.num(y - SWATCH / 2)}\" width=\"\{SWATCH}\" height=\"\{SWATCH}\" rx=\"2\" fill=\"\{color}\" fill-opacity=\"0.4\" stroke=\"\{color}\"/>" +
       @svg.label_svg(label, legend_x + SWATCH + 8 + label.width / 2, y, "") +
@@ -276,8 +270,8 @@ fn draw(
   let total_width = (body_width + 2 * pad).ceil()
   let total_height = (y1 - y0 + title_height + 2 * pad).ceil()
   let origin = "translate(\{@svg.num(pad + (body_width - (x1 - x0)) / 2 - x0)},\{@svg.num(pad + title_height - y0)})"
-  let content = StringBuilder()
-  content.write_string(
+  let content = @svg.Markup::new()
+  content.write(
     @svg.label_svg(
       title,
       total_width / 2,
@@ -285,35 +279,40 @@ fn draw(
       " class=\"pele-title\" font-weight=\"var(--_tw)\"",
     ),
   )
-  content.write_string("<g transform=\"\{origin}\">")
+  content.write("<g transform=\"\{origin}\">")
   if !grid.is_empty() {
-    content.write_string(
-      "<g class=\"pele-graticule\" fill=\"none\" stroke=\"var(--_a)\">\{grid.to_string()}</g>",
+    content.write_group(
+      "<g class=\"pele-graticule\" fill=\"none\" stroke=\"var(--_a)\">", grid, "</g>",
     )
   }
   if !spokes.is_empty() {
-    content.write_string(
-      "<path class=\"pele-axes\" d=\"\{spokes.to_string()}\" fill=\"none\" stroke=\"var(--_b)\"/>",
+    content.write_group(
+      "<path class=\"pele-axes\" d=\"", spokes, "\" fill=\"none\" stroke=\"var(--_b)\"/>",
     )
   }
   if !shapes.is_empty() {
-    content.write_string(
-      "<g class=\"pele-curves\" fill-opacity=\"0.2\" stroke-width=\"1.5\" stroke-linejoin=\"round\">\{shapes.to_string()}</g>",
+    content.write_group(
+      "<g class=\"pele-curves\" fill-opacity=\"0.2\" stroke-width=\"1.5\" stroke-linejoin=\"round\">",
+      shapes, "</g>",
     )
   }
   if !labels.is_empty() {
-    content.write_string(
-      "<g class=\"pele-axis-labels\" font-size=\"\{small}\">\{labels.to_string()}</g>",
+    content.write_group(
+      "<g class=\"pele-axis-labels\" font-size=\"\{small}\">",
+      labels,
+      "</g>",
     )
   }
   if !legend_out.is_empty() {
-    content.write_string(
-      "<g class=\"pele-legend\" font-size=\"\{small}\">\{legend_out.to_string()}</g>",
+    content.write_group(
+      "<g class=\"pele-legend\" font-size=\"\{small}\">",
+      legend_out,
+      "</g>",
     )
   }
-  content.write_string("</g>")
+  content.write("</g>")
   {
-    svg: @svg.svg_document(
+    svg: @svg.markup_document(
       "radar",
       total_width,
       total_height,
@@ -321,7 +320,7 @@ fn draw(
       options,
       model.acc_title,
       model.acc_descr,
-      content.to_string(),
+      content,
     ),
     width: total_width,
     height: total_height,
