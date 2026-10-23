@@ -386,6 +386,10 @@ export const CASES = [
   lazy('state', 'one tooltip past V8', () => `stateDiagram-v2\nA\nclick A "https://x" "${'&'.repeat(110000000)}"\n`, RAISED),
   lazy('state', 'one link of many &', () => `stateDiagram-v2\nA\nclick A href "https://x/${'&'.repeat(54000000)}"\n`, RAISED),
   lazy('state', 'one link past V8', () => `stateDiagram-v2\nA\nclick A href "https://x/${'&'.repeat(110000000)}"\n`, RAISED),
+  lazy('state', 'one state colored by many &', () => `stateDiagram-v2\nA\nstyle A color:${'&'.repeat(54000000)}\n`, RAISED),
+  lazy('state', 'one state colored past V8', () => `stateDiagram-v2\nA\nstyle A color:${'&'.repeat(110000000)}\n`, RAISED),
+  // A fill goes into the style of the state's box, and a color into its label's.
+  lazy('state', 'one state filled by many &', () => `stateDiagram-v2\nA\nstyle A fill:${'&'.repeat(54000000)}\n`, RAISED),
 ];
 
 // A case whose source is built only when the check reaches it, as a getter in the source's place,

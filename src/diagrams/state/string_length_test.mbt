@@ -133,3 +133,30 @@ test "a link of over a hundred million entities fails as nested too deeply" {
     content="limit: Diagram is nested too deeply. state stateDiagram",
   )
 }
+
+///|
+#skip("slow: escapes 54 million characters into over 268 million code units")
+test "a state colored by tens of millions of entities is drawn as pele draws it" {
+  inspect(
+    outcome("stateDiagram-v2\nA\nstyle A color:\{"&".repeat(54000000)}\n"),
+    content="270000947",
+  )
+}
+
+///|
+#skip("slow: escapes 110 million characters before it fails")
+test "a state colored by over a hundred million entities fails as nested too deeply" {
+  inspect(
+    outcome("stateDiagram-v2\nA\nstyle A color:\{"&".repeat(110000000)}\n"),
+    content="limit: Diagram is nested too deeply. state stateDiagram",
+  )
+}
+
+///|
+#skip("slow: escapes 54 million characters into over 268 million code units")
+test "a state filled by tens of millions of entities is drawn as pele draws it" {
+  inspect(
+    outcome("stateDiagram-v2\nA\nstyle A fill:\{"&".repeat(54000000)}\n"),
+    content="270000947",
+  )
+}
