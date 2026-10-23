@@ -872,7 +872,7 @@ fn draw(
     } else {
       ""
     }
-    back + @svg.label_svg(label, cx, cy, attrs)
+    back + @svg.label_svg(label, cx, cy, attrs, icons?=options.icons)
   }
   let left_edge = (col : Column, extra : Int32) => {
     if col.activations.length() + extra > 0 {
@@ -927,7 +927,7 @@ fn draw(
     }
     let foot = if footer { " pele-actor-footer" } else { "" }
     "<g class=\"pele-node pele-actor pele-actor-\{col.kind}\{foot}\{classes}\" data-id=\"\{@svg.esc_text(col.id)}\">" +
-    draw_actor(col.kind, col.x, top, col.size, col.label) +
+    draw_actor(col.kind, col.x, top, col.size, col.label, icons?=options.icons) +
     "</g>"
   }
   let badge = (i : Int32, cx : Double, cy : Double, w : Double) => {
@@ -1035,6 +1035,7 @@ fn draw(
           x + view.w / 2,
           top + h / 2,
           " class=\"pele-label\" stroke=\"none\" fill=\"var(--_fg)\"",
+          icons?=options.icons,
         ),
       )
       notes_out.write_string("</g>")
@@ -1135,7 +1136,7 @@ fn draw(
         widen(a.x, out + 8 + label.width)
         if label.width > 0 {
           labels_out.write_string(
-            "<g class=\"pele-edge-label\" data-id=\"i\{@svg.esc_text(m.id)}\">\{@svg.label_svg(label, out + 8 + label.width / 2, (top + bottom) / 2, "")}</g>",
+            "<g class=\"pele-edge-label\" data-id=\"i\{@svg.esc_text(m.id)}\">\{@svg.label_svg(label, out + 8 + label.width / 2, (top + bottom) / 2, "", icons?=options.icons)}</g>",
           )
         }
         // A label taller than the loop reaches below it, so the next row starts under the label.
@@ -1290,6 +1291,7 @@ fn draw(
         (x0 + x1) / 2,
         box_pad / 2 + 2 + run.title.height / 2,
         " class=\"pele-cluster-label\" fill=\"var(--_m)\"",
+        icons?=options.icons,
       ),
     )
     boxes_out.write_string("</g>")
@@ -1327,6 +1329,7 @@ fn draw(
       cx,
       min_y + title.height / 2,
       " class=\"pele-title\" font-weight=\"var(--_tw)\"",
+      icons?=options.icons,
     )
   }
   let width = (max_x - min_x + 2 * pad).ceil()

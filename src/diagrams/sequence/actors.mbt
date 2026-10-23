@@ -103,13 +103,14 @@ fn figure(kind : String, cx : Double, top : Double) -> String {
 }
 
 ///|
-/// Draws a participant whose bounding box has its top center at (`cx`, `top`).
+/// Draws a participant whose bounding box has its top center at (`cx`, `top`), with `icons` drawing the icons in its label.
 pub fn draw_actor(
   kind : String,
   cx : Double,
   top : Double,
   size : ActorSize,
   label : @text.Label,
+  icons? : @types.IconResolver,
 ) -> String {
   let n = @svg.num
   let { w, h, } = size
@@ -121,6 +122,7 @@ pub fn draw_actor(
         cx,
         top + GLYPH + GLYPH_GAP + label.height / 2,
         text,
+        icons?,
       )
   }
   let left = cx - w / 2
@@ -131,7 +133,7 @@ pub fn draw_actor(
     let front = "<rect x=\"\{n(left)}\" y=\"\{n(top + STACK)}\" width=\"\{n(bw)}\" height=\"\{n(bh)}\"\{SHAPE}\{@svg.ROUNDED}/>"
     return back +
       front +
-      @svg.label_svg(label, left + bw / 2, top + STACK + bh / 2, text)
+      @svg.label_svg(label, left + bw / 2, top + STACK + bh / 2, text, icons?)
   }
   if kind == "queue" {
     let l = n(left + CAP)
@@ -140,8 +142,8 @@ pub fn draw_actor(
     let ry = n(h / 2)
     return "<path d=\"M\{l},\{n(top)}H\{r}A\{CAP},\{ry} 0 0 1 \{r},\{b}H\{l}A\{CAP},\{ry} 0 0 1 \{l},\{n(top)}Z\"\{SHAPE}/>" +
       "<path d=\"M\{r},\{n(top)}A\{CAP},\{ry} 0 0 0 \{r},\{b}\"\{STROKE}/>" +
-      @svg.label_svg(label, cx - CAP / 2, top + h / 2, text)
+      @svg.label_svg(label, cx - CAP / 2, top + h / 2, text, icons?)
   }
   "<rect x=\"\{n(left)}\" y=\"\{n(top)}\" width=\"\{n(w)}\" height=\"\{n(h)}\"\{SHAPE}\{@svg.ROUNDED}/>" +
-  @svg.label_svg(label, cx, top + h / 2, text)
+  @svg.label_svg(label, cx, top + h / 2, text, icons?)
 }
