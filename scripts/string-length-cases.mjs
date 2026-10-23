@@ -429,6 +429,13 @@ export const CASES = [
   // A card's icon is named in the data-icon of the host's drawing of it.
   lazyWith('kanban', 'one card icon named by many &', () => `kanban\nc[Col]\n  k[x]@{ icon: "${'&'.repeat(54000000)}" }\n`, () => ({ ...RAISED, icons: { ['&'.repeat(54000000)]: '<path/>' } })),
   lazyWith('kanban', 'one card icon named past V8', () => `kanban\nc[Col]\n  k[x]@{ icon: "${'&'.repeat(110000000)}" }\n`, () => ({ ...RAISED, icons: { ['&'.repeat(110000000)]: '<path/>' } })),
+  // A value's prefix and suffix are written in each node's label and each link's title.
+  lazy('sankey', 'a value prefix of many &', () => `---\nconfig:\n  sankey:\n    prefix: "${'&'.repeat(54000000)}"\n---\nsankey\n\nA,B,1\n`, RAISED),
+  lazy('sankey', 'a value suffix of many &', () => `---\nconfig:\n  sankey:\n    suffix: "${'&'.repeat(54000000)}"\n---\nsankey\n\nA,B,1\n`, RAISED),
+  // A node's color fills its bar and the links that leave it; a link color fills each link.
+  lazy('sankey', 'a node color of many &', () => `---\nconfig:\n  sankey:\n    nodeColors:\n      A: "${'&'.repeat(54000000)}"\n---\nsankey\n\nA,B,1\n`, RAISED),
+  lazy('sankey', 'a link color of many &', () => `---\nconfig:\n  sankey:\n    linkColor: "${'&'.repeat(54000000)}"\n---\nsankey\n\nA,B,1\n`, RAISED),
+  lazy('sankey', 'a link color past V8', () => `---\nconfig:\n  sankey:\n    linkColor: "${'&'.repeat(110000000)}"\n---\nsankey\n\nA,B,1\n`, RAISED),
 ];
 
 // A case whose source is built only when the check reaches it, as a getter in the source's place,
