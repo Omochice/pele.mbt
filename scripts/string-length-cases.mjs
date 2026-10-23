@@ -162,50 +162,58 @@ export const CASES = [
   ],
   ['mindmap', 'host icons in one node label', `mindmap\nroot["${Array(5400).fill('fa:fa-x').join(' ')}"]\n`, ICONS],
   // A node without a label is named by its text, which is written in its data-id and in its label.
-  ['mindmap', 'one node named by many &', `mindmap\n${'&'.repeat(60000000)}\n`, RAISED],
+  lazy('mindmap', 'one node named by many &', () => `mindmap\n${'&'.repeat(60000000)}\n`, RAISED),
   ['sequence', 'host icons in one message label', `sequenceDiagram\nA->>B: ${Array(5400).fill('fa:fa-x').join(' ')}\n`, ICONS],
   // A participant without an alias is labelled with its name, which its data-ids and lifeline repeat.
-  ['sequence', 'one participant named by many &', `sequenceDiagram\nparticipant ${'&'.repeat(54000000)}\n`, RAISED],
+  lazy('sequence', 'one participant named by many &', () => `sequenceDiagram\nparticipant ${'&'.repeat(54000000)}\n`, RAISED),
   // pele fails this while parsing, because its pattern for a quoted string runs out of V8's
   // backtracking stack past 4194294 characters; the port, which has no such stack, fails as the
   // id is written twice past V8's longest string, with the same error.
-  ['git', 'one commit id of many &', `gitGraph\ncommit id: "${'&'.repeat(54000000)}"\n`, RAISED],
+  lazy('git', 'one commit id of many &', () => `gitGraph\ncommit id: "${'&'.repeat(54000000)}"\n`, RAISED),
   // An entry's name is written in its data-id and as its text.
-  ['treeview', 'one entry named by many &', `treeView-beta\n  "${'&'.repeat(54000000)}"\n`, RAISED],
-  ['treeview', 'one entry described by many &', `treeView-beta\n  a "${'&'.repeat(110000000)}"\n`, RAISED],
+  lazy('treeview', 'one entry named by many &', () => `treeView-beta\n  "${'&'.repeat(54000000)}"\n`, RAISED),
+  lazy('treeview', 'one entry described by many &', () => `treeView-beta\n  a "${'&'.repeat(110000000)}"\n`, RAISED),
   ['wardley', 'host icons in one anchor label', `wardley-beta\nanchor "${Array(5400).fill('fa:fa-x').join(' ')}" [0.5, 0.5]\n`, ICONS],
   ['wardley', 'host icons in one link label', `wardley-beta\ncomponent A [0.2, 0.2]\ncomponent B [0.8, 0.8]\nA->B; ${Array(5400).fill('fa:fa-x').join(' ')}\n`, ICONS],
   // pele fails this while parsing, as it does a commit id of the same length; the port fails as
   // the slice's and the legend item's data-ids and the label pass V8's longest string.
-  ['pie', 'one entry named by many &', `pie\n"${'&'.repeat(54000000)}": 1\n`, RAISED],
-  ['eventmodeling', 'one frame with data of many &', `eventmodeling\ntf 01 evt E "${'&'.repeat(110000000)}"\n`, RAISED],
-  ['eventmodeling', 'one frame with data drawn past what a doubling StringBuilder holds', `eventmodeling\ntf 01 evt E "${'&'.repeat(60000000)}"\n`, RAISED],
-  ['eventmodeling', 'one note of many &', `eventmodeling\ntf 01 evt E\nnote 01 {\n${'&'.repeat(110000000)}\n}\n`, RAISED],
-  ['ishikawa', 'one cause of many &', `ishikawa-beta\nProblem\n  C\n    ${'&'.repeat(110000000)}\n`, RAISED],
+  lazy('pie', 'one entry named by many &', () => `pie\n"${'&'.repeat(54000000)}": 1\n`, RAISED),
+  lazy('eventmodeling', 'one frame with data of many &', () => `eventmodeling\ntf 01 evt E "${'&'.repeat(110000000)}"\n`, RAISED),
+  lazy('eventmodeling', 'one frame with data drawn past what a doubling StringBuilder holds', () => `eventmodeling\ntf 01 evt E "${'&'.repeat(60000000)}"\n`, RAISED),
+  lazy('eventmodeling', 'one note of many &', () => `eventmodeling\ntf 01 evt E\nnote 01 {\n${'&'.repeat(110000000)}\n}\n`, RAISED),
+  lazy('ishikawa', 'one cause of many &', () => `ishikawa-beta\nProblem\n  C\n    ${'&'.repeat(110000000)}\n`, RAISED),
   // A category's text is written in its data-id and as its label.
-  ['ishikawa', 'one category of many &', `ishikawa-beta\nProblem\n  ${'&'.repeat(54000000)}\n`, RAISED],
+  lazy('ishikawa', 'one category of many &', () => `ishikawa-beta\nProblem\n  ${'&'.repeat(54000000)}\n`, RAISED),
   // A task's and a section's text are written in their data-ids and as their labels.
-  ['journey', 'one task of many &', `journey\nsection S\n  ${'&'.repeat(54000000)}: 5: Me\n`, RAISED],
-  ['journey', 'one section of many &', `journey\nsection ${'&'.repeat(54000000)}\n  T: 5: Me\n`, RAISED],
+  lazy('journey', 'one task of many &', () => `journey\nsection S\n  ${'&'.repeat(54000000)}: 5: Me\n`, RAISED),
+  lazy('journey', 'one section of many &', () => `journey\nsection ${'&'.repeat(54000000)}\n  T: 5: Me\n`, RAISED),
   // pele fails this while parsing, as it does a commit id of the same length; the port fails as
   // the field's label, drawn down for a narrow host, passes V8's longest string.
-  ['packet', 'one field of many &, drawn down', `packet\n0-31: "${'&'.repeat(62000000)}"\n`, { ...RAISED, maxWidth: 300 }],
+  lazy('packet', 'one field of many &, drawn down', () => `packet\n0-31: "${'&'.repeat(62000000)}"\n`, { ...RAISED, maxWidth: 300 }),
   // A point's name is written in its data-id and as its label.
-  ['quadrant', 'one point named by many &', `quadrantChart\n${'&'.repeat(54000000)}: [0.5, 0.5]\n`, RAISED],
+  lazy('quadrant', 'one point named by many &', () => `quadrantChart\n${'&'.repeat(54000000)}: [0.5, 0.5]\n`, RAISED),
   // pele fails these while parsing, as it does a commit id past 4194294 characters; the port fails
   // as the label passes V8's longest string.
-  ['radar', 'one axis labelled by many &', `radar-beta\naxis a["${'&'.repeat(110000000)}"]\n`, RAISED],
-  ['radar', 'one curve labelled by many &', `radar-beta\naxis a\ncurve c["${'&'.repeat(110000000)}"]{1}\n`, RAISED],
+  lazy('radar', 'one axis labelled by many &', () => `radar-beta\naxis a["${'&'.repeat(110000000)}"]\n`, RAISED),
+  lazy('radar', 'one curve labelled by many &', () => `radar-beta\naxis a\ncurve c["${'&'.repeat(110000000)}"]{1}\n`, RAISED),
   // A quoted terminal fails in pele while parsing past 4194294 characters; a special sequence does not.
-  ['railroad', 'one special sequence of many &', `railroad-ebnf-beta\nr = ? ${'&'.repeat(110000000)} ? ;\n`, RAISED],
-  ['sankey', 'one node named by many &', `sankey\n\nA${'&'.repeat(54000000)},B,1\n`, RAISED],
+  lazy('railroad', 'one special sequence of many &', () => `railroad-ebnf-beta\nr = ? ${'&'.repeat(110000000)} ? ;\n`, RAISED),
+  lazy('sankey', 'one node named by many &', () => `sankey\n\nA${'&'.repeat(54000000)},B,1\n`, RAISED),
   // A period's and a section's text are written in their data-ids and as their labels.
-  ['timeline', 'one period of many &', `timeline\n  ${'&'.repeat(54000000)} : e\n`, RAISED],
-  ['timeline', 'one section of many &', `timeline\nsection ${'&'.repeat(54000000)}\n  p : e\n`, RAISED],
-  ['venn', 'one text labelled by many &', `venn-beta\nset A\n  text T["${'&'.repeat(110000000)}"]\n`, RAISED],
-  ['venn', 'one set labelled by many &', `venn-beta\nset A["${'&'.repeat(110000000)}"]\n`, RAISED],
-  ['xychart', 'one category of many &', `xychart\nx-axis ["${'&'.repeat(110000000)}"]\nbar [1]\n`, RAISED],
-  ['xychart', 'one category drawn past what a doubling StringBuilder holds', `xychart\nx-axis ["${'&'.repeat(60000000)}"]\nbar [1]\n`, RAISED],
+  lazy('timeline', 'one period of many &', () => `timeline\n  ${'&'.repeat(54000000)} : e\n`, RAISED),
+  lazy('timeline', 'one section of many &', () => `timeline\nsection ${'&'.repeat(54000000)}\n  p : e\n`, RAISED),
+  lazy('venn', 'one text labelled by many &', () => `venn-beta\nset A\n  text T["${'&'.repeat(110000000)}"]\n`, RAISED),
+  lazy('venn', 'one set labelled by many &', () => `venn-beta\nset A["${'&'.repeat(110000000)}"]\n`, RAISED),
+  lazy('xychart', 'one category of many &', () => `xychart\nx-axis ["${'&'.repeat(110000000)}"]\nbar [1]\n`, RAISED),
+  lazy('xychart', 'one category drawn past what a doubling StringBuilder holds', () => `xychart\nx-axis ["${'&'.repeat(60000000)}"]\nbar [1]\n`, RAISED),
   // A series' title is written in its data-id, its legend item's data-id and its legend label.
-  ['xychart', 'one series titled by many &', `xychart\nbar "${'&'.repeat(54000000)}" [1]\n`, RAISED],
+  lazy('xychart', 'one series titled by many &', () => `xychart\nbar "${'&'.repeat(54000000)}" [1]\n`, RAISED),
 ];
+
+// A case whose source is built only when the check reaches it, as a getter in the source's place,
+// so that sources of a hundred million characters are not all held at once.
+function lazy(diagram, name, source, options) {
+  const entry = [diagram, name, undefined, options];
+  Object.defineProperty(entry, 2, { get: source, enumerable: true });
+  return entry;
+}
