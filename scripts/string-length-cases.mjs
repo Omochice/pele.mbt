@@ -196,4 +196,6 @@ export const CASES = [
   // as the label passes V8's longest string.
   ['radar', 'one axis labelled by many &', `radar-beta\naxis a["${'&'.repeat(110000000)}"]\n`, RAISED],
   ['radar', 'one curve labelled by many &', `radar-beta\naxis a\ncurve c["${'&'.repeat(110000000)}"]{1}\n`, RAISED],
+  // A quoted terminal fails in pele while parsing past 4194294 characters; a special sequence does not.
+  ['railroad', 'one special sequence of many &', `railroad-ebnf-beta\nr = ? ${'&'.repeat(110000000)} ? ;\n`, RAISED],
 ];
