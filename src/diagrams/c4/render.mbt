@@ -64,23 +64,28 @@ fn unhide_entities(url : String) -> String {
 }
 
 ///|
-fn link(
-  body : String,
+/// Writes `body` to `out`, in an anchor to `url` when there is one and the host allows it.
+fn write_linked(
+  out : @svg.Markup,
+  body : @svg.Markup,
   url : String?,
   id : String,
   links : Array[@types.LinkInfo],
   options : @types.RenderOptions,
-) -> String {
-  match url {
+) -> Unit raise @errors.PeleError {
+  let start = match url {
     Some(url) if url != "" =>
-      @url.linked(
-        body,
+      @url.link_start(
         @url.sanitize_url(unhide_entities(url)),
         id,
         links,
         options,
       )
-    _ => body
+    _ => None
+  }
+  match start {
+    Some(start) => out.write_group(start, body, "</a>")
+    None => out.write_markup(body)
   }
 }
 
@@ -437,21 +442,16 @@ fn draw(
     labels_out.write(
       "<rect x=\"\{@svg.num(cx - lw / 2)}\" y=\"\{@svg.num(top)}\" width=\"\{@svg.num(lw)}\" height=\"\{@svg.num(lh)}\" rx=\"3\" fill=\"var(--_bg)\"/>",
     )
-    labels_out.write(
-      link(
-        @svg.label_svg(label, cx, top + label.height / 2, style.text) +
-        @svg.label_svg(
-          techn,
-          cx,
-          top + label.height + techn.height / 2,
-          " class=\"pele-c4-techn\" fill=\"var(--_m)\"\{style.text}",
-        ),
-        rel.link,
-        id,
-        links,
-        options,
-      ),
+    let text = @svg.Markup::new()
+    @svg.write_label(text, label, cx, top + label.height / 2, style.text)
+    @svg.write_label(
+      text,
+      techn,
+      cx,
+      top + label.height + techn.height / 2,
+      " class=\"pele-c4-techn\" fill=\"var(--_m)\"\{style.text}",
     )
+    write_linked(labels_out, text, rel.link, id, links, options)
     labels_out.write("</g>")
   }
   let clusters = @svg.Markup::new()
@@ -467,21 +467,25 @@ fn draw(
       )
       let x = g.x + group.head_x
       let mut y = g.y + HEAD_TOP
-      let mut text = @common.left_label_svg(
+      let text = @svg.Markup::new()
+      @common.write_left_label(
+        text,
         group.labels[0],
         x,
         y,
         " class=\"pele-cluster-label\" font-weight=\"var(--_hw)\"\{style.text}",
       )
       y += group.labels[0].height
-      text += @common.left_label_svg(
+      @common.write_left_label(
+        text,
         group.labels[1],
         x,
         y,
         " class=\"pele-c4-type\" font-size=\"\{small}\" fill=\"var(--_m)\"\{style.text}",
       )
       y += group.labels[1].height
-      text += @common.left_label_svg(
+      @common.write_left_label(
+        text,
         group.labels[2],
         x,
         y,
@@ -494,7 +498,14 @@ fn draw(
       clusters.write(
         "<rect x=\"\{@svg.num(g.x)}\" y=\"\{@svg.num(g.y)}\" width=\"\{@svg.num(g.w)}\" height=\"\{@svg.num(g.h)}\" fill=\"none\" stroke=\"var(--_b)\"\{if is_node { "" } else { " stroke-dasharray=\"6 4\"" }}\{@svg.rounded(style.shape)}/>",
       )
-      clusters.write(link(text, boundary.link, boundary.alias_, links, options))
+      write_linked(
+        clusters,
+        text,
+        boundary.link,
+        boundary.alias_,
+        links,
+        options,
+      )
       clusters.write("</g>")
     }
     for node in group.nodes {
@@ -519,62 +530,52 @@ fn draw(
       }
       let muted = " fill=\"var(--_m)\"\{style.text}"
       let mut y = dy - node.text_h / 2
-      let text = StringBuilder()
-      text.write_string(
-        @svg.label_svg(
-          labels[0],
-          dx,
-          y + labels[0].height / 2,
-          " class=\"pele-c4-type\" font-size=\"\{small - 1}\"\{muted}",
+      let fill = if external { "--_bg" } else { "--_s" }
+      let body = @svg.Markup::new()
+      body.write(
+        @svg.draw_shape(
+          form,
+          w,
+          h,
+          " fill=\"var(\{fill})\"\{stroke}\{style.shape}",
+          stroke + style.line,
         ),
+      )
+      @svg.write_label(
+        body,
+        labels[0],
+        dx,
+        y + labels[0].height / 2,
+        " class=\"pele-c4-type\" font-size=\"\{small - 1}\"\{muted}",
       )
       y += labels[0].height
-      text.write_string(
-        @svg.label_svg(
-          labels[1],
-          dx,
-          y + labels[1].height / 2,
-          " class=\"pele-label\" font-weight=\"var(--_hw)\"\{style.text}",
-        ),
+      @svg.write_label(
+        body,
+        labels[1],
+        dx,
+        y + labels[1].height / 2,
+        " class=\"pele-label\" font-weight=\"var(--_hw)\"\{style.text}",
       )
       y += labels[1].height
-      text.write_string(
-        @svg.label_svg(
-          labels[2],
-          dx,
-          y + labels[2].height / 2,
-          " class=\"pele-c4-techn\" font-size=\"\{small}\"\{muted}",
-        ),
+      @svg.write_label(
+        body,
+        labels[2],
+        dx,
+        y + labels[2].height / 2,
+        " class=\"pele-c4-techn\" font-size=\"\{small}\"\{muted}",
       )
       y += labels[2].height + 4
-      text.write_string(
-        @svg.label_svg(
-          labels[3],
-          dx,
-          y + labels[3].height / 2,
-          " class=\"pele-c4-descr\" font-size=\"\{small}\"\{style.text}",
-        ),
+      @svg.write_label(
+        body,
+        labels[3],
+        dx,
+        y + labels[3].height / 2,
+        " class=\"pele-c4-descr\" font-size=\"\{small}\"\{style.text}",
       )
-      let fill = if external { "--_bg" } else { "--_s" }
       nodes_out.write(
         "<g class=\"pele-node pele-shape-\{form} pele-c4-\{shape.kind}\{if external { " pele-c4-external" } else { "" }}\" data-id=\"\{@svg.esc_text(shape.alias_)}\" transform=\"translate(\{@svg.num(node.box.x + w / 2)},\{@svg.num(node.box.y + h / 2)})\">",
       )
-      nodes_out.write(
-        link(
-          @svg.draw_shape(
-            form,
-            w,
-            h,
-            " fill=\"var(\{fill})\"\{stroke}\{style.shape}",
-            stroke + style.line,
-          ) +
-          text.to_string(),
-          shape.link,
-          shape.alias_,
-          links,
-          options,
-        ),
-      )
+      write_linked(nodes_out, body, shape.link, shape.alias_, links, options)
       nodes_out.write("</g>")
     }
   }
