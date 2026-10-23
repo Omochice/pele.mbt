@@ -7,6 +7,87 @@ pub fn tokenize(String) -> Tokens
 // Errors
 
 // Types and methods
+pub(all) enum Description {
+  Text(String)
+  Lines(Array[String])
+}
+
+pub(all) struct DirStmt {
+  mut value : String
+}
+
+pub(all) struct StateClassDef {
+  id : String
+  styles : Array[String]
+  text_styles : Array[String]
+}
+
+pub struct StateDb {
+  mut root_doc : Array[Stmt]
+  mut states : Map[String, StateStmt]
+  mut relations : Array[StateRelation]
+  mut classes : Map[String, StateClassDef]
+  links : Map[String, StateLink]
+  title : String?
+  mut acc_title : String?
+  mut acc_descr : String?
+  // private fields
+}
+pub fn StateDb::add_description(Self, String, String) -> Unit
+pub fn StateDb::add_relation(Self, StateStmt, StateStmt, title? : String) -> Unit
+pub fn StateDb::add_state(Self, String, kind? : String, doc? : Array[Stmt], description? : Description, note? : StateNote, classes? : Array[String]) -> Unit
+pub fn StateDb::add_style_class(Self, String, attributes? : String) -> Unit
+pub fn StateDb::direction(Self) -> String
+pub fn StateDb::get_divider_id(Self) -> String
+pub fn StateDb::new(title? : String) -> Self
+pub fn StateDb::set_acc_description(Self, String) -> Unit
+pub fn StateDb::set_acc_title(Self, String) -> Unit
+pub fn StateDb::set_css_class(Self, String, String) -> Unit
+pub fn StateDb::set_direction(Self, String) -> Unit
+pub fn StateDb::set_root_doc(Self, Array[Stmt]) -> Unit
+pub fn StateDb::trim_colon(Self, String) -> String
+
+pub(all) struct StateLink {
+  url : String
+  tooltip : String
+}
+
+pub(all) struct StateNote {
+  position : String
+  text : String
+}
+
+pub(all) struct StateRelation {
+  id1 : String
+  id2 : String
+  relation_title : String
+}
+
+pub(all) struct StateStmt {
+  mut id : String
+  mut kind : String?
+  mut description : Description?
+  descriptions : Array[String]
+  mut doc : Array[Stmt]?
+  mut note : StateNote?
+  mut start : Bool?
+  classes : Array[String]
+  mut styles : Array[String]
+  text_styles : Array[String]
+}
+pub fn StateStmt::new(String, kind? : String, description? : Description, doc? : Array[Stmt], note? : StateNote, classes? : Array[String]) -> Self
+
+pub(all) enum Stmt {
+  Other(String)
+  State(StateStmt)
+  Relation(StateStmt, StateStmt, String?)
+  ClassDef(String, String)
+  Style(String, String)
+  ApplyClass(String, String)
+  Dir(DirStmt)
+  Click(StateStmt, String, String)
+}
+
 pub(all) enum Tok {
   End
   Error
