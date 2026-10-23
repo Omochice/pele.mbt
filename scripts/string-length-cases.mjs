@@ -208,6 +208,14 @@ export const CASES = [
   lazy('xychart', 'one category drawn past what a doubling StringBuilder holds', () => `xychart\nx-axis ["${'&'.repeat(60000000)}"]\nbar [1]\n`, RAISED),
   // A series' title is written in its data-id, its legend item's data-id and its legend label.
   lazy('xychart', 'one series titled by many &', () => `xychart\nbar "${'&'.repeat(54000000)}" [1]\n`, RAISED),
+  // pele checks its output limit against a drawing past the port's hold limit, so the port gives
+  // pele's output limit error rather than its own wherever the output limit is below the drawing.
+  [
+    'flowchart',
+    'edges pele draws past the port but under V8, under the default output limit',
+    `graph LR\nclassDef c ${fill}\n${names('n', 10600).map((name) => `${name}:::c`).join('-->')}\n`,
+    { limit: Number.MAX_VALUE, maxEdges: 1000000000, maxWidth: 300 },
+  ],
 ];
 
 // A case whose source is built only when the check reaches it, as a getter in the source's place,

@@ -57,13 +57,16 @@ fn turning(
 }
 
 ///|
-/// The outcome of rendering a turning pie for a host 300 wide with no output limit: the SVG's
-/// length and width, or the error.
-fn turned_outcome(diagram : @types.Diagram) -> String {
+/// The outcome of rendering a turning pie for a host 300 wide, with no output limit unless one is
+/// given: the SVG's length and width, or the error.
+fn turned_outcome(
+  diagram : @types.Diagram,
+  output_limit~ : Double? = Some(1.0 / 0.0),
+) -> String {
   try {
     let rendered = @core.render([diagram], "pie\n", {
       ..@types.RenderOptions::default(),
-      output_limit: Some(1.0 / 0.0),
+      output_limit,
       max_width: Some(300),
     })
     "\{rendered.svg.length()} wide \{rendered.width}"
@@ -95,6 +98,39 @@ test "a drawing past the hold limit that is only measured does not keep the next
 test "a drawing past the hold limit that is answered with fails with the port's limit" {
   inspect(
     turned_outcome(turning(@svg.HOLD_LIMIT + 1, 900, 1000, 950)),
+    content="limit: Diagram output is too large for the wasm port: it would hold more than 400000000 code units, the most the port can hold at once. pie pie",
+  )
+}
+
+///|
+test "a drawing past the hold limit that is answered with fails with pele's output limit under the default output limit" {
+  inspect(
+    turned_outcome(
+      turning(@svg.HOLD_LIMIT + 1, 900, 1000, 950),
+      output_limit=None,
+    ),
+    content="limit: Diagram output is longer than the limit of 4000000 characters. pie pie",
+  )
+}
+
+///|
+test "a drawing past the hold limit that is answered with fails with pele's output limit under any output limit below its length" {
+  inspect(
+    turned_outcome(
+      turning(@svg.HOLD_LIMIT + 1, 900, 1000, 950),
+      output_limit=Some(@svg.HOLD_LIMIT.to_double()),
+    ),
+    content="limit: Diagram output is longer than the limit of 400000000 characters. pie pie",
+  )
+}
+
+///|
+test "a drawing past the hold limit that an output limit allows fails with the port's limit" {
+  inspect(
+    turned_outcome(
+      turning(@svg.HOLD_LIMIT + 1, 900, 1000, 950),
+      output_limit=Some(@svg.MAX_STRING_LENGTH.to_double()),
+    ),
     content="limit: Diagram output is too large for the wasm port: it would hold more than 400000000 code units, the most the port can hold at once. pie pie",
   )
 }
