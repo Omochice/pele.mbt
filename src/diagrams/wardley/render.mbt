@@ -121,15 +121,16 @@ fn dimension(
 }
 
 ///|
-/// Writes a label with its lines starting at `x` and its first baseline at `y`.
-fn start_label(
+/// Writes a label to `out` with its lines starting at `x` and its first baseline at `y`.
+fn write_start_label(
+  out : @svg.Markup,
   label : @text.Label,
   x : Double,
   y : Double,
   attrs : String,
-) -> String {
+) -> Unit raise @errors.PeleError {
   let shared = @svg.shared_style(label)
-  let body = StringBuilder()
+  let body = @svg.Markup::new()
   let mut baseline = y
   for line in label.lines {
     let mut first = true
@@ -143,16 +144,19 @@ fn start_label(
       } else {
         ""
       }
-      body.write_string("<tspan\{at}\{style}>\{@svg.esc(span.text)}</tspan>")
+      body.write("<tspan\{at}\{style}>")
+      @svg.write_esc(body, span.text)
+      body.write("</tspan>")
       first = false
     }
     baseline += label.line_height
   }
-  let body = body.to_string()
-  if body == "" {
-    ""
-  } else {
-    "<text\{@svg.text_style(attrs, shared)} xml:space=\"preserve\">\{body}</text>"
+  if !body.is_empty() {
+    out.write_group(
+      "<text\{@svg.text_style(attrs, shared)} xml:space=\"preserve\">",
+      body,
+      "</text>",
+    )
   }
 }
 
@@ -222,23 +226,35 @@ fn draw(
     @util.js_max(0.75, plot_w / natural_w)
   let show_grid = section(config).get("showGrid") is Some(True)
   let bounds = { min_x: 0, min_y: 0, max_x: plot_w, max_y: plot_h, }
-  let centered = (label : @text.Label, cx : Double, cy : Double, attrs : String) => {
+  fn centered(
+    out : @svg.Markup,
+    label : @text.Label,
+    cx : Double,
+    cy : Double,
+    attrs : String,
+  ) -> Unit raise @errors.PeleError {
     bounds.grow(
       cx - label.width / 2,
       cy - label.height / 2,
       cx + label.width / 2,
       cy + label.height / 2,
     )
-    @svg.label_svg(label, cx, cy, attrs, icons?=options.icons)
+    @svg.write_label(out, label, cx, cy, attrs, icons?=options.icons)
   }
-  let starting = (label : @text.Label, x : Double, y : Double, attrs : String) => {
+  fn starting(
+    out : @svg.Markup,
+    label : @text.Label,
+    x : Double,
+    y : Double,
+    attrs : String,
+  ) -> Unit raise @errors.PeleError {
     bounds.grow(
       x,
       y - label.size,
       x + label.width,
       y - label.size + label.height + 4,
     )
-    start_label(label, x, y, attrs)
+    write_start_label(out, label, x, y, attrs)
   }
   let wrap = if tight {
     @util.js_max(64, @util.js_min(120, plot_w / 2))
@@ -278,13 +294,12 @@ fn draw(
       small,
       @util.js_max(48, (end - start).abs() * plot_w - 12),
     )
-    stage_labels.write(
-      centered(
-        label,
-        (start + end) / 2 * plot_w,
-        plot_h + 8 + label.height / 2,
-        " class=\"pele-wardley-stage-label\" font-size=\"\{small}\" fill=\"var(--_m)\"",
-      ),
+    centered(
+      stage_labels,
+      label,
+      (start + end) / 2 * plot_w,
+      plot_h + 8 + label.height / 2,
+      " class=\"pele-wardley-stage-label\" font-size=\"\{small}\" fill=\"var(--_m)\"",
     )
     stage_bottom = @util.js_max(stage_bottom, plot_h + 8 + label.height)
   }
@@ -302,18 +317,21 @@ fn draw(
   let x_title = layout(measurer, "Evolution", small, wrap)
   let y_title = layout(measurer, "Visibility", small, wrap)
   let axis_attrs = " class=\"pele-wardley-axis-label\" font-size=\"\{small}\" font-weight=\"var(--_hw)\""
-  let axis_labels = centered(
-      x_title,
-      plot_w / 2,
-      stage_bottom + 6 + x_title.height / 2,
-      axis_attrs,
-    ) +
-    @svg.label_svg(
-      y_title,
-      -16,
-      plot_h / 2,
-      "\{axis_attrs} transform=\"rotate(-90 -16 \{@svg.num(plot_h / 2)})\"",
-    )
+  let axis_labels = @svg.Markup::new()
+  centered(
+    axis_labels,
+    x_title,
+    plot_w / 2,
+    stage_bottom + 6 + x_title.height / 2,
+    axis_attrs,
+  )
+  @svg.write_label(
+    axis_labels,
+    y_title,
+    -16,
+    plot_h / 2,
+    "\{axis_attrs} transform=\"rotate(-90 -16 \{@svg.num(plot_h / 2)})\"",
+  )
   bounds.grow(-16 - y_title.height / 2, 0, 0, 0)
   let legend_top = stage_bottom + 6 + x_title.height + 10
   let positions : Map[String, Placed] = Map([])
@@ -345,8 +363,10 @@ fn draw(
     } else {
       ""
     }
+    pipelines.write("<g class=\"pele-wardley-pipeline\" data-id=\"")
+    @svg.write_esc_text(pipelines, pipeline.node_id)
     pipelines.write(
-      "<g class=\"pele-wardley-pipeline\" data-id=\"\{@svg.esc_text(pipeline.node_id)}\">" +
+      "\">" +
       "<rect x=\"\{@svg.num(left - PIPELINE_PAD)}\" y=\"\{@svg.num(top)}\" width=\"\{@svg.num(right - left + 2 * PIPELINE_PAD)}\" height=\"\{@svg.num(4 * R)}\" fill=\"var(--_s)\" stroke=\"var(--_b)\"\{@svg.ROUNDED}/>" +
       dashes +
       "</g>",
@@ -449,24 +469,21 @@ fn draw(
       x1 += ux * trim
       y1 += uy * trim
     }
-    let caption = match link.label {
-      Some(raw) if raw != "" => {
-        let label = layout(measurer, raw, tiny + 1, 200)
-        // Beside the middle of the line, on its upper side.
-        let side = if ux >= 0 { 1.0 } else { -1.0 }
-        let px = uy * side
-        let py = -ux * side
-        let away = 5.0 +
-          px.abs() * label.width / 2 +
-          py.abs() * label.height / 2
-        centered(
-          label,
-          (from.x + to.x) / 2 + px * away,
-          (from.y + to.y) / 2 + py * away,
-          " class=\"pele-edge-label\" font-size=\"\{tiny + 1}\" fill=\"var(--_m)\"",
-        )
-      }
-      _ => ""
+    let caption = @svg.Markup::new()
+    if link.label is Some(raw) && raw != "" {
+      let label = layout(measurer, raw, tiny + 1, 200)
+      // Beside the middle of the line, on its upper side.
+      let side = if ux >= 0 { 1.0 } else { -1.0 }
+      let px = uy * side
+      let py = -ux * side
+      let away = 5.0 + px.abs() * label.width / 2 + py.abs() * label.height / 2
+      centered(
+        caption,
+        label,
+        (from.x + to.x) / 2 + px * away,
+        (from.y + to.y) / 2 + py * away,
+        " class=\"pele-edge-label\" font-size=\"\{tiny + 1}\" fill=\"var(--_m)\"",
+      )
     }
     let dashed_class = if link.dashed { " pele-wardley-dashed" } else { "" }
     let dashed_stroke = if link.dashed {
@@ -474,11 +491,15 @@ fn draw(
     } else {
       ""
     }
-    links.write(
-      "<g class=\"pele-edge\{dashed_class}\" data-id=\"\{@svg.esc_text(link.source)}-\{@svg.esc_text(link.target)}\">" +
+    links.write("<g class=\"pele-edge\{dashed_class}\" data-id=\"")
+    @svg.write_esc_text(links, link.source)
+    links.write("-")
+    @svg.write_esc_text(links, link.target)
+    links.write_group(
+      "\">" +
       "<path d=\"M\{@svg.num(x1)},\{@svg.num(y1)}L\{@svg.num(x2)},\{@svg.num(y2)}\" stroke=\"\{LINE}\"\{dashed_stroke}/>" +
-      heads.to_string() +
-      caption +
+      heads.to_string(),
+      caption,
       "</g>",
     )
   }
@@ -509,8 +530,10 @@ fn draw(
       ""
     }
     bounds.grow(tx - R, ty - R, tx + R, ty + R)
+    trends.write("<g class=\"pele-wardley-trend\" data-id=\"")
+    @svg.write_esc_text(trends, trend.node_id)
     trends.write(
-      "<g class=\"pele-wardley-trend\" data-id=\"\{@svg.esc_text(trend.node_id)}\">\{arrow}" +
+      "\">\{arrow}" +
       "<circle cx=\"\{@svg.num(tx)}\" cy=\"\{@svg.num(ty)}\" r=\"\{R}\" fill=\"var(--_bg)\" stroke=\"\{ACCENT}\"/></g>",
     )
   }
@@ -565,8 +588,10 @@ fn draw(
     }
     let ox = node.label_offset_x.map(v => clamp(v, -5000, 5000))
     let oy = node.label_offset_y.map(v => clamp(v, -5000, 5000))
-    let caption = if anchor {
+    let caption = @svg.Markup::new()
+    if anchor {
       centered(
+        caption,
         anchor_label(node),
         x + ox.unwrap_or(0),
         y + oy.unwrap_or(-3),
@@ -577,9 +602,15 @@ fn draw(
       let attrs = " class=\"pele-label\" font-size=\"\{small}\""
       let lift = LABEL_OFFSET + (if strategy is Some(_) { 10 } else { 0 })
       if ox is Some(_) || oy is Some(_) {
-        starting(label, x + ox.unwrap_or(lift), y + oy.unwrap_or(-lift), attrs)
+        starting(
+          caption,
+          label,
+          x + ox.unwrap_or(lift),
+          y + oy.unwrap_or(-lift),
+          attrs,
+        )
       } else if node.in_pipeline {
-        centered(label, x, y + 2 * R + 4 + label.height / 2, attrs)
+        centered(caption, label, x, y + 2 * R + 4 + label.height / 2, attrs)
       } else {
         // The label goes up and to the right unless a link leaves that way; then the next free corner.
         let busy = taken.get(node.id).unwrap_or(0)
@@ -597,6 +628,7 @@ fn draw(
         let right = corner == 1 || corner == 2
         let up = corner == 1 || corner == 4
         starting(
+          caption,
           label,
           if right {
             x + lift
@@ -622,9 +654,9 @@ fn draw(
     } else {
       "component"
     }
-    nodes.write(
-      "<g class=\"pele-node pele-wardley-\{kind}\" data-id=\"\{@svg.esc_text(node.id)}\">\{shape.to_string()}\{caption}</g>",
-    )
+    nodes.write("<g class=\"pele-node pele-wardley-\{kind}\" data-id=\"")
+    @svg.write_esc_text(nodes, node.id)
+    nodes.write_group("\">\{shape.to_string()}", caption, "</g>")
   }
   let annotations = @svg.Markup::new()
   for annotation in model.annotations {
@@ -679,13 +711,12 @@ fn draw(
     let rows = @svg.Markup::new()
     let mut y = by + 7
     for line in lines {
-      rows.write(
-        start_label(
-          line,
-          bx + 10,
-          y + line.line_height / 2 + small * 0.35,
-          " font-size=\"\{small}\"",
-        ),
+      write_start_label(
+        rows,
+        line,
+        bx + 10,
+        y + line.line_height / 2 + small * 0.35,
+        " font-size=\"\{small}\"",
       )
       y += line.height
     }
@@ -697,25 +728,29 @@ fn draw(
   }
   let notes = @svg.Markup::new()
   for note in model.notes {
-    notes.write(
-      starting(
-        layout(
-          measurer,
-          note.text,
-          small,
-          @util.js_min(360, plot_w * 0.6),
-          style=@text.STYLE_BOLD,
-        ),
-        project_x(note.x),
-        project_y(note.y),
-        " class=\"pele-wardley-note\" font-size=\"\{small}\" font-weight=\"var(--_hw)\"",
+    starting(
+      notes,
+      layout(
+        measurer,
+        note.text,
+        small,
+        @util.js_min(360, plot_w * 0.6),
+        style=@text.STYLE_BOLD,
       ),
+      project_x(note.x),
+      project_y(note.y),
+      " class=\"pele-wardley-note\" font-size=\"\{small}\" font-weight=\"var(--_hw)\"",
     )
   }
 
   // Accelerators point right, deaccelerators left.
   let forces = @svg.Markup::new()
-  let force = (name : String, px : Double, py : Double, forward : Bool) => {
+  fn force(
+    name : String,
+    px : Double,
+    py : Double,
+    forward : Bool,
+  ) -> Unit raise @errors.PeleError {
     let x = project_x(px)
     let y = project_y(py)
     let half = FORCE_HEIGHT / 2
@@ -729,17 +764,17 @@ fn draw(
     let d = "M\{@svg.num(tail)},\{@svg.num(y - half)}H\{@svg.num(neck)}V\{@svg.num(y - half - 8)}L\{@svg.num(tip)},\{@svg.num(y)}L\{@svg.num(neck)},\{@svg.num(y + half + 8)}V\{@svg.num(y + half)}H\{@svg.num(tail)}Z"
     bounds.grow(x, y - half - 8, x + FORCE_WIDTH, y + half + 8)
     let kind = if forward { "accelerator" } else { "deaccelerator" }
-    forces.write(
-      "<g class=\"pele-wardley-\{kind}\" data-id=\"\{@svg.esc_text(name)}\">" +
-      "<path d=\"\{d}\" fill=\"var(--_s)\" stroke=\"\{LINE}\"/>" +
-      centered(
-        layout(measurer, name, tiny + 1, 160, style=@text.STYLE_BOLD),
-        x + FORCE_WIDTH / 2,
-        y + half + 8 + 12,
-        " font-size=\"\{tiny + 1}\" font-weight=\"var(--_hw)\"",
-      ) +
-      "</g>",
+    forces.write("<g class=\"pele-wardley-\{kind}\" data-id=\"")
+    @svg.write_esc_text(forces, name)
+    forces.write("\"><path d=\"\{d}\" fill=\"var(--_s)\" stroke=\"\{LINE}\"/>")
+    centered(
+      forces,
+      layout(measurer, name, tiny + 1, 160, style=@text.STYLE_BOLD),
+      x + FORCE_WIDTH / 2,
+      y + half + 8 + 12,
+      " font-size=\"\{tiny + 1}\" font-weight=\"var(--_hw)\"",
     )
+    forces.write("</g>")
   }
   for a in model.accelerators {
     force(a.name, a.x, a.y, true)
@@ -780,7 +815,7 @@ fn draw(
     "<g class=\"pele-wardley-frame\" fill=\"none\">", frame, "</g>",
   )
   content.write_markup(stage_labels)
-  content.write(axis_labels)
+  content.write_markup(axis_labels)
   content.write_markup(pipelines)
   if !links.is_empty() {
     content.write_group("<g class=\"pele-edges\" fill=\"none\">", links, "</g>")
