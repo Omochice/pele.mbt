@@ -605,13 +605,12 @@ fn draw(
   let dx = pad - bounds.min_x + (inner - (bounds.max_x - bounds.min_x)) / 2
   let dy = pad + title_height - bounds.min_y
   let content = @svg.Markup::new()
-  content.write(
-    @svg.label_svg(
-      title,
-      width / 2,
-      pad + title.height / 2,
-      " class=\"pele-title\" font-weight=\"var(--_tw)\"",
-    ),
+  @svg.write_label(
+    content,
+    title,
+    width / 2,
+    pad + title.height / 2,
+    " class=\"pele-title\" font-weight=\"var(--_tw)\"",
   )
   content.write("<g transform=\"translate(\{@svg.num(dx)},\{@svg.num(dy)})\">")
   if !branches.is_empty() {
