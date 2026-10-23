@@ -34,3 +34,16 @@ test "options that are not JSON fail as JSON.parse fails on them" {
     content="{\"error\":{\"name\":\"SyntaxError\",\"code\":null,\"message\":\"Unexpected token 'o', \\\"not json\\\" is not valid JSON\",\"type\":null,\"mermaidType\":null}}",
   )
 }
+
+///|
+test "a failure's answer is the JSON of its error, with its escapes and characters outside ASCII" {
+  let source = "graph TD\nA[\"quote \\\" back \\\\ tab\tend \u{1} é 日本 😀\"]-->"
+  let (status, out) = encode(reply(source, "{}"))
+  inspect(status, content="1")
+  guard reply(source, "{}") is Refused(failure) else { abort("not refused") }
+  inspect(failure.message.contains("\t"), content="true")
+  assert_eq(
+    Bytes::from_array(out[:]),
+    @utf8.encode(pele_failure(failure).stringify()),
+  )
+}

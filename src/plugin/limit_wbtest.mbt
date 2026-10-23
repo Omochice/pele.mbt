@@ -71,3 +71,15 @@ test "wasm's allocator gives a single block as large as the plugin's limit" {
   let block : FixedArray[Byte] = FixedArray::make(RESPONSE_LIMIT, b'\x01')
   inspect(block[RESPONSE_LIMIT - 1], content="b'\\x01'")
 }
+
+///|
+test "a failure whose answer is longer than the plugin's limit fails as a limit error tagged as the failure" {
+  let (_, whole) = encode(reply("graph TD\nA-->", "{}"))
+  let size = whole.length()
+  let (status, out) = encode(reply("graph TD\nA-->", "{}"), limit=size - 1)
+  inspect(status, content="1")
+  assert_eq(text_of(out), limit_failure(size - 1))
+  let (status, out) = encode(reply("graph TD\nA-->", "{}"), limit=size)
+  inspect(status, content="1")
+  assert_eq(text_of(out), text_of(whole))
+}
