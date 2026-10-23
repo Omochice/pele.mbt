@@ -9,4 +9,5 @@ import {
   "Omochice/pele/diagrams/flowchart",
   "Omochice/pele/errors",
   "Omochice/pele/types",
+  "Omochice/pele/util",
 } for "test"
