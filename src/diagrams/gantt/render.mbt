@@ -63,11 +63,15 @@ fn breaks_to_spaces(raw : String) -> String {
 
 ///|
 /// A task label sits on one row, so only its first line is kept.
-fn one_line(raw : String, size : Double) -> @text.Label {
+fn one_line(
+  raw : String,
+  measurer : @text.TextMeasurer,
+  size : Double,
+) -> @text.Label {
   let label = @text.layout_label(
     Some(breaks_to_spaces(raw)),
     false,
-    @text.metrics_measurer,
+    measurer,
     size,
     4000,
   )
@@ -346,7 +350,7 @@ pub fn render_gantt(
   let bars : Array[Bar] = []
   let mut extent = right + right_padding
   for task in row_tasks {
-    let label = one_line(task.task, label_size)
+    let label = one_line(task.task, measurer, label_size)
     let row = row_of[task.order]
     if !scheduled(task) {
       let label_x = left + LABEL_GAP + label.width / 2
@@ -457,7 +461,7 @@ pub fn render_gantt(
   for entry in ordered {
     let task = entry.1
     let vx = x(start_of(task))
-    let label = one_line(task.task, label_size)
+    let label = one_line(task.task, measurer, label_size)
     let cx = @util.js_max(pad + label.width / 2, vx)
     let mut line = 0
     while line < vert_ends.length() &&

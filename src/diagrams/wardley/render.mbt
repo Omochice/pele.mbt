@@ -155,6 +155,7 @@ fn start_label(
 
 ///|
 fn layout(
+  measurer : @text.TextMeasurer,
   raw : String,
   font_size : Double,
   max_width : Double,
@@ -163,7 +164,7 @@ fn layout(
   @text.layout_label(
     Some(raw),
     false,
-    @text.metrics_measurer,
+    measurer,
     font_size,
     max_width,
     base=style,
@@ -269,6 +270,7 @@ fn draw(
       )
     }
     let label = layout(
+      measurer,
       stage,
       small,
       @util.js_max(48, (end - start).abs() * plot_w - 12),
@@ -294,8 +296,8 @@ fn draw(
   frame.write_string(
     "<path class=\"pele-wardley-axis\" d=\"M0,0V\{@svg.num(plot_h)}H\{@svg.num(plot_w)}\" stroke=\"\{LINE}\"/>",
   )
-  let x_title = layout("Evolution", small, wrap)
-  let y_title = layout("Visibility", small, wrap)
+  let x_title = layout(measurer, "Evolution", small, wrap)
+  let y_title = layout(measurer, "Visibility", small, wrap)
   let axis_attrs = " class=\"pele-wardley-axis-label\" font-size=\"\{small}\" font-weight=\"var(--_hw)\""
   let axis_labels = centered(
       x_title,
@@ -354,6 +356,7 @@ fn draw(
       Some(label) => label
       None => {
         let label = layout(
+          measurer,
           node.label,
           small,
           anchor_wrap,
@@ -445,7 +448,7 @@ fn draw(
     }
     let caption = match link.label {
       Some(raw) if raw != "" => {
-        let label = layout(raw, tiny + 1, 200)
+        let label = layout(measurer, raw, tiny + 1, 200)
         // Beside the middle of the line, on its upper side.
         let side = if ux >= 0 { 1.0 } else { -1.0 }
         let px = uy * side
@@ -567,7 +570,7 @@ fn draw(
         " class=\"pele-label\" font-size=\"\{small}\" font-weight=\"var(--_hw)\"",
       )
     } else {
-      let label = layout(node.label, small, wrap)
+      let label = layout(measurer, node.label, small, wrap)
       let attrs = " class=\"pele-label\" font-size=\"\{small}\""
       let lift = LABEL_OFFSET + (if strategy is Some(_) { 10 } else { 0 })
       if ox is Some(_) || oy is Some(_) {
@@ -623,6 +626,7 @@ fn draw(
   let annotations = StringBuilder()
   for annotation in model.annotations {
     let label = layout(
+      measurer,
       annotation.number.to_string(),
       tiny,
       4000,
@@ -649,7 +653,7 @@ fn draw(
   if !listed.is_empty() {
     let list_wrap = if tight { @util.js_max(80, plot_w - 20) } else { 320 }
     let lines = listed.map(a => {
-      layout("\{a.number}. \{a.text}", small, list_wrap)
+      layout(measurer, "\{a.number}. \{a.text}", small, list_wrap)
     })
     let mut width = 0.0
     let mut height = 0.0
@@ -691,6 +695,7 @@ fn draw(
     notes.write_string(
       starting(
         layout(
+          measurer,
           note.text,
           small,
           @util.js_min(360, plot_w * 0.6),
@@ -723,7 +728,7 @@ fn draw(
       "<g class=\"pele-wardley-\{kind}\" data-id=\"\{@svg.esc_text(name)}\">" +
       "<path d=\"\{d}\" fill=\"var(--_s)\" stroke=\"\{LINE}\"/>" +
       centered(
-        layout(name, tiny + 1, 160, style=@text.STYLE_BOLD),
+        layout(measurer, name, tiny + 1, 160, style=@text.STYLE_BOLD),
         x + FORCE_WIDTH / 2,
         y + half + 8 + 12,
         " font-size=\"\{tiny + 1}\" font-weight=\"var(--_hw)\"",
