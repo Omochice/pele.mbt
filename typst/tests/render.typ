@@ -41,6 +41,10 @@
 #assert(render("graph TD\n  A[fa:fa-car Car]").width < iconic.width, message: "the icon takes no room")
 #mermaid("architecture-beta\n  service db(database)[DB]", icons: ("database": car))
 
+// The README's icons compile as written.
+#let readme-icons = render(icons: ("fa:fa-car": "<path d=\"M3,15V11L6,6H18L21,11V15Z\"/>"), "graph TD\n  A[fa:fa-car Car]")
+#assert(readme-icons.svg.contains("M3,15V11L6,6H18L21,11V15Z"), message: readme-icons.svg)
+
 // Without a theme the SVG is pele's own.
 #assert(render(flowchart, theme: none).svg.contains("fill=\"var(--_s)\""))
 
