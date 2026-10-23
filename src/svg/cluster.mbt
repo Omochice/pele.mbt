@@ -100,6 +100,25 @@ pub fn struck_title(
   index : Int32,
   icons? : @types.IconResolver,
 ) -> String {
+  written(out => {
+    write_struck_title(out, label, x, y, attrs, id, nodes, index, icons?)
+  })
+}
+
+///|
+/// Writes a title that an edge runs through to `out` as `struck_title` draws it.
+/// Raises pele's `limit` error when the markup would be longer than V8 allows.
+pub fn write_struck_title(
+  out : Markup,
+  label : @text.Label,
+  x : Double,
+  y : Double,
+  attrs : String,
+  id : String,
+  nodes : Array[@layout.CNode],
+  index : Int32,
+  icons? : @types.IconResolver,
+) -> Unit raise @errors.PeleError {
   let mut depth = 1
   let mut p = nodes[index].parent
   while p >= 0 && depth < 8 {
@@ -113,14 +132,15 @@ pub fn struck_title(
   }
   let fill = "color-mix(in srgb,var(--_a) \{num(100 * (1 - behind))}%,var(--_bg))"
   // pele writes the id unescaped here, unlike on edge labels.
-  "<g class=\"pele-cluster-title\" data-id=\"\{id}\">" +
-  label_svg(
+  out.write("<g class=\"pele-cluster-title\" data-id=\"\{id}\">")
+  write_label(
+    out,
     label,
     x,
     y,
     " fill=\"none\" stroke=\"\{fill}\" stroke-width=\"5\" stroke-linejoin=\"round\"",
     icons?,
-  ) +
-  label_svg(label, x, y, attrs, icons?) +
-  "</g>"
+  )
+  write_label(out, label, x, y, attrs, icons?)
+  out.write("</g>")
 }

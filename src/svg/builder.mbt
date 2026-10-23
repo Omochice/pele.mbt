@@ -124,6 +124,18 @@ pub fn text_style(attrs : String, shared : Int32) -> String {
 }
 
 ///|
+/// The markup `write` writes, as a string.
+/// Aborts where the markup would be longer than V8 allows, because a caller that takes a string
+/// has no error to report it with.
+fn written(write : (Markup) -> Unit raise @errors.PeleError) -> String {
+  let out = Markup::new()
+  write(out) catch {
+    _ => abort("label markup longer than V8's longest string")
+  }
+  out.to_string()
+}
+
+///|
 /// Writes a measured label as SVG text centered on (`cx`, `cy`).
 /// `icons` draws inside the square of each icon span, which is otherwise left empty.
 pub fn label_svg(
@@ -133,9 +145,24 @@ pub fn label_svg(
   attrs : String,
   icons? : @types.IconResolver,
 ) -> String {
+  written(out => write_label(out, label, cx, cy, attrs, icons?))
+}
+
+///|
+/// Writes a measured label to `out` as `label_svg` draws it, keeping each host drawing a piece of
+/// its own rather than copying it, so a label can be as long as the markup holding it.
+/// Raises pele's `limit` error when the markup would be longer than V8 allows.
+pub fn write_label(
+  out : Markup,
+  label : @text.Label,
+  cx : Double,
+  cy : Double,
+  attrs : String,
+  icons? : @types.IconResolver,
+) -> Unit raise @errors.PeleError {
   let lines = label.lines
   if lines.is_empty() {
-    return ""
+    return
   }
   let lh = label.line_height
   let shift = label.size * 0.35
@@ -145,12 +172,15 @@ pub fn label_svg(
     lines[0][0].icon is None &&
     lines[0][0].math is None &&
     lines[0][0].style == 0 {
-    return "<text\{attrs} x=\"\{num(cx)}\" y=\"\{num(top + lh / 2 + shift)}\" text-anchor=\"middle\">\{esc(lines[0][0].text)}</text>"
+    out.write(
+      "<text\{attrs} x=\"\{num(cx)}\" y=\"\{num(top + lh / 2 + shift)}\" text-anchor=\"middle\">\{esc(lines[0][0].text)}</text>",
+    )
+    return
   }
   let shared = shared_style(label)
   let mut look : MathLook? = None
-  let body = StringBuilder()
-  let extra = StringBuilder()
+  let body = Markup::new()
+  let extra = Markup::new()
   for i, line in lines {
     let h = match label.heights {
       Some(heights) => heights[i]
@@ -171,23 +201,24 @@ pub fn label_svg(
               math_look
             }
           }
-          extra.write_string(
-            match math_look.halo {
-              None => math_svg(math, box, label.size, math_look.attrs)
-              Some(halo) => "<rect \{box} rx=\"2\" fill=\"\{halo}\"/>"
-            },
-          )
+          match math_look.halo {
+            None => write_math(extra, math, box, label.size, math_look.attrs)
+            Some(halo) =>
+              extra.write("<rect \{box} rx=\"2\" fill=\"\{halo}\"/>")
+          }
         } else if span.icon is Some(name) {
           let side = label.size * 1.1
           let drawing = match icons {
             Some(resolve) => resolve(name).unwrap_or("")
             None => ""
           }
-          extra.write_string(
-            "<svg class=\"pele-icon\" data-icon=\"\{esc_text(name)}\" x=\"\{num(x)}\" y=\"\{num(mid - side / 2)}\" width=\"\{num(side)}\" height=\"\{num(side)}\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\{drawing}</svg>",
+          extra.write(
+            "<svg class=\"pele-icon\" data-icon=\"\{esc_text(name)}\" x=\"\{num(x)}\" y=\"\{num(mid - side / 2)}\" width=\"\{num(side)}\" height=\"\{num(side)}\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\">",
           )
+          extra.write(drawing)
+          extra.write("</svg>")
         } else if span.text != "" {
-          body.write_string(
+          body.write(
             "<tspan x=\"\{num(x)}\" y=\"\{num(y)}\" text-anchor=\"start\"\{span_style(span.style & shared.lnot())}>\{esc(span.text)}</tspan>",
           )
         }
@@ -196,17 +227,22 @@ pub fn label_svg(
     } else {
       for j, span in line {
         let pos = if j == 0 { " x=\"\{num(cx)}\" y=\"\{num(y)}\"" } else { "" }
-        body.write_string(
+        body.write(
           "<tspan\{pos}\{span_style(span.style & shared.lnot())}>\{esc(span.text)}</tspan>",
         )
       }
       if line.is_empty() {
-        body.write_string("<tspan x=\"\{num(cx)}\" y=\"\{num(y)}\"> </tspan>")
+        body.write("<tspan x=\"\{num(cx)}\" y=\"\{num(y)}\"> </tspan>")
       }
     }
     top += h
   }
-  "<text\{text_style(attrs, shared)} text-anchor=\"middle\" xml:space=\"preserve\">\{body.to_string()}</text>\{extra.to_string()}"
+  out.write_group(
+    "<text\{text_style(attrs, shared)} text-anchor=\"middle\" xml:space=\"preserve\">",
+    body,
+    "</text>",
+  )
+  out.write_markup(extra)
 }
 
 ///|
@@ -280,19 +316,27 @@ fn MathLook::of(attrs : String) -> MathLook {
 }
 
 ///|
-/// The host's markup in a box, trusted as it is.
-fn math_svg(
+/// Writes the host's markup in a box, trusted as it is.
+fn write_math(
+  out : Markup,
   math : @text.MathMarkup,
   box : String,
   size : Double,
   attrs : String,
-) -> String {
+) -> Unit raise @errors.PeleError {
   match math.body {
-    Svg(svg) =>
-      "<svg class=\"pele-math\" \{box} overflow=\"visible\"\{attrs}>\{svg}</svg>"
-    Html(html) =>
-      "<foreignObject class=\"pele-math\" \{box} overflow=\"visible\"\{attrs}>" +
-      "<div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:\{num(size)}px;line-height:normal;white-space:nowrap\">\{html}</div>" +
-      "</foreignObject>"
+    Svg(svg) => {
+      out.write("<svg class=\"pele-math\" \{box} overflow=\"visible\"\{attrs}>")
+      out.write(svg)
+      out.write("</svg>")
+    }
+    Html(html) => {
+      out.write(
+        "<foreignObject class=\"pele-math\" \{box} overflow=\"visible\"\{attrs}>" +
+        "<div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:\{num(size)}px;line-height:normal;white-space:nowrap\">",
+      )
+      out.write(html)
+      out.write("</div></foreignObject>")
+    }
   }
 }
