@@ -7,8 +7,8 @@ pub fn fit_width(
   options : @types.RenderOptions,
   natural : Double,
   least : Double,
-  draw : (Double, Bool) -> @types.Rendered,
-) -> @types.Rendered {
+  draw : (Double, Bool) -> @types.Rendered raise?,
+) -> @types.Rendered raise? {
   let mut result = draw(natural, false)
   guard options.max_width is Some(available) &&
     available > 0 &&

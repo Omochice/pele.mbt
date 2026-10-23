@@ -48,7 +48,7 @@ pub fn fit_label(String?, @text.TextMeasurer, Double, Double, base? : Int32) -> 
 
 pub fn fit_text(String, Double, Double, Double, @text.TextMeasurer, style? : Int32) -> Fitted?
 
-pub fn fit_width(@types.RenderOptions, Double, Double, (Double, Bool) -> @types.Rendered) -> @types.Rendered
+pub fn fit_width(@types.RenderOptions, Double, Double, (Double, Bool) -> @types.Rendered raise?) -> @types.Rendered raise?
 
 pub fn icon_svg(String, Double, Double, Double, icons? : (String) -> String?, drawing? : String) -> String
 
