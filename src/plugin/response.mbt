@@ -3,7 +3,7 @@ fn respond(source : String, options : String) -> (Int32, Json) {
   try {
     let result = @core.render(
       [
-        @architecture.architecture, @cynefin.cynefin, @er.er, @eventmodeling.eventmodeling,
+        @architecture.architecture, @c4.c4, @cynefin.cynefin, @er.er, @eventmodeling.eventmodeling,
         @flowchart.flowchart, @git.git, @info.info, @ishikawa.ishikawa, @journey.journey,
         @kanban.kanban, @mindmap.mindmap, @packet.packet, @pie.pie, @quadrant.quadrant,
         @radar.radar, @railroad.railroad, @requirement.requirement, @sankey.sankey,
