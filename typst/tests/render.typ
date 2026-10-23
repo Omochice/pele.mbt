@@ -22,6 +22,10 @@
 #assert(themed.svg.contains("fill=\"#123456\""), message: themed.svg)
 #assert(themed.svg.contains("rx=\"0\""), message: themed.svg)
 
+// The README's theme compiles as written.
+#let readme = render(theme: (bg: rgb("#1e1e2e"), fg: white, accent: blue, radius: 8pt, series-1: teal), "pie\n  \"A\": 1")
+#assert(readme.svg.contains("#ffffff"), message: readme.svg)
+
 // pele's own font option wins over the default theme.
 #assert(render(flowchart, fontFamily: "Inter").svg.contains("font-family:Inter\""))
 
