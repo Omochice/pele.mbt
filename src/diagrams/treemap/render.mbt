@@ -145,7 +145,7 @@ fn render_treemap(
   model : TreemapModel,
   config : @types.Config,
   options : @types.RenderOptions,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   let size = options.font_size.unwrap_or(16)
   let small = (size * 0.875).round()
   let measurer = options.text_measurer()
@@ -184,23 +184,23 @@ fn render_treemap(
   let title_height = if title.height > 0 { title.height + 8 } else { 0 }
   let left = pad + @util.js_max(0, (title.width - width) / 2)
   let top = pad + title_height
-  let sections = StringBuilder()
-  let leaves = StringBuilder()
+  let sections = @svg.Markup::new()
+  let leaves = @svg.Markup::new()
   for b in boxes {
     let name = @util.trim(@text.decode_entities(b.node.name))
     let value = if show_values { format(b.value) } else { "" }
     let x = left + b.x
     let y = top + b.y
     if b.node.children is Some(_) {
-      sections.write_string(draw_section(b, name, value, x, y, size, measurer))
+      sections.write(draw_section(b, name, value, x, y, size, measurer))
     } else {
-      leaves.write_string(draw_leaf(b, name, value, x, y, size, measurer))
+      leaves.write(draw_leaf(b, name, value, x, y, size, measurer))
     }
   }
   let total_width = (@util.js_max(width, title.width) + 2 * pad).ceil()
   let total_height = (height + title_height + 2 * pad).ceil()
-  let content = StringBuilder()
-  content.write_string(
+  let content = @svg.Markup::new()
+  content.write(
     @svg.label_svg(
       title,
       total_width / 2,
@@ -209,17 +209,20 @@ fn render_treemap(
     ),
   )
   if !sections.is_empty() {
-    content.write_string(
-      "<g class=\"pele-sections\" font-size=\"\{small}\">\{sections.to_string()}</g>",
+    content.write_group(
+      "<g class=\"pele-sections\" font-size=\"\{small}\">",
+      sections,
+      "</g>",
     )
   }
   if !leaves.is_empty() {
-    content.write_string(
-      "<g class=\"pele-leaves\" text-anchor=\"middle\" fill=\"var(--_bg)\">\{leaves.to_string()}</g>",
+    content.write_group(
+      "<g class=\"pele-leaves\" text-anchor=\"middle\" fill=\"var(--_bg)\">", leaves,
+      "</g>",
     )
   }
   {
-    svg: @svg.svg_document(
+    svg: @svg.markup_document(
       "treemap",
       total_width,
       total_height,
@@ -227,7 +230,7 @@ fn render_treemap(
       options,
       model.acc_title,
       model.acc_descr,
-      content.to_string(),
+      content,
     ),
     width: total_width,
     height: total_height,
