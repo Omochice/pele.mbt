@@ -934,8 +934,8 @@ fn draw(
   }
   let width = (inner + 2 * pad).ceil()
   let height = (max_y - min_y + title_height + 2 * pad).ceil()
-  let clusters = StringBuilder()
-  let nodes = StringBuilder()
+  let clusters = @svg.Markup::new()
+  let nodes = @svg.Markup::new()
   for j in 1..<order.length() {
     let v = order[j]
     if v.kind is Space {
@@ -946,10 +946,10 @@ fn draw(
     if v.kind is Composite {
       let c = v.cell
       let top = c.y - c.h / 2
-      clusters.write_string(
+      clusters.write(
         "<g class=\"pele-cluster\{classes}\" data-id=\"\{id}\"><rect x=\"\{@svg.num(c.x - c.w / 2)}\" y=\"\{@svg.num(top)}\" width=\"\{@svg.num(c.w)}\" height=\"\{@svg.num(c.h)}\" fill=\"var(--_a)\" fill-opacity=\"0.5\" stroke=\"var(--_b)\"\{@svg.rounded(v.style.shape)}/>",
       )
-      clusters.write_string(
+      clusters.write(
         @svg.label_svg(
           v.label,
           c.x,
@@ -958,15 +958,15 @@ fn draw(
           icons?=options.icons,
         ),
       )
-      clusters.write_string("</g>")
+      clusters.write("</g>")
       continue
     }
     let arrow = v.kind is Arrow
     let shape_class = if arrow { "block-arrow" } else { v.shape }
-    nodes.write_string(
+    nodes.write(
       "<g class=\"pele-node pele-shape-\{shape_class}\{classes}\" data-id=\"\{id}\" transform=\"translate(\{@svg.num(v.x())},\{@svg.num(v.y())})\">",
     )
-    nodes.write_string(
+    nodes.write(
       if arrow {
         draw_arrow(v.mask, v.bw, v.bh, SHAPE_ATTRS + v.style.shape)
       } else {
@@ -979,7 +979,7 @@ fn draw(
         )
       },
     )
-    nodes.write_string(
+    nodes.write(
       @svg.label_svg(
         v.label,
         v.dx,
@@ -988,10 +988,10 @@ fn draw(
         icons?=options.icons,
       ),
     )
-    nodes.write_string("</g>")
+    nodes.write("</g>")
   }
-  let edges = StringBuilder()
-  let labels = StringBuilder()
+  let edges = @svg.Markup::new()
+  let labels = @svg.Markup::new()
   for j, route in routes {
     let edge = route.edge
     let start_type = edge.arrow_type_start
@@ -1024,18 +1024,18 @@ fn draw(
     } else {
       ""
     }
-    edges.write_string(
+    edges.write(
       "<g class=\"pele-edge\" data-id=\"\{id}\"><path d=\"\{path.d}\"\{thick}\{dotted}/>",
     )
-    edges.write_string(
+    edges.write(
       @svg.marker(start_type, path.sx, path.sy, path.sdx, path.sdy, "var(--_l)"),
     )
-    edges.write_string(
+    edges.write(
       @svg.marker(end_type, path.ex, path.ey, path.edx, path.edy, "var(--_l)"),
     )
-    edges.write_string("</g>")
+    edges.write("</g>")
     if route.label.width > 0 {
-      labels.write_string(
+      labels.write(
         @svg.edge_label_svg(
           edge.id,
           route.label,
@@ -1047,8 +1047,8 @@ fn draw(
       )
     }
   }
-  let body = StringBuilder()
-  body.write_string(
+  let body = @svg.Markup::new()
+  body.write(
     @svg.label_svg(
       title,
       width / 2,
@@ -1056,21 +1056,24 @@ fn draw(
       " class=\"pele-title\" font-weight=\"var(--_tw)\"",
     ),
   )
-  if clusters.to_string() != "" {
-    body.write_string("<g class=\"pele-clusters\">\{clusters.to_string()}</g>")
+  if !clusters.is_empty() {
+    body.write_group("<g class=\"pele-clusters\">", clusters, "</g>")
   }
-  if edges.to_string() != "" {
-    body.write_string(
-      "<g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\">\{edges.to_string()}</g>",
+  if !edges.is_empty() {
+    body.write_group(
+      "<g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\">",
+      edges, "</g>",
     )
   }
-  body.write_string("<g class=\"pele-nodes\">\{nodes.to_string()}</g>")
-  if labels.to_string() != "" {
-    body.write_string(
-      "<g class=\"pele-edge-labels\" font-size=\"\{edge_size}\">\{labels.to_string()}</g>",
+  body.write_group("<g class=\"pele-nodes\">", nodes, "</g>")
+  if !labels.is_empty() {
+    body.write_group(
+      "<g class=\"pele-edge-labels\" font-size=\"\{edge_size}\">",
+      labels,
+      "</g>",
     )
   }
-  let svg = @svg.svg_document(
+  let svg = @svg.markup_document(
     "block",
     width,
     height,
@@ -1078,7 +1081,7 @@ fn draw(
     options,
     None,
     None,
-    body.to_string(),
+    body,
   )
   { svg, width, height, links: [], }
 }
