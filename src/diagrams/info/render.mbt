@@ -7,7 +7,7 @@ const VERSION : String = "1.8.0"
 fn render_info(
   model : InfoModel,
   options : @types.RenderOptions,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   let size = options.font_size.unwrap_or(16)
   let measurer = options.text_measurer()
   let pad = options.padding.unwrap_or(8)
@@ -29,20 +29,23 @@ fn render_info(
   )
   let width = (@cmp.maximum(title.width, text.width) + 2 * pad).ceil()
   let height = (title_height + text.height + 2 * pad).ceil()
-  let content = @svg.label_svg(
-      title,
-      width / 2,
-      pad + title.height / 2,
-      " class=\"pele-title\" font-weight=\"var(--_tw)\"",
-    ) +
-    @svg.label_svg(
-      text,
-      width / 2,
-      pad + title_height + text.height / 2,
-      " class=\"pele-version\" fill=\"var(--_m)\"",
-    )
+  let content = @svg.Markup::new()
+  @svg.write_label(
+    content,
+    title,
+    width / 2,
+    pad + title.height / 2,
+    " class=\"pele-title\" font-weight=\"var(--_tw)\"",
+  )
+  @svg.write_label(
+    content,
+    text,
+    width / 2,
+    pad + title_height + text.height / 2,
+    " class=\"pele-version\" fill=\"var(--_m)\"",
+  )
   {
-    svg: @svg.svg_document(
+    svg: @svg.markup_document(
       "info",
       width,
       height,
