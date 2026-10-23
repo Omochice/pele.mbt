@@ -337,6 +337,7 @@ fn render_cynefin(
           b.cx,
           y + item.h / 2,
           " class=\"pele-label\" font-size=\"\{item_size}\"\{muted}",
+          icons?=options.icons,
         ) +
         "</g>",
       )
@@ -498,6 +499,7 @@ fn render_cynefin(
           tx,
           ly + ny * away,
           " class=\"pele-edge-label\" font-size=\"\{small}\"",
+          icons?=options.icons,
         )
       }
       None => ""
