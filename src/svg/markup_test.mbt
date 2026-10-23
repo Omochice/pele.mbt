@@ -161,24 +161,19 @@ test "a document of markup writes its accessible text as the document of its str
 }
 
 ///|
-test "a document whose accessible text and content pass the hold limit together fails with the port's limit" {
+test "a document whose accessible text and content pass the hold limit together is left empty" {
   let descr = "&".repeat(20000000)
-  inspect(
-    failure(() => {
-      @svg.markup_document(
-        "pie",
-        10,
-        20,
-        16,
-        @types.RenderOptions::default(),
-        None,
-        Some(descr),
-        markup_of(@svg.HOLD_LIMIT - 50000000),
-      )
-      |> ignore
-    }),
-    content="limit: Diagram output is too large for the wasm port: it would hold more than 400000000 code units, the most the port can hold at once.",
+  let document = @svg.markup_document(
+    "pie",
+    10,
+    20,
+    16,
+    @types.RenderOptions::default(),
+    None,
+    Some(descr),
+    markup_of(@svg.HOLD_LIMIT - 50000000),
   )
+  inspect(document.length(), content="0")
 }
 
 ///|
