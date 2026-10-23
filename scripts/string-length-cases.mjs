@@ -340,6 +340,10 @@ export const CASES = [
   lazy('ishikawa', 'a front matter title past V8', () => `---\ntitle: x${'"'.repeat(90000000)}\n---\nishikawa-beta\nProblem\n  C\n`, RAISED),
   lazy('eventmodeling', 'a title past V8', () => `eventmodeling title ${'"'.repeat(90000000)}\ntf 01 evt E\n`, RAISED),
   lazy('sankey', 'a front matter title past V8', () => `---\ntitle: x${'"'.repeat(90000000)}\n---\nsankey\n\nA,B,1\n`, RAISED),
+  lazy('gantt', 'a title past V8', () => `gantt\ndateFormat YYYY-MM-DD\ntitle ${'"'.repeat(90000000)}\nsection s\nt :2026-01-01, 1d\n`, RAISED),
+  lazy('gantt', 'a title over no tasks past V8', () => `gantt\ntitle ${'"'.repeat(90000000)}\n`, RAISED),
+  // A Gantt chart without tasks draws only its title.
+  lazy('gantt', 'a title over no tasks longer than a doubling StringBuilder holds', () => `gantt\ntitle ${'<'.repeat(70000000)}\n`, RAISED),
 ];
 
 // A case whose source is built only when the check reaches it, as a getter in the source's place,
