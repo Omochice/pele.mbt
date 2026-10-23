@@ -216,6 +216,11 @@ export const CASES = [
     `graph LR\nclassDef c ${fill}\n${names('n', 10600).map((name) => `${name}:::c`).join('-->')}\n`,
     { limit: Number.MAX_VALUE, maxEdges: 1000000000, maxWidth: 300 },
   ],
+  // The SVG, at 2^28 code units or more, needs a block of at least 512 MiB, where MoonBit's
+  // allocator once handed out a smaller free block and the drawing overwrote what lay past it.
+  lazy('git', 'a branch named by 140M a, drawn into a block of 512 MiB or more', () => `gitGraph\ncommit\nbranch ${'a'.repeat(140000000)}\ncommit\n`, RAISED),
+  // The source alone needs such a block once it is decoded, before anything is drawn.
+  lazy('git', 'a branch named by 270M a, read into a block of 512 MiB or more', () => `gitGraph\ncommit\nbranch ${'a'.repeat(270000000)}\ncommit\n`, RAISED),
 ];
 
 // A case whose source is built only when the check reaches it, as a getter in the source's place,
