@@ -466,6 +466,14 @@ export const CASES = [
   lazy('swimlane', 'one lane id of many &', () => `swimlane-beta TB\nsubgraph "${'&'.repeat(54000000)}" [x]\nA\nend\n`, RAISED),
   // Without a title a lane's id is its title as well.
   lazy('swimlane', 'one lane named by many &', () => `swimlane-beta TB\nsubgraph "${'&'.repeat(54000000)}"\nA\nend\n`, RAISED),
+  lazy('usecase', 'one actor icon of many &', () => `usecase-beta\nactor User@{ icon: "${'&'.repeat(54000000)}" }\n`, RAISED),
+  lazy('usecase', 'one fill of many &', () => `usecase-beta\nU("x")\nstyle U fill:${'&'.repeat(54000000)}\n`, RAISED),
+  lazy('usecase', 'one text color of many &', () => `usecase-beta\nU("x")\nstyle U color:${'&'.repeat(54000000)}\n`, RAISED),
+  lazy('usecase', 'one stroke of many &', () => `usecase-beta\nU("x")\nstyle U stroke:${'&'.repeat(54000000)}\n`, RAISED),
+  // A use case named only by its label has an id made of it, with each `&` as `_`.
+  lazy('usecase', 'one use case named by many &', () => `usecase-beta\n"${'&'.repeat(54000000)}"\n`, RAISED),
+  // A plain label is laid out from its text with each `&` as a five-unit reference, which pele cannot make past V8's longest string.
+  lazy('usecase', 'one use case label of many &, past V8', () => `usecase-beta\nU("${'&'.repeat(110000000)}")\n`, RAISED),
   // A node's id and label are joined from the texts of their tokens, of which one may be 2^28 code units long.
   lazy('flowchart', 'a node id of 270M a, written twice', () => `graph TD\n${'a'.repeat(270000000)}\n`, RAISED),
   lazy('flowchart', 'a node label of 270M a', () => `graph TD\nA[${'a'.repeat(270000000)}]\n`, RAISED),
