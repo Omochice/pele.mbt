@@ -119,6 +119,8 @@ pub fn write_label(Markup, @text.Label, Double, Double, String, icons? : (String
 
 pub fn write_label_styled(Markup, @text.Label, Double, Double, String, String, icons? : (String) -> String?) -> Unit raise @errors.PeleError
 
+pub fn write_label_with_id(Markup, @text.Label, Double, Double, String, String, String, String, icons? : (String) -> String?) -> Unit raise @errors.PeleError
+
 pub fn write_marker_esc(Markup, String, Double, Double, Double, Double, String) -> Unit raise @errors.PeleError
 
 pub fn write_rounded_style(Markup, String) -> Unit raise @errors.PeleError

@@ -21,7 +21,7 @@ priv struct Region {
   inside : Array[Int32]
   spot : Spot
   lines : Array[Line]
-  style : @svg.ResolvedStyle
+  style : @svg.RawStyle
 }
 
 ///|
@@ -81,13 +81,13 @@ fn render_venn(
   }
   let style_of = (key : String) => {
     match styles.get(key) {
-      None => @svg.resolve_style([])
+      None => @svg.resolve_raw_style([])
       Some(declared) => {
         let list = []
         for property, value in declared {
           list.push("\{property}:\{value}")
         }
-        @svg.resolve_style(list)
+        @svg.resolve_raw_style(list)
       }
     }
   }
@@ -267,13 +267,15 @@ fn render_venn(
     let color = @svg.series_color(i)
     let style = match regions.get(c.id) {
       Some(region) => region.style
-      None => @svg.resolve_style([])
+      None => @svg.resolve_raw_style([])
     }
     sets.write("<circle class=\"pele-venn-set\" data-id=\"")
     @svg.write_esc_text(sets, c.id)
     sets.write(
-      "\" cx=\"\{@svg.num(c.x)}\" cy=\"\{@svg.num(c.y)}\" r=\"\{@svg.num(c.r)}\" fill=\"\{color}\" fill-opacity=\"0.2\" stroke=\"\{color}\"\{style.shape}/>",
+      "\" cx=\"\{@svg.num(c.x)}\" cy=\"\{@svg.num(c.y)}\" r=\"\{@svg.num(c.r)}\" fill=\"\{color}\" fill-opacity=\"0.2\" stroke=\"\{color}\"",
     )
+    @svg.write_style(sets, style.shape)
+    sets.write("/>")
   }
   let overlaps = @svg.Markup::new()
   let labels = @svg.Markup::new()
@@ -285,7 +287,9 @@ fn render_venn(
       if d != "" {
         overlaps.write("<path class=\"pele-venn-overlap\" data-id=\"")
         @svg.write_esc_text(overlaps, id)
-        overlaps.write("\" d=\"\{d}\" fill=\"none\"\{region.style.shape}/>")
+        overlaps.write("\" d=\"\{d}\" fill=\"none\"")
+        @svg.write_style(overlaps, region.style.shape)
+        overlaps.write("/>")
       }
     }
     let (_, total) = text_size(region.lines)
@@ -296,16 +300,30 @@ fn render_venn(
     let mut y = region.spot.y * scale + oy - total / 2
     let content = @svg.Markup::new()
     for line in region.lines {
-      let attrs = match line.id {
+      let cy = y + line.label.height / 2
+      match line.id {
         None =>
-          " class=\"pele-label\"" +
-          (if line.size == size { "" } else { " font-size=\"\{line.size}\"" }) +
-          region.style.text
+          @svg.write_label_styled(
+            content,
+            line.label,
+            x,
+            cy,
+            " class=\"pele-label\"" +
+            (if line.size == size { "" } else { " font-size=\"\{line.size}\"" }),
+            region.style.text,
+          )
         Some(text) =>
-          " class=\"pele-venn-text\" data-id=\"\{@svg.esc_text(text)}\" font-size=\"\{tiny}\" fill=\"var(--_m)\"" +
-          style_of(text).text
+          @svg.write_label_with_id(
+            content,
+            line.label,
+            x,
+            cy,
+            " class=\"pele-venn-text\" data-id=\"",
+            text,
+            "\" font-size=\"\{tiny}\" fill=\"var(--_m)\"",
+            style_of(text).text,
+          )
       }
-      @svg.write_label(content, line.label, x, y + line.label.height / 2, attrs)
       y += line.label.height
     }
     labels.write("<g class=\"pele-venn-region\" data-id=\"")

@@ -112,6 +112,64 @@ pub fn write_label_styled(
   css : String,
   icons? : @types.IconResolver,
 ) -> Unit raise @errors.PeleError {
+  write_label_around(
+    out,
+    label,
+    cx,
+    cy,
+    out => out.write(attrs),
+    attrs,
+    css,
+    icons?,
+  )
+}
+
+///|
+/// Writes a measured label as `write_label_styled` does under the attributes `before`, the id
+/// `esc_text` makes of `id`, and `after`, escaping the id a piece at a time as well.
+/// Raises pele's `limit` error when the markup would be longer than V8 allows.
+pub fn write_label_with_id(
+  out : Markup,
+  label : @text.Label,
+  cx : Double,
+  cy : Double,
+  before : String,
+  id : String,
+  after : String,
+  css : String,
+  icons? : @types.IconResolver,
+) -> Unit raise @errors.PeleError {
+  write_label_around(
+    out,
+    label,
+    cx,
+    cy,
+    out => {
+      out.write(before)
+      write_esc_text(out, id)
+      out.write(after)
+    },
+    before + after,
+    css,
+    icons?,
+  )
+}
+
+///|
+/// Writes a measured label as `write_label` does, with `write_attrs` writing its attributes
+/// before the `style` attribute of `css`.
+/// `attrs` stands for what `write_attrs` writes wherever the attributes are looked into, for a
+/// weight, a font style or a color, which a data-id it leaves out never holds.
+fn write_label_around(
+  out : Markup,
+  label : @text.Label,
+  cx : Double,
+  cy : Double,
+  write_attrs : (Markup) -> Unit raise @errors.PeleError,
+  attrs : String,
+  css : String,
+  icons? : @types.IconResolver,
+) -> Unit raise @errors.PeleError {
   let lines = label.lines
   if lines.is_empty() {
     return
@@ -124,7 +182,8 @@ pub fn write_label_styled(
     lines[0][0].icon is None &&
     lines[0][0].math is None &&
     lines[0][0].style == 0 {
-    out.write("<text\{attrs}")
+    out.write("<text")
+    write_attrs(out)
     write_style(out, css)
     out.write(
       " x=\"\{num(cx)}\" y=\"\{num(top + lh / 2 + shift)}\" text-anchor=\"middle\">",
@@ -199,7 +258,8 @@ pub fn write_label_styled(
   }
   // An escaped style holds no `"`, so whether the attributes give a weight or a style of their
   // own is found in `attrs` alone, and the emphasis goes after the style as `text_style` puts it.
-  out.write("<text\{attrs}")
+  out.write("<text")
+  write_attrs(out)
   write_style(out, css)
   out.write(
     @util.slice(text_style(attrs, shared), attrs.length()) +
