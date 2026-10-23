@@ -1,6 +1,11 @@
 import {
   "Omochice/pele/diagrams/common",
+  "Omochice/pele/errors",
   "Omochice/pele/util",
   "moonbitlang/core/double",
   "moonbitlang/core/math",
 }
+
+import {
+  "Omochice/pele/errors",
+} for "test"

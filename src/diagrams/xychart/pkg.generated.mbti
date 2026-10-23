@@ -1,7 +1,13 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "Omochice/pele/diagrams/xychart"
 
+import {
+  "Omochice/pele/errors",
+}
+
 // Values
+pub fn parse_xychart(String, XyChartDb) -> Unit raise @errors.PeleError
+
 pub fn tick_index(Double, Double) -> Double
 
 pub fn tick_step(Double, Double) -> Double
