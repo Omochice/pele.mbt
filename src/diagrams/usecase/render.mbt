@@ -286,8 +286,7 @@ fn mark(
 
 ///|
 /// The drawing of an actor, centered on its figure.
-/// pele fills an icon actor from the host's icon resolver, which a render here has none of.
-fn figure(view : View) -> String {
+fn figure(view : View, icons : @types.IconResolver?) -> String {
   let node = view.node
   let shape = view.style.shape
   let line = " fill=\"none\" stroke=\"var(--_b)\"\{view.style.line}"
@@ -305,7 +304,7 @@ fn figure(view : View) -> String {
       head = -14
       radius = 12
       "<rect x=\"-22\" y=\"-26\" width=\"44\" height=\"44\"\{@svg.rounded(SHAPE_ATTRS + shape)}/>" +
-      @common.icon_svg(node.icon.unwrap_or(""), -14, -18, 28)
+      @common.icon_svg(node.icon.unwrap_or(""), -14, -18, 28, icons?)
     }
     _ =>
       "<circle cy=\"-21\" r=\"9\"\{SHAPE_ATTRS}\{shape}/><path d=\"M0,-12V10M-14,-3H14M0,10L-12,30M0,10L12,30\"\{line}/>"
@@ -374,9 +373,10 @@ fn left_label(
   x : Double,
   cy : Double,
   attrs : String,
+  icons? : @types.IconResolver,
 ) -> String {
   if label.lines.length() < 2 {
-    return @svg.label_svg(label, x + label.width / 2, cy, attrs)
+    return @svg.label_svg(label, x + label.width / 2, cy, attrs, icons?)
   }
   let out = StringBuilder()
   for i in 0..<label.lines.length() {
@@ -386,6 +386,7 @@ fn left_label(
         x + label.widths[i] / 2,
         cy - label.height / 2 + (i.to_double() + 0.5) * label.line_height,
         attrs,
+        icons?,
       ),
     )
   }
@@ -713,7 +714,13 @@ fn draw(
         let tab_h = view.label.height + 2 * TAB_PAD
         "<rect class=\"pele-boundary-tab\" x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(tab_w)}\" height=\"\{@svg.num(tab_h)}\"\{box}/>" +
         "<rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y + tab_h)}\" width=\"\{@svg.num(c.w)}\" height=\"\{@svg.num(c.h - tab_h)}\"\{box}/>" +
-        @svg.label_svg(view.label, x + tab_w / 2, y + tab_h / 2, title_attrs)
+        @svg.label_svg(
+          view.label,
+          x + tab_w / 2,
+          y + tab_h / 2,
+          title_attrs,
+          icons?=options.icons,
+        )
       } else {
         "<rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(c.w)}\" height=\"\{@svg.num(c.h)}\"\{@svg.rounded(box)}/>" +
         @svg.label_svg(
@@ -721,6 +728,7 @@ fn draw(
           title_x(c, view.label.width, crossings),
           y + 8 + view.label.height / 2,
           title_attrs,
+          icons?=options.icons,
         )
       }
       clusters.write_string(
@@ -737,18 +745,20 @@ fn draw(
           view.stereotype.height / 2
         (
           "pele-actor",
-          "<g class=\"pele-actor-figure\" transform=\"translate(0,\{@svg.num(top + FIGURE_H / 2)})\">\{figure(view)}</g>" +
+          "<g class=\"pele-actor-figure\" transform=\"translate(0,\{@svg.num(top + FIGURE_H / 2)})\">\{figure(view, options.icons)}</g>" +
           @svg.label_svg(
             view.stereotype,
             0,
             stereotype_y,
             " class=\"pele-stereotype\" font-size=\"\{tiny}\" fill=\"var(--_m)\"",
+            icons?=options.icons,
           ) +
           @svg.label_svg(
             view.label,
             0,
             h / 2 - view.label.height / 2,
             " class=\"pele-label\"\{text_attrs}",
+            icons?=options.icons,
           ),
         )
       }
@@ -773,6 +783,7 @@ fn draw(
               x0 + CELL_PAD + key.width / 2,
               y + row_h / 2,
               " class=\"pele-json-key\" fill=\"var(--_m)\"",
+              icons?=options.icons,
             ),
           )
           cells.write_string(
@@ -781,6 +792,7 @@ fn draw(
               x0 + view.key_w + CELL_PAD,
               y + row_h / 2,
               " class=\"pele-json-value\"\{text_attrs}",
+              icons?=options.icons,
             ),
           )
           y += row_h
@@ -794,6 +806,7 @@ fn draw(
             0,
             -h / 2 + view.head_h / 2,
             " class=\"pele-label\" font-weight=\"var(--_hw)\"\{text_attrs}",
+            icons?=options.icons,
           ) +
           "<g font-size=\"\{small}\">\{cells.to_string()}</g>",
         )
@@ -836,12 +849,14 @@ fn draw(
             0,
             -view.label.height / 2,
             " class=\"pele-stereotype\" font-size=\"\{tiny}\" fill=\"var(--_m)\"",
+            icons?=options.icons,
           ) +
           @svg.label_svg(
             view.label,
             0,
             view.stereotype.height / 2,
             " class=\"pele-label\"\{note_size}\{text_attrs}",
+            icons?=options.icons,
           ),
         )
       }
@@ -971,6 +986,7 @@ fn draw(
           ce.label_x,
           ce.label_y,
           (if semantic { " fill=\"var(--_m)\"" } else { "" }) + text_attrs,
+          icons?=options.icons,
         ),
       )
     }
