@@ -49,6 +49,8 @@ const CASES = [
       `%%{init: {"flowchart": {"curve": "basis"}}}%%\n` +
       `%%{init: {"flowchart": {"rankSpacing": 120, "x": ${objects(depth - 2)}, "nodeSpacing": 120}}}%%\n${graph}`,
   ],
+  // JavaScript lists an object's array index keys first, so the nesting under "0" is merged first.
+  ['a key written before nesting under an array index', (depth) => `%%{init: {"flowchart": {"curve": "step"}, "0": ${objects(depth - 1)}}}%%\n${graph}`],
   ['a directive after the nesting one', (depth) => `%%{init: {"x": ${objects(depth - 1)}}}%%\n%%{init: {"flowchart": {"curve": "step"}}}%%\n${graph}`],
 ];
 const DEPTHS = [3000, MERGE_MAX_DEPTH - 1, MERGE_MAX_DEPTH, MERGE_MAX_DEPTH + 1, MERGE_MAX_DEPTH + 2, 7000];

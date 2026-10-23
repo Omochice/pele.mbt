@@ -156,6 +156,21 @@ test "a merge past pele's reach keeps what it merged into existing objects" {
 }
 
 ///|
+test "an init directive is merged in JavaScript's key order, array indexes first" {
+  let config = (n : Int32) => {
+    outline(
+      Json::object(
+        @preprocess.preprocess(
+          "%%{init: {\"before\": 1, \"0\": \{nested_objects(n)}}}%%\ngraph TD\nA",
+        ).config,
+      ),
+    ).stringify()
+  }
+  inspect(config(4467), content="{\"0\":{\"a\":4466},\"before\":1}")
+  inspect(config(4468), content="{}")
+}
+
+///|
 test "config cannot set unsafe keys" {
   let result = @preprocess.preprocess(
     "%%{init: {\"__proto__\": {\"polluted\": true}, \"theme\": \"dark\"}}%%\ngraph TD\nA",
