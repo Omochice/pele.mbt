@@ -1,12 +1,1080 @@
 ///|
+const GAP : Double = 12
+
+///|
+const WRAP : Double = 200
+
+///|
+const CORNER : Double = 8
+
+///|
+/// JavaScript's `Math.SQRT1_2`.
+const SQRT1_2 : Double = 0.7071067811865476
+
+///|
+const SHAPE_ATTRS : String = " fill=\"var(--_s)\" stroke=\"var(--_b)\""
+
+///|
+const LINE_ATTRS : String = " stroke=\"var(--_b)\""
+
+///|
+/// Checking every edge against every block is quadratic, so large diagrams route without it.
+const OBSTACLE_BUDGET : Double = 2000000
+
+///|
+/// The outline each shape of Mermaid's is drawn with.
+fn shape_name(kind : String) -> String {
+  match kind {
+    "square" => "rect"
+    "round" => "rounded"
+    "circle" => "circle"
+    "doublecircle" => "dbl-circ"
+    "diamond" => "diam"
+    "hexagon" => "hex"
+    "stadium" => "stadium"
+    "subroutine" => "fr-rect"
+    "cylinder" => "cyl"
+    "rect_left_inv_arrow" => "odd"
+    "lean_right" => "lean-r"
+    "lean_left" => "lean-l"
+    "trapezoid" => "trap-b"
+    "inv_trapezoid" => "trap-t"
+    _ => "rect"
+  }
+}
+
+///|
+/// Shapes that keep their own size in a larger cell, where the others stretch to fill it.
+fn is_fixed(shape : String) -> Bool {
+  shape is ("circle" | "dbl-circ" | "diam")
+}
+
+///|
+/// Shapes that only widen, because their slants and curves are set by their height.
+fn is_wide(shape : String) -> Bool {
+  shape
+  is ("stadium" | "hex" | "odd" | "lean-r" | "lean-l" | "trap-b" | "trap-t")
+}
+
+///|
+priv enum Kind {
+  Leaf
+  Arrow
+  Composite
+  Space
+}
+
+///|
+/// A block as drawn: its grid cell, and what it shows.
+priv struct View {
+  cell : Cell
+  children : Array[View]
+  block : Block
+  kind : Kind
+  index : Int32
+  shape : String
+  label : @text.Label
+  style : @svg.ResolvedStyle
+  mask : Int32
+  dx : Double
+  mut dy : Double
+  /// Size as drawn, which for a fixed shape is smaller than its cell.
+  mut bw : Double
+  mut bh : Double
+}
+
+///|
+fn View::x(self : View) -> Double {
+  self.cell.x
+}
+
+///|
+fn View::y(self : View) -> Double {
+  self.cell.y
+}
+
+///|
+fn View::is_leaf(self : View) -> Bool {
+  self.kind is Leaf
+}
+
+///|
+fn View::is_round(self : View) -> Bool {
+  self.is_leaf() && (self.shape == "circle" || self.shape == "dbl-circ")
+}
+
+///|
+fn View::is_diamond(self : View) -> Bool {
+  self.is_leaf() && self.shape == "diam"
+}
+
+///|
+/// An edge with its route: two points for a straight line, three for a bend, none for a self-loop.
+priv struct Route {
+  edge : Block
+  points : Array[Double]
+  loop_count : Int32
+  label : @text.Label
+  lx : Double
+  ly : Double
+}
+
+///|
+/// Where a vertical line at x meets the outline, below the center (sign 1) or above it (sign -1).
+fn edge_y(v : View, x : Double, sign : Double) -> Double {
+  let hw = v.bw / 2
+  let hh = v.bh / 2
+  let dx = (x - v.x()).abs()
+  let reach = if v.is_round() {
+    @util.js_max(hw * hw - dx * dx, 0).sqrt()
+  } else if v.is_diamond() {
+    hh * @util.js_max(1 - dx / hw, 0)
+  } else if v.is_leaf() {
+    hh - @svg.shape_inset(v.shape, v.bw, v.bh, if sign > 0 { 2 } else { 0 })
+  } else if v.kind is Arrow && arrow_axis(v.mask) == "x" {
+    hh - OVERHANG
+  } else {
+    hh
+  }
+  v.y() + sign * reach
+}
+
+///|
+/// Where a horizontal line at y meets the outline, right of the center (sign 1) or left of it (sign -1).
+fn edge_x(v : View, y : Double, sign : Double) -> Double {
+  let hw = v.bw / 2
+  let hh = v.bh / 2
+  let dy = (y - v.y()).abs()
+  let reach = if v.is_round() {
+    @util.js_max(hh * hh - dy * dy, 0).sqrt()
+  } else if v.is_diamond() {
+    hw * @util.js_max(1 - dy / hh, 0)
+  } else if v.is_leaf() {
+    hw - @svg.shape_inset(v.shape, v.bw, v.bh, if sign > 0 { 1 } else { 3 })
+  } else if v.kind is Arrow && arrow_axis(v.mask) == "y" {
+    hw - OVERHANG
+  } else {
+    hw
+  }
+  v.x() + sign * reach
+}
+
+///|
+/// JavaScript's `a || 1` for a number: 1 in place of 0 or NaN.
+fn or_one(value : Double) -> Double {
+  if value == 0 || value.is_nan() {
+    1
+  } else {
+    value
+  }
+}
+
+///|
+/// Where the line from the center toward (tx, ty) leaves the outline.
+fn border(v : View, tx : Double, ty : Double, out : Array[Double]) -> Unit {
+  let dx = tx - v.x()
+  let dy = ty - v.y()
+  let hw = v.bw / 2
+  let hh = v.bh / 2
+  let inf = @double.infinity
+  let mut k = if v.is_round() {
+    hw / or_one(@util.js_hypot(dx, dy))
+  } else if v.is_diamond() {
+    1 / or_one(dx.abs() / hw + dy.abs() / hh)
+  } else {
+    @util.js_min(
+      if dx == 0 {
+        inf
+      } else {
+        hw / dx.abs()
+      },
+      if dy == 0 {
+        inf
+      } else {
+        hh / dy.abs()
+      },
+    )
+  }
+  if k == inf {
+    k = 0
+  }
+  out.push(v.x() + dx * k)
+  out.push(v.y() + dy * k)
+}
+
+///|
+/// JavaScript's `Math.sign`, which keeps 0, -0 and NaN as they are.
+fn js_sign(value : Double) -> Double {
+  if value > 0 {
+    1
+  } else if value < 0 {
+    -1
+  } else {
+    value
+  }
+}
+
+///|
+fn crosses_box(
+  x1 : Double,
+  y1 : Double,
+  x2 : Double,
+  y2 : Double,
+  v : View,
+) -> Bool {
+  let l = v.x() - v.bw / 2 + 1
+  let r = v.x() + v.bw / 2 - 1
+  let t = v.y() - v.bh / 2 + 1
+  let b = v.y() + v.bh / 2 - 1
+  if (x1 < l && x2 < l) ||
+    (x1 > r && x2 > r) ||
+    (y1 < t && y2 < t) ||
+    (y1 > b && y2 > b) {
+    return false
+  }
+  if x1 == x2 || y1 == y2 {
+    return true
+  }
+  // The segment is diagonal and its bounding box overlaps: the box is hit unless all four corners are on one side.
+  let dx = x2 - x1
+  let dy = y2 - y1
+  let side = (x : Double, y : Double) => js_sign(dx * (y - y1) - dy * (x - x1))
+  let first = side(l, t)
+  first == 0 ||
+  side(r, t) != first ||
+  side(r, b) != first ||
+  side(l, b) != first
+}
+
+///|
+fn hits(
+  points : Array[Double],
+  s : View,
+  t : View,
+  obstacles : Array[View],
+) -> Int32 {
+  let mut count = 0
+  for v in obstacles {
+    if physical_equal(v, s) || physical_equal(v, t) {
+      continue
+    }
+    let mut i = 0
+    while i + 3 < points.length() {
+      if crosses_box(points[i], points[i + 1], points[i + 2], points[i + 3], v) {
+        count += 1
+        break
+      }
+      i += 2
+    }
+  }
+  count
+}
+
+///|
+/// A straight line where the two blocks share a row or a column, otherwise one bend between facing sides.
+fn route_edge(
+  s : View,
+  t : View,
+  shift : Double,
+  obstacles : Array[View]?,
+) -> Array[Double] {
+  let sl = s.x() - s.bw / 2
+  let sr = s.x() + s.bw / 2
+  let st = s.y() - s.bh / 2
+  let sb = s.y() + s.bh / 2
+  let tl = t.x() - t.bw / 2
+  let tr = t.x() + t.bw / 2
+  let tt = t.y() - t.bh / 2
+  let tb = t.y() + t.bh / 2
+  let x1 = @util.js_max(sl, tl)
+  let x2 = @util.js_min(sr, tr)
+  let y1 = @util.js_max(st, tt)
+  let y2 = @util.js_min(sb, tb)
+  let over_x = x2 - x1 > 6
+  let over_y = y2 - y1 > 6
+  if over_x && over_y {
+    // One block is inside the other: join the inner one to the nearest side of the outer one.
+    let inner = if s.bw * s.bh <= t.bw * t.bh { s } else { t }
+    let outer = if physical_equal(inner, s) { t } else { s }
+    let up = inner.y() - inner.bh / 2 - (outer.y() - outer.bh / 2)
+    let down = outer.y() + outer.bh / 2 - (inner.y() + inner.bh / 2)
+    let left = inner.x() - inner.bw / 2 - (outer.x() - outer.bw / 2)
+    let right = outer.x() + outer.bw / 2 - (inner.x() + inner.bw / 2)
+    let least = @util.js_min(@util.js_min(@util.js_min(up, down), left), right)
+    let points = if least == down {
+      [
+        inner.x(),
+        edge_y(inner, inner.x(), 1),
+        inner.x(),
+        outer.y() + outer.bh / 2,
+      ]
+    } else if least == up {
+      [
+        inner.x(),
+        edge_y(inner, inner.x(), -1),
+        inner.x(),
+        outer.y() - outer.bh / 2,
+      ]
+    } else if least == right {
+      [
+        edge_x(inner, inner.y(), 1),
+        inner.y(),
+        outer.x() + outer.bw / 2,
+        inner.y(),
+      ]
+    } else {
+      [
+        edge_x(inner, inner.y(), -1),
+        inner.y(),
+        outer.x() - outer.bw / 2,
+        inner.y(),
+      ]
+    }
+    return if physical_equal(inner, s) {
+      points
+    } else {
+      [points[2], points[3], points[0], points[1]]
+    }
+  }
+  if over_x {
+    let margin = @util.js_min(6, (x2 - x1) / 2)
+    let x = @util.js_min(
+      @util.js_max((x1 + x2) / 2 + shift, x1 + margin),
+      x2 - margin,
+    )
+    let down : Double = if t.y() > s.y() { 1 } else { -1 }
+    return [x, edge_y(s, x, down), x, edge_y(t, x, -down)]
+  }
+  if over_y {
+    let margin = @util.js_min(6, (y2 - y1) / 2)
+    let y = @util.js_min(
+      @util.js_max((y1 + y2) / 2 + shift, y1 + margin),
+      y2 - margin,
+    )
+    let right : Double = if t.x() > s.x() { 1 } else { -1 }
+    return [edge_x(s, y, right), y, edge_x(t, y, -right), y]
+  }
+  let right : Double = if t.x() > s.x() { 1 } else { -1 }
+  let down : Double = if t.y() > s.y() { 1 } else { -1 }
+  let across = [
+    edge_x(s, s.y(), right),
+    s.y(),
+    t.x(),
+    s.y(),
+    t.x(),
+    edge_y(t, t.x(), -down),
+  ]
+  let along = [
+    s.x(),
+    edge_y(s, s.x(), down),
+    s.x(),
+    t.y(),
+    edge_x(t, t.y(), -right),
+    t.y(),
+  ]
+  let wide = (t.x() - s.x()).abs() >= (t.y() - s.y()).abs()
+  let mut best = if wide { across } else { along }
+  guard obstacles is Some(obstacles) else { return best }
+  let mut least = hits(best, s, t, obstacles)
+  if least == 0 {
+    return best
+  }
+  let other = if wide { along } else { across }
+  let count = hits(other, s, t, obstacles)
+  if count < least {
+    best = other
+    least = count
+  }
+  if least == 0 {
+    return best
+  }
+  let direct = []
+  border(s, t.x(), t.y(), direct)
+  border(t, s.x(), s.y(), direct)
+  if hits(direct, s, t, obstacles) < least {
+    direct
+  } else {
+    best
+  }
+}
+
+///|
+/// Builds the path through two or three points, rounding the bend and leaving room for markers.
+fn trace(
+  p : Array[Double],
+  start_trim : Double,
+  end_trim : Double,
+) -> @svg.EdgePath {
+  let n = p.length()
+  let sx = p[0]
+  let sy = p[1]
+  let ex = p[n - 2]
+  let ey = p[n - 1]
+  let mut ax = p[2] - sx
+  let mut ay = p[3] - sy
+  let first = @util.js_hypot(ax, ay)
+  ax = ax / or_one(first)
+  ay = ay / or_one(first)
+  let mut bx = ex - p[n - 4]
+  let mut by = ey - p[n - 3]
+  let last = @util.js_hypot(bx, by)
+  bx = bx / or_one(last)
+  by = by / or_one(last)
+  let mut start_trim = start_trim
+  let mut end_trim = end_trim
+  if n == 4 && start_trim + end_trim > first {
+    let scale = first / (start_trim + end_trim)
+    start_trim = start_trim * scale
+    end_trim = end_trim * scale
+  }
+  start_trim = @util.js_min(start_trim, first)
+  end_trim = @util.js_min(end_trim, last)
+  let d = StringBuilder()
+  d.write_string(
+    "M\{@svg.num(sx + ax * start_trim)},\{@svg.num(sy + ay * start_trim)}",
+  )
+  if n == 6 {
+    let r = @util.js_max(
+      0,
+      @util.js_min(@util.js_min(CORNER, first - start_trim), last - end_trim),
+    )
+    d.write_string(
+      "L\{@svg.num(p[2] - ax * r)},\{@svg.num(p[3] - ay * r)}Q\{@svg.num(p[2])},\{@svg.num(p[3])} \{@svg.num(p[2] + bx * r)},\{@svg.num(p[3] + by * r)}",
+    )
+  }
+  d.write_string(
+    "L\{@svg.num(ex - bx * end_trim)},\{@svg.num(ey - by * end_trim)}",
+  )
+  { d: d.to_string(), sx, sy, sdx: -ax, sdy: -ay, ex, ey, edx: bx, edy: by, }
+}
+
+///|
+/// A self-loop is an arc around the top right corner of the block, or around the matching point on a round or diamond outline.
+/// Gives the arc's center and radius and the angles where it leaves and returns.
+fn loop_arc(v : View, k : Int32) -> (Double, Double, Double, Double, Double) {
+  let hw = v.bw / 2
+  let hh = v.bh / 2
+  let r = @util.js_max(
+    1,
+    @util.js_min(@util.js_min(10 + 5 * (k - 1).to_double(), hw), hh),
+  )
+  if v.is_round() {
+    let px = v.x() + hw * SQRT1_2
+    let py = v.y() - hw * SQRT1_2
+    let half = 2.0 * @math.asin(@util.js_min(1, r / (2 * hw)))
+    let angle = (at : Double) => {
+      @math.atan2(
+        v.y() - hw * @math.sin(at) - py,
+        v.x() + hw * @math.cos(at) - px,
+      )
+    }
+    return (px, py, r, angle(@math.PI / 4 + half), angle(@math.PI / 4 - half))
+  }
+  if v.is_diamond() {
+    let slope = @math.atan2(hh, hw)
+    return (v.x() + hw / 2, v.y() - hh / 2, r, slope + @math.PI, slope)
+  }
+  (v.x() + hw, v.y() - hh, r, @math.PI, @math.PI / 2)
+}
+
+///|
+fn loop_path(
+  v : View,
+  k : Int32,
+  start_trim : Double,
+  end_trim : Double,
+) -> @svg.EdgePath {
+  let (px, py, r, a1, a2) = loop_arc(v, k)
+  let from = a1 + start_trim / r
+  let to = a2 - end_trim / r
+  let mut sweep = (to - from) % (2 * @math.PI)
+  if sweep <= 0 {
+    sweep += 2 * @math.PI
+  }
+  let x1 = px + r * @math.cos(from)
+  let y1 = py + r * @math.sin(from)
+  let x2 = px + r * @math.cos(to)
+  let y2 = py + r * @math.sin(to)
+  let sx = px + r * @math.cos(a1)
+  let sy = py + r * @math.sin(a1)
+  let ex = px + r * @math.cos(a2)
+  let ey = py + r * @math.sin(a2)
+  // Each marker lies along the chord it covers, so it follows the curve instead of the tangent at its tip.
+  let sl = @util.js_hypot(sx - x1, sy - y1)
+  let el = @util.js_hypot(ex - x2, ey - y2)
+  let large = if sweep > @math.PI { 1 } else { 0 }
+  {
+    d: "M\{@svg.num(x1)},\{@svg.num(y1)}A\{@svg.num(r)},\{@svg.num(r)} 0 \{large} 1 \{@svg.num(x2)},\{@svg.num(y2)}",
+    sx,
+    sy,
+    sdx: if sl > 0 {
+      (sx - x1) / sl
+    } else {
+      @math.sin(a1)
+    },
+    sdy: if sl > 0 {
+      (sy - y1) / sl
+    } else {
+      -@math.cos(a1)
+    },
+    ex,
+    ey,
+    edx: if el > 0 {
+      (ex - x2) / el
+    } else {
+      -@math.sin(a2)
+    },
+    edy: if el > 0 {
+      (ey - y2) / el
+    } else {
+      @math.cos(a2)
+    },
+  }
+}
+
+///|
+let spots : Array[Double] = [0.5, 0.3, 0.7, 0.15, 0.85]
+
+///|
+/// Picks the point on a leg where a label of the given size covers no block other than the two it joins.
+fn label_spot(
+  p : Array[Double],
+  at : Int32,
+  w : Double,
+  h : Double,
+  s : View,
+  t : View,
+  obstacles : Array[View]?,
+) -> Double {
+  guard obstacles is Some(obstacles) else { return 0.5 }
+  for spot in spots {
+    let x = p[at] + (p[at + 2] - p[at]) * spot
+    let y = p[at + 1] + (p[at + 3] - p[at + 1]) * spot
+    let mut clear = true
+    for v in obstacles {
+      if !physical_equal(v, s) &&
+        !physical_equal(v, t) &&
+        (x - v.x()).abs() < (w + v.bw) / 2 &&
+        (y - v.y()).abs() < (h + v.bh) / 2 {
+        clear = false
+        break
+      }
+    }
+    if clear {
+      return spot
+    }
+  }
+  0.5
+}
+
+///|
+/// The gap between blocks, from `block.padding` when it is a usable number.
+fn configured_gap(config : @types.Config) -> Double {
+  match config.get("block") {
+    Some(Object(section)) =>
+      match section.get("padding") {
+        Some(Number(value, ..)) if value >= 0 => @util.js_min(value, 200)
+        _ => GAP
+      }
+    _ => GAP
+  }
+}
+
+///|
 /// Draws a block diagram.
 pub fn render_block(
   db : BlockDb,
   config : @types.Config,
   options : @types.RenderOptions,
 ) -> @types.Rendered raise @errors.PeleError {
-  ignore(config)
-  ignore(options)
-  let (width, height) = layout(cell(0, 0), db.blocks.length().to_double())
-  { svg: "", width, height, links: [], }
+  @common.tighten(options, tight => draw(db, config, options, tight))
+}
+
+///|
+/// The style of a block: its classes, or the default class when it has none, and then its own styles.
+/// A style list is split on commas only, so one entry can still hold several declarations.
+fn style_of(db : BlockDb, block : Block) -> @svg.ResolvedStyle {
+  let declarations = []
+  let add = (styles : Array[String]) => {
+    for style in styles {
+      for part in style.split(";") {
+        declarations.push(part.to_owned())
+      }
+    }
+  }
+  let names = if block.classes.length() > 0 {
+    block.classes
+  } else {
+    ["default"]
+  }
+  for name in names {
+    if db.classes.get(name) is Some(def) {
+      add(def.styles)
+    }
+  }
+  add(block.styles)
+  @svg.resolve_style(declarations)
+}
+
+///|
+/// Whether a label shows nothing but blanks.
+fn is_blank(label : @text.Label) -> Bool {
+  for line in label.lines {
+    for part in line {
+      if @util.trim(part.text) != "" {
+        return false
+      }
+    }
+  }
+  true
+}
+
+///|
+fn draw(
+  db : BlockDb,
+  config : @types.Config,
+  options : @types.RenderOptions,
+  tight : Bool,
+) -> @types.Rendered raise @errors.PeleError {
+  let size = options.font_size.unwrap_or(16)
+  let edge_size = (size * 0.875).round()
+  let measurer = @text.metrics_measurer
+  let pad = options.padding.unwrap_or(8)
+  let gap = @util.js_min(
+    configured_gap(config),
+    if tight {
+      6
+    } else {
+      @double.infinity
+    },
+  )
+  let wrap = if tight { 80.0 } else { WRAP }
+  let view = (block : Block, index : Int32) => {
+    let kind_name = block.kind
+    let style = if kind_name == "space" {
+      @svg.resolve_style([])
+    } else {
+      style_of(db, block)
+    }
+    let text_style = (if style.bold { @text.STYLE_BOLD } else { 0 }) |
+      (if style.italic { @text.STYLE_ITALIC } else { 0 })
+    let font_size = style.font_size.unwrap_or(size)
+    let mut kind = Leaf
+    let mut shape = ""
+    let mut nw = 0.0
+    let mut nh = 0.0
+    let mut head = 0.0
+    let mut mask = 0
+    let mut dx = 0.0
+    let mut dy = 0.0
+    let label = if kind_name == "space" {
+      kind = Space
+      @text.layout_label(None, false, measurer, font_size, wrap)
+    } else if kind_name == "composite" {
+      kind = Composite
+      let label = @text.layout_label(
+        Some(block.label),
+        false,
+        measurer,
+        font_size,
+        if tight {
+          @common.title_room(options)
+        } else {
+          4000
+        },
+        base=text_style,
+      )
+      head = if label.height > 0 { label.height + 4 } else { 0 }
+      nw = label.width + 2 * gap
+      nh = head + 2 * gap
+      label
+    } else if kind_name == "block_arrow" {
+      kind = Arrow
+      let label = @text.layout_label(
+        Some(block.label),
+        false,
+        measurer,
+        font_size,
+        wrap,
+        base=text_style,
+      )
+      mask = arrow_mask(block.directions)
+      let s = if is_blank(label) {
+        arrow_size(mask, 0, 0)
+      } else {
+        arrow_size(mask, label.width, label.height)
+      }
+      nw = s.w
+      nh = s.h
+      dx = s.dx
+      dy = s.dy
+      label
+    } else {
+      shape = shape_name(kind_name)
+      let label = @text.layout_label(
+        Some(block.label),
+        false,
+        measurer,
+        font_size,
+        wrap,
+        base=text_style,
+      )
+      let s = @svg.shape_size(shape, label.width, label.height)
+      nw = s.w
+      // A cylinder's caps deepen as it widens, so it is sized for the deepest ones.
+      nh = if shape == "cyl" {
+        @util.js_max(s.h, label.height + 40)
+      } else {
+        s.h
+      }
+      dy = s.dy
+      label
+    }
+    let made = cell(
+      nw,
+      nh,
+      span=match kind {
+        Space => 1
+        _ => block.width_in_columns.unwrap_or(1)
+      },
+    )
+    made.columns = if kind is Composite { block.columns } else { -1 }
+    made.space = kind is Space
+    made.head = head
+    {
+      cell: made,
+      children: [],
+      block,
+      kind,
+      index,
+      shape,
+      label,
+      style,
+      mask,
+      dx,
+      dy,
+      bw: 0,
+      bh: 0,
+    }
+  }
+  let root = view(db.root, 0)
+  root.cell.nw = 0
+  root.cell.nh = 0
+  let order = [root]
+  let by_id : Map[String, View] = Map([])
+  let mut i = 0
+  while i < order.length() {
+    let parent = order[i]
+    i += 1
+    if !(parent.kind is Composite) {
+      continue
+    }
+    for child in parent.block.children {
+      let v = view(child, order.length())
+      parent.children.push(v)
+      parent.cell.children.push(v.cell)
+      order.push(v)
+      if !(v.kind is Space) {
+        by_id.set(child.id, v)
+      }
+    }
+  }
+  let (content_width, content_height) = layout(root.cell, gap)
+  let obstacles = []
+  for v in order {
+    if v.is_leaf() && is_fixed(v.shape) {
+      v.bw = v.cell.nw
+      v.bh = v.cell.nh
+    } else if v.kind is Arrow {
+      v.bw = if v.cell.span > 1 { v.cell.w } else { v.cell.nw }
+      v.bh = v.cell.nh
+    } else {
+      v.bw = v.cell.w
+      v.bh = if v.is_leaf() && is_wide(v.shape) { v.cell.nh } else { v.cell.h }
+    }
+    if v.is_leaf() && v.shape == "cyl" {
+      v.dy = @util.js_min(12, @util.js_max(6, v.bw / 14)) / 2
+    }
+    if v.kind is (Leaf | Arrow) {
+      obstacles.push(v)
+    }
+  }
+
+  // Edges between the same two blocks are spread apart instead of drawn on top of each other.
+  let count = order.length().to_int64()
+  let pair_key = (s : View, t : View) => {
+    let low = if s.index < t.index { s.index } else { t.index }
+    let high = if s.index < t.index { t.index } else { s.index }
+    low.to_int64() * count + high.to_int64()
+  }
+  let pairs : Map[Int64, Int32] = Map([])
+  let labelled : Set[Int64] = Set([])
+  let ends : Array[(View, View)] = []
+  let drawn : Array[Block] = []
+  for edge in db.edges {
+    guard by_id.get(edge.start) is Some(s) && by_id.get(edge.end) is Some(t) else {
+      continue
+    }
+    let key = pair_key(s, t)
+    pairs.set(key, pairs.get(key).unwrap_or(0) + 1)
+    if edge.label != "" {
+      labelled.add(key)
+    }
+    ends.push((s, t))
+    drawn.push(edge)
+  }
+  let check = if drawn.length().to_double() * obstacles.length().to_double() <=
+    OBSTACLE_BUDGET {
+    Some(obstacles)
+  } else {
+    None
+  }
+  let seen : Map[Int64, Int32] = Map([])
+  let routes : Array[Route] = []
+  let mut min_x = 0.0
+  let mut min_y = 0.0
+  let mut max_x = content_width
+  let mut max_y = content_height
+  let grow = (x : Double, y : Double, w : Double, h : Double) => {
+    if x - w / 2 < min_x {
+      min_x = x - w / 2
+    }
+    if x + w / 2 > max_x {
+      max_x = x + w / 2
+    }
+    if y - h / 2 < min_y {
+      min_y = y - h / 2
+    }
+    if y + h / 2 > max_y {
+      max_y = y + h / 2
+    }
+  }
+  for j, edge in drawn {
+    let (s, t) = ends[j]
+    let key = pair_key(s, t)
+    let total = pairs.get(key).unwrap_or(1)
+    let k = seen.get(key).unwrap_or(0)
+    seen.set(key, k + 1)
+    let label = @text.layout_label(
+      Some(edge.label),
+      false,
+      measurer,
+      edge_size,
+      WRAP,
+    )
+    let mut points = []
+    let mut lx = 0.0
+    let mut ly = 0.0
+    if physical_equal(s, t) {
+      let (px, py, r, _, _) = loop_arc(s, k + 1)
+      grow(px, py, 2 * r + 2, 2 * r + 2)
+      lx = px + r + 6 + label.width / 2
+      ly = py - r / 2
+    } else {
+      let step = if labelled.contains(key) {
+        (edge_size * 1.5).round() + 2
+      } else {
+        14
+      }
+      points = route_edge(
+        s,
+        t,
+        (k.to_double() - (total - 1).to_double() / 2) * step,
+        check,
+      )
+      let n = points.length()
+      // The label goes on the longer leg.
+      let first_leg = (points[2] - points[0]).abs() +
+        (points[3] - points[1]).abs()
+      let last_leg = (points[n - 2] - points[n - 4]).abs() +
+        (points[n - 1] - points[n - 3]).abs()
+      let at = if n == 6 && last_leg > first_leg { 2 } else { 0 }
+      let spot = if label.width > 0 {
+        label_spot(points, at, label.width + 8, label.height, s, t, check)
+      } else {
+        0.5
+      }
+      lx = points[at] + (points[at + 2] - points[at]) * spot
+      ly = points[at + 1] + (points[at + 3] - points[at + 1]) * spot
+    }
+    if label.width > 0 {
+      grow(lx, ly, label.width + 8, label.height)
+    }
+    routes.push({
+      edge,
+      points,
+      loop_count: if physical_equal(s, t) {
+        k + 1
+      } else {
+        0
+      },
+      label,
+      lx,
+      ly,
+    })
+  }
+  let title = @svg.title_label(
+    db.title,
+    measurer,
+    size,
+    if tight {
+      @common.title_room(options)
+    } else {
+      4000
+    },
+  )
+  let title_height = if title.height > 0 { title.height + 12 } else { 0 }
+  let inner = @util.js_max(max_x - min_x, title.width)
+  let ox = pad - min_x + (inner - (max_x - min_x)) / 2
+  let oy = pad + title_height - min_y
+  for v in order {
+    v.cell.x += ox
+    v.cell.y += oy
+  }
+  let width = (inner + 2 * pad).ceil()
+  let height = (max_y - min_y + title_height + 2 * pad).ceil()
+  let clusters = StringBuilder()
+  let nodes = StringBuilder()
+  for j in 1..<order.length() {
+    let v = order[j]
+    if v.kind is Space {
+      continue
+    }
+    let classes = @svg.class_names(v.block.classes.join(" "))
+    let id = @svg.esc_text(v.block.id)
+    if v.kind is Composite {
+      let c = v.cell
+      let top = c.y - c.h / 2
+      clusters.write_string(
+        "<g class=\"pele-cluster\{classes}\" data-id=\"\{id}\"><rect x=\"\{@svg.num(c.x - c.w / 2)}\" y=\"\{@svg.num(top)}\" width=\"\{@svg.num(c.w)}\" height=\"\{@svg.num(c.h)}\" fill=\"var(--_a)\" fill-opacity=\"0.5\" stroke=\"var(--_b)\"\{@svg.rounded(v.style.shape)}/>",
+      )
+      clusters.write_string(
+        @svg.label_svg(
+          v.label,
+          c.x,
+          top + (c.head + gap) / 2 + 2,
+          " class=\"pele-cluster-label\" fill=\"var(--_m)\"\{v.style.text}",
+        ),
+      )
+      clusters.write_string("</g>")
+      continue
+    }
+    let arrow = v.kind is Arrow
+    let shape_class = if arrow { "block-arrow" } else { v.shape }
+    nodes.write_string(
+      "<g class=\"pele-node pele-shape-\{shape_class}\{classes}\" data-id=\"\{id}\" transform=\"translate(\{@svg.num(v.x())},\{@svg.num(v.y())})\">",
+    )
+    nodes.write_string(
+      if arrow {
+        draw_arrow(v.mask, v.bw, v.bh, SHAPE_ATTRS + v.style.shape)
+      } else {
+        @svg.draw_shape(
+          v.shape,
+          v.bw,
+          v.bh,
+          SHAPE_ATTRS + v.style.shape,
+          LINE_ATTRS + v.style.line,
+        )
+      },
+    )
+    nodes.write_string(
+      @svg.label_svg(
+        v.label,
+        v.dx,
+        v.dy,
+        " class=\"pele-label\"\{v.style.text}",
+      ),
+    )
+    nodes.write_string("</g>")
+  }
+  let edges = StringBuilder()
+  let labels = StringBuilder()
+  for j, route in routes {
+    let edge = route.edge
+    let start_type = edge.arrow_type_start
+    let end_type = edge.arrow_type_end
+    let path = if route.loop_count > 0 {
+      loop_path(
+        ends[j].0,
+        route.loop_count,
+        @svg.marker_trim(start_type),
+        @svg.marker_trim(end_type),
+      )
+    } else {
+      let points = route.points
+      let mut k = 0
+      while k < points.length() {
+        points[k] += ox
+        points[k + 1] += oy
+        k += 2
+      }
+      trace(points, @svg.marker_trim(start_type), @svg.marker_trim(end_type))
+    }
+    let id = @svg.esc_text(edge.id)
+    let thick = if edge.thickness == "thick" {
+      " stroke-width=\"2.5\""
+    } else {
+      ""
+    }
+    let dotted = if edge.pattern == "dotted" {
+      " stroke-dasharray=\"3 4\""
+    } else {
+      ""
+    }
+    edges.write_string(
+      "<g class=\"pele-edge\" data-id=\"\{id}\"><path d=\"\{path.d}\"\{thick}\{dotted}/>",
+    )
+    edges.write_string(
+      @svg.marker(start_type, path.sx, path.sy, path.sdx, path.sdy, "var(--_l)"),
+    )
+    edges.write_string(
+      @svg.marker(end_type, path.ex, path.ey, path.edx, path.edy, "var(--_l)"),
+    )
+    edges.write_string("</g>")
+    if route.label.width > 0 {
+      labels.write_string(
+        @svg.edge_label_svg(
+          edge.id,
+          route.label,
+          route.lx + ox,
+          route.ly + oy,
+          "",
+        ),
+      )
+    }
+  }
+  let body = StringBuilder()
+  body.write_string(
+    @svg.label_svg(
+      title,
+      width / 2,
+      pad + title.height / 2,
+      " class=\"pele-title\" font-weight=\"var(--_tw)\"",
+    ),
+  )
+  if clusters.to_string() != "" {
+    body.write_string("<g class=\"pele-clusters\">\{clusters.to_string()}</g>")
+  }
+  if edges.to_string() != "" {
+    body.write_string(
+      "<g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\">\{edges.to_string()}</g>",
+    )
+  }
+  body.write_string("<g class=\"pele-nodes\">\{nodes.to_string()}</g>")
+  if labels.to_string() != "" {
+    body.write_string(
+      "<g class=\"pele-edge-labels\" font-size=\"\{edge_size}\">\{labels.to_string()}</g>",
+    )
+  }
+  let svg = @svg.svg_document(
+    "block",
+    width,
+    height,
+    size,
+    options,
+    None,
+    None,
+    body.to_string(),
+  )
+  { svg, width, height, links: [], }
 }
