@@ -27,6 +27,11 @@ pub fn rounded(attrs : String) -> String {
 }
 
 ///|
+/// The color of what a diagram marks as critical.
+/// It is not one of the series colors, as a theme may put those in any order.
+pub const CRITICAL : String = "var(--pele-critical,#e45756)"
+
+///|
 /// The code point at `i` and where the next one starts, reading surrogate pairs as the `u` flag does.
 fn code_point_at(text : String, i : Int32) -> (Int32, Int32) {
   let c = @util.code_at(text, i)

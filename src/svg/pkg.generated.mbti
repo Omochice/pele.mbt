@@ -10,6 +10,8 @@ import {
 // Values
 pub const ARROW : Double = 8
 
+pub const CRITICAL : String = "var(--pele-critical,#e45756)"
+
 pub const LEAD : Double = 6
 
 pub const PAD_X : Double = 18
