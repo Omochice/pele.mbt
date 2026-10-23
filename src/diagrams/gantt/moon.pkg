@@ -1,0 +1,8 @@
+import {
+  "Omochice/pele/util/date",
+}
+
+import {
+  "Omochice/pele/util/date",
+  "moonbitlang/core/double",
+} for "test"

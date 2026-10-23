@@ -1,0 +1,23 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Omochice/pele/diagrams/gantt"
+
+import {
+  "Omochice/pele/util/date",
+}
+
+// Values
+pub fn add_time(@date.JsDate, Double, String) -> @date.JsDate
+
+pub fn format_date(@date.JsDate, String) -> String?
+
+pub fn parse_duration(String) -> (Double, String)
+
+pub fn parse_strict(String, String, @date.JsDate) -> @date.JsDate?
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
