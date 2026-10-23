@@ -55,4 +55,3 @@ pub fn title_label(
     base=@text.STYLE_BOLD,
   )
 }
-
