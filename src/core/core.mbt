@@ -101,8 +101,19 @@ pub fn render(
   let responsive = options.responsive.unwrap_or(
     !fixed_width(config, diagram.section.unwrap_or(found.kind)),
   )
+  // The resolver sees names as the author meant them, with entity codes turned into their
+  // characters, as `data-icon` in the SVG does.
+  let icons = options.icons.map(resolve => {
+    (name : String) => resolve(@text.decode_entities(name))
+  })
   let rendered = tag_errors(found, () => {
-    (parsed.render)(config, { ..options, responsive: Some(responsive), })
+    @text.with_icons(icons, () => {
+      (parsed.render)(config, {
+        ..options,
+        responsive: Some(responsive),
+        icons,
+      })
+    })
   })
   let output_limit = options.output_limit.unwrap_or(DEFAULT_OUTPUT_LIMIT)
   if rendered.svg.length().to_double() > output_limit {
