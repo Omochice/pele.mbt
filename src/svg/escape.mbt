@@ -8,8 +8,8 @@ const ESCAPE_CHUNK : Int32 = 1048576
 const CUT_REACH : Int32 = 64
 
 ///|
-/// The code units of the private aliases, such as `var(--_tw)`.
-const ALIAS_UNITS : String = "var(--_tw)"
+/// The code units of the private aliases `var(--_r)`, `var(--_tw)`, `var(--_hw)` and `var(--_w)`.
+const ALIAS_UNITS : String = "var(--_twh)"
 
 ///|
 /// Whether a cut after `c` could split a private alias, which `Markup` finds only within a piece.
