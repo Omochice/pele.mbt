@@ -3,10 +3,13 @@ package "Omochice/pele/diagrams/xychart"
 
 import {
   "Omochice/pele/errors",
+  "Omochice/pele/types",
 }
 
 // Values
 pub fn parse_xychart(String, XyChartDb) -> Unit raise @errors.PeleError
+
+pub fn render_xychart(XyChartDb, Map[String, Json], @types.RenderOptions) -> @types.Rendered raise @errors.PeleError
 
 pub fn tick_index(Double, Double) -> Double
 
@@ -15,6 +18,8 @@ pub fn tick_step(Double, Double) -> Double
 pub fn tick_value(Double, Double) -> Double
 
 pub fn ticks_between(Double, Double, Double) -> Array[Double]
+
+pub let xychart : @types.Diagram
 
 // Errors
 
