@@ -6,7 +6,23 @@ import {
 }
 
 // Values
+pub const BACK_ARROW : Int32 = 1
+
+pub const CIRCLE_ARROW : Int32 = 3
+
+pub const CIRCLE_ARROW_REVERSED : Int32 = 5
+
+pub const CROSS_ARROW : Int32 = 4
+
+pub const CROSS_ARROW_REVERSED : Int32 = 6
+
+pub const LINE_SOLID : Int32 = 2
+
+pub const SOLID_ARROW : Int32 = 0
+
 pub fn parse_ordered_json(String, () -> (Int32, Int32)) -> Array[(String, JsonValue)] raise @errors.PeleError
+
+pub fn parse_usecase(String, title? : String) -> UsecaseModel raise @errors.PeleError
 
 pub fn token_name(Int32) -> String
 
@@ -15,6 +31,24 @@ pub fn tokenize(String) -> Tokens raise @errors.PeleError
 // Errors
 
 // Types and methods
+pub(all) struct Actor {
+  id : String
+  label : String
+  label_type : String
+  actor_type : String
+  icon : String?
+  business : Bool
+  stereotype : String?
+  parent_id : String?
+  classes : Array[String]
+  styles : Array[String]
+}
+
+pub(all) struct ClassDef {
+  id : String
+  styles : Array[String]
+}
+
 pub(all) enum JsonValue {
   JsonNull
   JsonBool(Bool)
@@ -24,10 +58,76 @@ pub(all) enum JsonValue {
   JsonObject(Array[(String, JsonValue)])
 }
 
+pub(all) struct Relationship {
+  id : String
+  explicit_id : Bool
+  source : String
+  target : String
+  rel_type : String
+  arrow_type : Int32
+  label : String?
+  label_type : String?
+  minlen : Int32
+  classes : Array[String]
+  styles : Array[String]
+  mut animate : Bool
+  mut animation : String?
+}
+
+pub(all) struct SystemBoundary {
+  id : String
+  label : String
+  label_type : String
+  mut boundary_type : String
+  mut members : Array[String]
+  mut classes : Array[String]
+  styles : Array[String]
+}
+
 pub(all) struct Tokens {
   types : Array[Int32]
   starts : Array[Int32]
   ends : Array[Int32]
+}
+
+pub(all) struct UseCase {
+  id : String
+  label : String
+  label_type : String
+  shape : String
+  business : Bool
+  stereotype : String?
+  parent_id : String?
+  classes : Array[String]
+  styles : Array[String]
+}
+
+pub(all) struct UsecaseJsonNode {
+  id : String
+  value : Array[(String, JsonValue)]
+  classes : Array[String]
+  styles : Array[String]
+}
+
+pub(all) struct UsecaseModel {
+  actors : Map[String, Actor]
+  use_cases : Map[String, UseCase]
+  system_boundaries : Map[String, SystemBoundary]
+  relationships : Array[Relationship]
+  notes : Map[String, UsecaseNote]
+  json_nodes : Map[String, UsecaseJsonNode]
+  class_defs : Map[String, ClassDef]
+  mut direction : String
+  mut title : String?
+  mut acc_title : String
+  mut acc_descr : String
+}
+
+pub(all) struct UsecaseNote {
+  id : String
+  target : String
+  label : String
+  label_type : String
 }
 
 // Type aliases

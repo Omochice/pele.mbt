@@ -12,42 +12,6 @@ fn json(text : String) -> String {
 }
 
 ///|
-fn show(value : @usecase.JsonValue) -> String {
-  match value {
-    JsonNull => "null"
-    JsonBool(flag) => flag.to_string()
-    JsonNumber(number) => if number == 0 { "0" } else { number.to_string() }
-    JsonString(text) => quote(text)
-    JsonArray(items) => "[" + items.map(show).join(",") + "]"
-    JsonObject(entries) =>
-      "{" +
-      entries.map(entry => quote(entry.0) + ":" + show(entry.1)).join(",") +
-      "}"
-  }
-}
-
-///|
-/// The string as `JSON.stringify` writes it.
-fn quote(text : String) -> String {
-  let out = StringBuilder()
-  out.write_char('"')
-  for c in text {
-    match c {
-      '"' => out.write_string("\\\"")
-      '\\' => out.write_string("\\\\")
-      '\b' => out.write_string("\\b")
-      '\u{0c}' => out.write_string("\\f")
-      '\n' => out.write_string("\\n")
-      '\r' => out.write_string("\\r")
-      '\t' => out.write_string("\\t")
-      _ => out.write_char(c)
-    }
-  }
-  out.write_char('"')
-  out.to_string()
-}
-
-///|
 test "parse_ordered_json: values in the order they were written" {
   inspect(
     json(
