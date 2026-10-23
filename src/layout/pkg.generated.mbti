@@ -10,6 +10,8 @@ pub fn direction(String?) -> Dir
 
 pub fn ease(Double, Double) -> Double
 
+pub fn lane_layout(Array[CNode], Array[CEdge], Dir, LayeredOptions, lane_pad? : Double) -> CompoundResult
+
 pub fn layered(Array[LNode], Array[LEdge], LayeredOptions) -> LayeredResult
 
 pub fn ledge(Int32, Int32, minlen? : Int32, label_w? : Double, label_h? : Double) -> LEdge
