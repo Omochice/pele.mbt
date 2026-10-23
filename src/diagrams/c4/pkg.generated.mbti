@@ -4,6 +4,7 @@ package "Omochice/pele/diagrams/c4"
 import {
   "Omochice/pele/errors",
   "Omochice/pele/text",
+  "Omochice/pele/types",
 }
 
 // Values
@@ -15,6 +16,8 @@ pub const HEAD_TOP : Double = 10
 
 pub const LANE : Double = 20
 
+pub let c4 : @types.Diagram
+
 pub fn crosses(Array[Double], Double, Double, Double, Double) -> Bool
 
 pub fn cyl_ry(Double) -> Double
@@ -24,6 +27,8 @@ pub fn layout_c4(C4Db, @text.TextMeasurer, Double, Double, Double?, Double) -> L
 pub fn parse_c4(String, C4Db) -> Unit raise @errors.PeleError
 
 pub fn queue_rx(Double) -> Double
+
+pub fn render_c4(C4Db, Map[String, Json], @types.RenderOptions) -> @types.Rendered raise @errors.PeleError
 
 pub fn route(Box, Box, Double, Array[Box]?, Lanes, Double, Double) -> Route
 
