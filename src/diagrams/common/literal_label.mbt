@@ -202,15 +202,34 @@ pub fn break_label(
 ///|
 /// Writes `label` with every line starting at `x`, the first line's top at `top`.
 /// A line is anchored at its start and keeps its spaces, so that where it begins does not depend on how its text was measured.
+/// Aborts where the markup would be longer than V8 allows, because a caller that takes a string
+/// has no error to report it with.
 pub fn left_label_svg(
   label : @text.Label,
   x : Double,
   top : Double,
   attrs : String,
 ) -> String {
+  let out = @svg.Markup::new()
+  write_left_label(out, label, x, top, attrs) catch {
+    _ => abort("label markup longer than V8's longest string")
+  }
+  out.to_string()
+}
+
+///|
+/// Writes `label` to `out` as `left_label_svg` draws it, so that a label can be as long as the
+/// markup holding it.
+/// Raises pele's `limit` error when the markup would be longer than V8 allows.
+pub fn write_left_label(
+  out : @svg.Markup,
+  label : @text.Label,
+  x : Double,
+  top : Double,
+  attrs : String,
+) -> Unit raise @errors.PeleError {
   let shared = @svg.shared_style(label)
   let open = "<text" + @svg.text_style(attrs, shared)
-  let body = StringBuilder()
   for i, spans in label.lines {
     let cy = top + (i.to_double() + 0.5) * label.line_height
     if spans.iter().any(span => span.icon is Some(_)) {
@@ -222,7 +241,7 @@ pub fn left_label_svg(
         width,
         height: label.line_height,
       }
-      body.write_string(@svg.label_svg(line, x + width / 2, cy, attrs))
+      @svg.write_label(out, line, x + width / 2, cy, attrs)
       continue
     }
     let text = StringBuilder()
@@ -236,10 +255,9 @@ pub fn left_label_svg(
     }
     let text = text.to_string()
     if text != "" {
-      body.write_string(
+      out.write(
         "\{open} x=\"\{@svg.num(x)}\" y=\"\{@svg.num(cy + label.size * 0.35)}\" text-anchor=\"start\" xml:space=\"preserve\">\{text}</text>",
       )
     }
   }
-  body.to_string()
 }

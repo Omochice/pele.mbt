@@ -3,6 +3,7 @@ package "Omochice/pele/diagrams/common"
 
 import {
   "Omochice/pele/errors",
+  "Omochice/pele/svg",
   "Omochice/pele/text",
   "Omochice/pele/types",
 }
@@ -103,6 +104,8 @@ pub fn turn_to_fit(@types.RenderOptions, (Bool) -> @types.Rendered raise?) -> @t
 pub let whitespace : TokenType
 
 pub fn word_at(String, Int32, String) -> Bool
+
+pub fn write_left_label(@svg.Markup, @text.Label, Double, Double, String) -> Unit raise @errors.PeleError
 
 pub let yaml : TokenType
 
