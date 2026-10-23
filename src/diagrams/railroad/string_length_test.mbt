@@ -153,3 +153,41 @@ test "a title outgrowing V8's longest string fails as nested too deeply" {
     content="limit: Diagram is nested too deeply. railroad railroadPeg",
   )
 }
+
+///|
+/// The outcome of rendering `source` with no source or output limit: the SVG's length, or the error.
+fn length_outcome(source : String) -> String {
+  try {
+    let rendered = @core.render([@railroad.railroad], source, {
+      ..@types.RenderOptions::default(),
+      limit: Some(1.0 / 0.0),
+      output_limit: Some(1.0 / 0.0),
+    })
+    "\{rendered.svg.length()}"
+  } catch {
+    @errors.PeleError(failure) =>
+      "\{failure.code.to_string()}: \{failure.message} \{failure.kind.unwrap_or("null")} \{failure.mermaid_type.unwrap_or("null")}"
+  }
+}
+
+///|
+#skip("slow: escapes 54 million characters into over 268 million code units")
+test "a special sequence with a code and tens of millions of entities is drawn as pele draws it" {
+  inspect(
+    length_outcome(
+      "railroad-ebnf-beta\nr = ? #35;\{"&".repeat(54000000)} ? ;\n",
+    ),
+    content="270001561",
+  )
+}
+
+///|
+#skip("slow: escapes 110 million characters before it fails")
+test "a special sequence with a code and over a hundred million entities fails as nested too deeply" {
+  inspect(
+    length_outcome(
+      "railroad-ebnf-beta\nr = ? #35;\{"&".repeat(110000000)} ? ;\n",
+    ),
+    content="limit: Diagram is nested too deeply. railroad railroadEbnf",
+  )
+}

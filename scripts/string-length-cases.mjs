@@ -445,6 +445,9 @@ export const CASES = [
   lazy('venn', 'one set filled by many &', () => `venn-beta\nset A\nstyle A fill: "${'&'.repeat(54000000)}"\n`, RAISED),
   lazy('venn', 'one set filled past V8', () => `venn-beta\nset A\nstyle A fill: "${'&'.repeat(110000000)}"\n`, RAISED),
   lazy('venn', 'one set colored by many &', () => `venn-beta\nset A\nstyle A color: "${'&'.repeat(54000000)}"\n`, RAISED),
+  // A text holding a `#35;` code is shown with every `&` escaped and the whole decoded back.
+  lazy('railroad', 'one special sequence with a code and many &', () => `railroad-ebnf-beta\nr = ? #35;${'&'.repeat(54000000)} ? ;\n`, RAISED),
+  lazy('railroad', 'one special sequence with a code past V8', () => `railroad-ebnf-beta\nr = ? #35;${'&'.repeat(110000000)} ? ;\n`, RAISED),
 ];
 
 // A case whose source is built only when the check reaches it, as a getter in the source's place,
