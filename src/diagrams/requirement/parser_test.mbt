@@ -99,8 +99,8 @@ test "names each risk and each verification method" {
     .unwrap().risk
   })
   inspect(join_quoted(risks), content="[\"Low\", \"Medium\", \"High\"]")
-  let methods = ["Analysis", "Inspection", "Test", "Demonstration"].map(method => {
-    parsed(requirement_body("designConstraint", "High", method)).requirements
+  let methods = ["Analysis", "Inspection", "Test", "Demonstration"].map(verification => {
+    parsed(requirement_body("designConstraint", "High", verification)).requirements
     .get("test_req")
     .unwrap().verify_method
   })
