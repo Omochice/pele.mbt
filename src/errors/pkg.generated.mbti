@@ -4,6 +4,8 @@ package "Omochice/pele/errors"
 // Values
 pub fn locate(String, Int32) -> (Int32, Int32, String)
 
+pub fn nested_too_deeply() -> PeleError
+
 pub fn pele_error(String, code? : ErrorCode, kind? : String, mermaid_type? : String, line? : Int32, column? : Int32, snippet? : String) -> PeleError
 
 pub fn syntax_error(String, String, Int32, String, lexical? : Bool) -> PeleError
