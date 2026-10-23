@@ -13,12 +13,13 @@ fn respond(source : String, options : String) -> (Int32, Json) {
         @xychart.xychart,
       ],
       source,
-      decode_options(@json.parse(options)),
+      decode_options(@util.parse_json(options)),
     )
     (0, success(result))
   } catch {
     @errors.PeleError(failure) => (1, pele_failure(failure))
-    error => (1, foreign_failure(error))
+    @util.JsonError(message, _) => (1, foreign_failure("SyntaxError", message))
+    error => (1, foreign_failure("TypeError", error.to_string()))
   }
 }
 
@@ -63,12 +64,13 @@ fn pele_failure(failure : @errors.Failure) -> Json {
 ///|
 /// Anything other than a `PeleError` comes from the options rather than the diagram, as pele
 /// would throw a JavaScript error before reading the text.
-fn foreign_failure(error : Error) -> Json {
+/// Options that are not JSON fail as `JSON.parse` fails on them.
+fn foreign_failure(name : String, message : String) -> Json {
   {
     "error": {
-      "name": "TypeError",
+      "name": Json(name),
       "code": Json::null(),
-      "message": Json(error.to_string()),
+      "message": Json(message),
       "type": Json::null(),
       "mermaidType": Json::null(),
     },
