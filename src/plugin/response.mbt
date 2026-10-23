@@ -1,6 +1,7 @@
 ///|
 fn respond(source : String, options : String) -> (Int32, Json) {
   try {
+    let options = @util.parse_json(options)
     let result = @core.render(
       [
         @agentflow.agentflow, @architecture.architecture, @block.block, @c4.c4, @class.class,
@@ -13,7 +14,7 @@ fn respond(source : String, options : String) -> (Int32, Json) {
         @xychart.xychart,
       ],
       source,
-      decode_options(@util.parse_json(options)),
+      decode_options(options),
     )
     (0, success(result))
   } catch {
