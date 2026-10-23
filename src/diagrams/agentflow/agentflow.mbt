@@ -1,6 +1,6 @@
 ///|
 /// Reads an agentflow as pele's agentflow diagram does before drawing it.
-/// Mermaid reads `inheritDir` from the `flowchart` section for agentflow too, and the host's edge limit applies.
+/// Mermaid reads `inheritDir` from the `flowchart` section for agentflow too, the host's edge limit applies, and positions count the `line_offset` lines of front matter.
 pub fn parse_model(
   source : String,
   config : @types.Config,
@@ -8,7 +8,6 @@ pub fn parse_model(
   line_offset : Int32,
   limits : @types.ParseLimits,
 ) -> AgentflowDb raise @errors.PeleError {
-  ignore(line_offset)
   let inherit_dir = match config.get("flowchart") {
     Some(Object(flow)) => flow.get("inheritDir") is Some(True)
     _ => false
@@ -21,6 +20,7 @@ pub fn parse_model(
     max_edges=limits.max_edges,
     inherit_dir~,
     direction?,
+    line_offset~,
   )
   if title is Some(title) && title != "" {
     db.title = Some(title)

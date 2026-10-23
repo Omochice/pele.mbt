@@ -91,8 +91,13 @@ let directions : Array[String] = ["TB", "BT", "RL", "LR", "TD"]
 /// An open `flow` or `global` block: its header, and the list and collect flag of its parent.
 priv struct Frame {
   global : Bool
+  /// Token index of the keyword.
+  at : Int32
   id : @flowchart.FlowText?
   title : @flowchart.FlowText?
+  data : String?
+  data_from : Int32
+  data_to : Int32
   mut list : Array[@flowchart.DocItem]
   mut collect : Bool
 }
@@ -103,6 +108,9 @@ priv struct Parser {
   tokens : Tokens
   db : AgentflowDb
   mut i : Int32
+  mut pending_data : String?
+  mut data_from : Int32
+  mut data_to : Int32
 }
 
 ///|
@@ -263,15 +271,56 @@ fn Parser::text_no_tags(
 }
 
 ///|
-/// Skips a metadata block, reporting whether there was one.
-fn Parser::skip_shape_data(self : Parser) -> Bool {
-  if self.kind() != SHAPE_DATA {
-    return false
-  }
+fn Parser::shape_data(self : Parser) -> String {
+  self.data_from = self.i
+  let out = StringBuilder()
+  out.write_string(self.take())
   while self.kind() == SHAPE_DATA {
-    self.i += 1
+    out.write_string(self.take())
   }
-  true
+  self.data_to = self.i - 1
+  out.to_string()
+}
+
+///|
+/// The span from the start of token `a` to the end of token `b`.
+fn Parser::span(self : Parser, a : Int32, b : Int32) -> Loc {
+  let locs = self.tokens.locs
+  {
+    first_line: locs[4 * a],
+    first_column: locs[4 * a + 1],
+    last_line: locs[4 * b + 2],
+    last_column: locs[4 * b + 3],
+  }
+}
+
+///|
+/// Gives the node the metadata block that follows it.
+fn Parser::attach(
+  self : Parser,
+  id : String,
+  data : String,
+  from : Int32,
+  to : Int32,
+) -> Unit raise @errors.PeleError {
+  let loc = self.span(from, to)
+  self.db.add_vertex(id, metadata=data, metadata_loc=loc)
+  self.db.extend_vertex_mapping(id, loc)
+}
+
+///|
+/// Gives a flow or a connector the metadata block of its header.
+fn Parser::attach_data(
+  self : Parser,
+  id : String,
+  frame : Frame,
+) -> Unit raise @errors.PeleError {
+  guard frame.data is Some(data) else { return }
+  self.db.add_vertex(
+    id,
+    metadata=data,
+    metadata_loc=self.span(frame.data_from, frame.data_to),
+  )
 }
 
 ///|
@@ -288,6 +337,7 @@ fn Parser::shaped(
 
 ///|
 fn Parser::vertex(self : Parser) -> String raise @errors.PeleError {
+  let from = self.i
   let id = self.id_string()
   let mut props = None
   let shaped = match self.kind() {
@@ -381,6 +431,11 @@ fn Parser::vertex(self : Parser) -> String raise @errors.PeleError {
       self.db.add_vertex(id, text=label, kind=shape, props?)
     None => self.db.add_vertex(id)
   }
+  self.db.add_vertex_mapping(
+    id,
+    shaped.map(s => s.1),
+    self.span(from, self.i - 1),
+  )
   id
 }
 
@@ -403,16 +458,25 @@ fn Parser::skip_spaces(self : Parser) -> Unit {
 
 ///|
 /// One node or an `&` group of them.
+/// The metadata block after the last one is left in `pending_data`.
 fn Parser::node(self : Parser) -> Array[String] raise @errors.PeleError {
   let ids = [self.styled_vertex()]
+  self.pending_data = None
   while true {
-    let data = self.skip_shape_data()
+    let data = if self.kind() == SHAPE_DATA {
+      Some(self.shape_data())
+    } else {
+      None
+    }
+    let from = self.data_from
+    let to = self.data_to
     if self.kind() != SPACE {
+      self.pending_data = data
       return ids
     }
     self.skip_spaces()
     if self.kind() != AMP {
-      if data {
+      if data is Some(_) {
         self.fail("'AMP'")
       }
       return ids
@@ -422,7 +486,11 @@ fn Parser::node(self : Parser) -> Array[String] raise @errors.PeleError {
       self.fail("'SPACE'")
     }
     self.skip_spaces()
-    ids.push(self.styled_vertex())
+    let next = self.styled_vertex()
+    if data is Some(data) {
+      self.attach(ids[ids.length() - 1], data, from, to)
+    }
+    ids.push(next)
   }
   ids
 }
@@ -460,10 +528,22 @@ fn Parser::link(self : Parser) -> @flowchart.LinkInfo raise @errors.PeleError {
 }
 
 ///|
+fn Parser::apply_pending(
+  self : Parser,
+  ids : Array[String],
+) -> Unit raise @errors.PeleError {
+  if self.pending_data is Some(data) {
+    self.attach(ids[ids.length() - 1], data, self.data_from, self.data_to)
+  }
+}
+
+///|
 fn Parser::vertex_statement(
   self : Parser,
 ) -> Array[String] raise @errors.PeleError {
+  let from = self.i
   let mut stmt = self.node()
+  self.apply_pending(stmt)
   let mut nodes = stmt
   while true {
     let t = self.kind()
@@ -472,7 +552,9 @@ fn Parser::vertex_statement(
     }
     let info = self.link()
     let next = self.node()
+    self.apply_pending(next)
     self.db.add_link(stmt, next, Some(info))
+    self.db.add_edge_mapping(next, self.span(from, self.i - 1))
     nodes = next + nodes
     stmt = next
   }
@@ -594,7 +676,7 @@ fn Parser::click_statement(self : Parser) -> Unit raise @errors.PeleError {
 
 ///|
 /// Reads `flow` or `connector` up to the separator: an id, an optional bracketed title, optional metadata.
-fn Parser::header(self : Parser) -> Frame raise @errors.PeleError {
+fn Parser::header(self : Parser, at : Int32) -> Frame raise @errors.PeleError {
   ignore(self.expect(SPACE, also=separators))
   let id = self.text_no_tags()
   let mut title : @flowchart.FlowText = { text: "", kind: Text, }
@@ -603,11 +685,25 @@ fn Parser::header(self : Parser) -> Frame raise @errors.PeleError {
     title = self.text()
     self.closed(SQE)
   }
-  ignore(self.skip_shape_data())
+  let data = if self.kind() == SHAPE_DATA {
+    Some(self.shape_data())
+  } else {
+    None
+  }
   if !is_separator_token(self.kind()) {
     self.fail("\{separators}, 'SHAPE_DATA'")
   }
-  { global: false, id: Some(id), title: Some(title), list: [], collect: false, }
+  {
+    global: false,
+    at,
+    id: Some(id),
+    title: Some(title),
+    data,
+    data_from: self.data_from,
+    data_to: self.data_to,
+    list: [],
+    collect: false,
+  }
 }
 
 ///|
@@ -655,10 +751,19 @@ fn Parser::statement(
       Ids([])
     }
     CONNECTOR => {
+      let at = self.i
       self.i += 1
-      let frame = self.header()
+      let frame = self.header(at)
+      let sep = self.i
       self.i += 1
-      Id(db.add_connector(frame.id, title?=frame.title))
+      let id = db.add_connector(frame.id, title?=frame.title)
+      self.attach_data(id, frame)
+      db.add_connector_mapping(
+        frame.id,
+        self.span(frame.at, frame.at),
+        self.span(sep, sep),
+      )
+      Id(id)
     }
     DIRECTION_TB | DIRECTION_BT | DIRECTION_RL | DIRECTION_LR | DIRECTION_TD => {
       self.i += 1
@@ -705,6 +810,7 @@ fn Parser::document(self : Parser) -> Unit raise @errors.PeleError {
     }
     if t == END {
       guard open.pop() is Some(frame) else { break }
+      let at = self.i
       self.i += 1
       if frame.global {
         self.db.add_global(list)
@@ -713,6 +819,12 @@ fn Parser::document(self : Parser) -> Unit raise @errors.PeleError {
         continue
       }
       let id = self.db.add_subgraph(frame.id, list, frame.title)
+      self.attach_data(id, frame)
+      self.db.add_subgraph_mapping(
+        frame.id,
+        self.span(frame.at, frame.at),
+        self.span(at, at),
+      )
       list = frame.list
       collect = frame.collect
       if collect {
@@ -726,19 +838,24 @@ fn Parser::document(self : Parser) -> Unit raise @errors.PeleError {
     } else if t == COMMENT {
       self.i += 1
     } else if t == FLOW || t == GLOBAL {
+      let at = self.i
       self.i += 1
       let frame = if t == GLOBAL || is_separator_token(self.kind()) {
         let bare : Frame = {
           global: t == GLOBAL,
+          at,
           id: None,
           title: None,
+          data: None,
+          data_from: 0,
+          data_to: 0,
           list,
           collect,
         }
         self.separator()
         bare
       } else {
-        let frame = self.header()
+        let frame = self.header(at)
         frame.list = list
         frame.collect = collect
         self.i += 1
@@ -798,7 +915,15 @@ pub fn parse_agentflow(
   } else {
     source
   }
-  let parser : Parser = { src, tokens: tokenize(src), db, i: 0, }
+  let parser : Parser = {
+    src,
+    tokens: tokenize(src),
+    db,
+    i: 0,
+    pending_data: None,
+    data_from: 0,
+    data_to: 0,
+  }
   while parser.kind() == SPACE ||
         parser.kind() == NEWLINE ||
         parser.kind() == COMMENT {

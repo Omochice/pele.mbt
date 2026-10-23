@@ -83,12 +83,17 @@ pub struct AgentflowDb {
 }
 pub fn AgentflowDb::add_class(Self, String, Array[String]) -> Unit
 pub fn AgentflowDb::add_connector(Self, @flowchart.FlowText?, title? : @flowchart.FlowText) -> String
+pub fn AgentflowDb::add_connector_mapping(Self, @flowchart.FlowText?, Loc, Loc) -> Unit
+pub fn AgentflowDb::add_edge_mapping(Self, Array[String], Loc) -> Unit
 pub fn AgentflowDb::add_global(Self, Array[@flowchart.DocItem]) -> Unit
 pub fn AgentflowDb::add_link(Self, Array[String], Array[String], @flowchart.LinkInfo?) -> Unit raise @errors.PeleError
 pub fn AgentflowDb::add_single_link(Self, String, String, @flowchart.LinkInfo?, id? : String) -> Unit raise @errors.PeleError
 pub fn AgentflowDb::add_subgraph(Self, @flowchart.FlowText?, Array[@flowchart.DocItem], @flowchart.FlowText?) -> String
-pub fn AgentflowDb::add_vertex(Self, String, text? : @flowchart.FlowText, kind? : String, style? : Array[String], classes? : Array[String], dir? : String, props? : Map[String, String]) -> Unit
+pub fn AgentflowDb::add_subgraph_mapping(Self, @flowchart.FlowText?, Loc, Loc) -> Unit
+pub fn AgentflowDb::add_vertex(Self, String, text? : @flowchart.FlowText, kind? : String, style? : Array[String], classes? : Array[String], dir? : String, props? : Map[String, String], metadata? : String, metadata_loc? : Loc) -> Unit raise @errors.PeleError
+pub fn AgentflowDb::add_vertex_mapping(Self, String, String?, Loc) -> Unit
 pub fn AgentflowDb::destruct_link(Self, String, start? : String) -> @flowchart.LinkInfo
+pub fn AgentflowDb::extend_vertex_mapping(Self, String, Loc) -> Unit
 pub fn AgentflowDb::new(max_edges? : Int32, inherit_dir? : Bool, direction? : String, line_offset? : Int32) -> Self
 pub fn AgentflowDb::semantic_model(Self) -> SemanticModel
 pub fn AgentflowDb::set_acc_description(Self, String) -> Unit
@@ -101,6 +106,7 @@ pub fn AgentflowDb::set_tooltip(Self, String, String?) -> Unit
 pub fn AgentflowDb::subgraph(Self, String) -> AgentSubgraph?
 pub fn AgentflowDb::update_link(Self, Array[String], Array[String]) -> Unit raise @errors.PeleError
 pub fn AgentflowDb::update_link_interpolate(Self, Array[String], String) -> Unit raise @errors.PeleError
+pub fn AgentflowDb::vertex_kind(Self, AgentNode) -> String
 
 pub(all) struct Diagnostic {
   id : String
@@ -124,6 +130,13 @@ pub(all) struct ElementPosition {
   mut end_column : Int32
   start_index : Int32
   end_index : Int32
+}
+
+pub(all) struct Loc {
+  first_line : Int32
+  first_column : Int32
+  last_line : Int32
+  last_column : Int32
 }
 
 pub(all) struct SemanticConnector {

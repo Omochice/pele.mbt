@@ -27,6 +27,9 @@ pub struct AgentflowDb {
   priv max_edges : Int32?
   priv inherit_dir : Bool
   priv base_direction : String?
+  /// Indexes of the mappings of bare references, which become attachments when a metadata block follows them.
+  priv bare_mappings : Map[Int32, Unit]
+  priv first_mapping : Map[String, ElementMapping]
 }
 
 ///|
@@ -63,6 +66,8 @@ pub fn AgentflowDb::new(
     max_edges,
     inherit_dir,
     base_direction: direction,
+    bare_mappings: Map([]),
+    first_mapping: Map([]),
   }
 }
 
@@ -147,11 +152,58 @@ pub fn AgentflowDb::add_vertex(
   classes? : Array[String],
   dir? : String,
   props? : Map[String, String],
-) -> Unit {
+  metadata? : String,
+  metadata_loc? : Loc,
+) -> Unit raise @errors.PeleError {
   if @util.trim(id) == "" {
     return
   }
-  if id == "connectors" || self.edge_by_id.contains(id) {
+  let mut doc : Json? = None
+  let mut fields : Map[String, Json]? = None
+  let mut authored_shape : String? = None
+  if metadata is Some(source) {
+    let parsed = self.parse_metadata(id, source, metadata_loc)
+    if parsed is Object(object) {
+      fields = Some(object)
+      if object.get("shape") is Some(String(shape)) {
+        authored_shape = Some(shape)
+        object["shape"] = Json::string(
+          resolve_shape_alias(Some(shape)).unwrap(),
+        )
+      }
+    }
+    // A block that reads as a falsy scalar counts as no metadata, as in pele.
+    if @util.js_truthy(parsed) {
+      doc = Some(parsed)
+    }
+  }
+  if self.subgraph_lookup.get(id) is Some(subgraph) && doc is Some(doc) {
+    subgraph.metadata = Some(merge_metadata(subgraph.metadata, doc))
+    return
+  }
+  if self.connectors.get(id) is Some(connector) && doc is Some(doc) {
+    connector.metadata = Some(merge_metadata(connector.metadata, doc))
+    return
+  }
+  // Mermaid reserves this id and creates no node for it.
+  if id == "connectors" {
+    return
+  }
+  if self.edge_by_id.get(id) is Some(edge) {
+    if fields is Some(fields) {
+      if fields.get("animate") is Some(value) {
+        edge.animate = Some(value)
+      }
+      if fields.get("animation") is Some(value) {
+        edge.animation = Some(value)
+      }
+      if fields.get("curve") is Some(value) {
+        edge.interpolate = Some(value)
+      }
+    }
+    if doc is Some(doc) {
+      edge.metadata = Some(merge_metadata(edge.metadata, doc))
+    }
     return
   }
   let vertex = match self.nodes.get(id) {
@@ -207,6 +259,105 @@ pub fn AgentflowDb::add_vertex(
         }
       }
   }
+  guard doc is Some(doc) else { return }
+  vertex.metadata = Some(merge_metadata(vertex.metadata, doc))
+  guard fields is Some(fields) else { return }
+  let shape = fields.get("shape").unwrap_or(Json::null())
+  if @util.js_truthy(shape) {
+    let authored = match authored_shape {
+      Some(authored) => authored
+      None =>
+        raise self.shape_error(
+          "No such shape: \{shape.stringify()}.",
+          metadata_loc,
+        )
+    }
+    if @flowchart.has_capital(authored) || authored.contains("_") {
+      raise self.shape_error(
+        "No such shape: \{authored}. Shape names should be lowercase.",
+        metadata_loc,
+      )
+    }
+    let name = @util.js_string(shape)
+    if !is_valid_shape(name) {
+      raise self.shape_error("No such shape: \{name}.", metadata_loc)
+    }
+    vertex.kind = Some(name)
+  }
+  let label = fields.get("label").unwrap_or(Json::null())
+  if @util.js_truthy(label) {
+    vertex.text = Some(@util.js_string(label))
+    vertex.label_type = @flowchart.label_type_of(fields.get("labelType"))
+  }
+}
+
+///|
+/// The line and column pele reports for a metadata block.
+fn AgentflowDb::block_at(self : AgentflowDb, loc : Loc?) -> (Int32, Int32) {
+  match loc {
+    Some(loc) => (loc.first_line + self.line_offset, loc.first_column + 1)
+    None => (0, 0)
+  }
+}
+
+///|
+fn AgentflowDb::shape_error(
+  self : AgentflowDb,
+  message : String,
+  loc : Loc?,
+) -> @errors.PeleError {
+  let (line, column) = self.block_at(loc)
+  @errors.pele_error(message, code=Semantic, kind="agentflow", line~, column~)
+}
+
+///|
+/// Parses a metadata block: a single-line block as the body of a flow mapping, a multi-line one as block YAML.
+/// Block YAML rejects the comma-separated style of the single-line form, so a failing multi-line block is tried once more without the commas.
+fn AgentflowDb::parse_metadata(
+  self : AgentflowDb,
+  id : String,
+  source : String,
+  loc : Loc?,
+) -> Json raise @errors.PeleError {
+  let multiline = source.contains("\n")
+  let yaml = if multiline { source + "\n" } else { "{\n" + source + "\n}" }
+  let parsed = @util.parse_yaml(yaml) catch {
+    @util.YamlError(message) => {
+      let stripped = if multiline {
+        strip_line_trailing_commas(source)
+      } else {
+        source
+      }
+      let retried = if stripped != source {
+        Some(@util.parse_yaml(stripped + "\n")) catch {
+          _ => None
+        }
+      } else {
+        None
+      }
+      match retried {
+        Some(retried) => retried
+        None => {
+          let (line, column) = self.block_at(loc)
+          let at = if loc is Some(_) { " (\{line}:\{column})" } else { "" }
+          raise @errors.pele_error(
+            "Metadata of \"\{id}\" is not valid YAML. \{message}\{at}",
+            code=Syntax,
+            kind="agentflow",
+            line~,
+            column~,
+          )
+        }
+      }
+    }
+  }
+  strip_prototype_keys(
+    if parsed is Null {
+      Json::object(Map([]))
+    } else {
+      parsed
+    },
+  )
 }
 
 ///|
@@ -622,17 +773,4 @@ pub fn AgentflowDb::add_connector(
 /// The flow of the id, if there is one.
 pub fn AgentflowDb::subgraph(self : AgentflowDb, id : String) -> AgentSubgraph? {
   self.subgraph_lookup.get(id)
-}
-
-///|
-/// The diagram with presentation-only controls left out, for tools that read what it means.
-pub fn AgentflowDb::semantic_model(self : AgentflowDb) -> SemanticModel {
-  {
-    direction: self.direction,
-    vertices: [],
-    edges: [],
-    subgraphs: [],
-    connectors: [],
-    diagnostics: self.diagnostics,
-  }
 }

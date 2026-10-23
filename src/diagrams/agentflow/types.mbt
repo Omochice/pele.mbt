@@ -38,6 +38,15 @@ pub(all) struct AgentEdge {
 }
 
 ///|
+/// A source span as Jison reports it: lines start at 1, columns at 0.
+pub(all) struct Loc {
+  first_line : Int32
+  first_column : Int32
+  last_line : Int32
+  last_column : Int32
+}
+
+///|
 /// A span of the source, with lines from 1 and columns from 0, and the lines of front matter added.
 /// Mermaid builds its parser without ranges, so the indexes are always zero.
 pub(all) struct ElementPosition {
