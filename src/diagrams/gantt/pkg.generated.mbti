@@ -8,11 +8,17 @@ import {
 // Values
 pub fn add_time(@date.JsDate, Double, String) -> @date.JsDate
 
+pub fn auto_ticks(Double, Double, Double) -> Array[Double]
+
 pub fn format_date(@date.JsDate, String) -> String?
+
+pub fn interval_ticks(String, String, Double, Double, Double) -> Array[Double]?
 
 pub fn parse_duration(String) -> (Double, String)
 
 pub fn parse_strict(String, String, @date.JsDate) -> @date.JsDate?
+
+pub fn time_format(String, @date.JsDate) -> String
 
 // Errors
 
