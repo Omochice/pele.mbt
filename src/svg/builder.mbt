@@ -173,8 +173,10 @@ pub fn write_label(
     lines[0][0].math is None &&
     lines[0][0].style == 0 {
     out.write(
-      "<text\{attrs} x=\"\{num(cx)}\" y=\"\{num(top + lh / 2 + shift)}\" text-anchor=\"middle\">\{esc(lines[0][0].text)}</text>",
+      "<text\{attrs} x=\"\{num(cx)}\" y=\"\{num(top + lh / 2 + shift)}\" text-anchor=\"middle\">",
     )
+    out.write_esc(lines[0][0].text)
+    out.write("</text>")
     return
   }
   let shared = shared_style(label)
@@ -219,17 +221,19 @@ pub fn write_label(
           extra.write("</svg>")
         } else if span.text != "" {
           body.write(
-            "<tspan x=\"\{num(x)}\" y=\"\{num(y)}\" text-anchor=\"start\"\{span_style(span.style & shared.lnot())}>\{esc(span.text)}</tspan>",
+            "<tspan x=\"\{num(x)}\" y=\"\{num(y)}\" text-anchor=\"start\"\{span_style(span.style & shared.lnot())}>",
           )
+          body.write_esc(span.text)
+          body.write("</tspan>")
         }
         x += span.width
       }
     } else {
       for j, span in line {
         let pos = if j == 0 { " x=\"\{num(cx)}\" y=\"\{num(y)}\"" } else { "" }
-        body.write(
-          "<tspan\{pos}\{span_style(span.style & shared.lnot())}>\{esc(span.text)}</tspan>",
-        )
+        body.write("<tspan\{pos}\{span_style(span.style & shared.lnot())}>")
+        body.write_esc(span.text)
+        body.write("</tspan>")
       }
       if line.is_empty() {
         body.write("<tspan x=\"\{num(cx)}\" y=\"\{num(y)}\"> </tspan>")

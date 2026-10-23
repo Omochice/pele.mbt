@@ -63,13 +63,12 @@ pub fn with_title_markup(
   let shift = label.height + 12
   let full = @util.js_max(width, (label.width + 2 * pad).ceil())
   let titled = Markup::new()
-  titled.write(
-    label_svg(
-      label,
-      full / 2,
-      pad + label.height / 2,
-      " class=\"pele-title\" font-weight=\"var(--_tw)\"",
-    ),
+  write_label(
+    titled,
+    label,
+    full / 2,
+    pad + label.height / 2,
+    " class=\"pele-title\" font-weight=\"var(--_tw)\"",
   )
   titled.write_group(
     "<g transform=\"translate(\{num((full - width) / 2)},\{num(shift)})\">",

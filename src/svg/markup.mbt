@@ -140,6 +140,10 @@ pub fn Markup::write_esc(
   self : Markup,
   text : String,
 ) -> Unit raise @errors.PeleError {
+  if text.length() <= CHUNK_LENGTH {
+    self.write(esc(text))
+    return
+  }
   let mut from = 0
   let mut carry = ""
   while from < text.length() {
