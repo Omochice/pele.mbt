@@ -371,6 +371,13 @@ export const CASES = [
       `classDiagram\n    namespace \`${'&'.repeat(54000000)}\`["Company.Engineering.Backend"] {\n        class Developer {\n            +writeCode()\n        }\n    }\n    namespace Company.Engineering.Frontend {\n        class Designer {\n            +createMockup()\n        }\n    }\n    namespace Company.Engineering {\n        class TechLead {\n            +planSprint()\n        }\n    }\n    TechLead --> Developer : leads\n    TechLead --> Designer : leads\n`,
     { ...RAISED, maxWidth: 400 },
   ),
+  // A style is escaped into the style attribute of each element it applies to.
+  lazy('class', 'one class colored by many &', () => `classDiagram\nclass A\nstyle A color:${'&'.repeat(54000000)}\n`, RAISED),
+  lazy('class', 'one class colored past V8', () => `classDiagram\nclass A\nstyle A color:${'&'.repeat(110000000)}\n`, RAISED),
+  // The stroke is written in the class's box and again in its dividers.
+  lazy('class', 'one class stroked by many &', () => `classDiagram\nclass A {\n  x\n}\nstyle A stroke:${'&'.repeat(54000000)}\n`, RAISED),
+  // A static member is underlined in its own copy of the class's text style.
+  lazy('class', 'a static member of a class colored by many &', () => `classDiagram\nclass A {\n  +x$\n}\nstyle A color:${'&'.repeat(54000000)}\n`, RAISED),
 ];
 
 // A case whose source is built only when the check reaches it, as a getter in the source's place,

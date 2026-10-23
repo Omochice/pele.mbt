@@ -226,3 +226,43 @@ test "a struck namespace title named by tens of millions of entities fails as ne
     content="limit: Diagram is nested too deeply. class classDiagram",
   )
 }
+
+///|
+#skip("slow: escapes 54 million characters into over 268 million code units")
+test "a class colored by tens of millions of entities is drawn as pele draws it" {
+  inspect(
+    outcome("classDiagram\nclass A\nstyle A color:\{"&".repeat(54000000)}\n"),
+    content="270001172",
+  )
+}
+
+///|
+#skip("slow: escapes 110 million characters before it fails")
+test "a class colored by over a hundred million entities fails as nested too deeply" {
+  inspect(
+    outcome("classDiagram\nclass A\nstyle A color:\{"&".repeat(110000000)}\n"),
+    content="limit: Diagram is nested too deeply. class classDiagram",
+  )
+}
+
+///|
+#skip("slow: escapes 54 million characters twice before it fails")
+test "a class stroked by tens of millions of entities fails as nested too deeply" {
+  inspect(
+    outcome(
+      "classDiagram\nclass A {\n  x\n}\nstyle A stroke:\{"&".repeat(54000000)}\n",
+    ),
+    content="limit: Diagram is nested too deeply. class classDiagram",
+  )
+}
+
+///|
+#skip("slow: escapes 54 million characters twice before it fails")
+test "a static member of a class colored by tens of millions of entities fails as nested too deeply" {
+  inspect(
+    outcome(
+      "classDiagram\nclass A {\n  +x$\n}\nstyle A color:\{"&".repeat(54000000)}\n",
+    ),
+    content="limit: Diagram is nested too deeply. class classDiagram",
+  )
+}
