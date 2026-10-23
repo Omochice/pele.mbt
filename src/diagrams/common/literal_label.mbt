@@ -202,8 +202,7 @@ pub fn break_label(
 ///|
 /// Writes `label` with every line starting at `x`, the first line's top at `top`.
 /// A line is anchored at its start and keeps its spaces, so that where it begins does not depend on how its text was measured.
-/// Aborts where the markup would be longer than V8 allows, because a caller that takes a string
-/// has no error to report it with.
+/// Aborts where the label would be longer than V8 allows, which `write_left_label` reports instead.
 pub fn left_label_svg(
   label : @text.Label,
   x : Double,
@@ -218,8 +217,8 @@ pub fn left_label_svg(
 }
 
 ///|
-/// Writes `label` to `out` as `left_label_svg` draws it, so that a label can be as long as the
-/// markup holding it.
+/// Writes `label` to `out` as `left_label_svg` draws it, a piece at a time, so a label can be as
+/// long as the markup holding it.
 /// Raises pele's `limit` error when the markup would be longer than V8 allows.
 pub fn write_left_label(
   out : @svg.Markup,
@@ -244,19 +243,22 @@ pub fn write_left_label(
       @svg.write_label(out, line, x + width / 2, cy, attrs)
       continue
     }
-    let text = StringBuilder()
+    let text = @svg.Markup::new()
     for span in spans {
       let own = @svg.span_style(span.style & shared.lnot())
       if own != "" {
-        text.write_string("<tspan\{own}>\{@svg.esc(span.text)}</tspan>")
+        text.write("<tspan\{own}>")
+        @svg.write_esc(text, span.text)
+        text.write("</tspan>")
       } else {
-        text.write_string(@svg.esc(span.text))
+        @svg.write_esc(text, span.text)
       }
     }
-    let text = text.to_string()
-    if text != "" {
-      out.write(
-        "\{open} x=\"\{@svg.num(x)}\" y=\"\{@svg.num(cy + label.size * 0.35)}\" text-anchor=\"start\" xml:space=\"preserve\">\{text}</text>",
+    if !text.is_empty() {
+      out.write_group(
+        "\{open} x=\"\{@svg.num(x)}\" y=\"\{@svg.num(cy + label.size * 0.35)}\" text-anchor=\"start\" xml:space=\"preserve\">",
+        text,
+        "</text>",
       )
     }
   }
