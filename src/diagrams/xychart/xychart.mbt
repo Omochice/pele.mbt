@@ -4,6 +4,7 @@ pub let xychart : @types.Diagram = {
   kind: "xychart",
   section: Some("xyChart"),
   keep_comments: false,
+  math: false,
   parse: (source, _, title, _, _) => {
     let db = XyChartDb::new()
     db.title = title

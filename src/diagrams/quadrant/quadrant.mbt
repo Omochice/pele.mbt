@@ -4,6 +4,7 @@ pub let quadrant : @types.Diagram = {
   kind: "quadrantChart",
   section: None,
   keep_comments: false,
+  math: false,
   parse: (source, _, title, _, _) => {
     let db = QuadrantDb::new(title)
     parse_quadrant(source, db)

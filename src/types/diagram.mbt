@@ -20,5 +20,7 @@ pub(all) struct Diagram {
   section : String?
   /// Whether `parse` is given the text with its `%%` comment lines kept.
   keep_comments : Bool
+  /// Whether its labels typeset `$$` math with the host's typesetter.
+  math : Bool
   parse : (String, Config, String?, Int32, ParseLimits) -> Parsed raise @errors.PeleError
 }

@@ -4,6 +4,7 @@ pub let journey : @types.Diagram = {
   kind: "journey",
   section: None,
   keep_comments: false,
+  math: false,
   parse: (source, _, title, _, _) => {
     let db = JourneyDb::new(title)
     parse_journey(source, db)

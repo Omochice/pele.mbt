@@ -35,6 +35,7 @@ pub let agentflow : @types.Diagram = {
   kind: "agentflow",
   section: None,
   keep_comments: true,
+  math: false,
   parse: (source, config, title, line_offset, limits) => {
     let db = parse_model(source, config, title, line_offset, limits)
     // pele builds the graph while parsing, so the parsed model already holds its diagnostics.

@@ -1,10 +1,10 @@
 ///|
 /// The sequence diagram type.
-/// pele marks it as one whose labels may hold math; with no typesetter here, math stays text, as it does in pele without one.
 pub let sequence : @types.Diagram = {
   kind: "sequence",
   section: None,
   keep_comments: false,
+  math: true,
   parse: (source, config, title, _, _) => {
     let wrap = match config.get("wrap") {
       Some(True) => Some(true)

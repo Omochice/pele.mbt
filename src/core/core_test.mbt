@@ -76,6 +76,7 @@ fn icon_probe(name : String) -> @types.Diagram {
     kind: "pie",
     section: None,
     keep_comments: false,
+    math: false,
     parse: (_, _, _, _, _) => {
       render: (_, options) => {
         let given = match options.icons {

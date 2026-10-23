@@ -216,6 +216,7 @@ fn outcome(
     kind: "agentflow",
     section: None,
     keep_comments: true,
+    math: false,
     parse: (text, config, title, line_offset, limits) => {
       model.val = Some(
         @agentflow.parse_model(text, config, title, line_offset, limits),

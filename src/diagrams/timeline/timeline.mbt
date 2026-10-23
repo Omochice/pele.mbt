@@ -4,6 +4,7 @@ pub let timeline : @types.Diagram = {
   kind: "timeline",
   section: None,
   keep_comments: false,
+  math: false,
   parse: (source, _, title, _, _) => {
     let db = TimelineDb::new()
     db.title = title

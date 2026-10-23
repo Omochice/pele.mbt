@@ -15,6 +15,7 @@ pub(all) struct Diagram {
   kind : String
   section : String?
   keep_comments : Bool
+  math : Bool
   parse : (String, Map[String, Json], String?, Int32, ParseLimits) -> Parsed raise @errors.PeleError
 }
 
@@ -54,6 +55,7 @@ pub(all) struct RenderOptions {
   now : Double?
   measurer : @text.TextMeasurer?
   icons : ((String) -> String?)?
+  math : ((String, Double) -> Json?)?
 }
 pub fn RenderOptions::default() -> Self
 pub fn RenderOptions::text_measurer(Self) -> @text.TextMeasurer

@@ -99,5 +99,6 @@ fn decode_options(json : Json) -> @types.RenderOptions {
     now: number_field(fields, "now"),
     measurer: decode_measurer(fields.get("measurer")),
     icons: icons_field(fields),
+    math: None,
   }
 }

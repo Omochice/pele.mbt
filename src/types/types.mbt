@@ -31,6 +31,9 @@ pub(all) struct RenderOptions {
   now : Double?
   measurer : @text.TextMeasurer?
   icons : IconResolver?
+  /// pele's `MathResolver`: the markup for the TeX between `$$` delimiters at a font size, as
+  /// the object the host returns, which pele checks before drawing it.
+  math : ((String, Double) -> Json?)?
 }
 
 ///|
@@ -58,6 +61,7 @@ pub fn RenderOptions::default() -> RenderOptions {
     now: None,
     measurer: None,
     icons: None,
+    math: None,
   }
 }
 

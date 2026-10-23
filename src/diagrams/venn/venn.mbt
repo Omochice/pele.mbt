@@ -4,6 +4,7 @@ pub let venn : @types.Diagram = {
   kind: "venn",
   section: None,
   keep_comments: false,
+  math: false,
   parse: (source, _, title, _, _) => {
     let model = parse_venn(source)
     // A `title` statement in the diagram wins over the one in the front matter.

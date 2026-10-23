@@ -22,6 +22,7 @@ fn golden_outcome(source : String) -> String {
     kind: "flowchart",
     section: None,
     keep_comments: false,
+    math: true,
     parse: (text, config, title, _, limits) => {
       model.val = Some(@flowchart.parse_model(text, config, title, limits))
       { render: (_, _) => { svg: "", width: 0, height: 0, links: [], }, }

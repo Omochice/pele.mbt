@@ -4,6 +4,7 @@ pub let gantt : @types.Diagram = {
   kind: "gantt",
   section: None,
   keep_comments: false,
+  math: false,
   parse: (source, config, title, _, _) => {
     let db = GanttDb::new()
     if title is Some(text) && text != "" {

@@ -4,6 +4,7 @@ pub let c4 : @types.Diagram = {
   kind: "c4",
   section: None,
   keep_comments: false,
+  math: false,
   parse: (source, _, title, _, _) => {
     let db = C4Db::new(title?)
     parse_c4(source, db)

@@ -18,6 +18,7 @@ pub let requirement : @types.Diagram = {
   kind: "requirement",
   section: None,
   keep_comments: false,
+  math: true,
   parse: (source, _, title, _, _) => {
     let db = parse_model(source, title)
     { render: (config, options) => render_requirement(db, config, options), }

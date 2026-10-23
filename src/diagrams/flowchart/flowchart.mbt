@@ -24,6 +24,7 @@ pub let flowchart : @types.Diagram = {
   kind: "flowchart",
   section: None,
   keep_comments: false,
+  math: true,
   parse: (source, config, title, _, limits) => {
     let db = parse_model(source, config, title, limits)
     { render: (config, options) => render_flowchart(db, config, options), }

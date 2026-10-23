@@ -16,6 +16,7 @@ pub let swimlane : @types.Diagram = {
   kind: "swimlane",
   section: None,
   keep_comments: false,
+  math: true,
   parse: (source, config, title, _, limits) => {
     let db = parse_swimlane(source, config, title, limits)
     { render: (config, options) => render_swimlane(db, config, options), }

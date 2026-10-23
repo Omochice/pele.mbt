@@ -4,6 +4,7 @@ pub let sankey : @types.Diagram = {
   kind: "sankey",
   section: None,
   keep_comments: false,
+  math: false,
   parse: (source, _, title, _, _) => {
     let db = SankeyDb::new()
     if title is Some(text) && text != "" {
