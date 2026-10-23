@@ -161,23 +161,31 @@ This ceiling is the one intentional, platform-imposed difference from pele; ever
 ### Which diagrams can reach it
 
 A diagram reaches the ceiling when some repeated part of its source multiplies into the SVG without a cap, so that a source within the limit draws an SVG past it.
-Every diagram that writes a `classDef` or `style` into each of many elements can.
-The flowchart (and the swimlane it renders through), class, state, ER, block, agentflow, requirement, treemap, use case, architecture, C4, Cynefin, and Gantt diagrams build their SVG with `Markup` and so fail with a `limit` error where pele does; each has an amplifying input in `scripts/string-length-cases.mjs` and a skipped test in `src/diagrams/<diagram>/string_length_test.mbt`.
-The architecture, Cynefin, and Gantt diagrams reach it through the host icon drawn in each service, item, or section label.
-The C4 diagram draws no host markup, only an empty icon box of about 260 code units for each icon span in a label, so it reaches V8's longest string only from a source of tens of millions of code units under a raised `limit`.
-The kanban, mindmap, and sequence diagrams build theirs with `Markup` as well, and their inputs amplify through a host icon drawn on each card, node, or message.
-So does the git graph, which draws neither host icons nor styles but writes each `&` of a commit id as five code units twice, in the commit's `data-id` and in its label, so that with the `limit` option raised a source a tenth of V8's longest string reaches the ceiling.
+Every diagram that writes a `classDef` or `style` into each of many elements can, and so can every diagram that draws host icons, because the icon markup the host supplies is unbounded.
+The `limit` option caps only the length of the source, so once it is raised a diagram also reaches the ceiling by count alone, because an element draws hundreds of code units from a source line of a dozen and few diagrams cap how many elements they draw.
+Repeated text amplifies further, because `&` escapes to five code units and an element often writes its name both in its `data-id` and in its label.
 
-The other diagrams still build their SVG with a plain `StringBuilder`, which traps when it grows past 2^28 code units rather than reporting the `limit` error.
-A diagram that draws host icons can be driven there, because the icon markup the host supplies is unbounded and a label may hold many icon spans; the icon-drawing ones not yet converted are the treeview and wardley diagrams, and pie draws host icons in its slice labels as well.
-Moving each to `Markup` is the same change the diagrams above have had; it is follow-up work.
+The flowchart (and the swimlane it renders through), class, state, ER, block, agentflow, requirement, treemap, use case, architecture, C4, Cynefin, Gantt, kanban, mindmap, sequence, git graph, tree view, Wardley map, pie, event model, Ishikawa, journey, packet, quadrant, radar, railroad, sankey, timeline, Venn, and XY chart diagrams build their SVG with `Markup` and so fail with a `limit` error where pele does; each has an amplifying input in `scripts/string-length-cases.mjs` and a skipped test in `src/diagrams/<diagram>/string_length_test.mbt`.
+The C4 diagram draws no host markup, only an empty icon box of about 260 code units for each icon span in a label, so it reaches V8's longest string only from a source of tens of millions of code units under a raised `limit`.
+The git graph draws neither host icons nor styles but writes each `&` of a commit id as five code units twice, in the commit's `data-id` and in its label, so that with the `limit` option raised a source a tenth of V8's longest string reaches the ceiling.
+Some diagrams reach the ceiling only past a cap that looks as if it bounded them:
+
+- pele draws no host icons or math in a pie chart, and only the slices of at least one percent, but every entry has a legend item.
+- The packet diagram draws at most 10000 rows, which keeps it under 2^28 code units at the default 32 bits per row, but `packet.bitsPerRow` may be raised to 4096.
+- The radar chart draws at most 32 graticule rings, but a polygon ring passes through every axis.
+- The ids of an event model's time frames have at most three digits, which bounds the frames, but each frame draws the whole data block it names.
+
+Laying out a Venn diagram takes pele time that grows faster than the number of sets, so the Venn input puts many texts in one set instead.
+
+The event model, Ishikawa, and journey diagrams are drawn down for a narrow host after they are drawn across, so each also has an input whose drawing down pele draws between 2^28 code units and the hold limit.
+
+The info diagram draws only its title and pele's version, so no part of it repeats; it reaches the ceiling only through a single title or accessible description.
 
 A single label can reach the ceiling on its own, however small the diagram, because each of its icon spans draws the host's drawing of the icon and each of its `$$…$$` spans draws the host's math markup.
 `write_label`, `write_edge_label` and `write_struck_title` in `src/svg/` write a label to `Markup` with each host drawing as a piece of its own, and `label_svg`, `edge_label_svg` and `struck_title` make their strings from them, aborting past V8's longest string since a string result has no error to carry.
 The flowchart writes its node labels, cluster titles and edge labels with them, and the swimlane its lane titles, so those fail with the `limit` error where pele does; the cases "host icons in one node label", "one node label longer than a doubling StringBuilder holds" and "host icons in one lane title" check it.
-A diagram title is laid out without math and drawn without host icons, so it is bounded by its source and cannot reach the ceiling.
-The class, state, ER, block, agentflow and use case diagrams still take their labels as strings from `label_svg`, so one label of thousands of host icons traps there although their markup fails as pele does, and the requirement diagram typesets math into labels taken the same way.
+The other diagrams still take their labels, titles and accessible descriptions as single strings, so one of them of thousands of host icons, or of tens of millions of `&`, traps there although their markup fails as pele does.
 Moving their call sites to the writers is follow-up work.
 
-A diagram cannot reach the ceiling on its own structure when its SVG is bounded by a small multiple of its source, which the `limit` option caps: a source long enough to draw an oversized SVG is itself rejected first, at a different point than pele's concatenation.
-The gantt chart caps its axis ticks, the packet diagram its SVG by the bit count, and the radar chart its graticule rings, so those paths do not amplify past the cap, though gantt and radar can still amplify through the host icons they draw.
+A diagram that is drawn twice to fit a narrow host holds its first drawing to the hold limit as well.
+When that first drawing passes the hold limit and pele goes on to a second drawing, the port fails with its hold-limit error where pele draws the second drawing within the hold limit, or fails with "Diagram is nested too deeply." on it.

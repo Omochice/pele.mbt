@@ -1,7 +1,7 @@
 // The inputs scripts/check-string-length.mjs renders, as [diagram, name, source, options].
 // The options are in the JSON form the plugin reads, so an icon resolver is a map from name to fragment.
-// Each diagram that can repeat a long string many times has a source just past V8's longest
-// string, the same as its skipped test in src/diagrams/<diagram>/string_length_test.mbt.
+// Each diagram that can repeat a long string or a short element many times has a source just past
+// V8's longest string, the same as its skipped test in src/diagrams/<diagram>/string_length_test.mbt.
 // The diagrams missing here cannot: README.md under golden/ says why for each.
 
 const names = (prefix, count) => Array.from({ length: count }, (_, i) => `${prefix}${i}`);
