@@ -16,9 +16,40 @@ pub fn slice(text : String, start : Int32, end? : Int32) -> String {
   }
   if from >= to {
     ""
+  } else if to - from <= 2 && short_ascii(text, from, to) is Some(short) {
+    short
   } else {
     text.unsafe_substring(start=from, end=to)
   }
+}
+
+///|
+/// The strings of one and of two ASCII code units, each made the first time it is sliced.
+let short_ascii_strings : FixedArray[String?] = FixedArray::make(
+  128 + 128 * 128,
+  None,
+)
+
+///|
+/// The shared string of the one or two code units from `from` to `to`, when they are ASCII.
+/// A lexer slices a token's text for each of tens of millions of one-character tokens, and a
+/// string of its own for each would hold several times the source.
+fn short_ascii(text : String, from : Int32, to : Int32) -> String? {
+  let first = text.unsafe_get(from).to_int()
+  guard first < 128 else { return None }
+  let index = if to - from == 1 {
+    first
+  } else {
+    let second = text.unsafe_get(from + 1).to_int()
+    guard second < 128 else { return None }
+    128 + first * 128 + second
+  }
+  if short_ascii_strings[index] is Some(short) {
+    return Some(short)
+  }
+  let short = text.unsafe_substring(start=from, end=to)
+  short_ascii_strings[index] = Some(short)
+  Some(short)
 }
 
 ///|
