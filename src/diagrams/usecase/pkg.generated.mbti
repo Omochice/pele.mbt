@@ -29,7 +29,7 @@ pub fn parse_ordered_json(String, () -> (Int32, Int32)) -> Map[String, Json] rai
 
 pub fn parse_usecase(String, title? : String) -> UsecaseModel raise @errors.PeleError
 
-pub fn render_usecase(UsecaseModel, Map[String, Json], @types.RenderOptions) -> @types.Rendered
+pub fn render_usecase(UsecaseModel, Map[String, Json], @types.RenderOptions) -> @types.Rendered raise @errors.PeleError
 
 pub fn token_name(Int32) -> String
 

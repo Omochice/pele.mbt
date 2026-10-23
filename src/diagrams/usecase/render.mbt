@@ -323,7 +323,7 @@ pub fn render_usecase(
   model : UsecaseModel,
   config : @types.Config,
   options : @types.RenderOptions,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   if !@common.runs_across(Some(model.direction)) {
     return draw(model, config, options, false)
   }
@@ -424,7 +424,7 @@ fn draw(
   config : @types.Config,
   options : @types.RenderOptions,
   turned : Bool,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   let graph = build_usecase_graph(model)
   let size = options.font_size.unwrap_or(16)
   let small = (size * 0.875).round()
@@ -678,8 +678,8 @@ fn draw(
     @svg.mark_crossings(crossings, e.route)
   }
   attach_ends(cedges, cnodes, views)
-  let clusters = StringBuilder()
-  let nodes_out = StringBuilder()
+  let clusters = @svg.Markup::new()
+  let nodes_out = @svg.Markup::new()
   for i, view in views {
     let c = cnodes[i]
     let node = view.node
@@ -718,7 +718,7 @@ fn draw(
           icons?=options.icons,
         )
       }
-      clusters.write_string(
+      clusters.write(
         "<g class=\"pele-cluster pele-boundary\{classes}\" data-id=\"\{id}\">\{body}</g>",
       )
       continue
@@ -848,12 +848,12 @@ fn draw(
         )
       }
     }
-    nodes_out.write_string(
+    nodes_out.write(
       "<g class=\"pele-node \{kind}\{classes}\" data-id=\"\{id}\" transform=\"translate(\{@svg.num(c.x)},\{@svg.num(c.y)})\">\{body}</g>",
     )
   }
-  let edges_out = StringBuilder()
-  let labels_out = StringBuilder()
+  let edges_out = @svg.Markup::new()
+  let labels_out = @svg.Markup::new()
   let loop_seen : Map[Int32, Int32] = Map([])
   for i, ce in cedges {
     let edge = drawn[i]
@@ -952,7 +952,7 @@ fn draw(
       Some(resolved) => resolved.line
       None => ""
     }
-    edges_out.write_string(
+    edges_out.write(
       "<g class=\"pele-edge pele-\{edge.relationship_type}\{edge_classes}\" data-id=\"\{@svg.esc_text(edge.id)}\"\{line}>" +
       "<path d=\"\{path.d}\"\{dashes}/>" +
       mark(start_type, path.sx, path.sy, path.sdx, path.sdy, color) +
@@ -966,7 +966,7 @@ fn draw(
         Some(resolved) => resolved.text
         None => ""
       }
-      labels_out.write_string(
+      labels_out.write(
         @svg.edge_label_svg(
           edge.id,
           label,
@@ -978,10 +978,33 @@ fn draw(
       )
     }
   }
-  let clusters = clusters.to_string()
-  let edges_out = edges_out.to_string()
-  let labels_out = labels_out.to_string()
-  let svg = @svg.svg_document(
+  let content = @svg.Markup::new()
+  content.write(
+    @svg.label_svg(
+      title,
+      width / 2,
+      pad + title.height / 2,
+      " class=\"pele-title\" font-weight=\"var(--_tw)\"",
+    ),
+  )
+  if !clusters.is_empty() {
+    content.write_group("<g class=\"pele-clusters\">", clusters, "</g>")
+  }
+  if !edges_out.is_empty() {
+    content.write_group(
+      "<g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\">",
+      edges_out, "</g>",
+    )
+  }
+  if !labels_out.is_empty() {
+    content.write_group(
+      "<g class=\"pele-edge-labels\" font-size=\"\{small}\">",
+      labels_out,
+      "</g>",
+    )
+  }
+  content.write_group("<g class=\"pele-nodes\">", nodes_out, "</g>")
+  let svg = @svg.markup_document(
     "usecase",
     width,
     height,
@@ -989,28 +1012,7 @@ fn draw(
     options,
     Some(model.acc_title),
     Some(model.acc_descr),
-    @svg.label_svg(
-      title,
-      width / 2,
-      pad + title.height / 2,
-      " class=\"pele-title\" font-weight=\"var(--_tw)\"",
-    ) +
-    (if clusters != "" {
-      "<g class=\"pele-clusters\">\{clusters}</g>"
-    } else {
-      ""
-    }) +
-    (if edges_out != "" {
-      "<g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\">\{edges_out}</g>"
-    } else {
-      ""
-    }) +
-    (if labels_out != "" {
-      "<g class=\"pele-edge-labels\" font-size=\"\{small}\">\{labels_out}</g>"
-    } else {
-      ""
-    }) +
-    "<g class=\"pele-nodes\">\{nodes_out.to_string()}</g>",
+    content,
   )
   { svg, width, height, links: [], }
 }
