@@ -6,25 +6,37 @@
 pub const MAX_STRING_LENGTH : Int32 = 536870888
 
 ///|
-/// The most code units a `StringBuilder` holds in wasm.
-/// Growing it further asks the allocator for a block of 1 GiB, which the allocator refuses with a trap.
-const HELD_LENGTH : Int32 = 268435456
+/// The code units of small writes gathered into one piece.
+const CHUNK_LENGTH : Int32 = 65536
+
+///|
+/// The shortest write kept as a piece of its own rather than copied.
+const SHARED_LENGTH : Int32 = 1024
 
 ///|
 /// SVG markup put together piece by piece, as pele concatenates it.
-/// It fails as pele does where V8 could not hold the markup, and past what a `StringBuilder` can
-/// hold it only counts, so that failure is found without trapping on an allocation.
+/// It fails as pele does where V8 could not hold the markup.
+/// It keeps its pieces apart until it is turned into a string, because a `StringBuilder` doubles
+/// its buffer and wasm's allocator refuses the block of 1 GiB that would follow 2^28 code units,
+/// while a string allocated at its final size can be as long as V8's longest.
 struct Markup {
-  mut buf : StringBuilder
+  pieces : Array[String]
+  mut tail : StringBuilder
+  mut tail_length : Int32
   mut length : Int32
-  mut held : Bool
   used : Set[String]
 }
 
 ///|
 /// Empty markup.
 pub fn Markup::new() -> Markup {
-  { buf: StringBuilder(), length: 0, held: true, used: Set([]), }
+  {
+    pieces: [],
+    tail: StringBuilder(),
+    tail_length: 0,
+    length: 0,
+    used: Set([]),
+  }
 }
 
 ///|
@@ -48,9 +60,28 @@ fn Markup::lengthen(
     raise @errors.nested_too_deeply()
   }
   self.length += count
-  if self.held && self.length > HELD_LENGTH {
-    self.held = false
-    self.buf = StringBuilder()
+}
+
+///|
+fn Markup::flush(self : Markup) -> Unit {
+  if self.tail_length > 0 {
+    self.pieces.push(self.tail.to_string())
+    self.tail = StringBuilder()
+    self.tail_length = 0
+  }
+}
+
+///|
+fn Markup::append(self : Markup, piece : String) -> Unit {
+  if piece.length() >= SHARED_LENGTH {
+    self.flush()
+    self.pieces.push(piece)
+    return
+  }
+  self.tail.write_string(piece)
+  self.tail_length += piece.length()
+  if self.tail_length >= CHUNK_LENGTH {
+    self.flush()
   }
 }
 
@@ -63,13 +94,11 @@ pub fn Markup::write(
 ) -> Unit raise @errors.PeleError {
   self.lengthen(piece.length())
   add_aliases(self.used, piece)
-  if self.held {
-    self.buf.write_string(piece)
-  }
+  self.append(piece)
 }
 
 ///|
-/// Appends `other`.
+/// Appends `other`, sharing its pieces rather than copying them.
 /// Raises pele's `limit` error when the markup would be longer than V8 allows.
 pub fn Markup::write_markup(
   self : Markup,
@@ -79,18 +108,37 @@ pub fn Markup::write_markup(
   for token in other.used {
     self.used.add(token)
   }
-  // Markup that is no longer held is longer than `HELD_LENGTH`, so `lengthen` has dropped this one too.
-  if self.held {
-    self.buf.write_string(other.buf.to_string())
+  for piece in other.pieces {
+    self.append(piece)
+  }
+  if other.tail_length > 0 {
+    self.append(other.tail.to_string())
   }
 }
 
 ///|
+fn Markup::write_to(self : Markup, out : StringBuilder) -> Unit {
+  for piece in self.pieces {
+    out.write_string(piece)
+  }
+  if self.tail_length > 0 {
+    out.write_string(self.tail.to_string())
+  }
+}
+
+///|
+/// A builder that holds exactly `length` code units, which turns into a string without a copy
+/// once it is full.
+fn exact_builder(length : Int32) -> StringBuilder {
+  StringBuilder(size_hint=length * 2)
+}
+
+///|
 /// The markup as a string.
-/// Aborts when it is longer than a `StringBuilder` can hold.
 pub fn Markup::to_string(self : Markup) -> String {
-  guard self.held else { abort("SVG markup longer than wasm can hold") }
-  self.buf.to_string()
+  let out = exact_builder(self.length)
+  self.write_to(out)
+  out.to_string()
 }
 
 ///|
@@ -120,5 +168,9 @@ pub fn markup_document(
   if start.length() + end.length() > MAX_STRING_LENGTH - content.length {
     raise @errors.nested_too_deeply()
   }
-  start + content.to_string() + end
+  let out = exact_builder(start.length() + content.length + end.length())
+  out.write_string(start)
+  content.write_to(out)
+  out.write_string(end)
+  out.to_string()
 }
