@@ -271,6 +271,7 @@ export const CASES = [
   lazy('wardley', 'a component name of many words just short of V8\'s backtracking stack', () => `wardley-beta\ncomponent a${' a'.repeat(3355435)} [0.5, 0.5]\n`, RAISED),
   lazy('wardley', 'a component name of many words at V8\'s backtracking stack', () => `wardley-beta\ncomponent a${' a'.repeat(3355436)} [0.5, 0.5]\n`, RAISED),
   lazy('architecture', 'a title past V8', () => `architecture-beta\ntitle ${'"'.repeat(90000000)}\nservice s(server)[x]\n`, RAISED),
+  lazy('wardley', 'a title past V8', () => `wardley-beta\ntitle ${'"'.repeat(90000000)}\ncomponent A [0.2, 0.2]\n`, RAISED),
   lazy('railroad', 'a title past V8', () => `railroad-peg-beta\ntitle ${'"'.repeat(90000000)}\nr <- "a" ;\n`, RAISED),
 ];
 
