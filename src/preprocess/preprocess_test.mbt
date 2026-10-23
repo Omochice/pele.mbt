@@ -72,6 +72,28 @@ test "init directives are merged over front matter and removed" {
 }
 
 ///|
+test "an init directive nested thousands deep is applied as JSON.parse reads it" {
+  let depth = 3000
+  let deep = "{\"a\":".repeat(depth) + "1" + "}".repeat(depth)
+  let result = @preprocess.preprocess(
+    "%%{init: {\"x\": \{deep}, \"theme\": \"dark\"}}%%\ngraph TD\nA",
+  )
+  let mut levels = 0
+  let mut value = result.config.get("x")
+  while value is Some(Object(object)) {
+    levels += 1
+    value = object.get("a")
+  }
+  inspect(levels, content="3000")
+  inspect(value.map_or("none", json => json.stringify()), content="1")
+  result.config.remove("x")
+  inspect(
+    Json::object(result.config).stringify(),
+    content="{\"theme\":\"dark\"}",
+  )
+}
+
+///|
 test "config cannot set unsafe keys" {
   let result = @preprocess.preprocess(
     "%%{init: {\"__proto__\": {\"polluted\": true}, \"theme\": \"dark\"}}%%\ngraph TD\nA",
