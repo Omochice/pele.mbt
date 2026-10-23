@@ -2,6 +2,7 @@
 package "Omochice/pele/diagrams/class"
 
 // Values
+pub fn tokenize(String) -> Tokens
 
 // Errors
 
@@ -26,6 +27,77 @@ pub(all) struct DisplayDetails {
 pub(all) enum MemberType {
   Method
   Attribute
+}
+
+pub(all) enum Tok {
+  End
+  Error
+  ClassDiagram
+  Newline
+  Eof
+  Sqs
+  Str
+  Sqe
+  Dot
+  GenericType
+  Label
+  AccTitle
+  AccTitleValue
+  AccDescr
+  AccDescrValue
+  AccDescrMultilineValue
+  StructStart
+  StructStop
+  Namespace
+  StyleSeparator
+  AnnotationStart
+  AnnotationEnd
+  Class
+  Member
+  NoteFor
+  Note
+  ClassDef
+  Alpha
+  Comma
+  DirectionTb
+  DirectionBt
+  DirectionRl
+  DirectionLr
+  Aggregation
+  Extension
+  Composition
+  Dependency
+  Lollipop
+  Line
+  DottedLine
+  Callback
+  Link
+  LinkTarget
+  Click
+  CallbackName
+  CallbackArgs
+  Href
+  Style
+  CssClass
+  Colon
+  Brkt
+  Pct
+  Minus
+  UnicodeText
+  BquoteStr
+  EdgeState
+  EofInStruct
+  OpenInStruct
+  Plus
+  Equals
+  Punctuation
+}
+pub fn Tok::name(Self) -> String
+
+pub(all) struct Tokens {
+  types : Array[Tok]
+  texts : Array[String]
+  starts : Array[Int32]
 }
 
 // Type aliases
