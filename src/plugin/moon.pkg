@@ -21,6 +21,7 @@ import {
   "Omochice/pele/diagrams/requirement",
   "Omochice/pele/diagrams/sankey",
   "Omochice/pele/diagrams/sequence",
+  "Omochice/pele/diagrams/state",
   "Omochice/pele/diagrams/timeline",
   "Omochice/pele/diagrams/treemap",
   "Omochice/pele/diagrams/treeview",
