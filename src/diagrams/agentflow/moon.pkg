@@ -3,6 +3,7 @@ import {
   "Omochice/pele/errors",
   "Omochice/pele/types",
   "Omochice/pele/util",
+  "Omochice/pele/util/url",
 }
 
 import {

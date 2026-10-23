@@ -64,20 +64,39 @@ pub(all) struct AgentSubgraph {
 }
 
 pub struct AgentflowDb {
-  direction : String?
+  mut direction : String?
   nodes : Map[String, AgentNode]
   edges : Array[AgentEdge]
   subgraphs : Array[AgentSubgraph]
   connectors : Map[String, AgentNode]
   classes : Map[String, @flowchart.FlowClassDef]
   tooltips : Map[String, String]
-  default_edge_style : Array[String]?
-  default_interpolate : String?
+  mut default_edge_style : Array[String]?
+  mut default_interpolate : String?
   mut title : String?
-  acc_title : String?
-  acc_descr : String?
+  mut acc_title : String?
+  mut acc_descr : String?
+  // private fields
 }
+pub fn AgentflowDb::add_class(Self, String, Array[String]) -> Unit
+pub fn AgentflowDb::add_connector(Self, @flowchart.FlowText?, title? : @flowchart.FlowText) -> String
+pub fn AgentflowDb::add_global(Self, Array[@flowchart.DocItem]) -> Unit
+pub fn AgentflowDb::add_link(Self, Array[String], Array[String], @flowchart.LinkInfo?) -> Unit raise @errors.PeleError
+pub fn AgentflowDb::add_single_link(Self, String, String, @flowchart.LinkInfo?, id? : String) -> Unit raise @errors.PeleError
+pub fn AgentflowDb::add_subgraph(Self, @flowchart.FlowText?, Array[@flowchart.DocItem], @flowchart.FlowText?) -> String
+pub fn AgentflowDb::add_vertex(Self, String, text? : @flowchart.FlowText, kind? : String, style? : Array[String], classes? : Array[String], dir? : String, props? : Map[String, String]) -> Unit
+pub fn AgentflowDb::destruct_link(Self, String, start? : String) -> @flowchart.LinkInfo
 pub fn AgentflowDb::new(max_edges? : Int32, inherit_dir? : Bool, direction? : String) -> Self
+pub fn AgentflowDb::set_acc_description(Self, String) -> Unit
+pub fn AgentflowDb::set_acc_title(Self, String) -> Unit
+pub fn AgentflowDb::set_class(Self, String, String) -> Unit
+pub fn AgentflowDb::set_click_event(Self, String) -> Unit
+pub fn AgentflowDb::set_direction(Self, String) -> Unit
+pub fn AgentflowDb::set_link(Self, String, String, target? : String) -> Unit
+pub fn AgentflowDb::set_tooltip(Self, String, String?) -> Unit
+pub fn AgentflowDb::subgraph(Self, String) -> AgentSubgraph?
+pub fn AgentflowDb::update_link(Self, Array[String], Array[String]) -> Unit raise @errors.PeleError
+pub fn AgentflowDb::update_link_interpolate(Self, Array[String], String) -> Unit raise @errors.PeleError
 
 pub(all) struct Tokens {
   types : Array[Int32]

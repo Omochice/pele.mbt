@@ -8,8 +8,20 @@ pub fn parse_model(
   line_offset : Int32,
   limits : @types.ParseLimits,
 ) -> AgentflowDb raise @errors.PeleError {
-  ignore((config, line_offset, limits))
-  let db = AgentflowDb::new()
+  ignore(line_offset)
+  let inherit_dir = match config.get("flowchart") {
+    Some(Object(flow)) => flow.get("inheritDir") is Some(True)
+    _ => false
+  }
+  let direction = match config.get("direction") {
+    Some(String(direction)) => Some(direction)
+    _ => None
+  }
+  let db = AgentflowDb::new(
+    max_edges=limits.max_edges,
+    inherit_dir~,
+    direction?,
+  )
   if title is Some(title) && title != "" {
     db.title = Some(title)
   }

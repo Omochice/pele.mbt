@@ -88,6 +88,18 @@ const DIR : Int32 = 27
 const DIRECTION_TB : Int32 = 28
 
 ///|
+const DIRECTION_BT : Int32 = 29
+
+///|
+const DIRECTION_RL : Int32 = 30
+
+///|
+const DIRECTION_LR : Int32 = 31
+
+///|
+const DIRECTION_TD : Int32 = 32
+
+///|
 const LINK_ID : Int32 = 33
 
 ///|
