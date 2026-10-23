@@ -16,3 +16,25 @@ test "fields outgrowing V8's longest string fail as nested too deeply" {
   }
   inspect(failure, content="limit: Diagram is nested too deeply. packet packet")
 }
+
+///|
+#skip("slow: escapes 62 million characters before it fails")
+test "a field of tens of millions of entities drawn down fails as nested too deeply" {
+  let failure = try {
+    @core.render(
+      [@packet.packet],
+      "packet\n0-31: \"\{"&".repeat(62000000)}\"\n",
+      {
+        ..@types.RenderOptions::default(),
+        limit: Some(1.0 / 0.0),
+        max_width: Some(300),
+      },
+    )
+    |> ignore
+    "rendered"
+  } catch {
+    @errors.PeleError(failure) =>
+      "\{failure.code.to_string()}: \{failure.message} \{failure.kind.unwrap_or("null")} \{failure.mermaid_type.unwrap_or("null")}"
+  }
+  inspect(failure, content="limit: Diagram is nested too deeply. packet packet")
+}

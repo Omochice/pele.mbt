@@ -187,4 +187,7 @@ export const CASES = [
   // A task's and a section's text are written in their data-ids and as their labels.
   ['journey', 'one task of many &', `journey\nsection S\n  ${'&'.repeat(54000000)}: 5: Me\n`, RAISED],
   ['journey', 'one section of many &', `journey\nsection ${'&'.repeat(54000000)}\n  T: 5: Me\n`, RAISED],
+  // pele fails this while parsing, as it does a commit id of the same length; the port fails as
+  // the field's label, drawn down for a narrow host, passes V8's longest string.
+  ['packet', 'one field of many &, drawn down', `packet\n0-31: "${'&'.repeat(62000000)}"\n`, { ...RAISED, maxWidth: 300 }],
 ];
