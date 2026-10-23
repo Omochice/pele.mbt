@@ -3,6 +3,11 @@ import {
   "Omochice/pele/errors",
   "Omochice/pele/svg",
   "Omochice/pele/text",
+  "Omochice/pele/types",
   "Omochice/pele/util",
   "Omochice/pele/util/url",
 }
+
+import {
+  "Omochice/pele/core",
+} for "test"

@@ -3,16 +3,21 @@ package "Omochice/pele/diagrams/class"
 
 import {
   "Omochice/pele/errors",
+  "Omochice/pele/types",
 }
 
 // Values
 pub fn build_class_graph(ClassDb, hierarchical? : Bool) -> ClassGraph
+
+pub let class : @types.Diagram
 
 pub fn class_marker(String, Double, Double, Double, Double, String) -> String
 
 pub fn class_marker_trim(String) -> Double
 
 pub fn parse_class(String, ClassDb) -> Unit raise @errors.PeleError
+
+pub fn render_class(ClassDb, Map[String, Json], @types.RenderOptions) -> @types.Rendered
 
 pub fn tokenize(String) -> Tokens
 
