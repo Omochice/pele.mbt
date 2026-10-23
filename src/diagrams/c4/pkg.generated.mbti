@@ -23,6 +23,7 @@ pub struct C4Db {
   rels : Array[C4Rel]
   mut shape_in_row : Double
   mut boundary_in_row : Double
+  // private fields
 }
 pub fn C4Db::add_component(Self, String, Array[C4Attr]) -> Unit
 pub fn C4Db::add_container(Self, String, Array[C4Attr]) -> Unit
