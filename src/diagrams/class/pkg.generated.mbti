@@ -8,6 +8,10 @@ import {
 // Values
 pub fn build_class_graph(ClassDb, hierarchical? : Bool) -> ClassGraph
 
+pub fn class_marker(String, Double, Double, Double, Double, String) -> String
+
+pub fn class_marker_trim(String) -> Double
+
 pub fn parse_class(String, ClassDb) -> Unit raise @errors.PeleError
 
 pub fn tokenize(String) -> Tokens
