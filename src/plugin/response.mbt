@@ -44,8 +44,7 @@ const RESPONSE_LIMIT : Int32 = 1000000000
 ///|
 /// The reply as UTF-8 JSON, with the status the plugin returns: 0 for a drawing and 1 for a failure.
 /// A drawing whose answer would be longer than `limit` bytes fails as a limit error instead.
-/// The SVG is counted and then written straight into the answer, through the theme when there
-/// is one, so that it is held only once however long it is.
+/// The SVG is written into the answer through the theme when there is one.
 fn encode(
   reply : Reply,
   limit~ : Int32 = RESPONSE_LIMIT,
@@ -65,18 +64,45 @@ fn encode(
   guard shell.has_prefix(opening + "\"") else {
     abort("a drawing's JSON does not open with its SVG")
   }
-  let head = @utf8.encode(opening)
-  let tail = @utf8.encode(@util.slice(shell, opening.length()))
+  spliced(
+    0,
+    shell,
+    opening.length(),
+    write_svg,
+    limit,
+    Some(result.kind),
+    Some(result.mermaid_type),
+  )
+}
+
+///|
+/// The answer `shell` with the text that `write` writes put into the empty JSON string that
+/// starts at `at`, as UTF-8 bytes, with `status`.
+/// An answer longer than `limit` bytes fails as a limit error tagged with `kind` and
+/// `mermaid_type` instead.
+/// The text is counted and then written straight into the answer, so that it is held only once
+/// however long it is.
+fn spliced(
+  status : Int32,
+  shell : String,
+  at : Int32,
+  write : (&Logger) -> Unit,
+  limit : Int32,
+  kind : String?,
+  mermaid_type : String?,
+) -> (Int32, FixedArray[Byte]) {
+  let head = @utf8.encode(@util.slice(shell, 0, end=at))
+  let tail = @utf8.encode(@util.slice(shell, at))
   let counter = JsonText::counter()
-  write_svg(counter)
+  write(counter)
   counter.finish()
   let total = head.length().to_int64() + counter.at + tail.length().to_int64()
   if total > limit.to_int64() {
     let failure = pele_failure({
       message: "Diagram output is longer than the typst plugin can return: its JSON response would pass the plugin's limit of \{limit} bytes.",
       code: Limit,
-      kind: Some(result.kind),
-      mermaid_type: Some(result.mermaid_type),
+      kind,
+      mermaid_type,
       line: 0,
       column: 0,
       snippet: "",
@@ -86,10 +112,10 @@ fn encode(
   let out : FixedArray[Byte] = FixedArray::make(total.to_int(), 0)
   out.blit_from_bytes(0, head, 0, head.length())
   let writer = JsonText::writer(out, head.length())
-  write_svg(writer)
+  write(writer)
   writer.finish()
   out.blit_from_bytes(writer.at.to_int(), tail, 0, tail.length())
-  (0, out)
+  (status, out)
 }
 
 ///|
