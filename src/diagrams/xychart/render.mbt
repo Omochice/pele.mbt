@@ -95,6 +95,7 @@ fn aligned(
 ) -> String {
   if label.lines.length() == 1 &&
     label.lines[0].length() == 1 &&
+    label.lines[0][0].icon is None &&
     label.lines[0][0].style == 0 {
     return "<text x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y + label.size * 0.35)}\" text-anchor=\"\{anchor.name()}\">\{@svg.esc(label.lines[0][0].text)}</text>"
   }
