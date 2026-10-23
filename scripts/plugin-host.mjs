@@ -1,10 +1,12 @@
 // Hosts the wasm plugin the way typst does, through the wasm-minimal-protocol.
 
 import { existsSync, readFileSync } from 'node:fs';
+import { fixAllocator } from './allocator.mjs';
 import { countCallDepth } from './call-depth.mjs';
 
 /**
- * Compiles the plugin and checks that it needs nothing typst does not provide.
+ * Compiles the plugin, with its allocator mended as scripts/build-typst.mjs ships it, and checks
+ * that it needs nothing typst does not provide.
  * @param {string} wasmPath
  * @param {{ callDepthLimit?: number }} [options] with `callDepthLimit`, the plugin traps past that
  *   many call frames as it would in typst, and each call reports the deepest it went.
@@ -13,11 +15,12 @@ import { countCallDepth } from './call-depth.mjs';
  *   The result is also given as its bytes, which is the only form of an answer longer than V8's longest string, and the text is decoded from them when it is first read.
  *   `memory` is the size the plugin's memory grew to, which is the most it held at once, as wasm memory never shrinks.
  *   `exported` lists the names the plugin exports.
- * @throws {Error} when the plugin is not built or imports more than typst_env.
+ * @throws {Error} when the plugin is not built, imports more than typst_env, or has an allocator
+ *   `fixAllocator` does not know.
  */
 export function loadPlugin(wasmPath, { callDepthLimit } = {}) {
   if (!existsSync(wasmPath)) throw new Error(`missing ${wasmPath}; run \`moon build --target wasm --release\` first`);
-  let bytes = readFileSync(wasmPath);
+  let bytes = fixAllocator(readFileSync(wasmPath));
   if (callDepthLimit !== undefined) bytes = countCallDepth(bytes, callDepthLimit);
   const module = new WebAssembly.Module(bytes);
   const foreign = WebAssembly.Module.imports(module).filter((i) => i.module !== 'typst_env');

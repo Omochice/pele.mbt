@@ -36,8 +36,9 @@ fn reply(source : String, options : String) -> Reply {
 
 ///|
 /// The most bytes the plugin answers with.
-/// typst reads the answer from one block of the plugin's memory, and wasm's allocator gives no
-/// block over 1073741812 bytes, so the limit is set in round figures below that.
+/// typst reads the answer from one block of the plugin's memory, and wasm's allocator, as
+/// scripts/allocator.mjs mends it, gives no block over 1040187380 bytes, so the limit is set in
+/// round figures below that.
 const RESPONSE_LIMIT : Int32 = 1000000000
 
 ///|

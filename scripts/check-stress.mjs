@@ -22,12 +22,13 @@
 // pele reports nesting as a limit.
 
 import { execFile, execFileSync } from 'node:child_process';
-import { copyFileSync, existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { stripTypeScriptTypes } from 'node:module';
 import { availableParallelism, tmpdir } from 'node:os';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
+import { fixAllocator } from './allocator.mjs';
 import { TYPST_CALL_DEPTH } from './call-depth.mjs';
 import { loadPlugin } from './plugin-host.mjs';
 
@@ -247,7 +248,7 @@ function nodeHost() {
 // The plugin under typst itself, to confirm what the node host emulates.
 function typstHost() {
   const dir = mkdtempSync(join(tmpdir(), 'pele-stress-'));
-  copyFileSync(wasmPath, join(dir, 'plugin.wasm'));
+  writeFileSync(join(dir, 'plugin.wasm'), fixAllocator(readFileSync(wasmPath)));
   process.on('exit', () => rmSync(dir, { recursive: true, force: true }));
   let next = 0;
   return async ({ text, options }) => {
