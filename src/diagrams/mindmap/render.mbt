@@ -16,15 +16,16 @@ fn left_label(
   left : Double,
   cy : Double,
   icons : @types.IconResolver?,
-) -> String {
+) -> @svg.Markup raise @errors.PeleError {
   let attrs = " class=\"pele-label\""
+  let out = @svg.Markup::new()
   if label.lines.length() < 2 {
-    return @svg.label_svg(label, left + label.width / 2, cy, attrs, icons?)
+    out.write(@svg.label_svg(label, left + label.width / 2, cy, attrs, icons?))
+    return out
   }
-  let out = StringBuilder()
   let top = cy - label.height / 2
   for k in 0..<label.lines.length() {
-    out.write_string(
+    out.write(
       @svg.label_svg(
         @text.label_line(label, k),
         left + label.widths[k] / 2,
@@ -34,7 +35,7 @@ fn left_label(
       ),
     )
   }
-  out.to_string()
+  out
 }
 
 ///|
@@ -42,7 +43,7 @@ fn render_mindmap(
   model : MindmapModel,
   config : @types.Config,
   options : @types.RenderOptions,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   @common.turn_to_fit(options, down => draw(model, config, options, down))
 }
 
@@ -52,7 +53,7 @@ fn draw(
   config : @types.Config,
   options : @types.RenderOptions,
   down : Bool,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   let size = options.font_size.unwrap_or(16)
   let measurer = options.text_measurer()
   let pad = options.padding.unwrap_or(8)
@@ -65,22 +66,26 @@ fn draw(
   let mut max_x = 0.0
   let mut min_y = 0.0
   let mut max_y = 0.0
-  let out = StringBuilder()
-  let edges = StringBuilder()
-  let body = StringBuilder()
+  let out = @svg.Markup::new()
+  let mut edges = @svg.Markup::new()
+  let mut body = @svg.Markup::new()
   let mut color = ""
   // Running down: how far the trunk under each node has been drawn.
   let trunk = Array::make(n, 0.0)
-  let flush = (section : Int32?) => {
+  fn flush(section : Int32?) raise @errors.PeleError {
     if body.is_empty() {
       return
     }
-    out.write_string(
-      "<g class=\"pele-branch pele-section-\{section.unwrap_or(0)}\">" +
-      "<g class=\"pele-edges\" fill=\"none\" stroke=\"\{color}\" stroke-width=\"1.5\">\{edges.to_string()}</g>\{body.to_string()}</g>",
+    out.write("<g class=\"pele-branch pele-section-\{section.unwrap_or(0)}\">")
+    out.write_group(
+      "<g class=\"pele-edges\" fill=\"none\" stroke=\"\{color}\" stroke-width=\"1.5\">",
+      edges,
+      "</g>",
     )
-    edges.reset()
-    body.reset()
+    out.write_markup(body)
+    out.write("</g>")
+    edges = @svg.Markup::new()
+    body = @svg.Markup::new()
   }
 
   // The root is drawn last, on top of the links that leave it.
@@ -123,7 +128,7 @@ fn draw(
       )
       // The next link carries on from where this one leaves the trunk, so the trunk has no gap.
       trunk[p] = y2 - bend
-      edges.write_string(
+      edges.write(
         "<path class=\"pele-edge\" d=\"M\{@svg.num(x1)},\{@svg.num(y1)}V\{@svg.num(y2 - bend)}Q\{@svg.num(x1)},\{@svg.num(y2)} \{@svg.num(x1 + bend)},\{@svg.num(y2)}H\{@svg.num(x2)}\"/>",
       )
     } else if i > 0 {
@@ -153,7 +158,7 @@ fn draw(
         })
       let y2 = top + anchor[i]
       let mid = @svg.num((x1 + x2) / 2)
-      edges.write_string(
+      edges.write(
         "<path class=\"pele-edge\" d=\"M\{@svg.num(x1)},\{@svg.num(y1)}C\{mid},\{@svg.num(y1)} \{mid},\{@svg.num(y2)} \{@svg.num(x2)},\{@svg.num(y2)}\"/>",
       )
     }
@@ -203,25 +208,28 @@ fn draw(
     } else {
       "text"
     }
-    let group = "<g class=\"pele-node pele-shape-\{kind}\{if i > 0 { "" } else { " pele-root" }}\{@svg.class_names(node.class_.unwrap_or(""))}\" data-id=\"\{@svg.esc_text(node.node_id)}\" transform=\"translate(\{@svg.num(cx)},\{@svg.num(top + h[i] / 2)})\">" +
-      inner +
-      (if down && shape == "" {
-        left_label(label, shift - label.width / 2, dy[i], options.icons)
-      } else {
+    let text = if down && shape == "" {
+      left_label(label, shift - label.width / 2, dy[i], options.icons)
+    } else {
+      let text = @svg.Markup::new()
+      text.write(
         @svg.label_svg(
           label,
           shift,
           dy[i],
           " class=\"pele-label\"",
           icons?=options.icons,
-        )
-      }) +
-      "</g>"
-    if i > 0 {
-      body.write_string(group)
-    } else {
-      out.write_string(group)
+        ),
+      )
+      text
     }
+    let into = if i > 0 { body } else { out }
+    into.write_group(
+      "<g class=\"pele-node pele-shape-\{kind}\{if i > 0 { "" } else { " pele-root" }}\{@svg.class_names(node.class_.unwrap_or(""))}\" data-id=\"\{@svg.esc_text(node.node_id)}\" transform=\"translate(\{@svg.num(cx)},\{@svg.num(top + h[i] / 2)})\">" +
+      inner,
+      text,
+      "</g>",
+    )
   }
   let title = @svg.title_label(
     model.title,
@@ -233,15 +241,22 @@ fn draw(
   let width = @util.js_max(max_x - min_x, title.width)
   let total_width = (width + 2 * pad).ceil()
   let total_height = (max_y - min_y + title_height + 2 * pad).ceil()
-  let content = @svg.label_svg(
+  let content = @svg.Markup::new()
+  content.write(
+    @svg.label_svg(
       title,
       total_width / 2,
       pad + title.height / 2,
       " class=\"pele-title\" font-weight=\"var(--_tw)\"",
-    ) +
-    "<g transform=\"translate(\{@svg.num(pad - min_x + (width - max_x + min_x) / 2)},\{@svg.num(pad + title_height - min_y)})\">\{out.to_string()}</g>"
+    ),
+  )
+  content.write_group(
+    "<g transform=\"translate(\{@svg.num(pad - min_x + (width - max_x + min_x) / 2)},\{@svg.num(pad + title_height - min_y)})\">",
+    out,
+    "</g>",
+  )
   {
-    svg: @svg.svg_document(
+    svg: @svg.markup_document(
       "mindmap",
       total_width,
       total_height,
