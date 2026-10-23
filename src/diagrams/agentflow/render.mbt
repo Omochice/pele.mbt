@@ -485,7 +485,9 @@ fn draw(
     )
     let body = @svg.Markup::new()
     if node.tooltip is Some(tooltip) && tooltip != "" {
-      body.write("<title>\{@svg.esc_text(tooltip)}</title>")
+      body.write("<title>")
+      @svg.write_esc_text(body, tooltip)
+      body.write("</title>")
     }
     body.write(shape)
     if (classes + " ").contains(" internal-link ") &&
@@ -494,37 +496,36 @@ fn draw(
       options.links != Some(false) {
       // The label is a note name, but it still ends up in an href, so it gets the same check as a URL.
       let name = @text.decode_entities(note)
-      let target = @svg.esc(name)
-      let href = if @url.link_url(@url.sanitize_url(name), options) is Some(_) {
-        " href=\"\{target}\"\{@url.rel_attr(options)}"
-      } else {
-        ""
+      body.write("<a class=\"internal-link\"")
+      if @url.link_url(@url.sanitize_url(name), options) is Some(_) {
+        body.write(" href=\"")
+        @svg.write_esc(body, name)
+        body.write("\"\{@url.rel_attr(options)}")
       }
-      body.write_group(
-        "<a class=\"internal-link\"\{href} data-href=\"\{target}\">",
-        text,
-        "</a>",
-      )
+      body.write(" data-href=\"")
+      @svg.write_esc(body, name)
+      body.write_group("\">", text, "</a>")
       links.push({ id: node.id, href: name, internal: true, })
     } else {
       body.write_markup(text)
     }
-    let link_start = match node.link {
+    nodes_out.write(
+      "<g class=\"pele-node pele-shape-\{view.shape}\{kind}\{classes}\" data-id=\"\{id}\" transform=\"translate(\{@svg.num(c.x)},\{@svg.num(c.y)})\">",
+    )
+    let linked = match node.link {
       Some(link) if link != "" => {
+        // A link target is one of four keywords, so it is never long.
         let attrs = match node.link_target {
           Some(target) if target != "" => " target=\"\{@svg.esc(target)}\""
           _ => ""
         }
-        @url.link_start(link, node.id, links, options, attrs~)
+        @url.write_link_start(nodes_out, link, node.id, links, options, attrs~)
       }
-      _ => None
+      _ => false
     }
-    nodes_out.write(
-      "<g class=\"pele-node pele-shape-\{view.shape}\{kind}\{classes}\" data-id=\"\{id}\" transform=\"translate(\{@svg.num(c.x)},\{@svg.num(c.y)})\">",
-    )
-    match link_start {
-      Some(start) => nodes_out.write_group(start, body, "</a>")
-      None => nodes_out.write_markup(body)
+    nodes_out.write_markup(body)
+    if linked {
+      nodes_out.write("</a>")
     }
     nodes_out.write("</g>")
   }
