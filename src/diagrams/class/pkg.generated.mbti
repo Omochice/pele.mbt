@@ -1,0 +1,32 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Omochice/pele/diagrams/class"
+
+// Values
+
+// Errors
+
+// Types and methods
+pub struct ClassMember {
+  id : String
+  member_type : MemberType
+  visibility : String
+  classifier : String
+  parameters : String
+  return_type : String
+}
+pub fn ClassMember::display_details(Self) -> DisplayDetails
+pub fn ClassMember::new(String, MemberType) -> Self
+
+pub(all) struct DisplayDetails {
+  display_text : String
+  css_style : String
+}
+
+pub(all) enum MemberType {
+  Method
+  Attribute
+}
+
+// Type aliases
+
+// Traits
