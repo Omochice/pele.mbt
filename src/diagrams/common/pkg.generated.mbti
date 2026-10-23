@@ -86,7 +86,7 @@ pub let string : TokenType
 
 pub fn string_value(String) -> String
 
-pub fn tighten(@types.RenderOptions, (Bool) -> @types.Rendered) -> @types.Rendered
+pub fn tighten(@types.RenderOptions, (Bool) -> @types.Rendered raise?) -> @types.Rendered raise?
 
 pub let title : TokenType
 

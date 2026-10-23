@@ -3,8 +3,8 @@
 /// host has and the tight drawing is narrower.
 pub fn tighten(
   options : @types.RenderOptions,
-  draw : (Bool) -> @types.Rendered,
-) -> @types.Rendered {
+  draw : (Bool) -> @types.Rendered raise?,
+) -> @types.Rendered raise? {
   let loose = draw(false)
   guard options.max_width is Some(available) &&
     available > 0 &&
