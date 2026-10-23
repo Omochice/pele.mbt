@@ -64,7 +64,6 @@ test "a title outgrowing V8's longest string fails as nested too deeply" {
   )
 }
 
-
 ///|
 fn outcome_of(source : String, options : @types.RenderOptions) -> String {
   try {

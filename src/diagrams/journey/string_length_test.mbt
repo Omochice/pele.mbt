@@ -61,7 +61,6 @@ test "people drawn across past the hold limit fail drawn down as nested too deep
   )
 }
 
-
 ///|
 fn outcome_of(source : String, options : @types.RenderOptions) -> String {
   try {
@@ -96,4 +95,3 @@ test "a section of tens of millions of entities fails as nested too deeply" {
     content="limit: Diagram is nested too deeply. journey journey",
   )
 }
-

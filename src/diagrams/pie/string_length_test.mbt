@@ -45,7 +45,6 @@ test "an accessible description outgrowing V8's longest string fails as nested t
   inspect(failure, content="limit: Diagram is nested too deeply. pie pie")
 }
 
-
 ///|
 fn outcome_of(source : String, options : @types.RenderOptions) -> String {
   try {
@@ -68,4 +67,3 @@ test "an entry named by tens of millions of entities fails as nested too deeply"
     content="limit: Diagram is nested too deeply. pie pie",
   )
 }
-
