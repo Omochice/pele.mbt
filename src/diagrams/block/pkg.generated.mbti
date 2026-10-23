@@ -6,9 +6,17 @@ import {
 }
 
 // Values
+pub fn arrow_axis(Int32) -> String
+
+pub fn arrow_mask(Array[String]) -> Int32
+
+pub fn arrow_size(Int32, Double, Double) -> ArrowSize
+
 pub fn calculate_block_position(Double, Double) -> (Double, Double) raise @errors.PeleError
 
 pub fn cell(Double, Double, span? : Double) -> Cell
+
+pub fn draw_arrow(Int32, Double, Double, String) -> String
 
 pub fn edge_str_to_edge_data(String) -> String
 
@@ -29,6 +37,13 @@ pub fn type_str_to_type(String?) -> String
 // Errors
 
 // Types and methods
+pub(all) struct ArrowSize {
+  w : Double
+  h : Double
+  dx : Double
+  dy : Double
+}
+
 pub(all) struct Block {
   mut id : String
   mut kind : String
