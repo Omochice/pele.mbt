@@ -33,6 +33,8 @@ pub fn class_names(String) -> String
 
 pub fn cluster_title_x(@layout.CNode, Double, Crossings, Double) -> Double
 
+pub fn document_length(String) -> Int32
+
 pub fn draw_shape(String, Double, Double, String, String) -> String
 
 pub fn edge_label_svg(String, @text.Label, Double, Double, String, icons? : (String) -> String?) -> String

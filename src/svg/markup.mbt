@@ -212,7 +212,7 @@ fn exact_builder(length : Int32) -> StringBuilder {
 
 ///|
 /// The markup as a string.
-/// Aborts for markup the port no longer holds, which `markup_document` leaves empty instead.
+/// Aborts for markup the port no longer holds, which `markup_document` leaves as a stand-in instead.
 pub fn Markup::to_string(self : Markup) -> String {
   guard self.held else { abort("SVG markup past the port's hold limit") }
   let out = exact_builder(self.length)
@@ -232,16 +232,42 @@ pub fn too_large_to_hold() -> @errors.PeleError {
 ///|
 /// Whether a document from `markup_document` holds its drawing, which one longer than the port can
 /// hold does not, though a diagram drawn more than once may still measure it.
-/// Every held document has its root element, so only one that is not held is empty.
+/// Every held document begins with its root element, so one that begins with `UNHELD` is a stand-in.
 pub fn is_held_document(document : String) -> Bool {
-  !document.is_empty()
+  !document.has_prefix(UNHELD)
+}
+
+///|
+/// What a stand-in for a document the port does not hold begins with, which no drawing does.
+const UNHELD : String = "\u{0}"
+
+///|
+/// The stand-in for a document of `length` code units that the port does not hold, which gives
+/// the length in decimal after `UNHELD`.
+fn unheld_document(length : Int32) -> String {
+  UNHELD + length.to_string()
+}
+
+///|
+/// The length in UTF-16 code units of the drawing a document from `markup_document` stands for,
+/// whether the port holds it or not.
+pub fn document_length(document : String) -> Int32 {
+  if is_held_document(document) {
+    return document.length()
+  }
+  let mut length = 0
+  for i in UNHELD.length()..<document.length() {
+    length = length * 10 + (document.unsafe_get(i).to_int() - '0')
+  }
+  length
 }
 
 ///|
 /// Wraps diagram content in the root `svg` element as `svg_document` does.
 /// Raises pele's `limit` error, before concatenating, when the document would be longer than V8
 /// allows.
-/// A document longer than the port can hold is left empty, for `is_held_document` to tell apart.
+/// A document longer than the port can hold is left as a stand-in that only gives its length, for
+/// `is_held_document` to tell apart and `document_length` to measure.
 pub fn markup_document(
   kind : String,
   width : Double,
@@ -273,10 +299,11 @@ pub fn markup_document(
   }
   // Failing here would refuse a drawing that is only measured, as a diagram drawn again to fit a
   // narrow host measures its first drawing, where pele goes on to draw the next one.
+  let length = start.length() + body.length + end.length()
   if !body.held {
-    return ""
+    return unheld_document(length)
   }
-  let out = exact_builder(start.length() + body.length + end.length())
+  let out = exact_builder(length)
   out.write_string(start)
   body.write_to(out)
   out.write_string(end)

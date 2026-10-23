@@ -74,7 +74,7 @@ test "a document up to the port's hold limit turns into a string" {
 }
 
 ///|
-test "a document past the port's hold limit is left empty rather than failed, since it may only be measured" {
+test "a document past the port's hold limit is left unheld rather than failed, since it may only be measured" {
   let content = markup_of(@svg.HOLD_LIMIT + 1)
   inspect(content.length(), content="400000001")
   let document = @svg.markup_document(
@@ -87,7 +87,26 @@ test "a document past the port's hold limit is left empty rather than failed, si
     None,
     content,
   )
-  inspect(document.length(), content="0")
+  inspect(@svg.is_held_document(document), content="false")
+  inspect(document.length() < 100, content="true")
+  inspect(@svg.document_length(document), content="400000668")
+}
+
+///|
+test "a held document is as long as the drawing it stands for" {
+  let content = markup_of(1000)
+  let document = @svg.markup_document(
+    "pie",
+    10,
+    20,
+    16,
+    @types.RenderOptions::default(),
+    None,
+    None,
+    content,
+  )
+  inspect(@svg.is_held_document(document), content="true")
+  assert_eq(@svg.document_length(document), document.length())
 }
 
 ///|
@@ -161,7 +180,7 @@ test "a document of markup writes its accessible text as the document of its str
 }
 
 ///|
-test "a document whose accessible text and content pass the hold limit together is left empty" {
+test "a document whose accessible text and content pass the hold limit together is left unheld" {
   let descr = "&".repeat(20000000)
   let document = @svg.markup_document(
     "pie",
@@ -173,7 +192,7 @@ test "a document whose accessible text and content pass the hold limit together 
     Some(descr),
     markup_of(@svg.HOLD_LIMIT - 50000000),
   )
-  inspect(document.length(), content="0")
+  inspect(@svg.is_held_document(document), content="false")
 }
 
 ///|
