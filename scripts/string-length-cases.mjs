@@ -260,6 +260,7 @@ export const CASES = [
   lazy('architecture', 'a single-quoted service label at V8\'s backtracking stack', () => `architecture-beta\nservice s(server)['${'a'.repeat(4194295)}']\n`, RAISED),
   lazy('architecture', 'a service label with text after its quote just short of V8\'s backtracking stack', () => `architecture-beta\nservice s(server)["${'a'.repeat(4194295)}"x]\n`, RAISED),
   lazy('architecture', 'a service label with text after its quote at V8\'s backtracking stack', () => `architecture-beta\nservice s(server)["${'a'.repeat(4194296)}"x]\n`, RAISED),
+  lazy('architecture', 'a title past V8', () => `architecture-beta\ntitle ${'"'.repeat(90000000)}\nservice s(server)[x]\n`, RAISED),
 ];
 
 // A case whose source is built only when the check reaches it, as a getter in the source's place,
