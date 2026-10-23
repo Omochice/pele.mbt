@@ -325,6 +325,7 @@ export const CASES = [
   lazy('mindmap', 'a front matter title past V8', () => `---\ntitle: x${'"'.repeat(90000000)}\n---\nmindmap\nroot\n`, RAISED),
   lazy('treemap', 'a title past V8', () => `treemap-beta\ntitle ${'"'.repeat(90000000)}\n"a": 1\n`, RAISED),
   lazy('architecture', 'a title past V8', () => `architecture-beta\ntitle ${'"'.repeat(90000000)}\nservice s(server)[x]\n`, RAISED),
+  lazy('c4', 'a title past V8', () => `C4Context\ntitle ${'"'.repeat(90000000)}\nPerson(p, "x")\n`, RAISED),
   lazy('cynefin', 'a title past V8', () => `cynefin-beta\ntitle ${'"'.repeat(90000000)}\ncomplex\n  "x"\n`, RAISED),
   lazy('git', 'a title past V8', () => `gitGraph\ntitle ${'"'.repeat(90000000)}\ncommit\n`, RAISED),
   lazy('wardley', 'a title past V8', () => `wardley-beta\ntitle ${'"'.repeat(90000000)}\ncomponent A [0.2, 0.2]\n`, RAISED),
