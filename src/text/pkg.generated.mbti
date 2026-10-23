@@ -10,9 +10,15 @@ pub const STYLE_MONO : Int32 = 4
 
 pub fn decode_entities(String) -> String
 
+pub fn has_math(Array[Span]) -> Bool
+
 pub fn icon_markup(String) -> String
 
+pub fn label_line(Label, Int32) -> Label
+
 pub fn layout_label(String?, Bool, TextMeasurer, Double, Double, base? : Int32) -> Label
+
+pub fn line_middle(Label, Int32) -> Double
 
 pub fn math_active() -> Bool
 
@@ -21,6 +27,8 @@ pub let metrics_measurer : TextMeasurer
 pub fn table_measurer((Int32) -> AdvanceTable, Double) -> TextMeasurer
 
 pub fn typeset(String, Double) -> MathMarkup?
+
+pub fn with_heights(Label) -> Label
 
 pub fn[T] with_icons(((String) -> String?)?, () -> T raise?) -> T raise?
 

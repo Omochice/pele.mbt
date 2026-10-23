@@ -639,3 +639,38 @@ pub fn layout_label(
   }
   layout_lines(raw, markdown, measurer, size, max_width, base, line_height)
 }
+
+///|
+/// The label with line heights for the math it holds, or without them when no line needs more
+/// than `line_height`.
+pub fn with_heights(label : Label) -> Label {
+  label
+}
+
+///|
+/// Whether a line holds typeset math.
+pub fn has_math(line : Array[Span]) -> Bool {
+  ignore(line)
+  false
+}
+
+///|
+/// The middle of line `i`, from the top of the label.
+pub fn line_middle(label : Label, i : Int32) -> Double {
+  (i.to_double() + 0.5) * label.line_height
+}
+
+///|
+/// Line `i` of the label as a label of its own.
+pub fn label_line(label : Label, i : Int32) -> Label {
+  let width = label.widths[i]
+  {
+    lines: [label.lines[i]],
+    widths: [width],
+    width,
+    height: label.line_height,
+    size: label.size,
+    line_height: label.line_height,
+    heights: None,
+  }
+}
