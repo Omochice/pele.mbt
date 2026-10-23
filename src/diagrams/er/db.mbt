@@ -95,6 +95,7 @@ pub fn ErDb::add_relationship(
 }
 
 ///|
+/// Sets the direction the diagram runs in, as a `direction` statement outside any subgraph does.
 pub fn ErDb::set_direction(self : ErDb, dir : String) -> Unit {
   self.direction = dir
 }
@@ -214,11 +215,13 @@ pub fn ErDb::add_sub_graph(
 }
 
 ///|
+/// Sets the accessible title, without its leading whitespace.
 pub fn ErDb::set_acc_title(self : ErDb, text : String) -> Unit {
   self.acc_title = Some(@util.trim_start(text))
 }
 
 ///|
+/// Sets the accessible description, with the indentation of its lines removed.
 pub fn ErDb::set_acc_description(self : ErDb, text : String) -> Unit {
   let out = StringBuilder()
   let mut from = 0

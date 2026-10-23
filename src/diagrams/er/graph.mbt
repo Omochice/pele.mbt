@@ -26,6 +26,7 @@ pub(all) struct ErGraphEdge {
 }
 
 ///|
+/// The groups, nodes and edges an ER diagram is laid out as.
 pub(all) struct ErGraph {
   nodes : Array[ErGraphNode]
   edges : Array[ErGraphEdge]
