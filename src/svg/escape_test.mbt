@@ -48,6 +48,18 @@ test "text escaped in pieces is written as it is escaped whole, with the aliases
 }
 
 ///|
+test "text escaped in pieces keeps a heading weight alias whole" {
+  let text = "&".repeat(1048568) + "var(--_hw)" + "<\u{1}\"".repeat(400000)
+  let whole = @svg.Markup::new()
+  whole.write(@svg.esc(text))
+  let pieces = @svg.Markup::new()
+  @svg.write_esc(pieces, text)
+  let document = document_of(pieces)
+  inspect(document == document_of(whole), content="true")
+  inspect(document.contains("--_hw:"), content="true")
+}
+
+///|
 #skip("slow: escapes 55 million characters")
 test "a label escaped past what a doubling StringBuilder holds is written" {
   inspect(written_length(ampersand_label(55000000, "")), content="275000048")
