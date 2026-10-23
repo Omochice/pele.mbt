@@ -243,38 +243,15 @@ fn scan_icon(src : String, p : Int32) -> Int32 {
 }
 
 ///|
-/// The end of `"([^"\\]|\\.)*"` or its single-quoted twin at `p`, or -1.
-/// Neither repetition can give back a character that would let the closing quote come sooner.
-fn quoted_end(src : String, p : Int32) -> Int32 {
-  let quote = @util.code_at(src, p)
-  let mut i = p + 1
-  while i < src.length() {
-    let c = @util.code_at(src, i)
-    if c == quote {
-      return i + 1
-    }
-    if c == '\\'.to_int() {
-      let next = @util.code_at(src, i + 1)
-      if next == -1 || @util.is_line_end(next) {
-        return -1
-      }
-      i += 2
-    } else {
-      i += 1
-    }
-  }
-  -1
-}
-
-///|
 /// `\[(?:"([^"\\]|\\.)*"|'([^'\\]|\\.)*'|[^\[\]\r\n]+)\]`
+/// Neither quoted repetition can give back a character that would let the closing quote come sooner.
 fn scan_label(src : String, p : Int32) -> Int32 {
   if @util.code_at(src, p) != '['.to_int() {
     return @common.NO_MATCH
   }
   let open = @util.code_at(src, p + 1)
   if open == '"'.to_int() || open == '\''.to_int() {
-    let close = quoted_end(src, p + 1)
+    let (close, _) = @common.quoted_span(src, p + 1)
     if close != -1 && @util.code_at(src, close) == ']'.to_int() {
       return close + 1
     }
