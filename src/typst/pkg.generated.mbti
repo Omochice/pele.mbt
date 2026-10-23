@@ -8,6 +8,8 @@ pub fn mix_colors(String) -> String
 
 pub fn resolve_vars(String, Map[String, String]) -> String
 
+pub fn write_drawable(String, Map[String, String], &Logger) -> Unit
+
 // Errors
 
 // Types and methods

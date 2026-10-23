@@ -159,27 +159,40 @@ fn Resolver::style(self : Resolver, style : String) -> String {
 /// A value holding `;`, `{` or `}` is ignored, as it could end the declaration it lands in.
 /// A declaration or attribute with a reference that resolves to nothing is dropped, as CSS treats it as unset.
 pub fn resolve_vars(svg : String, theme : Map[String, String]) -> String {
+  let resolver = Resolver::new(svg, theme)
+  rewrite_tags(svg, attributes => resolver.attributes(attributes))
+}
+
+///|
+/// The resolver of the references in `svg` under `theme`.
+fn Resolver::new(svg : String, theme : Map[String, String]) -> Resolver {
   let usable : Map[String, String] = Map([])
   for name, raw in theme {
     if theme_value(raw) is Some(value) {
       usable[name] = value
     }
   }
-  let resolver = { definitions: definitions(svg), theme: usable, }
-  rewrite_tags(svg, attributes => {
-    attributes.filter_map(attribute => {
-      if !css_attributes.contains(attribute.name) {
-        return Some(attribute)
-      }
-      let resolved = if attribute.name == "style" {
-        Some(resolver.style(attribute.value))
-      } else {
-        resolver.substitute(attribute.value, 0)
-      }
-      match resolved {
-        Some("") | None => None
-        Some(value) => Some({ ..attribute, value, })
-      }
-    })
+  { definitions: definitions(svg), theme: usable, }
+}
+
+///|
+/// The attributes of a tag with the references in their CSS resolved as `resolve_vars` resolves them.
+fn Resolver::attributes(
+  self : Resolver,
+  attributes : Array[Attribute],
+) -> Array[Attribute] {
+  attributes.filter_map(attribute => {
+    if !css_attributes.contains(attribute.name) {
+      return Some(attribute)
+    }
+    let resolved = if attribute.name == "style" {
+      Some(self.style(attribute.value))
+    } else {
+      self.substitute(attribute.value, 0)
+    }
+    match resolved {
+      Some("") | None => None
+      Some(value) => Some({ ..attribute, value, })
+    }
   })
 }
