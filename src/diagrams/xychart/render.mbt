@@ -489,19 +489,17 @@ pub fn render_xychart(
       "M\{@svg.num(left)},\{@svg.num(py(0, v))}H\{@svg.num(right)}"
     }
   }
-  let grid = StringBuilder()
+  let grid = @svg.Markup::new()
   for mark in (if horizontal { bottom_marks } else { left_marks }) {
-    grid.write_string(rule(mark.at))
+    grid.write(rule(mark.at))
   }
-  let axis = StringBuilder()
-  let labels = StringBuilder()
+  let axis = @svg.Markup::new()
+  let labels = @svg.Markup::new()
   if on(left_conf, "showAxisLine") {
-    axis.write_string("M\{@svg.num(left)},\{@svg.num(top)}V\{@svg.num(bottom)}")
+    axis.write("M\{@svg.num(left)},\{@svg.num(top)}V\{@svg.num(bottom)}")
   }
   if on(bottom_conf, "showAxisLine") {
-    axis.write_string(
-      "M\{@svg.num(left)},\{@svg.num(bottom)}H\{@svg.num(right)}",
-    )
+    axis.write("M\{@svg.num(left)},\{@svg.num(bottom)}H\{@svg.num(right)}")
   }
   for mark in left_marks {
     let y = if horizontal {
@@ -510,23 +508,21 @@ pub fn render_xychart(
       bottom - mark.at * plot_height
     }
     if left_tick != 0 {
-      axis.write_string(
-        "M\{@svg.num(left)},\{@svg.num(y)}h\{@svg.num(-left_tick)}",
-      )
+      axis.write("M\{@svg.num(left)},\{@svg.num(y)}h\{@svg.num(-left_tick)}")
     }
     if left_labels {
-      labels.write_string(aligned(mark.label, left - left_tick - 6, y, End))
+      labels.write(aligned(mark.label, left - left_tick - 6, y, End))
     }
   }
   for mark in bottom_marks {
     let at = left + mark.at * plot_width
     if bottom_tick != 0 {
-      axis.write_string(
+      axis.write(
         "M\{@svg.num(at)},\{@svg.num(bottom)}v\{@svg.num(bottom_tick)}",
       )
     }
     if bottom_labels {
-      labels.write_string(
+      labels.write(
         aligned(
           mark.label,
           at,
@@ -543,15 +539,15 @@ pub fn render_xychart(
   let base = clamp(scale(0))
   // Bars that go both ways get a line to stand on.
   if bars > 0 && base > 0 && base < 1 {
-    axis.write_string(rule(base))
+    axis.write(rule(base))
   }
   // Lines are drawn over the bars wherever they were declared, as a bar would hide part of one
   // under it.
   // A series keeps the color of its place in the source.
-  let series = StringBuilder()
-  let lines = StringBuilder()
-  let outside = StringBuilder()
-  let point_labels = StringBuilder()
+  let series = @svg.Markup::new()
+  let lines = @svg.Markup::new()
+  let outside = @svg.Markup::new()
+  let point_labels = @svg.Markup::new()
   let mut bar = 0
   for index, plot in plots {
     let color = @svg.series_color(index)
@@ -570,7 +566,7 @@ pub fn render_xychart(
       let offset = (bar.to_double() - (bars - 1).to_double() / 2) * thickness -
         (thickness - gap) / 2
       bar += 1
-      let rects = StringBuilder()
+      let rects = @svg.Markup::new()
       for i in 0..<n {
         guard finite(plot.data[i].1) is Some(value) else { continue }
         let c = place(i, n)
@@ -589,7 +585,7 @@ pub fn render_xychart(
         } else {
           (to - from) * plot_height
         }
-        rects.write_string(
+        rects.write(
           "<rect x=\"\{@svg.num(bx)}\" y=\"\{@svg.num(by)}\" width=\"\{@svg.num(bw)}\" height=\"\{@svg.num(bh)}\"/>",
         )
         if !show_values {
@@ -615,19 +611,21 @@ pub fn render_xychart(
           ty = (if out > 0 { by } else { by + bh }) -
             out * (tiny_height / 2 + 2)
         }
-        outside.write_string(
+        outside.write(
           "<text x=\"\{@svg.num(tx)}\" y=\"\{@svg.num(ty + tiny * 0.35)}\" text-anchor=\"\{anchor}\">\{label}</text>",
         )
       }
-      series.write_string(
-        "<g class=\"pele-series pele-bars\"\{id} fill=\"\{color}\">\{rects.to_string()}</g>",
+      series.write_group(
+        "<g class=\"pele-series pele-bars\"\{id} fill=\"\{color}\">",
+        rects,
+        "</g>",
       )
       continue
     }
 
     // A line is cut where it leaves the value range, so it stays inside the plot.
-    let d = StringBuilder()
-    let dots = StringBuilder()
+    let d = @svg.Markup::new()
+    let dots = @svg.Markup::new()
     let mut pen = false
     let mut pc = 0.0
     let mut pv = @double.not_a_number
@@ -641,7 +639,7 @@ pub fn render_xychart(
       let visible = v >= 0 && v <= 1
       if pv.is_nan() {
         if visible {
-          d.write_string("M\{@svg.num(px(c, v))},\{@svg.num(py(c, v))}")
+          d.write("M\{@svg.num(px(c, v))},\{@svg.num(py(c, v))}")
         }
         pen = visible
       } else {
@@ -662,9 +660,9 @@ pub fn render_xychart(
           let c1 = pc + (c - pc) * t1
           let v1 = pv + dv * t1
           if !pen || t0 > 0 {
-            d.write_string("M\{@svg.num(px(c0, v0))},\{@svg.num(py(c0, v0))}")
+            d.write("M\{@svg.num(px(c0, v0))},\{@svg.num(py(c0, v0))}")
           }
-          d.write_string("L\{@svg.num(px(c1, v1))},\{@svg.num(py(c1, v1))}")
+          d.write("L\{@svg.num(px(c1, v1))},\{@svg.num(py(c1, v1))}")
         }
         pen = visible
       }
@@ -676,7 +674,7 @@ pub fn render_xychart(
       let cx = px(c, v)
       let cy = py(c, v)
       if span >= 12 {
-        dots.write_string(
+        dots.write(
           "<circle cx=\"\{@svg.num(cx)}\" cy=\"\{@svg.num(cy)}\" r=\"3\"/>",
         )
       }
@@ -690,7 +688,7 @@ pub fn render_xychart(
       )
       if label.height > 0 {
         let half = label.width / 2
-        point_labels.write_string(
+        point_labels.write(
           if horizontal {
             aligned(label, cx + 10, cy, Start)
           } else {
@@ -704,25 +702,25 @@ pub fn render_xychart(
         )
       }
     }
-    lines.write_string(
-      "<g class=\"pele-series pele-line\"\{id} fill=\"\{color}\">" +
-      (if d.is_empty() {
-        ""
-      } else {
-        "<path d=\"\{d.to_string()}\" fill=\"none\" stroke=\"\{color}\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
-      }) +
-      dots.to_string() +
-      "</g>",
-    )
+    lines.write("<g class=\"pele-series pele-line\"\{id} fill=\"\{color}\">")
+    if !d.is_empty() {
+      lines.write_group(
+        "<path d=\"",
+        d,
+        "\" fill=\"none\" stroke=\"\{color}\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>",
+      )
+    }
+    lines.write_markup(dots)
+    lines.write("</g>")
   }
-  let titles = StringBuilder()
+  let titles = @svg.Markup::new()
   if left_title.height > 0 {
     let rotated = @svg.label_svg(left_title, 0, 0, "")
-    titles.write_string(
+    titles.write(
       "<g transform=\"translate(\{@svg.num(pad + left_title.height / 2)},\{@svg.num(top + plot_height / 2)}) rotate(-90)\">\{rotated}</g>",
     )
   }
-  titles.write_string(
+  titles.write(
     @svg.label_svg(
       bottom_title,
       left + plot_width / 2,
@@ -730,7 +728,7 @@ pub fn render_xychart(
       "",
     ),
   )
-  let legend_out = StringBuilder()
+  let legend_out = @svg.Markup::new()
   let mut legend_height = 0.0
   for item in legend {
     legend_height += @util.js_max(ROW, item.1.height + 6)
@@ -745,7 +743,7 @@ pub fn render_xychart(
     }
     let y = ly + row / 2
     let color = @svg.series_color(index)
-    legend_out.write_string(
+    legend_out.write(
       "<g class=\"pele-legend-item\" data-id=\"\{@svg.esc_text(plots[index].title)}\">" +
       (if plots[index].kind is Bar {
         "<rect x=\"\{@svg.num(lx)}\" y=\"\{@svg.num(y - SWATCH / 2)}\" width=\"\{SWATCH}\" height=\"\{SWATCH}\" rx=\"2\" fill=\"\{color}\"/>"
@@ -757,8 +755,8 @@ pub fn render_xychart(
     )
     ly += row
   }
-  let content = StringBuilder()
-  content.write_string(
+  let content = @svg.Markup::new()
+  content.write(
     @svg.label_svg(
       title,
       width / 2,
@@ -767,45 +765,56 @@ pub fn render_xychart(
     ),
   )
   if !grid.is_empty() {
-    content.write_string(
-      "<path class=\"pele-grid\" d=\"\{grid.to_string()}\" stroke=\"var(--_a)\"/>",
+    content.write_group(
+      "<path class=\"pele-grid\" d=\"", grid, "\" stroke=\"var(--_a)\"/>",
     )
   }
-  content.write_string(
-    "<g class=\"pele-plot\">\{series.to_string()}\{lines.to_string()}</g>",
-  )
+  content.write("<g class=\"pele-plot\">")
+  content.write_markup(series)
+  content.write_markup(lines)
+  content.write("</g>")
   if !axis.is_empty() {
-    content.write_string(
-      "<path class=\"pele-axis\" d=\"\{axis.to_string()}\" fill=\"none\" stroke=\"var(--_b)\"/>",
+    content.write_group(
+      "<path class=\"pele-axis\" d=\"", axis, "\" fill=\"none\" stroke=\"var(--_b)\"/>",
     )
   }
   if !labels.is_empty() {
-    content.write_string(
-      "<g class=\"pele-axis-labels\" font-size=\"\{small}\" fill=\"var(--_m)\">\{labels.to_string()}</g>",
+    content.write_group(
+      "<g class=\"pele-axis-labels\" font-size=\"\{small}\" fill=\"var(--_m)\">",
+      labels,
+      "</g>",
     )
   }
   if !titles.is_empty() {
-    content.write_string(
-      "<g class=\"pele-axis-titles\" font-size=\"\{small}\">\{titles.to_string()}</g>",
+    content.write_group(
+      "<g class=\"pele-axis-titles\" font-size=\"\{small}\">",
+      titles,
+      "</g>",
     )
   }
   if !outside.is_empty() {
-    content.write_string(
-      "<g class=\"pele-data-labels\" font-size=\"\{tiny}\">\{outside.to_string()}</g>",
+    content.write_group(
+      "<g class=\"pele-data-labels\" font-size=\"\{tiny}\">",
+      outside,
+      "</g>",
     )
   }
   if !point_labels.is_empty() {
-    content.write_string(
-      "<g class=\"pele-point-labels\" font-size=\"\{tiny}\">\{point_labels.to_string()}</g>",
+    content.write_group(
+      "<g class=\"pele-point-labels\" font-size=\"\{tiny}\">",
+      point_labels,
+      "</g>",
     )
   }
   if !legend_out.is_empty() {
-    content.write_string(
-      "<g class=\"pele-legend\" font-size=\"\{small}\">\{legend_out.to_string()}</g>",
+    content.write_group(
+      "<g class=\"pele-legend\" font-size=\"\{small}\">",
+      legend_out,
+      "</g>",
     )
   }
   {
-    svg: @svg.svg_document(
+    svg: @svg.markup_document(
       "xychart",
       width,
       height,
@@ -813,7 +822,7 @@ pub fn render_xychart(
       options,
       model.acc_title,
       model.acc_descr,
-      content.to_string(),
+      content,
     ),
     width,
     height,
