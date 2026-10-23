@@ -222,8 +222,12 @@ fn draw(
         "<g class=\"pele-node\" data-id=\"\{block.start}-\{block.end}\"><rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(w)}\" height=\"\{@svg.num(height)}\" fill=\"var(--_s)\" stroke=\"var(--_b)\"\{@svg.ROUNDED}/>",
       )
       if down {
-        fields.write(
-          @svg.label_svg(labels[index][position], x + w / 2, y + height / 2, ""),
+        @svg.write_label(
+          fields,
+          labels[index][position],
+          x + w / 2,
+          y + height / 2,
+          "",
         )
       } else if fit(block.label, w - 6) is Some(text) && text.size <= height {
         let font_size = if text.size == label_size {
@@ -232,8 +236,10 @@ fn draw(
           " font-size=\"\{@svg.num(text.size)}\""
         }
         fields.write(
-          "<text x=\"\{@svg.num(x + w / 2)}\" y=\"\{@svg.num(y + height / 2 + text.size * 0.35)}\"\{font_size}>\{@svg.esc(text.text)}</text>",
+          "<text x=\"\{@svg.num(x + w / 2)}\" y=\"\{@svg.num(y + height / 2 + text.size * 0.35)}\"\{font_size}>",
         )
+        @svg.write_esc(fields, text.text)
+        fields.write("</text>")
       }
       fields.write("</g>")
       if !show_bits {
