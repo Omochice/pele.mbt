@@ -64,7 +64,7 @@ fn flowchart_error(
 
 ///|
 /// The label type a name stands for, Markdown for any other value.
-fn label_type_of(name : Json?) -> LabelType {
+pub fn label_type_of(name : Json?) -> LabelType {
   match name {
     Some(String("text")) => Text
     Some(String("string")) => Str
@@ -73,7 +73,8 @@ fn label_type_of(name : Json?) -> LabelType {
 }
 
 ///|
-fn unquote(text : String) -> String {
+/// The text without the double quotes around it, if it has them.
+pub fn unquote(text : String) -> String {
   if text.length() >= 2 && text.has_prefix("\"") && text.has_suffix("\"") {
     @util.slice(text, 1, end=text.length() - 1)
   } else {
@@ -499,20 +500,69 @@ pub fn FlowDb::update_link(
 }
 
 ///|
+/// The declarations of a `classDef`, split at its commas but not at escaped ones.
+pub fn class_styles(styles : Array[String]) -> Array[String] {
+  styles
+  .join(",")
+  .replace_all(old="\\,", new="§§§")
+  .replace_all(old=",", new=";")
+  .replace_all(old="§§§", new=",")
+  .split(";")
+  .map(s => s.to_owned())
+  .collect()
+}
+
+///|
+/// The direction a header's text names, with arrows and `TD` turned into direction names.
+pub fn direction_name(dir : String) -> String {
+  let mut d = @util.trim(dir)
+  if d.contains("<") {
+    d = "RL"
+  }
+  if d.contains("^") {
+    d = "BT"
+  }
+  if d.contains(">") {
+    d = "LR"
+  }
+  if d.contains("v") {
+    d = "TB"
+  }
+  if d == "TD" {
+    d = "TB"
+  }
+  d
+}
+
+///|
+/// An accessible description with the indentation of its lines removed.
+pub fn acc_description(text : String) -> String {
+  let out = StringBuilder()
+  let mut i = 0
+  while i < text.length() {
+    if @util.code_at(text, i) == '\n' &&
+      @util.is_space(@util.code_at(text, i + 1)) {
+      out.write_char('\n')
+      i += 1
+      while @util.is_space(@util.code_at(text, i)) {
+        i += 1
+      }
+    } else {
+      @util.write_range(out, text, i, i + 1)
+      i += 1
+    }
+  }
+  out.to_string()
+}
+
+///|
 /// Defines the classes named in `ids`, separated by commas, with the given styles.
 pub fn FlowDb::add_class(
   self : FlowDb,
   ids : String,
   styles : Array[String],
 ) -> Unit {
-  let style = styles
-    .join(",")
-    .replace_all(old="\\,", new="§§§")
-    .replace_all(old=",", new=";")
-    .replace_all(old="§§§", new=",")
-    .split(";")
-    .map(s => s.to_owned())
-    .collect()
+  let style = class_styles(styles)
   for id in ids.split(",") {
     let id = id.to_owned()
     let class_def = match self.classes.get(id) {
@@ -535,23 +585,7 @@ pub fn FlowDb::add_class(
 ///|
 /// Sets the chart's direction from the text of a header, turning arrows and `TD` into direction names.
 pub fn FlowDb::set_direction(self : FlowDb, dir : String) -> Unit {
-  let mut d = @util.trim(dir)
-  if d.contains("<") {
-    d = "RL"
-  }
-  if d.contains("^") {
-    d = "BT"
-  }
-  if d.contains(">") {
-    d = "LR"
-  }
-  if d.contains("v") {
-    d = "TB"
-  }
-  if d == "TD" {
-    d = "TB"
-  }
-  self.direction = Some(d)
+  self.direction = Some(direction_name(dir))
 }
 
 ///|
@@ -622,22 +656,7 @@ pub fn FlowDb::set_acc_title(self : FlowDb, text : String) -> Unit {
 ///|
 /// Sets the accessible description, with the indentation of its lines removed.
 pub fn FlowDb::set_acc_description(self : FlowDb, text : String) -> Unit {
-  let out = StringBuilder()
-  let mut i = 0
-  while i < text.length() {
-    if @util.code_at(text, i) == '\n' &&
-      @util.is_space(@util.code_at(text, i + 1)) {
-      out.write_char('\n')
-      i += 1
-      while @util.is_space(@util.code_at(text, i)) {
-        i += 1
-      }
-    } else {
-      @util.write_range(out, text, i, i + 1)
-      i += 1
-    }
-  }
-  self.acc_descr = Some(out.to_string())
+  self.acc_descr = Some(acc_description(text))
 }
 
 ///|

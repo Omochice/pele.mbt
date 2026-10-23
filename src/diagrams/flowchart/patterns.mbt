@@ -22,7 +22,7 @@ fn is_link_prefix(c : Int32) -> Bool {
 
 ///|
 /// `/word\s*P\s*/y`, as `accTitle\s*:\s*` and its siblings.
-fn keyword_punct_end(
+pub fn keyword_punct_end(
   src : String,
   q : Int32,
   word : String,
@@ -40,7 +40,7 @@ fn keyword_punct_end(
 
 ///|
 /// `/word\s+/y`, as `call\s+` and `click\s+`.
-fn keyword_space_end(src : String, q : Int32, word : String) -> Int32 {
+pub fn keyword_space_end(src : String, q : Int32, word : String) -> Int32 {
   let j = q + word.length()
   if !@util.starts_with_at(src, word, q) || !@util.is_space(code(src, j)) {
     return -1
@@ -50,7 +50,7 @@ fn keyword_space_end(src : String, q : Int32, word : String) -> Int32 {
 
 ///|
 /// `/(?:\r?\n)*\s*\n/y`: the run of whitespace at `q` up to its last newline.
-fn nodir_end(src : String, q : Int32) -> Int32 {
+pub fn nodir_end(src : String, q : Int32) -> Int32 {
   let w = skip_space(src, q)
   let mut k = w - 1
   while k >= q && code(src, k) != '\n' {
@@ -65,7 +65,7 @@ fn nodir_end(src : String, q : Int32) -> Int32 {
 
 ///|
 /// `/\s*(?:LR|RL|TB|BT|TD|BR)\b/y`.
-fn dir_end(src : String, q : Int32) -> Int32 {
+pub fn dir_end(src : String, q : Int32) -> Int32 {
   let j = skip_space(src, q)
   match @util.slice(src, j, end=j + 2) {
     "LR" | "RL" | "TB" | "BT" | "TD" | "BR" =>
@@ -80,7 +80,7 @@ fn dir_end(src : String, q : Int32) -> Int32 {
 
 ///|
 /// `/\s*[<>^]/y`.
-fn dir_symbol_end(src : String, q : Int32) -> Int32 {
+pub fn dir_symbol_end(src : String, q : Int32) -> Int32 {
   let j = skip_space(src, q)
   let c = code(src, j)
   if c == '<' || c == '>' || c == '^' {
@@ -92,7 +92,7 @@ fn dir_symbol_end(src : String, q : Int32) -> Int32 {
 
 ///|
 /// `/\s*v\b/y`.
-fn dir_v_end(src : String, q : Int32) -> Int32 {
+pub fn dir_v_end(src : String, q : Int32) -> Int32 {
   let j = skip_space(src, q)
   if code(src, j) == 'v' && !@util.is_word(code(src, j + 1)) {
     j + 1
@@ -103,7 +103,7 @@ fn dir_v_end(src : String, q : Int32) -> Int32 {
 
 ///|
 /// `/.*direction\s+XY[^\n]*/y`: the greedy `.*` lets the last `direction` on the line win.
-fn direction_end(src : String, q : Int32, dir : String) -> Int32 {
+pub fn direction_end(src : String, q : Int32, dir : String) -> Int32 {
   let n = src.length()
   let mut line_end = q
   while line_end < n && !@util.is_line_end(code(src, line_end)) {
@@ -270,7 +270,7 @@ fn blank_end(src : String, q : Int32) -> Int32 {
 
 ///|
 /// `/\(\s*\)/y`.
-fn empty_call_end(src : String, q : Int32) -> Int32 {
+pub fn empty_call_end(src : String, q : Int32) -> Int32 {
   if code(src, q) != '(' {
     return -1
   }
@@ -284,7 +284,7 @@ fn empty_call_end(src : String, q : Int32) -> Int32 {
 
 ///|
 /// `text.replace(/\n\s*/g, '<br/>')`.
-fn break_lines(text : String) -> String {
+pub fn break_lines(text : String) -> String {
   let out = StringBuilder()
   let mut i = 0
   while i < text.length() {

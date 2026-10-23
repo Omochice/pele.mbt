@@ -7,13 +7,47 @@ import {
 }
 
 // Values
+pub fn acc_description(String) -> String
+
+pub fn break_lines(String) -> String
+
 pub fn build_flow_graph(FlowDb, default_curve? : String) -> FlowGraph
 
 pub fn canonical_shape(String?) -> String
 
+pub fn class_styles(Array[String]) -> Array[String]
+
+pub fn dir_end(String, Int32) -> Int32
+
+pub fn dir_symbol_end(String, Int32) -> Int32
+
+pub fn dir_v_end(String, Int32) -> Int32
+
+pub fn direction_end(String, Int32, String) -> Int32
+
+pub fn direction_name(String) -> String
+
+pub fn edge_classes(String) -> String
+
+pub fn empty_call_end(String, Int32) -> Int32
+
 pub let flowchart : @types.Diagram
 
+pub fn is_node_char(Int32) -> Bool
+
 pub fn is_valid_shape(String) -> Bool
+
+pub fn keyword_punct_end(String, Int32, String, Int32) -> Int32
+
+pub fn keyword_space_end(String, Int32, String) -> Int32
+
+pub fn label_type_of(Json?) -> LabelType
+
+pub fn node_classes(String) -> String
+
+pub fn nodir_end(String, Int32) -> Int32
+
+pub fn number_option(Map[String, Json], String, Double) -> Double
 
 pub fn parse_flowchart(String, FlowDb) -> Unit raise @errors.PeleError
 
@@ -24,6 +58,8 @@ pub fn render_flowchart(FlowDb, Map[String, Json], @types.RenderOptions) -> @typ
 pub let token_names : Array[String]
 
 pub fn tokenize(String) -> Tokens
+
+pub fn unquote(String) -> String
 
 // Errors
 

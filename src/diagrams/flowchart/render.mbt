@@ -20,7 +20,8 @@ const SHAPE_ATTRS : String = " fill=\"var(--_s)\" stroke=\"var(--_b)\""
 const LINE_ATTRS : String = " stroke=\"var(--_b)\""
 
 ///|
-fn number_option(
+/// A positive number set under `key`, capped at 2000, or `fallback`.
+pub fn number_option(
   section : Map[String, Json],
   key : String,
   fallback : Double,
@@ -68,7 +69,8 @@ fn flow_section(config : @types.Config) -> Map[String, Json] {
 }
 
 ///|
-fn edge_classes(classes : String) -> String {
+/// The edge's classes without the three that every drawn edge carries.
+pub fn edge_classes(classes : String) -> String {
   // The graph gives an edge these three classes or none, so removing them one after another matches pele's single-pass regex.
   @svg.class_names(
     classes
@@ -76,6 +78,12 @@ fn edge_classes(classes : String) -> String {
     .replace_all(old="edge-pattern-solid", new="")
     .replace_all(old="flowchart-link", new=""),
   )
+}
+
+///|
+/// The node's classes without the `default` class that every node carries first.
+pub fn node_classes(classes : String) -> String {
+  @svg.node_class_names(classes)
 }
 
 ///|

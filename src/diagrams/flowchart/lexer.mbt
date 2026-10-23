@@ -68,7 +68,7 @@ const NO_CHAR : Int32 = -2
 
 ///|
 /// The ASCII characters a NODE_STRING is made of, besides `-` which needs a look ahead.
-fn is_node_char(c : Int32) -> Bool {
+pub fn is_node_char(c : Int32) -> Bool {
   @util.is_letter(c) ||
   @util.is_digit(c) ||
   c == '!' ||
