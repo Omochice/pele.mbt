@@ -163,6 +163,33 @@ fn dump_model(db : @agentflow.AgentflowDb) -> String {
 }
 
 ///|
+/// The graph the model draws, with the eight series colors, and the diagnostics building it records.
+fn dump_graph(db : @agentflow.AgentflowDb) -> String {
+  let graph = @agentflow.build_agent_graph(db, 8)
+  let out = []
+  for n in graph.nodes {
+    out.push(
+      "gnode \{q(n.id)} label=\{opt(n.label)} lt=\{n.label_type.to_string()} shape=\{q(n.shape)} group=\{n.is_group} parent=\{opt(n.parent_id)} styles=\{texts(Some(n.css_styles))} compiled=\{texts(Some(n.css_compiled_styles))} classes=\{q(n.css_classes)} dir=\{opt(n.dir)} link=\{opt(n.link)} target=\{opt(n.link_target)} tooltip=\{opt(n.tooltip)} color=\{int(n.color_index)} kind=\{opt(n.kind)} metadata=\{metadata(n.metadata)}",
+    )
+  }
+  for e in graph.edges {
+    out.push(
+      "gedge \{q(e.id)} user=\{e.is_user_defined_id} \{q(e.start)} \{q(e.end)} type=\{q(e.kind)} label=\{q(e.label)} lt=\{e.label_type.to_string()} thickness=\{opt(e.thickness)} minlen=\{int(e.minlen)} arrows=\{e.arrow_type_start},\{e.arrow_type_end} compiled=\{texts(Some(e.css_compiled_styles))} style=\{texts(Some(e.style))} classes=\{q(e.classes)} animate=\{json(e.animate)} animation=\{json(e.animation)} curve=\{opt(e.curve.map(@util.js_string))} metadata=\{metadata(e.metadata)}",
+    )
+  }
+  for d in db.diagnostics {
+    let at = match d.position {
+      Some(p) => position(p)
+      None => "-"
+    }
+    out.push(
+      "diagnostic \{d.id} \{d.severity} \{q(d.message)} node=\{opt(d.node_id)} edge=\{opt(d.edge_id)} at=\{at}",
+    )
+  }
+  out.join("\n")
+}
+
+///|
 /// FNV-1a over UTF-16 code units, as the generator of the expectations hashes pele's dumps.
 fn fnv1a(text : String) -> String {
   let mut h : UInt32 = 0x811c9dc5U

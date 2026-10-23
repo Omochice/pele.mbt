@@ -8,6 +8,8 @@ import {
 }
 
 // Values
+pub fn build_agent_graph(AgentflowDb, Int32, default_curve? : String) -> AgentGraph
+
 pub fn parse_agentflow(String, AgentflowDb, raw? : Bool) -> Unit raise @errors.PeleError
 
 pub fn parse_model(String, Map[String, Json], String?, Int32, @types.ParseLimits) -> AgentflowDb raise @errors.PeleError
@@ -36,6 +38,11 @@ pub(all) struct AgentEdge {
   mut animate : Json?
   mut animation : Json?
   mut metadata : Map[String, Json]?
+}
+
+pub(all) struct AgentGraph {
+  nodes : Array[GraphNode]
+  edges : Array[GraphEdge]
 }
 
 pub(all) struct AgentNode {
@@ -130,6 +137,47 @@ pub(all) struct ElementPosition {
   mut end_column : Int32
   start_index : Int32
   end_index : Int32
+}
+
+pub(all) struct GraphEdge {
+  id : String
+  is_user_defined_id : Bool
+  start : String
+  end : String
+  kind : String
+  label : String
+  label_type : @flowchart.LabelType
+  thickness : String?
+  pattern : String?
+  minlen : Int32?
+  arrow_type_start : String
+  arrow_type_end : String
+  css_compiled_styles : Array[String]
+  style : Array[String]
+  classes : String
+  animate : Json?
+  animation : Json?
+  curve : Json?
+  metadata : Map[String, Json]?
+}
+
+pub(all) struct GraphNode {
+  id : String
+  label : String?
+  label_type : @flowchart.LabelType
+  mut shape : String
+  is_group : Bool
+  parent_id : String?
+  mut css_styles : Array[String]
+  mut css_compiled_styles : Array[String]
+  mut css_classes : String
+  dir : String?
+  link : String?
+  link_target : String?
+  tooltip : String?
+  mut color_index : Int32?
+  mut kind : String?
+  metadata : Map[String, Json]?
 }
 
 pub(all) struct Loc {
