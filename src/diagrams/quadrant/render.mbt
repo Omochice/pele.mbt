@@ -370,13 +370,12 @@ fn render_quadrant(
   // Mermaid puts each new point under the ones before it.
   circles.rev_in_place()
   let content = @svg.Markup::new()
-  content.write(
-    @svg.label_svg(
-      title,
-      width / 2,
-      title_pad / 2 + title.height / 2,
-      " class=\"pele-title\" font-weight=\"var(--_tw)\"",
-    ),
+  @svg.write_label(
+    content,
+    title,
+    width / 2,
+    title_pad / 2 + title.height / 2,
+    " class=\"pele-title\" font-weight=\"var(--_tw)\"",
   )
   content.write_group(
     "<g class=\"pele-quadrants\" fill=\"var(--_s)\" stroke=\"var(--_b)\">", quadrants,
