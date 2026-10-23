@@ -12,9 +12,10 @@
 // string handed to `render`, `parse` or an internal entry such as a lexer is collected without
 // running pele's sources. Strings given to internal entries are rendered as whole diagrams too.
 //
-// The plugin runs under node by default. With --typst it runs under `typst compile` (the binary
-// is $TYPST, or typst on PATH), which is slow but is the host whose call depth decides whether
-// deep input traps: V8 allows wasm a far deeper stack than typst's interpreter does.
+// The plugin runs under node by default, rewritten to trap past the thousand call frames typst's
+// interpreter allows, since V8 allows wasm a far deeper stack; the deepest inputs are listed.
+// With --typst it runs under `typst compile` itself (the binary is $TYPST, or typst on PATH),
+// which is slow but confirms the emulation.
 //
 // With --stack-sizes, pele's outcomes are computed again under each given V8 stack size and every
 // input whose outcome depends on it is reported, since a RangeError from a deep stack is how
@@ -27,6 +28,7 @@ import { availableParallelism, tmpdir } from 'node:os';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
+import { TYPST_CALL_DEPTH } from './call-depth.mjs';
 import { loadPlugin } from './plugin-host.mjs';
 
 process.env.TZ = 'UTC';
@@ -221,21 +223,21 @@ function peleOutcome({ text, options }) {
   return { ...outcome, ms: Math.round(performance.now() - started) };
 }
 
-// The plugin under node: fast, but V8 gives wasm a far deeper stack than typst does.
+// The plugin under node, held to typst's call depth.
 function nodeHost() {
-  const plugin = loadPlugin(wasmPath);
+  const plugin = loadPlugin(wasmPath, { callDepthLimit: TYPST_CALL_DEPTH });
   return async ({ text, options }) => {
     try {
-      const { code, result } = plugin.call(Buffer.from(text), Buffer.from(JSON.stringify(options)));
-      return code === 0 ? { kind: 'ok' } : errorOutcome(JSON.parse(result).error);
+      const { code, result, depth } = plugin.call(Buffer.from(text), Buffer.from(JSON.stringify(options)));
+      const outcome = code === 0 ? { kind: 'ok' } : errorOutcome(JSON.parse(result).error);
+      return { ...outcome, depth };
     } catch (error) {
       return { kind: 'trap', message: String(error) };
     }
   };
 }
 
-// The plugin under typst itself, whose wasm interpreter allows a call depth of about a thousand
-// frames: the host that decides whether deep input traps.
+// The plugin under typst itself, to confirm what the node host emulates.
 function typstHost() {
   const dir = mkdtempSync(join(tmpdir(), 'pele-stress-'));
   copyFileSync(wasmPath, join(dir, 'plugin.wasm'));
@@ -297,7 +299,14 @@ for (const [i, input] of inputs.entries()) {
   else if (got[i].kind !== want.kind) kind = 'fail';
   totals[kind]++;
   const detail = kind === 'pass' ? firstLine(want) : `: pele ${want.kind}${firstLine(want)}, plugin ${got[i].kind}${firstLine(got[i])}`;
-  console.log(`${kind.toUpperCase()} [${want.kind}] ${input.label} pele ${want.ms}ms plugin ${got[i].ms}ms${detail}`);
+  const depth = got[i].depth === undefined ? '' : ` depth ${got[i].depth}`;
+  console.log(`${kind.toUpperCase()} [${want.kind}] ${input.label} pele ${want.ms}ms plugin ${got[i].ms}ms${depth}${detail}`);
+}
+
+if (!typst) {
+  const deepest = [...inputs.keys()].filter((i) => got[i].depth !== undefined).sort((a, b) => got[b].depth - got[a].depth);
+  console.log(`\ndeepest calls, of the ${TYPST_CALL_DEPTH} frames typst allows:`);
+  for (const i of deepest.slice(0, 5)) console.log(`  ${got[i].depth} ${inputs[i].label}`);
 }
 
 let dependent = 0;

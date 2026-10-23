@@ -1,14 +1,16 @@
 // Renders every golden source of the ported diagrams through the wasm plugin and compares the
-// result with pele's output byte for byte.
+// result with pele's output byte for byte. The plugin is held to typst's call depth, so a source
+// that would trap in typst fails here too.
 //
 // Usage: node scripts/check-golden.mjs [--profile name ...] [diagram ...]
 // Without --profile every profile in the manifest is checked.
 // Build the plugin first with `moon build --target wasm --release`.
 
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { basename, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { isDeepStrictEqual, parseArgs } from 'node:util';
+import { TYPST_CALL_DEPTH } from './call-depth.mjs';
 import { loadPlugin } from './plugin-host.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -39,11 +41,13 @@ const profiles = Object.entries(manifest.profiles)
 
 let call;
 try {
-  ({ call } = loadPlugin(wasmPath));
+  ({ call } = loadPlugin(wasmPath, { callDepthLimit: TYPST_CALL_DEPTH }));
 } catch (error) {
   console.error(error.message);
   process.exit(1);
 }
+// The call that went deepest, against typst's limit that the plugin is held to here.
+let deepest = { depth: 0, label: '' };
 
 function excerpt(text, at) {
   return JSON.stringify(text.slice(Math.max(0, at - 30), at + 50));
@@ -72,6 +76,7 @@ function compare(id, dir, profile) {
     if (error instanceof WebAssembly.RuntimeError) return { kind: 'trap', detail: error.message };
     throw error;
   }
+  if (outcome.depth > deepest.depth) deepest = { depth: outcome.depth, label: `${basename(dir)} ${profile.name}/${id}` };
   let actual;
   try {
     actual = JSON.parse(outcome.result);
@@ -123,6 +128,7 @@ for (const entry of readdirSync(goldenDir, { withFileTypes: true })) {
 }
 console.log();
 for (const { label, pass, total } of perProfile) console.log(`${label} ${pass}/${total}`);
+console.log(`\ndeepest call ${deepest.depth} of the ${TYPST_CALL_DEPTH} frames typst allows, in ${deepest.label}`);
 const total = totals.pass + totals.fail + totals.trap;
 console.log(`\ntotal ${totals.pass}/${total} passed, ${totals.fail} failed, ${totals.trap} trapped`);
 process.exit(totals.fail + totals.trap > 0 ? 1 : 0);

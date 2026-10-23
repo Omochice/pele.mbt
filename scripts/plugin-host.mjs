@@ -1,17 +1,22 @@
 // Hosts the wasm plugin the way typst does, through the wasm-minimal-protocol.
 
 import { existsSync, readFileSync } from 'node:fs';
+import { countCallDepth } from './call-depth.mjs';
 
 /**
  * Compiles the plugin and checks that it needs nothing typst does not provide.
  * @param {string} wasmPath
- * @returns {{ call: (source: Buffer, optionBytes: Buffer) => { code: number, result: string } }}
+ * @param {{ callDepthLimit?: number }} [options] with `callDepthLimit`, the plugin traps past that
+ *   many call frames as it would in typst, and each call reports the deepest it went.
+ * @returns {{ call: (source: Buffer, optionBytes: Buffer) => { code: number, result: string, depth?: number } }}
  *   `call` gives the plugin's status code and result text, and throws when the plugin traps.
  * @throws {Error} when the plugin is not built or imports more than typst_env.
  */
-export function loadPlugin(wasmPath) {
+export function loadPlugin(wasmPath, { callDepthLimit } = {}) {
   if (!existsSync(wasmPath)) throw new Error(`missing ${wasmPath}; run \`moon build --target wasm --release\` first`);
-  const module = new WebAssembly.Module(readFileSync(wasmPath));
+  let bytes = readFileSync(wasmPath);
+  if (callDepthLimit !== undefined) bytes = countCallDepth(bytes, callDepthLimit);
+  const module = new WebAssembly.Module(bytes);
   const foreign = WebAssembly.Module.imports(module).filter((i) => i.module !== 'typst_env');
   if (foreign.length > 0) throw new Error(`the plugin imports more than typst_env: ${JSON.stringify(foreign)}`);
 
@@ -30,7 +35,7 @@ export function loadPlugin(wasmPath) {
       },
     });
     const code = instance.exports.render(source.length, optionBytes.length);
-    return { code, result };
+    return { code, result, depth: instance.exports.call_depth_max?.value };
   }
 
   return { call };
