@@ -1045,13 +1045,12 @@ fn draw(
     }
   }
   let body = @svg.Markup::new()
-  body.write(
-    @svg.label_svg(
-      title,
-      width / 2,
-      pad + title.height / 2,
-      " class=\"pele-title\" font-weight=\"var(--_tw)\"",
-    ),
+  @svg.write_label(
+    body,
+    title,
+    width / 2,
+    pad + title.height / 2,
+    " class=\"pele-title\" font-weight=\"var(--_tw)\"",
   )
   if !clusters.is_empty() {
     body.write_group("<g class=\"pele-clusters\">", clusters, "</g>")
