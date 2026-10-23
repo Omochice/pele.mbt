@@ -38,6 +38,7 @@ fn priority_stroke(priority : String) -> String? {
 ///|
 /// Lays out text for a fixed width.
 /// A word too long for a line is broken between characters, because a card cannot grow sideways to hold it.
+/// pele's kanban breaks only once a line has some width, unlike the `breakLabel` other diagrams share, so a zero-width character stays with the next one and `@common.break_label` does not fit here.
 fn fit_label(
   raw : String?,
   markdown : Bool,
@@ -46,11 +47,79 @@ fn fit_label(
   max : Double,
   base~ : Int32 = 0,
 ) -> @text.Label {
-  @common.break_label(
-    @text.layout_label(raw, markdown, measurer, size, max, base~),
-    measurer,
-    max,
-  )
+  let label = @text.layout_label(raw, markdown, measurer, size, max, base~)
+  if label.width <= max {
+    return label
+  }
+  let lines : Array[Array[@text.Span]] = []
+  let widths : Array[Double] = []
+  let mut widest = 0.0
+  let mut line : Array[@text.Span] = []
+  let mut width = 0.0
+  let commit = () => {
+    lines.push(line)
+    widths.push(width)
+    widest = @util.js_max(widest, width)
+    line = []
+    width = 0
+  }
+  for i, spans in label.lines {
+    if label.widths[i] <= max {
+      line = spans
+      width = label.widths[i]
+      commit()
+      continue
+    }
+    for span in spans {
+      if span.icon is Some(_) || span.math is Some(_) {
+        if width > 0 && width + span.width > max {
+          commit()
+        }
+        line.push(span)
+        width += span.width
+        continue
+      }
+      let mut text = ""
+      let mut from = width
+      let push_text = () => {
+        if text != "" {
+          line.push({
+            text,
+            style: span.style,
+            icon: None,
+            width: width - from,
+            math: None,
+          })
+        }
+      }
+      for ch in span.text {
+        let char = ch.to_string()
+        let w = measurer.width(char, size, span.style)
+        if width > 0 && width + w > max {
+          push_text()
+          commit()
+          text = ""
+          from = 0
+        }
+        text = text + char
+        width += w
+      }
+      push_text()
+    }
+    commit()
+  }
+  let fitted = {
+    ..label,
+    lines,
+    widths,
+    width: widest,
+    height: lines.length().to_double() * label.line_height,
+  }
+  if label.heights is Some(_) {
+    @text.with_heights(fitted)
+  } else {
+    fitted
+  }
 }
 
 ///|
