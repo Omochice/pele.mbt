@@ -136,4 +136,5 @@ export const CASES = [
     { ...RAISED, math: { x: { 14: { svg: `<path d="${'M0 0'.repeat(25000)}"/>`, width: 0.001, height: 10 } } } },
   ],
   ['agentflow', 'host icons in one agent label', `agentflow-beta TB\n  a["${Array(5400).fill('fa:fa-x').join(' ')}"]\n`, ICONS],
+  ['state', 'host icons in one state label', `stateDiagram-v2\nA : ${Array(5400).fill('fa:fa-x').join(' ')}\n`, ICONS],
 ];
