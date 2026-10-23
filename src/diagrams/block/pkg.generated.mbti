@@ -1,12 +1,73 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "Omochice/pele/diagrams/block"
 
+import {
+  "Omochice/pele/errors",
+}
+
 // Values
+pub fn edge_str_to_edge_data(String) -> String
+
+pub fn edge_str_to_edge_start_data(String) -> String
+
+pub fn edge_str_to_pattern(String) -> String
+
+pub fn edge_str_to_thickness(String) -> String
+
 pub fn tokenize(String) -> Tokens
+
+pub fn type_str_to_type(String?) -> String
 
 // Errors
 
 // Types and methods
+pub(all) struct Block {
+  mut id : String
+  mut kind : String
+  mut label : String
+  mut children : Array[Block]
+  mut columns : Double
+  width_in_columns : Double?
+  width : Double
+  directions : Array[String]
+  mut classes : Array[String]
+  mut styles : Array[String]
+  mut color_index : Int32?
+  start : String
+  end : String
+  arrow_type_start : String
+  arrow_type_end : String
+  thickness : String
+  pattern : String
+  css : String
+  style_class : String
+  styles_str : String
+}
+pub fn Block::new(String, String, label? : String, children? : Array[Self], columns? : Double, width_in_columns? : Double, width? : Double, directions? : Array[String], start? : String, end? : String, arrow_type_start? : String, arrow_type_end? : String, thickness? : String, pattern? : String, css? : String, style_class? : String, styles_str? : String) -> Self
+
+pub(all) struct BlockClassDef {
+  id : String
+  styles : Array[String]
+  text_styles : Array[String]
+}
+
+pub struct BlockDb {
+  title : String?
+  root : Block
+  mut blocks : Array[Block]
+  edges : Array[Block]
+  classes : Map[String, BlockClassDef]
+  by_id : Map[String, Block]
+}
+pub fn BlockDb::generate_id(Self) -> String
+pub fn BlockDb::new(title? : String, warn? : (String) -> Unit) -> Self
+pub fn BlockDb::set_hierarchy(Self, Array[Statement]) -> Unit raise @errors.PeleError
+
+pub(all) enum Statement {
+  One(Block)
+  Chain(Array[Block])
+}
+
 pub(all) enum Tok {
   End
   Error
