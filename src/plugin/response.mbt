@@ -17,7 +17,10 @@ fn respond(source : String, options : String) -> (Int32, Json) {
       decode_options(options),
     )
     let svg = match decode_theme(options) {
-      Some(theme) => @typst.hoist_radii(@typst.resolve_vars(result.svg, theme))
+      Some(theme) =>
+        @typst.hoist_radii(
+          @typst.mix_colors(@typst.resolve_vars(result.svg, theme)),
+        )
       None => result.svg
     }
     (0, success({ ..result, svg, }))

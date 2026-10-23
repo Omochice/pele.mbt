@@ -46,6 +46,11 @@ A color is written as its hex code, a length as a number of the SVG's units, and
 An absent key keeps pele's own value.
 A value holding `;`, `{` or `}` is ignored, as it could end the declaration it is written into.
 
+pele outlines a cluster title that edges run through with `color-mix(in srgb, …)` of `surface-alt` and `bg`, which typst does not evaluate, so the plugin computes the mix to a hex code as CSS Color 5 defines it.
+It reads the colors written as a hex code of 3, 4, 6 or 8 digits, `rgb()` or `rgba()` in either the comma or the space separated form, a named color, `transparent`, or another such mix in sRGB.
+A mix in another color space, or of any other color such as `hsl()`, `oklch()` or `currentColor`, is left as written, and typst draws nothing where it paints.
+Its channels are rounded half up to bytes, as browsers round the channels of `rgb()`.
+
 typst resolves no generic font family such as `sans-serif` or `monospace`, and draws such text in its default serif font.
 The theme therefore names `Arial, Helvetica, Liberation Sans, Arimo` for `font`, as pele lays labels out with Arial's metrics unless it is given a measurer, and `DejaVu Sans Mono`, which ships with typst, for `font-mono`.
 Either default gives way to `fontFamily` or `fontFamilyMono`, or to the theme's own key.
@@ -113,13 +118,15 @@ Compiling a document that embeds pele's SVG with typst 0.15.1 showed the followi
 - The parser of the `style` attribute stops at the first custom property declaration, so the root's `color`, `font` and `font-family`, which come after pele's `--_*` aliases, are lost.
 - A corner radius in `style`, as pele writes `style="rx:..."`, is ignored, while the `rx` attribute is honored.
 - A generic font family falls back to typst's serif font, while named families and lists of them are honored.
+- A stroke written as `color-mix()` is not evaluated, so the text it outlines is drawn without its outline, and no warning is given.
+- A hex code of 8 digits is drawn with its alpha.
 
-With a theme, the plugin therefore replaces every reference with its value, drops the custom property declarations and moves corner radii into `rx` and `ry` attributes.
+With a theme, the plugin therefore replaces every reference with its value, drops the custom property declarations, computes each `color-mix()` it can read to a hex code and moves corner radii into `rx` and `ry` attributes.
 Without a theme, the plugin returns pele's output byte for byte.
 
 ## Limitations
 
-- typst does not evaluate `color-mix()`, so the halo pele draws behind the titles of nested clusters is left out.
+- The outline of a cluster title is not drawn when `surface-alt` or `bg` is a color the plugin cannot mix, as listed under [Theme](#theme).
 
 ## Checking
 
