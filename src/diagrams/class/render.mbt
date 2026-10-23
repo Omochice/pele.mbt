@@ -61,7 +61,7 @@ priv struct View {
   label : @text.Label
   mut w : Double
   mut h : Double
-  annotations : Array[String]
+  annotations : Array[Annotation]
   attributes : Array[Line]
   methods : Array[Line]
   title_h : Double
@@ -85,8 +85,16 @@ priv struct End {
 ///|
 priv struct Card {
   text : String
+  math : @text.Label?
   x : Double
   y : Double
+}
+
+///|
+/// An annotation as it is written above a class name: literal text, or a label holding math.
+priv enum Annotation {
+  Literal(String)
+  Typeset(@text.Label)
 }
 
 ///|
@@ -155,12 +163,24 @@ fn draw(
   let tiny_height = (tiny * 1.4).round()
   let measurer = options.text_measurer()
   let pad = options.padding.unwrap_or(8)
-  // pele keeps annotations and cardinalities literal unless $$math$$ in them is typeset; with no typesetter here, they always are.
+  // Keep annotations and cardinalities literal unless math is typeset.
+  let math_text = (raw : String, font_size : Double) => {
+    guard raw.contains("$$") else { return None }
+    let label = @text.layout_label(Some(raw), false, measurer, font_size, 4000)
+    if label.lines.iter().any(@text.has_math) {
+      Some(label)
+    } else {
+      None
+    }
+  }
   let card_width = (raw : String) => {
     if raw == "" {
       0.0
     } else {
-      measurer.width(@text.decode_entities(raw), tiny, 0)
+      match math_text(raw, tiny) {
+        Some(math) => math.width
+        None => measurer.width(@text.decode_entities(raw), tiny, 0)
+      }
     }
   }
   let root_dir : @layout.Dir = if turned {
@@ -287,15 +307,26 @@ fn draw(
         (if style.italic { @text.STYLE_ITALIC } else { 0 }),
     )
     let annotations = cls.annotations.map(a => {
-      "«" + @util.trim(@text.decode_entities(a)) + "»"
+      match math_text("«" + @util.trim(a) + "»", tiny) {
+        Some(math) => Typeset(math)
+        None => Literal("«" + @util.trim(@text.decode_entities(a)) + "»")
+      }
     })
     let attributes = cls.members.map(m => member_line(m, measurer, member_size))
     let methods = cls.methods.map(m => member_line(m, measurer, member_size))
     let mut inner = label.width
     let mut annotations_h = 0.0
     for a in annotations {
-      inner = @util.js_max(inner, measurer.width(a, tiny, 0))
-      annotations_h += tiny_height
+      match a {
+        Literal(text) => {
+          inner = @util.js_max(inner, measurer.width(text, tiny, 0))
+          annotations_h += tiny_height
+        }
+        Typeset(math) => {
+          inner = @util.js_max(inner, math.width)
+          annotations_h += @util.js_max(tiny_height, math.height)
+        }
+      }
     }
     for line in attributes {
       inner = @util.js_max(inner, line.width)
@@ -482,14 +513,19 @@ fn draw(
   let lettered = start_room.iter().any(w => w > 0) ||
     end_room.iter().any(w => w > 0)
   // Cardinalities at both ends of a vertical edge need room for their height between the ranks.
-  // Without typeset math every cardinality is one line high, so they never need more than the ranks give.
   let mut tall_cards = 0.0
   if vertical {
     let card_height = (raw : String) => {
       if raw == "" {
         0.0
       } else {
-        tiny_height
+        @util.js_max(
+          tiny_height,
+          match math_text(raw, tiny) {
+            Some(math) => math.height
+            None => 0
+          },
+        )
       }
     }
     for edge in drawn {
@@ -731,7 +767,11 @@ fn draw(
     if raw == "" {
       return
     }
-    let h = tiny_height
+    let math = math_text(raw, tiny)
+    let h = match math {
+      Some(math) => @util.js_max(tiny_height, math.height)
+      None => tiny_height
+    }
     let mut cx = x
     let mut cy = y
     if (side & 1) == 1 {
@@ -741,7 +781,7 @@ fn draw(
       cx += (if after { 1.0 } else { -1.0 }) * (9 + width / 2)
       cy += (if side == 0 { -1.0 } else { 1.0 }) * (3 + h / 2)
     }
-    cards.push({ text: @text.decode_entities(raw), x: cx, y: cy, })
+    cards.push({ text: @text.decode_entities(raw), math, x: cx, y: cy, })
     min_x = @util.js_min(min_x, cx - width / 2)
     max_x = @util.js_max(max_x, cx + width / 2)
     min_y = @util.js_min(min_y, cy - h / 2)
@@ -954,7 +994,18 @@ fn draw(
   let cards_out = StringBuilder()
   for item in cards {
     cards_out.write_string(
-      "<text class=\"pele-cardinality\" x=\"\{num(item.x + ox)}\" y=\"\{num(item.y + oy + tiny * 0.35)}\" text-anchor=\"middle\">\{@svg.esc(item.text)}</text>",
+      match item.math {
+        Some(math) =>
+          @svg.label_svg(
+            math,
+            item.x + ox,
+            item.y + oy,
+            " class=\"pele-cardinality\"",
+            icons?=options.icons,
+          )
+        None =>
+          "<text class=\"pele-cardinality\" x=\"\{num(item.x + ox)}\" y=\"\{num(item.y + oy + tiny * 0.35)}\" text-anchor=\"middle\">\{@svg.esc(item.text)}</text>"
+      },
     )
   }
   let content = StringBuilder()
@@ -1050,10 +1101,27 @@ fn class_svg(
   }
   let mut y = top + TITLE_PAD
   for annotation in view.annotations {
-    body.write_string(
-      "<text class=\"pele-annotation\" x=\"0\" y=\"\{num(y + tiny_height / 2 + tiny * 0.35)}\" text-anchor=\"middle\" font-size=\"\{tiny}\" fill=\"var(--_m)\">\{@svg.esc(annotation)}</text>",
-    )
-    y += tiny_height
+    match annotation {
+      Literal(text) => {
+        body.write_string(
+          "<text class=\"pele-annotation\" x=\"0\" y=\"\{num(y + tiny_height / 2 + tiny * 0.35)}\" text-anchor=\"middle\" font-size=\"\{tiny}\" fill=\"var(--_m)\">\{@svg.esc(text)}</text>",
+        )
+        y += tiny_height
+      }
+      Typeset(math) => {
+        let h = @util.js_max(tiny_height, math.height)
+        body.write_string(
+          @svg.label_svg(
+            math,
+            0,
+            y + h / 2,
+            " class=\"pele-annotation\" font-size=\"\{tiny}\" fill=\"var(--_m)\"",
+            icons?=options.icons,
+          ),
+        )
+        y += h
+      }
+    }
   }
   let title_size = if view.font_size == size {
     ""
