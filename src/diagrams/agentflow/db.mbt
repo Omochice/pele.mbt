@@ -30,6 +30,7 @@ pub struct AgentflowDb {
   /// Indexes of the mappings of bare references, which become attachments when a metadata block follows them.
   priv bare_mappings : Map[Int32, Unit]
   priv first_mapping : Map[String, ElementMapping]
+  priv reported : Map[String, Array[Diagnostic]]
 }
 
 ///|
@@ -68,6 +69,7 @@ pub fn AgentflowDb::new(
     base_direction: direction,
     bare_mappings: Map([]),
     first_mapping: Map([]),
+    reported: Map([]),
   }
 }
 
