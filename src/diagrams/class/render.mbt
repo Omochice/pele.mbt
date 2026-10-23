@@ -57,7 +57,7 @@ priv struct Line {
 ///|
 priv struct View {
   node : GraphNode
-  style : @svg.ResolvedStyle
+  style : @svg.RawStyle
   label : @text.Label
   mut w : Double
   mut h : Double
@@ -199,7 +199,7 @@ fn draw(
     let prop = match effect.get(decl) {
       Some(known) => known
       None => {
-        let one = @svg.resolve_style([decl])
+        let one = @svg.resolve_raw_style([decl])
         let found = if one.shape == "" && one.text == "" {
           ""
         } else {
@@ -236,7 +236,7 @@ fn draw(
     for s in cls.styles {
       keep(s)
     }
-    @svg.resolve_style(kept.values().collect())
+    @svg.resolve_raw_style(kept.values().collect())
   }
   let children = FixedArray::make(graph.nodes.length(), 0)
   for node in graph.nodes {
@@ -271,7 +271,7 @@ fn draw(
     font_size : Double,
   ) => {
     node,
-    style: @svg.resolve_style([]),
+    style: @svg.resolve_raw_style([]),
     label,
     w,
     h,
@@ -1109,18 +1109,22 @@ fn write_class(
   let line_height = (member_size * 1.5).round()
   let body = @svg.Markup::new()
   body.write(
-    "<rect x=\"\{num(left)}\" y=\"\{num(top)}\" width=\"\{num(w)}\" height=\"\{num(h)}\" fill=\"var(--_s)\" stroke=\"var(--_b)\"\{@svg.rounded(style.shape)}/>",
+    "<rect x=\"\{num(left)}\" y=\"\{num(top)}\" width=\"\{num(w)}\" height=\"\{num(h)}\" fill=\"var(--_s)\" stroke=\"var(--_b)\"",
   )
+  @svg.write_rounded_style(body, style.shape)
+  body.write("/>")
   let first = top + view.title_h
   let second = first + view.attributes_h
   if h > view.title_h {
-    let stroke = match style.stroke {
-      Some(value) if value != "" => " style=\"stroke:\{@svg.esc(value)}\""
-      _ => ""
-    }
     body.write(
-      "<path class=\"pele-divider\" d=\"M\{num(left)},\{num(first)}H\{num(-left)}M\{num(left)},\{num(second)}H\{num(-left)}\" fill=\"none\" stroke=\"var(--_b)\"\{stroke}/>",
+      "<path class=\"pele-divider\" d=\"M\{num(left)},\{num(first)}H\{num(-left)}M\{num(left)},\{num(second)}H\{num(-left)}\" fill=\"none\" stroke=\"var(--_b)\"",
     )
+    if style.stroke is Some(value) && value != "" {
+      body.write(" style=\"stroke:")
+      @svg.write_esc(body, value)
+      body.write("\"")
+    }
+    body.write("/>")
   }
   let mut y = top + TITLE_PAD
   for annotation in view.annotations {
@@ -1152,31 +1156,38 @@ fn write_class(
   } else {
     " font-size=\"\{num(view.font_size)}\""
   }
-  @svg.write_label(
+  @svg.write_label_styled(
     body,
     view.label,
     0,
     (y + first - TITLE_PAD) / 2,
-    " class=\"pele-label\"\{title_size} font-weight=\"var(--_hw)\"\{style.text}",
+    " class=\"pele-label\"\{title_size} font-weight=\"var(--_hw)\"",
+    style.text,
     icons?=options.icons,
   )
   let lines = (list : Array[Line], kind : String, from : Double) => {
     let mut baseline = from + SECTION_PAD + line_height / 2 + member_size * 0.35
     for line in list {
-      let mark = match line.classifier {
+      body.write("<text class=\"pele-member pele-\{kind}")
+      match line.classifier {
         "$" =>
-          " pele-static\"" +
-          (if style.text != "" {
-            @util.slice(style.text, 0, end=-1) + "text-decoration:underline\""
+          if style.text != "" {
+            body.write(" pele-static\" style=\"")
+            @svg.write_esc(body, style.text)
+            body.write("text-decoration:underline\"")
           } else {
-            " style=\"text-decoration:underline\""
-          })
-        "*" => " pele-abstract\" font-style=\"italic\"\{style.text}"
-        _ => "\"\{style.text}"
+            body.write(" pele-static\" style=\"text-decoration:underline\"")
+          }
+        "*" => {
+          body.write(" pele-abstract\" font-style=\"italic\"")
+          @svg.write_style(body, style.text)
+        }
+        _ => {
+          body.write("\"")
+          @svg.write_style(body, style.text)
+        }
       }
-      body.write(
-        "<text class=\"pele-member pele-\{kind}\{mark} x=\"\{num(left + PAD_X)}\" y=\"\{num(baseline)}\">",
-      )
+      body.write(" x=\"\{num(left + PAD_X)}\" y=\"\{num(baseline)}\">")
       @svg.write_esc(body, line.text)
       body.write("</text>")
       baseline += line_height

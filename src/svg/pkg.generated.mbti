@@ -67,6 +67,8 @@ pub fn node_class_names(String) -> String
 
 pub fn num(Double) -> String
 
+pub fn resolve_raw_style(Array[String]) -> RawStyle
+
 pub fn resolve_style(Array[String]) -> ResolvedStyle
 
 pub fn rounded(String) -> String
@@ -113,9 +115,17 @@ pub fn write_esc_text(Markup, String) -> Unit raise @errors.PeleError
 
 pub fn write_label(Markup, @text.Label, Double, Double, String, icons? : (String) -> String?) -> Unit raise @errors.PeleError
 
+pub fn write_label_styled(Markup, @text.Label, Double, Double, String, String, icons? : (String) -> String?) -> Unit raise @errors.PeleError
+
+pub fn write_rounded_style(Markup, String) -> Unit raise @errors.PeleError
+
+pub fn write_shape_styled(Markup, String, Double, Double, String, String, String, String) -> Unit raise @errors.PeleError
+
 pub fn write_struck_title(Markup, @text.Label, Double, Double, String, String, Array[@layout.CNode], Int32, icons? : (String) -> String?) -> Unit raise @errors.PeleError
 
 pub fn write_struck_title_chunked(Markup, @text.Label, Double, Double, String, String, Array[@layout.CNode], Int32, icons? : (String) -> String?) -> Unit raise @errors.PeleError
+
+pub fn write_style(Markup, String) -> Unit raise @errors.PeleError
 
 // Errors
 
@@ -148,6 +158,16 @@ pub fn Markup::write(Self, String) -> Unit raise @errors.PeleError
 pub fn Markup::write_esc(Self, String) -> Unit raise @errors.PeleError
 pub fn Markup::write_group(Self, String, Self, String) -> Unit raise @errors.PeleError
 pub fn Markup::write_markup(Self, Self) -> Unit raise @errors.PeleError
+
+pub(all) struct RawStyle {
+  shape : String
+  line : String
+  text : String
+  stroke : String?
+  bold : Bool
+  italic : Bool
+  font_size : Double?
+}
 
 pub(all) struct ResolvedStyle {
   shape : String
