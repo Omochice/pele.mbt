@@ -18,6 +18,7 @@ import {
   "Omochice/pele/diagrams/treemap",
   "Omochice/pele/diagrams/treeview",
   "Omochice/pele/diagrams/venn",
+  "Omochice/pele/diagrams/xychart",
   "Omochice/pele/errors",
   "Omochice/pele/types",
   "moonbitlang/core/encoding/utf8",
