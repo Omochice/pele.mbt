@@ -6,7 +6,13 @@ import {
 }
 
 // Values
+pub const HEAD : Double = 26
+
+pub const LANE : Double = 20
+
 pub fn parse_c4(String, C4Db) -> Unit raise @errors.PeleError
+
+pub fn route(Box, Box, Double, Array[Box]?, Lanes, Double, Double) -> Route
 
 pub fn token_name(Int32) -> String
 
@@ -15,6 +21,15 @@ pub fn tokenize(String) -> C4Tokens
 // Errors
 
 // Types and methods
+pub(all) struct Box {
+  id : Int32
+  mut x : Double
+  mut y : Double
+  mut w : Double
+  mut h : Double
+  form : String
+}
+
 pub(all) enum C4Attr {
   Text(String)
   Named(C4Named)
@@ -101,6 +116,38 @@ pub(all) struct C4Tokens {
   types : Array[Int32]
   starts : Array[Int32]
   ends : Array[Int32]
+}
+
+pub struct Lanes {
+  upright : Array[Double]
+  level : Array[Double]
+  upright_frames : Array[Double]
+  level_frames : Array[Double]
+  taken : Map[Int32, Array[Double]]
+  mut squeezed : Int32
+}
+pub fn Lanes::frame(Self, Box) -> Unit
+pub fn Lanes::new() -> Self
+
+pub(all) struct Route {
+  d : String
+  sx : Double
+  sy : Double
+  sdx : Double
+  sdy : Double
+  ex : Double
+  ey : Double
+  edx : Double
+  edy : Double
+  x0 : Double
+  y0 : Double
+  x1 : Double
+  y1 : Double
+  nx : Double
+  ny : Double
+  lean : Double
+  room : Double
+  points : Array[Double]
 }
 
 // Type aliases
