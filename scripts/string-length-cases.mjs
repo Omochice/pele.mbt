@@ -148,4 +148,5 @@ export const CASES = [
     `requirementDiagram\nrequirement r {\n  text: "${Array(5400).fill('$$x$$').join(' ')}"\n}\n`,
     { ...RAISED, math: { x: { 14: { svg: `<path d="${'M0 0'.repeat(25000)}"/>`, width: 10, height: 10 } } } },
   ],
+  ['architecture', 'host icons in one service label', `architecture-beta\nservice s(server)[${Array(5400).fill('fa:fa-x').join(' ')}]\n`, ICONS],
 ];
