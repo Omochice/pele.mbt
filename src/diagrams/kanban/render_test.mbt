@@ -224,6 +224,14 @@ test "columns folded into a width narrower than the padding are drawn with no wi
 }
 
 ///|
+test "a word broken between characters keeps a leading zero-width character with the next one" {
+  let out = svg("kanban\n  \u{200b}ab", max_width=40)
+  assert_true(has(out, "viewBox=\"0 0 40 88\""))
+  assert_eq(count(out, "class=\"pele-cluster-label\""), 2)
+  assert_true(has(out, ">\u{200b}a</text>"))
+}
+
+///|
 test "the output has no non-finite number" {
   let out = svg(
     BASE +
