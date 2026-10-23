@@ -850,7 +850,6 @@ fn draw(
     let node = view.node
     let x = c.x + ox
     let y = c.y + oy
-    let id = @svg.esc_text(node.id)
     let w = if c.is_group { c.w } else { view.w }
     let h = if c.is_group { c.h } else { view.h }
     if node.is_group {
@@ -864,20 +863,21 @@ fn draw(
       let struck = c.is_group &&
         @svg.title_crossed(c, view.label.width, title_x, crossings)
       if struck {
-        @svg.write_struck_title(
+        @svg.write_struck_title_chunked(
           struck_titles,
           view.label,
           title_x + ox,
           title_y,
           title_attrs,
-          id,
+          node.id,
           cnodes,
           i,
         )
       }
+      clusters.write("<g class=\"pele-cluster pele-namespace\" data-id=\"")
+      @svg.write_esc_text(clusters, node.id)
       clusters.write(
-        "<g class=\"pele-cluster pele-namespace\" data-id=\"\{id}\">" +
-        "<rect x=\"\{num(x - w / 2)}\" y=\"\{num(y - h / 2)}\" width=\"\{num(w)}\" height=\"\{num(h)}\" fill=\"var(--_a)\" fill-opacity=\"0.5\" stroke=\"var(--_b)\"\{@svg.ROUNDED}/>",
+        "\"><rect x=\"\{num(x - w / 2)}\" y=\"\{num(y - h / 2)}\" width=\"\{num(w)}\" height=\"\{num(h)}\" fill=\"var(--_a)\" fill-opacity=\"0.5\" stroke=\"var(--_b)\"\{@svg.ROUNDED}/>",
       )
       if !struck {
         @svg.write_label(
@@ -908,9 +908,10 @@ fn draw(
     } else if node.shape is NoteBox {
       let r = w / 2
       let t = -h / 2
+      nodes_out.write("<g class=\"pele-node pele-note\" data-id=\"")
+      @svg.write_esc_text(nodes_out, node.id)
       nodes_out.write(
-        "<g class=\"pele-node pele-note\" data-id=\"\{id}\"\{at}>" +
-        "<path d=\"M\{num(-r)},\{num(t)}H\{num(r - FOLD)}L\{num(r)},\{num(t + FOLD)}V\{num(-t)}H\{num(-r)}Z\" fill=\"var(--_a)\" stroke=\"var(--_b)\" stroke-linejoin=\"round\"/>" +
+        "\"\{at}><path d=\"M\{num(-r)},\{num(t)}H\{num(r - FOLD)}L\{num(r)},\{num(t + FOLD)}V\{num(-t)}H\{num(-r)}Z\" fill=\"var(--_a)\" stroke=\"var(--_b)\" stroke-linejoin=\"round\"/>" +
         "<path d=\"M\{num(r - FOLD)},\{num(t)}V\{num(t + FOLD)}H\{num(r)}\" fill=\"none\" stroke=\"var(--_b)\" stroke-linejoin=\"round\"/>",
       )
       @svg.write_label(
@@ -923,9 +924,9 @@ fn draw(
       )
       nodes_out.write("</g>")
     } else {
-      nodes_out.write(
-        "<g class=\"pele-node pele-interface\" data-id=\"\{id}\"\{at}>",
-      )
+      nodes_out.write("<g class=\"pele-node pele-interface\" data-id=\"")
+      @svg.write_esc_text(nodes_out, node.id)
+      nodes_out.write("\"\{at}>")
       @svg.write_label(
         nodes_out,
         view.label,
@@ -985,15 +986,16 @@ fn draw(
     } else {
       " pele-relation"
     }
+    edges_out.write("<g class=\"pele-edge\{kind}\" data-id=\"")
+    @svg.write_esc_text(edges_out, edge.id)
     edges_out.write(
-      "<g class=\"pele-edge\{kind}\" data-id=\"\{@svg.esc_text(edge.id)}\">" +
-      "<path d=\"\{path.d}\"\{attrs}/>" +
+      "\"><path d=\"\{path.d}\"\{attrs}/>" +
       class_marker(start_type, path.sx, path.sy, path.sdx, path.sdy, LINE_COLOR) +
       class_marker(end_type, path.ex, path.ey, path.edx, path.edy, LINE_COLOR) +
       "</g>",
     )
     if label.width > 0 {
-      @svg.write_edge_label(
+      @svg.write_edge_label_chunked(
         labels_out,
         edge.id,
         label,
@@ -1016,10 +1018,13 @@ fn draw(
           " class=\"pele-cardinality\"",
           icons?=options.icons,
         )
-      None =>
+      None => {
         cards_out.write(
-          "<text class=\"pele-cardinality\" x=\"\{num(item.x + ox)}\" y=\"\{num(item.y + oy + tiny * 0.35)}\" text-anchor=\"middle\">\{@svg.esc(item.text)}</text>",
+          "<text class=\"pele-cardinality\" x=\"\{num(item.x + ox)}\" y=\"\{num(item.y + oy + tiny * 0.35)}\" text-anchor=\"middle\">",
         )
+        @svg.write_esc(cards_out, item.text)
+        cards_out.write("</text>")
+      }
     }
   }
   let content = @svg.Markup::new()
@@ -1122,8 +1127,10 @@ fn write_class(
     match annotation {
       Literal(text) => {
         body.write(
-          "<text class=\"pele-annotation\" x=\"0\" y=\"\{num(y + tiny_height / 2 + tiny * 0.35)}\" text-anchor=\"middle\" font-size=\"\{tiny}\" fill=\"var(--_m)\">\{@svg.esc(text)}</text>",
+          "<text class=\"pele-annotation\" x=\"0\" y=\"\{num(y + tiny_height / 2 + tiny * 0.35)}\" text-anchor=\"middle\" font-size=\"\{tiny}\" fill=\"var(--_m)\">",
         )
+        @svg.write_esc(body, text)
+        body.write("</text>")
         y += tiny_height
       }
       Typeset(math) => {
@@ -1168,8 +1175,10 @@ fn write_class(
         _ => "\"\{style.text}"
       }
       body.write(
-        "<text class=\"pele-member pele-\{kind}\{mark} x=\"\{num(left + PAD_X)}\" y=\"\{num(baseline)}\">\{@svg.esc(line.text)}</text>",
+        "<text class=\"pele-member pele-\{kind}\{mark} x=\"\{num(left + PAD_X)}\" y=\"\{num(baseline)}\">",
       )
+      @svg.write_esc(body, line.text)
+      body.write("</text>")
       baseline += line_height
     }
   }
@@ -1179,27 +1188,28 @@ fn write_class(
     lines(view.methods, "method", second)
     body.write("</g>")
   }
-  let link_start = match cls.link {
+  out.write(
+    "<g class=\"pele-node pele-class\{@svg.node_class_names(cls.css_classes)}\" data-id=\"",
+  )
+  @svg.write_esc_text(out, node_id)
+  out.write("\"\{at}>")
+  let linked = match cls.link {
     Some(href) if href != "" => {
       let target = match cls.link_target {
         Some(target) if is_target(target) => " target=\"\{target}\""
         _ => ""
       }
-      @url.link_start(href, cls.id, links, options, attrs=target)
+      @url.write_link_start(out, href, cls.id, links, options, attrs=target)
     }
-    _ => None
-  }
-  out.write(
-    "<g class=\"pele-node pele-class\{@svg.node_class_names(cls.css_classes)}\" data-id=\"\{@svg.esc_text(node_id)}\"\{at}>",
-  )
-  if link_start is Some(start) {
-    out.write(start)
+    _ => false
   }
   if cls.tooltip is Some(tip) && tip != "" {
-    out.write("<title>\{@svg.esc_text(tip)}</title>")
+    out.write("<title>")
+    @svg.write_esc_text(out, tip)
+    out.write("</title>")
   }
   out.write_markup(body)
-  if link_start is Some(_) {
+  if linked {
     out.write("</a>")
   }
   out.write("</g>")

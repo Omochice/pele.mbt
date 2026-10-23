@@ -2,6 +2,8 @@
 package "Omochice/pele/util/url"
 
 import {
+  "Omochice/pele/errors",
+  "Omochice/pele/svg",
   "Omochice/pele/types",
 }
 
@@ -19,6 +21,8 @@ pub fn rel_attr(@types.RenderOptions) -> String
 pub fn safe_url(String) -> String
 
 pub fn sanitize_url(String) -> String
+
+pub fn write_link_start(@svg.Markup, String, String, Array[@types.LinkInfo], @types.RenderOptions, attrs? : String) -> Bool raise @errors.PeleError
 
 // Errors
 
