@@ -284,13 +284,12 @@ fn draw(
   let total_height = (height + title_height + 2 * pad).ceil()
   let translate = "translate(\{@svg.num(cx)},\{@svg.num(cy)})"
   let content = @svg.Markup::new()
-  content.write(
-    @svg.label_svg(
-      title,
-      total_width / 2,
-      pad + title.height / 2,
-      " class=\"pele-title\" font-weight=\"var(--_tw)\"",
-    ),
+  @svg.write_label(
+    content,
+    title,
+    total_width / 2,
+    pad + title.height / 2,
+    " class=\"pele-title\" font-weight=\"var(--_tw)\"",
   )
   content.write_group(
     "<g class=\"pele-slices\" transform=\"\{translate}\" stroke=\"var(--_bg)\" stroke-width=\"1\" stroke-linejoin=\"round\">",
