@@ -269,21 +269,23 @@ fn render_venn(
       Some(region) => region.style
       None => @svg.resolve_style([])
     }
+    sets.write("<circle class=\"pele-venn-set\" data-id=\"")
+    @svg.write_esc_text(sets, c.id)
     sets.write(
-      "<circle class=\"pele-venn-set\" data-id=\"\{@svg.esc_text(c.id)}\" cx=\"\{@svg.num(c.x)}\" cy=\"\{@svg.num(c.y)}\" r=\"\{@svg.num(c.r)}\" fill=\"\{color}\" fill-opacity=\"0.2\" stroke=\"\{color}\"\{style.shape}/>",
+      "\" cx=\"\{@svg.num(c.x)}\" cy=\"\{@svg.num(c.y)}\" r=\"\{@svg.num(c.r)}\" fill=\"\{color}\" fill-opacity=\"0.2\" stroke=\"\{color}\"\{style.shape}/>",
     )
   }
   let overlaps = @svg.Markup::new()
   let labels = @svg.Markup::new()
   for _, region in regions {
-    let id = @svg.esc_text(region.sets.join("|"))
+    let id = region.sets.join("|")
     // An overlap is only drawn when a style gives it a look of its own; otherwise the circles show it.
     if region.sets.length() > 1 && region.style.shape != "" {
       let d = region_path(region.inside.map(i => placed[i]), @svg.num)
       if d != "" {
-        overlaps.write(
-          "<path class=\"pele-venn-overlap\" data-id=\"\{id}\" d=\"\{d}\" fill=\"none\"\{region.style.shape}/>",
-        )
+        overlaps.write("<path class=\"pele-venn-overlap\" data-id=\"")
+        @svg.write_esc_text(overlaps, id)
+        overlaps.write("\" d=\"\{d}\" fill=\"none\"\{region.style.shape}/>")
       }
     }
     let (_, total) = text_size(region.lines)
@@ -303,16 +305,12 @@ fn render_venn(
           " class=\"pele-venn-text\" data-id=\"\{@svg.esc_text(text)}\" font-size=\"\{tiny}\" fill=\"var(--_m)\"" +
           style_of(text).text
       }
-      content.write(
-        @svg.label_svg(line.label, x, y + line.label.height / 2, attrs),
-      )
+      @svg.write_label(content, line.label, x, y + line.label.height / 2, attrs)
       y += line.label.height
     }
-    labels.write_group(
-      "<g class=\"pele-venn-region\" data-id=\"\{id}\">",
-      content,
-      "</g>",
-    )
+    labels.write("<g class=\"pele-venn-region\" data-id=\"")
+    @svg.write_esc_text(labels, id)
+    labels.write_group("\">", content, "</g>")
   }
   let body = @svg.Markup::new()
   body.write(
