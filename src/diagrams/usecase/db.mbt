@@ -36,7 +36,7 @@ priv struct BoundaryState {
 
 ///|
 /// The values in order of `key`, with ties in their original order as JavaScript's sort keeps them.
-fn[T] stable_sorted(values : Array[T], key : (T) -> Int32) -> Array[T] {
+fn[T, K : Compare] stable_sorted(values : Array[T], key : (T) -> K) -> Array[T] {
   let indexed = values.mapi((i, value) => (key(value), i, value))
   indexed.sort_by((a, b) => {
     if a.0 != b.0 {
