@@ -507,6 +507,8 @@ export const CASES = [
   lazy('class', 'a generic of 140M <, quoted whole in its syntax error', () => `classDiagram\nclass A~${'<'.repeat(140000000)}~\n`, RAISED),
   // Each tab of a quoted line is escaped in the JSON answer, which so holds twice as many bytes as the line.
   lazy('railroad', 'a special sequence of 140M tabs, quoted whole in its syntax error', () => `railroad-ebnf-beta\nr = ? ${'\t'.repeat(140000000)} ? ;\n`, RAISED),
+  // A point's style runs to the line's end as one token per `-`, of which only the part before the next colon is read.
+  lazy('quadrant', 'a point color followed by 110M -', () => `quadrantChart\nP: [0.5, 0.5] color: x:${'-'.repeat(110000000)}\n`, RAISED),
   // pele's agentflow lexer keeps four numbers per token in one array, which V8 holds to 2^27
   // elements, so it fails as nested too deeply on opening its 2^25 + 1st token; each `&` of a
   // style is a token of its own, and these sources have 16 tokens besides.
