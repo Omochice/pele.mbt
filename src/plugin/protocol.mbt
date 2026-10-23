@@ -33,6 +33,8 @@ pub fn try_render(source_len : Int32, options_len : Int32) -> Int32 {
 ///|
 /// Reads the host's arguments, sends it the JSON response and returns the response's status.
 fn answer(source_len : Int32, options_len : Int32) -> Int32 {
+  // The host has read the last answer by now, and an instance that typst calls again would otherwise hold up to a gigabyte of it while drawing the next.
+  sent.val = []
   let args = Bytes::make(source_len + options_len, 0)
   write_args(bytes_addr(args))
   let source = @utf8.decode_lossy(args[0:source_len])
