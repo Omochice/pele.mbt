@@ -14,6 +14,8 @@ pub fn edge_str_to_pattern(String) -> String
 
 pub fn edge_str_to_thickness(String) -> String
 
+pub fn parse_block(String, BlockDb) -> Unit raise @errors.PeleError
+
 pub fn tokenize(String) -> Tokens
 
 pub fn type_str_to_type(String?) -> String
