@@ -58,4 +58,11 @@ export const CASES = [
     `architecture-beta\n${names('s', 10700).map((name) => `service ${name}(big)[x]`).join('\n')}\n`,
     { ...RAISED, icons: { big: `<path d="M0,0${'H1'.repeat(25000)}"/>` } },
   ],
+  // pele draws no host markup in a C4 label, only an empty icon box, so each span adds about 260 code units for 8 of source.
+  [
+    'c4',
+    'people with many icon spans',
+    `C4Context\n${names('p', 2100).map((name) => `Person(${name}, "${'fa:fa-a '.repeat(1000)}")`).join('\n')}\n`,
+    { ...RAISED, icons: { 'fa:fa-a': '<path d="M4,4H20"/>' } },
+  ],
 ];
