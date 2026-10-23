@@ -42,6 +42,8 @@ pub fn normalize_line_breaks(String) -> String
 
 pub fn parse_float(String) -> Double
 
+pub fn parse_json(String) -> Json raise JsonError
+
 pub fn parse_yaml(String) -> Json raise YamlError
 
 pub fn slice(String, Int32, end? : Int32) -> String
@@ -61,6 +63,10 @@ pub fn trim_start(String) -> String
 pub fn write_range(StringBuilder, String, Int32, Int32) -> Unit
 
 // Errors
+pub(all) suberror JsonError {
+  JsonError(String, Int32)
+}
+
 pub(all) suberror YamlError {
   YamlError(String)
 }

@@ -49,7 +49,7 @@ priv struct DraftElement {
 ///|
 priv struct DraftJson {
   id : String
-  mut value : Array[(String, JsonValue)]
+  mut value : Map[String, Json]
   span : Span
   classes : Array[String]
 }

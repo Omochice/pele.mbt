@@ -88,36 +88,37 @@ fn markers(relationship : Relationship) -> (String, String) {
 
 ///|
 /// A JSON leaf as `String(value)` writes it.
-fn scalar(value : JsonValue) -> String {
+fn scalar(value : Json) -> String {
   match value {
-    JsonString(text) => text
-    JsonNull => "null"
-    JsonBool(flag) => flag.to_string()
+    String(text) => text
+    Null => "null"
+    True => "true"
+    False => "false"
     // `String(-0)` is "0".
-    JsonNumber(number) => if number == 0 { "0" } else { number.to_string() }
-    JsonArray(_) | JsonObject(_) => ""
+    Number(number, ..) => if number == 0 { "0" } else { number.to_string() }
+    Array(_) | Object(_) => ""
   }
 }
 
 ///|
-fn is_scalar(value : JsonValue) -> Bool {
-  !(value is JsonArray(_) || value is JsonObject(_))
+fn is_scalar(value : Json) -> Bool {
+  !(value is Array(_) || value is Object(_))
 }
 
 ///|
 /// One row for each leaf of a JSON object, depth first in the order the keys were written.
 /// Nesting is kept on a stack of its own, so depth is limited by memory and not by the call stack.
-pub fn flatten_json_rows(value : Array[(String, JsonValue)]) -> Array[JsonRow] {
+pub fn flatten_json_rows(value : Map[String, Json]) -> Array[JsonRow] {
   let rows = []
   let row = (key : String, path : String, value : String) => {
     rows.push({ key, accessible_key: path, value, })
   }
-  let stack : Array[(JsonValue, String)] = [(JsonObject(value), "")]
-  let children : Array[(JsonValue, String)] = []
+  let stack : Array[(Json, String)] = [(Json::object(value), "")]
+  let children : Array[(Json, String)] = []
   while stack.pop() is Some((current, path)) {
     children.clear()
     match current {
-      JsonArray(items) =>
+      Array(items) =>
         if items.length() == 0 {
           row(path, path, "[]")
         } else if items.iter().all(is_scalar) {
@@ -129,12 +130,11 @@ pub fn flatten_json_rows(value : Array[(String, JsonValue)]) -> Array[JsonRow] {
             children.push((item, "\{path}[\{i}]"))
           }
         }
-      JsonObject(entries) => {
+      Object(entries) => {
         if entries.length() == 0 {
           row(path, path, "{}")
         }
-        for entry in entries {
-          let (key, child) = entry
+        for key, child in entries {
           children.push(
             (child, if path == "" { key } else { "\{path}.\{key}" }),
           )

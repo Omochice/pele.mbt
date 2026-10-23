@@ -8,7 +8,7 @@ fn json(text : String) -> String {
     @errors.PeleError(failure) =>
       return "\{failure.message} @\{failure.line}:\{failure.column}"
   }
-  show(@usecase.JsonValue::JsonObject(entries))
+  show(Json::object(entries))
 }
 
 ///|

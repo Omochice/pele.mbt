@@ -23,9 +23,9 @@ pub const SOLID_ARROW : Int32 = 0
 
 pub fn build_usecase_graph(UsecaseModel) -> UsecaseGraph
 
-pub fn flatten_json_rows(Array[(String, JsonValue)]) -> Array[JsonRow]
+pub fn flatten_json_rows(Map[String, Json]) -> Array[JsonRow]
 
-pub fn parse_ordered_json(String, () -> (Int32, Int32)) -> Array[(String, JsonValue)] raise @errors.PeleError
+pub fn parse_ordered_json(String, () -> (Int32, Int32)) -> Map[String, Json] raise @errors.PeleError
 
 pub fn parse_usecase(String, title? : String) -> UsecaseModel raise @errors.PeleError
 
@@ -62,15 +62,6 @@ pub(all) struct JsonRow {
   key : String
   accessible_key : String
   value : String
-}
-
-pub(all) enum JsonValue {
-  JsonNull
-  JsonBool(Bool)
-  JsonNumber(Double)
-  JsonString(String)
-  JsonArray(Array[JsonValue])
-  JsonObject(Array[(String, JsonValue)])
 }
 
 pub(all) struct Relationship {
@@ -164,7 +155,7 @@ pub(all) struct UsecaseGraphNode {
 
 pub(all) struct UsecaseJsonNode {
   id : String
-  value : Array[(String, JsonValue)]
+  value : Map[String, Json]
   classes : Array[String]
   styles : Array[String]
 }

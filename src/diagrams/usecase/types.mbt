@@ -102,7 +102,7 @@ pub(all) struct UsecaseNote {
 /// A `json` node: the members of its object.
 pub(all) struct UsecaseJsonNode {
   id : String
-  value : Array[(String, JsonValue)]
+  value : Map[String, Json]
   classes : Array[String]
   styles : Array[String]
 }

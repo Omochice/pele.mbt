@@ -857,7 +857,7 @@ fn Parser::top_statement(self : Parser) -> Unit raise @errors.PeleError {
     }
     let json = {
       id: @util.slice(self.src, from, end=to),
-      value: [],
+      value: Map([]),
       span: (from, to),
       classes,
     }

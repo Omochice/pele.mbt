@@ -21,16 +21,20 @@ fn quote(text : String) -> String {
 
 ///|
 /// The value with object keys in the order they were written and numbers as JavaScript prints them.
-fn show(value : @usecase.JsonValue) -> String {
+fn show(value : Json) -> String {
   match value {
-    JsonNull => "null"
-    JsonBool(flag) => flag.to_string()
-    JsonNumber(number) => if number == 0 { "0" } else { number.to_string() }
-    JsonString(text) => quote(text)
-    JsonArray(items) => "[" + items.map(show).join(",") + "]"
-    JsonObject(entries) =>
+    Null => "null"
+    True => "true"
+    False => "false"
+    Number(number, ..) => if number == 0 { "0" } else { number.to_string() }
+    String(text) => quote(text)
+    Array(items) => "[" + items.map(show).join(",") + "]"
+    Object(entries) =>
       "{" +
-      entries.map(entry => quote(entry.0) + ":" + show(entry.1)).join(",") +
+      entries
+      .iter()
+      .map(entry => quote(entry.0) + ":" + show(entry.1))
+      .join(",") +
       "}"
   }
 }
@@ -119,7 +123,7 @@ fn dump(m : @usecase.UsecaseModel) -> String {
   }
   for _, j in m.json_nodes {
     out.push(
-      "json \{quote(j.id)} \{show(JsonObject(j.value))}" +
+      "json \{quote(j.id)} \{show(Json::object(j.value))}" +
       list("classes", j.classes) +
       list("styles", j.styles),
     )
