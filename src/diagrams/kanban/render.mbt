@@ -131,24 +131,24 @@ fn text_block(
   attrs : String,
   icons : @types.IconResolver?,
   end~ : Bool = false,
-) -> String {
-  let out = StringBuilder()
+) -> @svg.Markup raise @errors.PeleError {
+  let out = @svg.Markup::new()
   for i, line in label.lines {
     let cy = y + @text.line_middle(label, i)
     if line.length() == 1 && line[0].icon is None && line[0].math is None {
       let anchor = if end { " text-anchor=\"end\"" } else { "" }
-      out.write_string(
+      out.write(
         "<text\{@svg.text_style(attrs, line[0].style)} x=\"\{@svg.num(x)}\" y=\"\{@svg.num(cy + label.size * 0.35)}\"\{anchor}>\{@svg.esc(line[0].text)}</text>",
       )
     } else {
       let width = label.widths[i]
       let cx = x + (if end { -width } else { width }) / 2
-      out.write_string(
+      out.write(
         @svg.label_svg(@text.label_line(label, i), cx, cy, attrs, icons?),
       )
     }
   }
-  out.to_string()
+  out
 }
 
 ///|
@@ -188,7 +188,7 @@ pub fn render_kanban(
   model : KanbanModel,
   config : @types.Config,
   options : @types.RenderOptions,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   let size = options.font_size.unwrap_or(16)
   let small = (size * 0.875).round()
   let line = (size * 1.5).round()
@@ -378,14 +378,14 @@ pub fn render_kanban(
   let width = @util.js_max(board_width, title.width)
   let left = pad + (width - board_width) / 2
   let edge = column_width - COLUMN_PAD - 4
-  let out = StringBuilder()
+  let out = @svg.Markup::new()
   for index, section in sections {
     let row = (index.to_double() / per_row).floor().to_int()
-    let body = StringBuilder()
-    body.write_string(
+    let body = @svg.Markup::new()
+    body.write(
       "<rect width=\"\{column_width}\" height=\"\{@svg.num(row_heights[row])}\" fill=\"var(--_s)\"\{@svg.ROUNDED}/>",
     )
-    body.write_string(
+    body.write_markup(
       text_block(
         titles[index],
         COLUMN_PAD + 4,
@@ -394,11 +394,11 @@ pub fn render_kanban(
         options.icons,
       ),
     )
-    body.write_string(
+    body.write(
       "<text class=\"pele-count\" x=\"\{edge}\" y=\"\{@svg.num(COLUMN_PAD + line / 2 + small * 0.35)}\" text-anchor=\"end\" font-size=\"\{small}\" fill=\"var(--_m)\">\{section.items.length()}</text>",
     )
     if section.icon is Some(icon) && has(section.icon) {
-      body.write_string(
+      body.write(
         @common.icon_svg(
           icon,
           edge - count_widths[index] - ICON_GAP - glyph,
@@ -413,16 +413,16 @@ pub fn render_kanban(
       let item = card.item
       let priority = @util.trim(item.priority.unwrap_or("")).to_lower()
       let color = priority_stroke(priority)
-      let inner = StringBuilder()
-      inner.write_string(
+      let inner = @svg.Markup::new()
+      inner.write(
         "<rect width=\"\{card_width}\" height=\"\{@svg.num(card.height)}\" fill=\"var(--_bg)\" stroke=\"var(--_b)\"\{@svg.ROUNDED}/>",
       )
       if color is Some(color) {
-        inner.write_string(
+        inner.write(
           "<path class=\"pele-priority\" d=\"M2.5,5V\{@svg.num(card.height - 5)}\" fill=\"none\" \{color} stroke-width=\"3\" stroke-linecap=\"round\"/>",
         )
       }
-      inner.write_string(
+      inner.write_markup(
         text_block(
           card.label,
           CARD_PAD,
@@ -432,7 +432,7 @@ pub fn render_kanban(
         ),
       )
       if item.icon is Some(icon) && has(item.icon) {
-        inner.write_string(
+        inner.write(
           @common.icon_svg(
             icon,
             card_width - CARD_PAD - glyph,
@@ -452,7 +452,7 @@ pub fn render_kanban(
         }
         match href {
           None =>
-            inner.write_string(
+            inner.write_markup(
               text_block(
                 card.ticket,
                 CARD_PAD,
@@ -462,10 +462,10 @@ pub fn render_kanban(
               ),
             )
           Some(href) => {
-            inner.write_string(
+            inner.write(
               "<a href=\"\{@svg.esc(href)}\" target=\"_blank\"\{@url.rel_attr(options)}>",
             )
-            inner.write_string(
+            inner.write_markup(
               text_block(
                 card.ticket,
                 CARD_PAD,
@@ -474,13 +474,13 @@ pub fn render_kanban(
                 options.icons,
               ),
             )
-            inner.write_string("</a>")
+            inner.write("</a>")
             links.push({ id: item.id, href, internal: false, })
           }
         }
       }
       if item.assigned is Some(assigned) && assigned != "" {
-        inner.write_string(
+        inner.write_markup(
           text_block(
             card.assigned,
             card_width - CARD_PAD,
@@ -496,27 +496,34 @@ pub fn render_kanban(
       } else {
         ""
       }
-      body.write_string(
-        "<g class=\"pele-node pele-card\{priority_class}\{@svg.class_names(item.css_classes.unwrap_or(""))}\" data-id=\"\{@svg.esc_text(item.id)}\" transform=\"translate(\{COLUMN_PAD},\{@svg.num(y)})\" font-size=\"\{small}\">\{inner.to_string()}</g>",
+      body.write_group(
+        "<g class=\"pele-node pele-card\{priority_class}\{@svg.class_names(item.css_classes.unwrap_or(""))}\" data-id=\"\{@svg.esc_text(item.id)}\" transform=\"translate(\{COLUMN_PAD},\{@svg.num(y)})\" font-size=\"\{small}\">",
+        inner,
+        "</g>",
       )
       y += card.height + CARD_GAP
     }
     let x = left + index.to_double() % per_row * (column_width + COLUMN_GAP)
-    out.write_string(
-      "<g class=\"pele-cluster pele-column\{@svg.class_names(section.css_classes.unwrap_or(""))}\" data-id=\"\{@svg.esc_text(section.id)}\" transform=\"translate(\{@svg.num(x)},\{@svg.num(pad + title_height + row_tops[row])})\">\{body.to_string()}</g>",
+    out.write_group(
+      "<g class=\"pele-cluster pele-column\{@svg.class_names(section.css_classes.unwrap_or(""))}\" data-id=\"\{@svg.esc_text(section.id)}\" transform=\"translate(\{@svg.num(x)},\{@svg.num(pad + title_height + row_tops[row])})\">",
+      body,
+      "</g>",
     )
   }
   let total_width = (width + 2 * pad).ceil()
   let total_height = (board_height + title_height + 2 * pad).ceil()
-  let content = @svg.label_svg(
+  let content = @svg.Markup::new()
+  content.write(
+    @svg.label_svg(
       title,
       total_width / 2,
       pad + title.height / 2,
       " class=\"pele-title\" font-weight=\"var(--_tw)\"",
-    ) +
-    out.to_string()
+    ),
+  )
+  content.write_markup(out)
   {
-    svg: @svg.svg_document(
+    svg: @svg.markup_document(
       "kanban",
       total_width,
       total_height,

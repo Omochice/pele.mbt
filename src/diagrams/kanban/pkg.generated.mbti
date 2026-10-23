@@ -11,7 +11,7 @@ pub let kanban : @types.Diagram
 
 pub fn parse_kanban(String, String?) -> KanbanModel raise @errors.PeleError
 
-pub fn render_kanban(KanbanModel, Map[String, Json], @types.RenderOptions) -> @types.Rendered
+pub fn render_kanban(KanbanModel, Map[String, Json], @types.RenderOptions) -> @types.Rendered raise @errors.PeleError
 
 // Errors
 
