@@ -77,6 +77,49 @@ fn metrics_width(text : String, size : Double, style : Int32) -> Double {
 }
 
 ///|
+/// Advance widths of one style of a font, in font units.
+pub(all) struct AdvanceTable {
+  /// Advances of single code units, which take precedence over the other rules.
+  advances : Map[Int32, Double]
+  /// The advance of any other code unit.
+  narrow : Double
+  /// The advance of a code unit that the Arial table counts as double width.
+  wide : Double
+}
+
+///|
+/// Measures text with the advance table `table_of` gives for each style, at `units_per_em` units to the em.
+/// Control characters, and code units the Arial table gives no width, take none unless their table names them.
+pub fn table_measurer(
+  table_of : (Int32) -> AdvanceTable,
+  units_per_em : Double,
+) -> TextMeasurer {
+  let width_of = (text : String, size : Double, style : Int32) => {
+    let table = table_of(style)
+    let mut units = 0.0
+    for i in 0..<text.length() {
+      let c = text.unsafe_get(i).to_int()
+      if c < 32 {
+        continue
+      }
+      match table.advances.get(c) {
+        Some(advance) => units += advance
+        None =>
+          if is_zero_width(c) {
+            continue
+          } else if is_wide(c) {
+            units += table.wide
+          } else {
+            units += table.narrow
+          }
+      }
+    }
+    units * size / units_per_em
+  }
+  { width_of, }
+}
+
+///|
 /// Estimates widths from a table of Arial advances.
 /// pele falls back to it where no canvas is available, which is always the case here.
 pub let metrics_measurer : TextMeasurer = { width_of: metrics_width, }

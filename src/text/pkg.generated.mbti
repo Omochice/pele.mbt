@@ -14,9 +14,17 @@ pub fn layout_label(String?, Bool, TextMeasurer, Double, Double, base? : Int32) 
 
 pub let metrics_measurer : TextMeasurer
 
+pub fn table_measurer((Int32) -> AdvanceTable, Double) -> TextMeasurer
+
 // Errors
 
 // Types and methods
+pub(all) struct AdvanceTable {
+  advances : Map[Int32, Double]
+  narrow : Double
+  wide : Double
+}
+
 pub(all) struct Label {
   lines : Array[Array[Span]]
   widths : Array[Double]

@@ -34,6 +34,7 @@ import {
   "Omochice/pele/diagrams/wardley",
   "Omochice/pele/diagrams/xychart",
   "Omochice/pele/errors",
+  "Omochice/pele/text",
   "Omochice/pele/types",
   "Omochice/pele/typst",
   "Omochice/pele/util",
