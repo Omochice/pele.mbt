@@ -94,6 +94,68 @@ test "an init directive nested thousands deep is applied as JSON.parse reads it"
 }
 
 ///|
+/// `n` objects nested under the key "a", around the number 1.
+fn nested_objects(n : Int32) -> String {
+  "{\"a\":".repeat(n) + "1" + "}".repeat(n)
+}
+
+///|
+/// The value as JSON, with each value under the key "a" written as the number of objects nested in it.
+fn outline(value : Json) -> Json {
+  guard value is Object(fields) else { return value }
+  let out = Map([])
+  for key, item in fields {
+    out[key] = if key == "a" {
+      let mut levels = 0
+      let mut inner = Some(item)
+      while inner is Some(Object(object)) {
+        levels += 1
+        inner = object.get("a")
+      }
+      Json::number(levels.to_double())
+    } else {
+      outline(item)
+    }
+  }
+  Json::object(out)
+}
+
+///|
+test "an init directive nested deeper than pele's merge reaches applies only the keys before it" {
+  let config = (n : Int32) => {
+    outline(
+      Json::object(
+        @preprocess.preprocess(
+          "%%{init: {\"before\": 1, \"x\": \{nested_objects(n)}, \"after\": 2}}%%\ngraph TD\nA",
+        ).config,
+      ),
+    ).stringify()
+  }
+  inspect(config(4432), content="{\"before\":1,\"x\":{\"a\":4431},\"after\":2}")
+  inspect(config(4433), content="{\"before\":1}")
+}
+
+///|
+test "a merge past pele's reach keeps what it merged into existing objects" {
+  let config = (n : Int32) => {
+    outline(
+      Json::object(
+        @preprocess.preprocess(
+          "%%{init: {\"x\": {\"k\": 1}}}%%\n" +
+          "%%{init: {\"x\": {\"k\": 2, \"a\": \{nested_objects(n)}, \"z\": 3}, \"after\": 4}}%%\n" +
+          "%%{init: {\"later\": 5}}%%\ngraph TD\nA",
+        ).config,
+      ),
+    ).stringify()
+  }
+  inspect(
+    config(4431),
+    content="{\"x\":{\"k\":2,\"a\":4431,\"z\":3},\"after\":4,\"later\":5}",
+  )
+  inspect(config(4432), content="{\"x\":{\"k\":2},\"later\":5}")
+}
+
+///|
 test "config cannot set unsafe keys" {
   let result = @preprocess.preprocess(
     "%%{init: {\"__proto__\": {\"polluted\": true}, \"theme\": \"dark\"}}%%\ngraph TD\nA",
