@@ -3,10 +3,12 @@
 // dropped, and math is left as text.
 
 ///|
-/// A run of text with one emphasis.
+/// A run of text with one emphasis, or an icon in place of text.
 pub(all) struct Span {
   mut text : String
   style : Int32
+  /// The name of the icon the span draws; its `text` is then empty.
+  icon : String?
   mut width : Double
 }
 
@@ -146,7 +148,7 @@ fn push_plain(line : Array[Span], text : String, style : Int32) -> Unit {
   let decoded = decode_entities(text)
   match line.last() {
     Some(last) if last.style == style => last.text = last.text + decoded
-    _ => line.push({ text: decoded, style, width: 0, })
+    _ => line.push({ text: decoded, style, icon: None, width: 0, })
   }
 }
 
@@ -398,7 +400,7 @@ fn wrap(
         }
         _ => {
           let w = measurer.width(part, size, span.style)
-          current.push({ text: part, style: span.style, width: w, })
+          current.push({ text: part, style: span.style, icon: None, width: w, })
           width += w
         }
       }
@@ -555,7 +557,7 @@ pub fn layout_label(
     let width = measurer.width(text, size, base)
     if width <= max_width || !(text.contains(" ") || has_cjk(text)) {
       return {
-        lines: [[{ text, style: base, width, }]],
+        lines: [[{ text, style: base, icon: None, width, }]],
         widths: [width],
         width,
         height: line_height,
@@ -566,7 +568,7 @@ pub fn layout_label(
     let lines : Array[Array[Span]] = []
     let widths : Array[Double] = []
     wrap(
-      [{ text, style: base, width, }],
+      [{ text, style: base, icon: None, width, }],
       measurer,
       size,
       max_width,

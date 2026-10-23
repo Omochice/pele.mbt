@@ -37,6 +37,7 @@ pub(all) struct Label {
 pub(all) struct Span {
   mut text : String
   style : Int32
+  icon : String?
   mut width : Double
 }
 
