@@ -233,6 +233,7 @@ No block can therefore pass 1040187380 bytes, 32 MiB less than before, which the
 `scripts/build-typst.mjs` writes the mended plugin to `typst/plugin.wasm`, and `scripts/plugin-host.mjs` mends the plugin it loads, so every check runs the allocator typst runs; both fail when the allocator's code is not as expected, as after an upgrade of moonc, which then has to be checked for the same bug.
 `moon test` runs the allocator unmended, so its tests that hold a string of 2^28 code units or more pass only because they make that request in a heap without a smaller free block of its class.
 The git graph cases "a branch named by 140M a, drawn into a block of 512 MiB or more" and "a branch named by 270M a, read into a block of 512 MiB or more" check the mended plugin, and the first fails without the mend.
+
 ### V8's backtracking stack
 
 A regular expression that repeats a group with more than one way through it, such as `(?:a|bc)*`, keeps a few slots of V8's backtracking stack for every repetition until the match ends.
