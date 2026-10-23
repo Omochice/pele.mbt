@@ -131,8 +131,8 @@ test "an init directive nested deeper than pele's merge reaches applies only the
       ),
     ).stringify()
   }
-  inspect(config(4432), content="{\"before\":1,\"x\":{\"a\":4431},\"after\":2}")
-  inspect(config(4433), content="{\"before\":1}")
+  inspect(config(4467), content="{\"before\":1,\"x\":{\"a\":4466},\"after\":2}")
+  inspect(config(4468), content="{\"before\":1}")
 }
 
 ///|
@@ -149,10 +149,10 @@ test "a merge past pele's reach keeps what it merged into existing objects" {
     ).stringify()
   }
   inspect(
-    config(4431),
-    content="{\"x\":{\"k\":2,\"a\":4431,\"z\":3},\"after\":4,\"later\":5}",
+    config(4466),
+    content="{\"x\":{\"k\":2,\"a\":4466,\"z\":3},\"after\":4,\"later\":5}",
   )
-  inspect(config(4432), content="{\"x\":{\"k\":2},\"later\":5}")
+  inspect(config(4467), content="{\"x\":{\"k\":2},\"later\":5}")
 }
 
 ///|
