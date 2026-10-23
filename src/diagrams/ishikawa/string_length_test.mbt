@@ -39,3 +39,12 @@ test "causes drawn down past what a StringBuilder grows to are drawn as pele dra
     content="324153279 wide 299",
   )
 }
+
+///|
+#skip("slow: draws over 400 million code units across and 536 million down")
+test "causes drawn across past the hold limit fail drawn down as nested too deeply" {
+  inspect(
+    outcome(long_causes(915), max_width=300),
+    content="limit: Diagram is nested too deeply. ishikawa ishikawa",
+  )
+}

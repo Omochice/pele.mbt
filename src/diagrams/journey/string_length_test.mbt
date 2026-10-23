@@ -37,3 +37,26 @@ test "people drawn down past what a StringBuilder grows to are drawn as pele dra
     content="331194234 wide 300",
   )
 }
+
+///|
+#skip("slow: draws over 400 million code units across before it draws down")
+test "tasks drawn across past the hold limit are drawn down within it as pele draws them" {
+  let tasks = Array::makei(846, i => "  T\{i}\{"&".repeat(50000)}: 5: Me").join(
+    "\n",
+  )
+  inspect(
+    outcome("journey\nsection S\n\{tasks}\n", max_width=300),
+    content="290597950 wide 300",
+  )
+}
+
+///|
+#skip("slow: draws over 400 million code units across and 536 million down")
+test "people drawn across past the hold limit fail drawn down as nested too deeply" {
+  let people = Array::makei(10, i => "P\{i}\{"&".repeat(5000)}").join(", ")
+  let tasks = Array::makei(1630, i => "  T\{i}: 5: \{people}").join("\n")
+  inspect(
+    outcome("journey\nsection S\n\{tasks}\n", max_width=300),
+    content="limit: Diagram is nested too deeply. journey journey",
+  )
+}

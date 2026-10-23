@@ -7,7 +7,9 @@ import {
 }
 
 import {
+  "Omochice/pele/diagrams/common",
   "Omochice/pele/diagrams/pie",
   "Omochice/pele/errors",
+  "Omochice/pele/svg",
   "Omochice/pele/types",
 } for "test"

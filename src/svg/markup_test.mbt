@@ -74,25 +74,20 @@ test "a document up to the port's hold limit turns into a string" {
 }
 
 ///|
-test "a document past the port's hold limit fails with the port's limit, not V8's" {
+test "a document past the port's hold limit is left empty rather than failed, since it may only be measured" {
   let content = markup_of(@svg.HOLD_LIMIT + 1)
   inspect(content.length(), content="400000001")
-  inspect(
-    failure(() => {
-      @svg.markup_document(
-        "pie",
-        10,
-        20,
-        16,
-        @types.RenderOptions::default(),
-        None,
-        None,
-        content,
-      )
-      |> ignore
-    }),
-    content="limit: Diagram output is too large for the wasm port: it would hold more than 400000000 code units, the most the port can hold at once.",
+  let document = @svg.markup_document(
+    "pie",
+    10,
+    20,
+    16,
+    @types.RenderOptions::default(),
+    None,
+    None,
+    content,
   )
+  inspect(document.length(), content="0")
 }
 
 ///|
