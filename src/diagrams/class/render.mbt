@@ -865,6 +865,7 @@ fn draw(
           0,
           0,
           " class=\"pele-label\" font-size=\"\{small}\"",
+          icons?=options.icons,
         ) +
         "</g>",
       )
@@ -876,6 +877,7 @@ fn draw(
           0,
           0,
           " class=\"pele-label\" font-size=\"\{small}\"",
+          icons?=options.icons,
         ) +
         "</g>",
       )
@@ -944,6 +946,7 @@ fn draw(
           ce.label_x + ox,
           ce.label_y + oy,
           "",
+          icons?=options.icons,
         ),
       )
     }
@@ -1063,6 +1066,7 @@ fn class_svg(
       0,
       (y + first - TITLE_PAD) / 2,
       " class=\"pele-label\"\{title_size} font-weight=\"var(--_hw)\"\{style.text}",
+      icons?=options.icons,
     ),
   )
   let lines = (list : Array[Line], kind : String, from : Double) => {
