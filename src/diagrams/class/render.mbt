@@ -894,7 +894,16 @@ fn draw(
     let at = " transform=\"translate(\{num(x)},\{num(y)})\""
     if node.class_node is Some(cls) {
       write_class(
-        nodes_out, view, cls, id, at, size, tiny, tiny_height, links, options,
+        nodes_out,
+        view,
+        cls,
+        node.id,
+        at,
+        size,
+        tiny,
+        tiny_height,
+        links,
+        options,
       )
     } else if node.shape is NoteBox {
       let r = w / 2
@@ -1077,7 +1086,7 @@ fn write_class(
   out : @svg.Markup,
   view : View,
   cls : ClassNode,
-  id : String,
+  node_id : String,
   at : String,
   size : Double,
   tiny : Double,
@@ -1181,7 +1190,7 @@ fn write_class(
     _ => None
   }
   out.write(
-    "<g class=\"pele-node pele-class\{@svg.node_class_names(cls.css_classes)}\" data-id=\"\{id}\"\{at}>",
+    "<g class=\"pele-node pele-class\{@svg.node_class_names(cls.css_classes)}\" data-id=\"\{@svg.esc_text(node_id)}\"\{at}>",
   )
   if link_start is Some(start) {
     out.write(start)
