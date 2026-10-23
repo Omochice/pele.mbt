@@ -119,3 +119,16 @@ test "a single-quoted terminal runs one more character before V8's backtracking 
     content="limit: Diagram is nested too deeply. railroad railroadPeg",
   )
 }
+
+///|
+#skip("slow: draws a value of three million parts")
+test "a numeric value fails as nested too deeply where pele's pattern runs out of V8's backtracking stack" {
+  inspect(
+    backtrack_outcome("railroad-abnf-beta\nr = %x1\{".1".repeat(3355435)} ;\n"),
+    content="rendered",
+  )
+  inspect(
+    backtrack_outcome("railroad-abnf-beta\nr = %x1\{"-1".repeat(3355436)} ;\n"),
+    content="limit: Diagram is nested too deeply. railroad railroadAbnf",
+  )
+}

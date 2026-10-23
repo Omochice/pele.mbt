@@ -260,6 +260,10 @@ export const CASES = [
   lazy('architecture', 'a single-quoted service label at V8\'s backtracking stack', () => `architecture-beta\nservice s(server)['${'a'.repeat(4194295)}']\n`, RAISED),
   lazy('architecture', 'a service label with text after its quote just short of V8\'s backtracking stack', () => `architecture-beta\nservice s(server)["${'a'.repeat(4194295)}"x]\n`, RAISED),
   lazy('architecture', 'a service label with text after its quote at V8\'s backtracking stack', () => `architecture-beta\nservice s(server)["${'a'.repeat(4194296)}"x]\n`, RAISED),
+  // An ABNF numeric value, `%[xXdDbB][0-9A-Fa-f]+(?:-[0-9A-Fa-f]+|\.[0-9A-Fa-f]+)*`, takes five slots
+  // for each part after its first, however many digits each has.
+  lazy('railroad', 'an ABNF value just short of V8\'s backtracking stack', () => `railroad-abnf-beta\nr = %x1${'.1'.repeat(3355435)} ;\n`, RAISED),
+  lazy('railroad', 'an ABNF value at V8\'s backtracking stack', () => `railroad-abnf-beta\nr = %x1${'.1'.repeat(3355436)} ;\n`, RAISED),
   lazy('architecture', 'a title past V8', () => `architecture-beta\ntitle ${'"'.repeat(90000000)}\nservice s(server)[x]\n`, RAISED),
 ];
 
