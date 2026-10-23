@@ -107,4 +107,5 @@ export const CASES = [
   ['railroad', 'one long rule', `railroad-peg-beta\nr <- ${Array(2600000).fill('"a"').join(' ')} ;\n`, RAISED],
   // Every link names its long source node in its id.
   ['sankey', 'links from a long-named node', `sankey\n\n${names('B', 1090).map((name) => `A${'&'.repeat(50000)},${name},1`).join('\n')}\n`, RAISED],
+  ['timeline', 'long events', `timeline\n${names('', 1650).map((name) => `  ${name} : E${'&'.repeat(50000)}`).join('\n')}\n`, RAISED],
 ];
