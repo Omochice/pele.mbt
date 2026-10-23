@@ -178,7 +178,7 @@ fn exact_builder(length : Int32) -> StringBuilder {
 
 ///|
 /// The markup as a string.
-/// Aborts for markup the port no longer holds, which `markup_document` fails before reaching.
+/// Aborts for markup the port no longer holds, which `markup_document` leaves empty instead.
 pub fn Markup::to_string(self : Markup) -> String {
   guard self.held else { abort("SVG markup past the port's hold limit") }
   let out = exact_builder(self.length)
@@ -196,9 +196,18 @@ pub fn too_large_to_hold() -> @errors.PeleError {
 }
 
 ///|
+/// Whether a document from `markup_document` holds its drawing, which one longer than the port can
+/// hold does not, though a diagram drawn more than once may still measure it.
+/// Every held document has its root element, so only one that is not held is empty.
+pub fn is_held_document(document : String) -> Bool {
+  !document.is_empty()
+}
+
+///|
 /// Wraps diagram content in the root `svg` element as `svg_document` does.
 /// Raises pele's `limit` error, before concatenating, when the document would be longer than V8
-/// allows, or the port's own `limit` error when it is longer than the port can hold.
+/// allows.
+/// A document longer than the port can hold is left empty, for `is_held_document` to tell apart.
 pub fn markup_document(
   kind : String,
   width : Double,
@@ -223,8 +232,10 @@ pub fn markup_document(
   if start.length() + end.length() > MAX_STRING_LENGTH - content.length {
     raise @errors.nested_too_deeply()
   }
+  // Failing here would refuse a drawing that is only measured, as a diagram drawn again to fit a
+  // narrow host measures its first drawing, where pele goes on to draw the next one.
   if !content.held {
-    raise too_large_to_hold()
+    return ""
   }
   let out = exact_builder(start.length() + content.length + end.length())
   out.write_string(start)

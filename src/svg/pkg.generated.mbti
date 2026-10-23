@@ -47,6 +47,8 @@ pub fn font_style(Double, String?, String?) -> String
 
 pub fn inset_route(Array[Double], Int32, @layout.CNode, shape~ : String, w~ : Double, h~ : Double) -> Unit
 
+pub fn is_held_document(String) -> Bool
+
 pub fn label_svg(@text.Label, Double, Double, String, icons? : (String) -> String?) -> String
 
 pub fn loop_path(@layout.CNode, Double, Double, Int32, Bool, Double, Double, @layout.CEdge) -> EdgePath

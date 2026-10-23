@@ -12,6 +12,17 @@ const DEFAULT_OUTPUT_LIMIT : Double = 4000000
 const DEFAULT_MAX_EDGES : Double = 5000
 
 ///|
+/// The drawing the diagram answers with, refused when the port does not hold it.
+/// Only this drawing is refused, because a diagram drawn more than once to fit the host may have
+/// measured a drawing the port does not hold and gone on to a narrower one, as pele does.
+fn held(rendered : @types.Rendered) -> @types.Rendered raise @errors.PeleError {
+  guard @svg.is_held_document(rendered.svg) else {
+    raise @svg.too_large_to_hold()
+  }
+  rendered
+}
+
+///|
 /// Gives an error from a diagram the type it was detected as, unless it names one already.
 fn[T] tag_errors(
   found : @detect.Detected,
@@ -117,6 +128,7 @@ pub fn render(
       })
     })
   })
+  let rendered = tag_errors(found, () => held(rendered))
   let output_limit = options.output_limit.unwrap_or(DEFAULT_OUTPUT_LIMIT)
   if rendered.svg.length().to_double() > output_limit {
     raise @errors.pele_error(
