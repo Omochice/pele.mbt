@@ -103,4 +103,6 @@ export const CASES = [
   ['quadrant', 'long point names', `quadrantChart\n${names('P', 1100).map((name) => `${name}${'&'.repeat(50000)}: [0.5, 0.5]`).join('\n')}\n`, RAISED],
   // Each of the at most 32 graticule rings is a polygon through every axis.
   ['radar', 'polygon rings through many axes', `radar-beta\ngraticule polygon\nticks 32\naxis ${names('a', 1050000).join(', ')}\n`, RAISED],
+  ['railroad', 'many rules', `railroad-peg-beta\n${names('r', 880000).map((name) => `${name} <- "a" ;`).join('\n')}\n`, RAISED],
+  ['railroad', 'one long rule', `railroad-peg-beta\nr <- ${Array(2600000).fill('"a"').join(' ')} ;\n`, RAISED],
 ];
