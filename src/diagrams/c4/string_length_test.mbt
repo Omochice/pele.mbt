@@ -136,10 +136,10 @@ test "a boundary aliased by tens of millions of entities is drawn as pele draws 
 ///|
 #skip("slow: escapes 54 million characters several times before it fails")
 test "a relation between people aliased by tens of millions of entities fails as nested too deeply" {
-  let alias = "&".repeat(54000000)
+  let name = "&".repeat(54000000)
   inspect(
     outcome(
-      "C4Context\nPerson(\{alias}, \"x\")\nPerson(q, \"y\")\nRel(\{alias}, q, \"\")\n",
+      "C4Context\nPerson(\{name}, \"x\")\nPerson(q, \"y\")\nRel(\{name}, q, \"\")\n",
     ),
     content="limit: Diagram is nested too deeply. c4 c4",
   )
