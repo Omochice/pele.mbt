@@ -286,17 +286,16 @@ fn draw(
           )
         }
         let right = px(bone.text_end, bone.rise)
-        texts.write(
-          @svg.label_svg(
-            bone.label,
-            right - bone.label.width / 2,
-            y,
-            if bone.depth > 2 {
-              " fill=\"var(--_m)\""
-            } else {
-              ""
-            },
-          ),
+        @svg.write_label(
+          texts,
+          bone.label,
+          right - bone.label.width / 2,
+          y,
+          if bone.depth > 2 {
+            " fill=\"var(--_m)\""
+          } else {
+            ""
+          },
         )
         min_x = @util.js_min(min_x, right - bone.label.width)
       }
@@ -305,9 +304,9 @@ fn draw(
       max_x = @util.js_max(max_x, end_x + category.box_w / 2)
       min_y = @util.js_min(min_y, box_y - category.box_h / 2)
       max_y = @util.js_max(max_y, box_y + category.box_h / 2)
-      groups.write(
-        "<g class=\"pele-ishikawa-category\" data-id=\"\{@svg.esc_text(category.node.text)}\">",
-      )
+      groups.write("<g class=\"pele-ishikawa-category\" data-id=\"")
+      @svg.write_esc_text(groups, category.node.text)
+      groups.write("\">")
       groups.write_group(
         "<path class=\"pele-ishikawa-bones\" d=\"", d, "\" fill=\"none\" stroke=\"var(--_l)\"/>",
       )
@@ -320,8 +319,14 @@ fn draw(
           -sign / length,
           "var(--_l)",
         ) +
-        "<rect x=\"\{@svg.num(end_x - category.box_w / 2)}\" y=\"\{@svg.num(box_y - category.box_h / 2)}\" width=\"\{@svg.num(category.box_w)}\" height=\"\{@svg.num(category.box_h)}\" fill=\"var(--_s)\" stroke=\"var(--_b)\"\{@svg.ROUNDED}/>" +
-        @svg.label_svg(category.label, end_x, box_y, " class=\"pele-label\""),
+        "<rect x=\"\{@svg.num(end_x - category.box_w / 2)}\" y=\"\{@svg.num(box_y - category.box_h / 2)}\" width=\"\{@svg.num(category.box_w)}\" height=\"\{@svg.num(category.box_h)}\" fill=\"var(--_s)\" stroke=\"var(--_b)\"\{@svg.ROUNDED}/>",
+      )
+      @svg.write_label(
+        groups,
+        category.label,
+        end_x,
+        box_y,
+        " class=\"pele-label\"",
       )
       if !texts.is_empty() {
         groups.write_group(
@@ -338,17 +343,19 @@ fn draw(
       @svg.marker("arrow_point", 0, 0, 1, 0, "var(--_l)"),
     )
     body.write_markup(groups)
+    body.write("<g class=\"pele-ishikawa-head\" data-id=\"")
+    @svg.write_esc_text(body, root.text)
     body.write(
-      "<g class=\"pele-ishikawa-head\" data-id=\"\{@svg.esc_text(root.text)}\">" +
-      "<path d=\"M0,\{@svg.num(-r)}H\{@svg.num(head_w - r)}A\{@svg.num(r)},\{@svg.num(r)} 0 0 1 \{@svg.num(head_w - r)},\{@svg.num(r)}H0Z\" fill=\"var(--_s)\" stroke=\"var(--_b)\" stroke-linejoin=\"round\"/>" +
-      @svg.label_svg(
-        head,
-        12 + head.width / 2,
-        0,
-        " class=\"pele-label\" font-weight=\"var(--_hw)\"",
-      ) +
-      "</g>",
+      "\"><path d=\"M0,\{@svg.num(-r)}H\{@svg.num(head_w - r)}A\{@svg.num(r)},\{@svg.num(r)} 0 0 1 \{@svg.num(head_w - r)},\{@svg.num(r)}H0Z\" fill=\"var(--_s)\" stroke=\"var(--_b)\" stroke-linejoin=\"round\"/>",
     )
+    @svg.write_label(
+      body,
+      head,
+      12 + head.width / 2,
+      0,
+      " class=\"pele-label\" font-weight=\"var(--_hw)\"",
+    )
+    body.write("</g>")
   }
   let inner = @util.js_max(max_x - min_x, title.width)
   let width = (inner + 2 * pad).ceil()
@@ -474,23 +481,22 @@ fn vertical_causes(
       1 => "pele-ishikawa-category"
       _ => "pele-ishikawa-cause"
     }
-    nodes.write(
-      "<g class=\"pele-node \{class_name}\" data-id=\"\{@svg.esc_text(entry.node.text)}\">",
-    )
+    nodes.write("<g class=\"pele-node \{class_name}\" data-id=\"")
+    @svg.write_esc_text(nodes, entry.node.text)
+    nodes.write("\">")
     if framed {
       nodes.write(
         "<rect x=\"\{@svg.num(entry.x)}\" y=\"\{@svg.num(entry.y)}\" width=\"\{@svg.num(entry.w)}\" height=\"\{@svg.num(entry.h)}\" rx=\"\{if entry.depth == 0 { 12 } else { 4 }}\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/>",
       )
     }
-    nodes.write(
-      @svg.label_svg(
-        label,
-        entry.x + entry.w / 2,
-        entry.y + entry.h / 2,
-        " class=\"pele-label\"\{if framed { " font-weight=\"var(--_hw)\"" } else { "" }}\{if entry.depth > 1 { " font-size=\"\{small}\"" } else { "" }}",
-      ) +
-      "</g>",
+    @svg.write_label(
+      nodes,
+      label,
+      entry.x + entry.w / 2,
+      entry.y + entry.h / 2,
+      " class=\"pele-label\"\{if framed { " font-weight=\"var(--_hw)\"" } else { "" }}\{if entry.depth > 1 { " font-size=\"\{small}\"" } else { "" }}",
     )
+    nodes.write("</g>")
     if entry.parent >= 0 {
       let parent = order[entry.parent]
       let gx = parent.x + indent / 2
