@@ -206,3 +206,67 @@ test "what Mermaid rejects is rejected, with its message for a reused frame numb
     error => fail("\{error}")
   }
 }
+
+///|
+const NARROW : String = "eventmodeling\ntf 01 ui CartUI\ntf 02 cmd AddItem { id: 7 }\ntf 03 evt ItemAdded\ntf 04 rmo View ->> 03 ->> 01\nnote 02 {\n hi\n}\ngwt 01 given evt A then evt B\n"
+
+///|
+test "a narrow width stacks the frames down, each under its lane heading" {
+  let result = drawn(NARROW, max_width=400)
+  inspect(result.width, content="400")
+  inspect(result.height, content="601")
+  let out = result.svg
+  inspect(count(out, "class=\"pele-cluster pele-em-lane\""), content="4")
+  inspect(
+    out.contains(
+      "<text class=\"pele-cluster-label\" font-size=\"14\" font-weight=\"var(--_hw)\" fill=\"var(--_m)\" x=\"20\" y=\"23.4\" text-anchor=\"start\" xml:space=\"preserve\">UI/Automation</text>",
+    ),
+    content="true",
+  )
+  inspect(
+    out.contains(
+      "<rect x=\"8\" y=\"41\" width=\"360\" height=\"41\" fill=\"var(--_bg)\" stroke=\"var(--_b)\"",
+    ),
+    content="true",
+  )
+}
+
+///|
+test "each card tells its frame number at its right" {
+  let out = svg(NARROW, max_width=400)
+  inspect(
+    out.contains(
+      "<text class=\"pele-em-frame\" x=\"356\" y=\"65\" text-anchor=\"end\" font-size=\"12\" fill=\"var(--_m)\">01</text>",
+    ),
+    content="true",
+  )
+  inspect(count(out, "class=\"pele-em-frame\""), content="4")
+}
+
+///|
+test "neighbouring cards are joined straight down" {
+  let out = svg(NARROW, max_width=400)
+  inspect(out.contains("d=\"M188,82V136\""), content="true")
+  inspect(out.contains("d=\"M188,208V262\""), content="true")
+}
+
+///|
+test "a relation that skips a card runs down a rail beside the cards" {
+  let out = svg(NARROW, max_width=400)
+  inspect(out.contains("d=\"M368,56.5H380V396.5H375\""), content="true")
+}
+
+///|
+test "data is wrapped to the card and notes follow the cards" {
+  let out = svg(NARROW, max_width=400)
+  inspect(out.contains(">id: 7</tspan>"), content="true")
+  inspect(out.contains("Note · 02 AddItem"), content="true")
+  inspect(out.contains(">Given  A</tspan>"), content="true")
+}
+
+///|
+test "a width that leaves no room for a card is exceeded rather than squeezed" {
+  let result = drawn(NARROW, max_width=100)
+  inspect(result.width, content="176")
+  inspect(result.height, content="727")
+}
