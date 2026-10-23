@@ -612,13 +612,12 @@ fn draw(
     @svg.write_edge_label(labels_out, edge.id, edge_label, label_x, label_y, "")
   }
   let content = @svg.Markup::new()
-  content.write(
-    @svg.label_svg(
-      title,
-      width / 2,
-      pad + title.height / 2,
-      " class=\"pele-title\" font-weight=\"var(--_tw)\"",
-    ),
+  @svg.write_label(
+    content,
+    title,
+    width / 2,
+    pad + title.height / 2,
+    " class=\"pele-title\" font-weight=\"var(--_tw)\"",
   )
   if !edges_out.is_empty() {
     content.write_group(
