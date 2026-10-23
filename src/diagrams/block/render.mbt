@@ -622,7 +622,7 @@ fn style_of(db : BlockDb, block : Block) -> @svg.ResolvedStyle {
 fn is_blank(label : @text.Label) -> Bool {
   for line in label.lines {
     for part in line {
-      if @util.trim(part.text) != "" {
+      if part.icon is Some(_) || @util.trim(part.text) != "" {
         return false
       }
     }
@@ -955,6 +955,7 @@ fn draw(
           c.x,
           top + (c.head + gap) / 2 + 2,
           " class=\"pele-cluster-label\" fill=\"var(--_m)\"\{v.style.text}",
+          icons?=options.icons,
         ),
       )
       clusters.write_string("</g>")
@@ -984,6 +985,7 @@ fn draw(
         v.dx,
         v.dy,
         " class=\"pele-label\"\{v.style.text}",
+        icons?=options.icons,
       ),
     )
     nodes.write_string("</g>")
@@ -1040,6 +1042,7 @@ fn draw(
           route.lx + ox,
           route.ly + oy,
           "",
+          icons?=options.icons,
         ),
       )
     }
