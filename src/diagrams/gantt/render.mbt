@@ -414,8 +414,8 @@ pub fn render_gantt(
     None => auto_ticks(start, stop, count)
   }
   let grid = StringBuilder()
-  let axis_bottom = StringBuilder()
-  let axis_top = StringBuilder()
+  let axis_bottom = @svg.Markup::new()
+  let axis_top = @svg.Markup::new()
   let mut last_right = -@double.infinity
   let mut last_label = ""
   let bottom_y = plot_bottom + tick_height / 2 + 2
@@ -434,14 +434,16 @@ pub fn render_gantt(
     last_right = tx + width / 2
     last_label = label
     extent = @util.js_max(extent, last_right)
-    let body = "text-anchor=\"middle\">\{@svg.esc(label)}</text>"
-    axis_bottom.write_string(
-      "<text x=\"\{@svg.num(tx)}\" y=\"\{@svg.num(bottom_y + tick_size * 0.35)}\" \{body}",
-    )
-    if top_axis {
-      axis_top.write_string(
-        "<text x=\"\{@svg.num(tx)}\" y=\"\{@svg.num(top_y + tick_size * 0.35)}\" \{body}",
+    let write_tick = (axis : @svg.Markup, y : Double) => {
+      axis.write(
+        "<text x=\"\{@svg.num(tx)}\" y=\"\{@svg.num(y + tick_size * 0.35)}\" text-anchor=\"middle\">",
       )
+      @svg.write_esc(axis, label)
+      axis.write("</text>")
+    }
+    write_tick(axis_bottom, bottom_y)
+    if top_axis {
+      write_tick(axis_top, top_y)
     }
   }
 
@@ -476,16 +478,20 @@ pub fn render_gantt(
       vert_ends[line] = cx + label.width / 2
     }
     extent = @util.js_max(extent, vert_ends[line])
-    let id = @svg.esc_text(task.id)
+    vert_lines.write("<path class=\"pele-vert\"")
+    @svg.write_data_id(vert_lines, task.id)
     vert_lines.write(
-      "<path class=\"pele-vert\" data-id=\"\{id}\" d=\"M\{@svg.num(vx)},\{@svg.num(plot_top - grid_lead)}V\{@svg.num(plot_bottom)}\"/>",
+      " d=\"M\{@svg.num(vx)},\{@svg.num(plot_top - grid_lead)}V\{@svg.num(plot_bottom)}\"/>",
     )
-    @svg.write_label(
+    @svg.write_label_with_id(
       vert_labels,
       label,
       cx,
       vert_top + line.to_double() * vert_line + vert_line / 2,
-      " class=\"pele-vert-label\" data-id=\"\{id}\"",
+      " class=\"pele-vert-label\" data-id=\"",
+      task.id,
+      "\"",
+      "",
     )
   }
   let width = (@util.js_max(extent, pad + title.width) + pad).ceil()
@@ -518,12 +524,15 @@ pub fn render_gantt(
       )
     }
     let label = section_labels[section]
-    @svg.write_label(
+    @svg.write_label_with_id(
       section_out,
       label,
       pad + 8 + label.width / 2,
       y + h / 2,
-      " class=\"pele-section-label\" data-id=\"\{@svg.esc_text(section)}\"",
+      " class=\"pele-section-label\" data-id=\"",
+      section,
+      "\"",
+      "",
       icons?=options.icons,
     )
     row = end
@@ -634,38 +643,42 @@ pub fn render_gantt(
       cy,
       " class=\"pele-label\"\{text_fill}",
     )
-    let link_start = match model.links.get(task.id) {
-      Some(url) => @url.link_start(url, task.id, links, options)
-      None => None
+    tasks_out.write("<g class=\"\{classes.to_string()}\"")
+    @svg.write_data_id(tasks_out, task.id)
+    tasks_out.write(">")
+    let linked = match model.links.get(task.id) {
+      Some(url) =>
+        @url.write_link_start(tasks_out, url, task.id, links, options)
+      None => false
     }
-    tasks_out.write(
-      "<g class=\"\{classes.to_string()}\" data-id=\"\{@svg.esc_text(task.id)}\">",
-    )
-    match link_start {
-      Some(start) => tasks_out.write_group(start, body, "</a>")
-      None => tasks_out.write_markup(body)
+    tasks_out.write_markup(body)
+    if linked {
+      tasks_out.write("</a>")
     }
     tasks_out.write("</g>")
   }
-  let mut today = ""
+  let today = @svg.Markup::new()
   if model.today_marker != "off" && now >= start && now <= stop && stop > start {
     let tx = x(now)
     let top = plot_top - grid_lead
     let style = if model.today_marker != "" {
-      @svg.resolve_style(
+      @svg.resolve_raw_style(
         model.today_marker.split(",").map(part => part.to_owned()).collect(),
       ).line
     } else {
       ""
     }
-    let arrow = if style != "" {
-      ""
-    } else {
-      "<path d=\"M\{@svg.num(tx - 4)},\{@svg.num(top - 5)}H\{@svg.num(tx + 4)}L\{@svg.num(tx)},\{@svg.num(top + 1)}Z\" fill=\"var(--_c)\"/>"
+    today.write(
+      "<g class=\"pele-today\"><path d=\"M\{@svg.num(tx)},\{@svg.num(top)}V\{@svg.num(plot_bottom)}\" fill=\"none\" stroke=\"var(--_c)\" stroke-width=\"2\"",
+    )
+    @svg.write_style(today, style)
+    today.write("/>")
+    if style == "" {
+      today.write(
+        "<path d=\"M\{@svg.num(tx - 4)},\{@svg.num(top - 5)}H\{@svg.num(tx + 4)}L\{@svg.num(tx)},\{@svg.num(top + 1)}Z\" fill=\"var(--_c)\"/>",
+      )
     }
-    today = "<g class=\"pele-today\"><path d=\"M\{@svg.num(tx)},\{@svg.num(top)}V\{@svg.num(plot_bottom)}\" fill=\"none\" stroke=\"var(--_c)\" stroke-width=\"2\"\{style}/>" +
-      arrow +
-      "</g>"
+    today.write("</g>")
   }
   let axis_line = "M\{@svg.num(left)},\{@svg.num(plot_bottom)}H\{@svg.num(right)}" +
     (if top_axis {
@@ -698,7 +711,7 @@ pub fn render_gantt(
       vert_lines, "</g>",
     )
   }
-  content.write(today)
+  content.write_markup(today)
   content.write_group(
     "<g class=\"pele-tasks\" font-size=\"\{@svg.num(label_size)}\">",
     tasks_out,
@@ -710,8 +723,11 @@ pub fn render_gantt(
     "</g>",
   )
   content.write(
-    "<g class=\"pele-axis\" font-size=\"\{tick_size}\" fill=\"var(--_m)\">\{axis_bottom.to_string()}\{axis_top.to_string()}</g>",
+    "<g class=\"pele-axis\" font-size=\"\{tick_size}\" fill=\"var(--_m)\">",
   )
+  content.write_markup(axis_bottom)
+  content.write_markup(axis_top)
+  content.write("</g>")
   if !vert_labels.is_empty() {
     content.write_group(
       "<g class=\"pele-vert-labels\" font-size=\"\{@svg.num(label_size)}\">",
