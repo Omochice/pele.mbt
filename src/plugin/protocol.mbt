@@ -10,6 +10,11 @@ extern "wasm" fn bytes_addr(b : Bytes) -> Int32 =
   #|(func (param i32) (result i32) (local.get 0))
 
 ///|
+#borrow(b)
+extern "wasm" fn fixed_bytes_addr(b : FixedArray[Byte]) -> Int32 =
+  #|(func (param i32) (result i32) (local.get 0))
+
+///|
 /// Renders Mermaid text for typst, following the wasm-minimal-protocol.
 /// The arguments are the UTF-8 Mermaid source and a JSON object of pele's render options.
 /// Returns 0 with a JSON result, or 1 with a JSON `error` object in pele's shape.
@@ -34,11 +39,11 @@ fn answer(source_len : Int32, options_len : Int32) -> Int32 {
   let options = @utf8.decode_lossy(args[source_len:source_len + options_len])
   let (status, out) = encode(reply(source, options))
   sent.val = out
-  send_result(bytes_addr(out), out.length())
+  send_result(fixed_bytes_addr(out), out.length())
   status
 }
 
 ///|
 /// The last result sent to the host.
 /// Without a reference past the call, `out` is freed between taking its address and the host reading it, and the allocator's bookkeeping overwrites its last bytes.
-let sent : Ref[Bytes] = { val: b"", }
+let sent : Ref[FixedArray[Byte]] = { val: [], }

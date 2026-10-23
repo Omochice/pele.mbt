@@ -1,8 +1,13 @@
 ///|
+fn text_of(out : FixedArray[Byte]) -> String {
+  @utf8.decode_lossy(Bytes::from_array(out[:]))
+}
+
+///|
 /// The status the plugin returns for `source` under `options`, with the JSON it answers with.
 fn respond(source : String, options : String) -> (Int32, Json) {
   let (status, out) = encode(reply(source, options))
-  let json = @util.parse_json(@utf8.decode_lossy(out)) catch {
+  let json = @util.parse_json(text_of(out)) catch {
     @util.JsonError(message, _) =>
       abort("the plugin answered with text that is not JSON: \{message}")
   }

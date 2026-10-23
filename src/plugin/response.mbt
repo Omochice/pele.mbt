@@ -35,8 +35,22 @@ fn reply(source : String, options : String) -> Reply {
 }
 
 ///|
+/// The most bytes the plugin answers with.
+const RESPONSE_LIMIT : Int32 = 1000000000
+
+///|
 /// The reply as UTF-8 JSON, with the status the plugin returns: 0 for a drawing and 1 for a failure.
-fn encode(reply : Reply) -> (Int32, Bytes) {
+fn encode(
+  reply : Reply,
+  limit~ : Int32 = RESPONSE_LIMIT,
+) -> (Int32, FixedArray[Byte]) {
+  ignore(limit)
+  let (status, out) = encode_json(reply)
+  (status, out.to_fixedarray())
+}
+
+///|
+fn encode_json(reply : Reply) -> (Int32, Bytes) {
   match reply {
     Drawn(result, theme) => {
       let svg = match theme {
