@@ -283,13 +283,12 @@ fn draw(
   let total_height = (y1 - y0 + title_height + 2 * pad).ceil()
   let origin = "translate(\{@svg.num(pad + (body_width - (x1 - x0)) / 2 - x0)},\{@svg.num(pad + title_height - y0)})"
   let content = @svg.Markup::new()
-  content.write(
-    @svg.label_svg(
-      title,
-      total_width / 2,
-      pad + title.height / 2,
-      " class=\"pele-title\" font-weight=\"var(--_tw)\"",
-    ),
+  @svg.write_label(
+    content,
+    title,
+    total_width / 2,
+    pad + title.height / 2,
+    " class=\"pele-title\" font-weight=\"var(--_tw)\"",
   )
   content.write("<g transform=\"\{origin}\">")
   if !grid.is_empty() {
