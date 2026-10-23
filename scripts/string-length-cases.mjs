@@ -190,4 +190,6 @@ export const CASES = [
   // pele fails this while parsing, as it does a commit id of the same length; the port fails as
   // the field's label, drawn down for a narrow host, passes V8's longest string.
   ['packet', 'one field of many &, drawn down', `packet\n0-31: "${'&'.repeat(62000000)}"\n`, { ...RAISED, maxWidth: 300 }],
+  // A point's name is written in its data-id and as its label.
+  ['quadrant', 'one point named by many &', `quadrantChart\n${'&'.repeat(54000000)}: [0.5, 0.5]\n`, RAISED],
 ];
