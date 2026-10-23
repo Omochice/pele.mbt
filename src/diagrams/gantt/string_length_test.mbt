@@ -197,3 +197,25 @@ test "a task link escaped past what a doubling StringBuilder holds is drawn as p
     content="270001717",
   )
 }
+
+///|
+#skip("slow: formats over 270 million code units")
+test "an axis label formatted past what a doubling StringBuilder holds is drawn as pele draws it" {
+  inspect(
+    outcome(
+      "gantt\ndateFormat YYYY-MM-DD\naxisFormat \{"%c".repeat(13000000)}\nsection s\nt :2026-01-01, 1d\n",
+    ),
+    content="273001582",
+  )
+}
+
+///|
+#skip("slow: formats over 536 million code units before it fails")
+test "an axis label formatted past V8's longest string fails as nested too deeply" {
+  inspect(
+    outcome(
+      "gantt\ndateFormat YYYY-MM-DD\naxisFormat \{"%c".repeat(30000000)}\nsection s\nt :2026-01-01, 1d\n",
+    ),
+    content="limit: Diagram is nested too deeply. gantt gantt",
+  )
+}

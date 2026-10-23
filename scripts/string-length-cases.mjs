@@ -497,6 +497,9 @@ export const CASES = [
   lazy('usecase', 'one use case named by many &', () => `usecase-beta\n"${'&'.repeat(54000000)}"\n`, RAISED),
   // A plain label is laid out from its text with each `&` as a five-unit reference, which pele cannot make past V8's longest string.
   lazy('usecase', 'one use case label of many &, past V8', () => `usecase-beta\nU("${'&'.repeat(110000000)}")\n`, RAISED),
+  // `%c` formats a date as about 21 code units, so an axis format of many of them makes one long tick label.
+  lazy('gantt', 'an axis format of many %c', () => `gantt\ndateFormat YYYY-MM-DD\naxisFormat ${'%c'.repeat(13000000)}\nsection s\nt :2026-01-01, 1d\n`, RAISED),
+  lazy('gantt', 'an axis format of many %c, past V8', () => `gantt\ndateFormat YYYY-MM-DD\naxisFormat ${'%c'.repeat(30000000)}\nsection s\nt :2026-01-01, 1d\n`, RAISED),
   // A syntax error quotes its whole line, which pele finds after lexing every `<<` of it as a token.
   lazy('class', 'a generic of 140M <, quoted whole in its syntax error', () => `classDiagram\nclass A~${'<'.repeat(140000000)}~\n`, RAISED),
   // Each tab of a quoted line is escaped in the JSON answer, which so holds twice as many bytes as the line.
