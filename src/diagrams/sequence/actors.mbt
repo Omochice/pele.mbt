@@ -104,6 +104,7 @@ fn figure(kind : String, cx : Double, top : Double) -> String {
 
 ///|
 /// Draws a participant whose bounding box has its top center at (`cx`, `top`), with `icons` drawing the icons in its label.
+/// Aborts where the drawing would be longer than V8 allows, which `write_actor` reports instead.
 pub fn draw_actor(
   kind : String,
   cx : Double,
@@ -112,38 +113,72 @@ pub fn draw_actor(
   label : @text.Label,
   icons? : @types.IconResolver,
 ) -> String {
+  let out = @svg.Markup::new()
+  write_actor(out, kind, cx, top, size, label, icons?) catch {
+    _ => abort("participant markup longer than V8's longest string")
+  }
+  out.to_string()
+}
+
+///|
+/// Writes a participant to `out` as `draw_actor` draws it, with its label written piece by piece.
+/// Raises pele's `limit` error when the markup would be longer than V8 allows.
+pub fn write_actor(
+  out : @svg.Markup,
+  kind : String,
+  cx : Double,
+  top : Double,
+  size : ActorSize,
+  label : @text.Label,
+  icons? : @types.IconResolver,
+) -> Unit raise @errors.PeleError {
   let n = @svg.num
   let { w, h, } = size
   let text = " class=\"pele-label\""
   if is_figure(kind) {
-    return figure(kind, cx, top) +
-      @svg.label_svg(
-        label,
-        cx,
-        top + GLYPH + GLYPH_GAP + label.height / 2,
-        text,
-        icons?,
-      )
+    out.write(figure(kind, cx, top))
+    @svg.write_label(
+      out,
+      label,
+      cx,
+      top + GLYPH + GLYPH_GAP + label.height / 2,
+      text,
+      icons?,
+    )
+    return
   }
   let left = cx - w / 2
   if kind == "collections" {
     let bw = w - STACK
     let bh = h - STACK
-    let back = "<rect x=\"\{n(left + STACK)}\" y=\"\{n(top)}\" width=\"\{n(bw)}\" height=\"\{n(bh)}\"\{SHAPE}\{@svg.ROUNDED}/>"
-    let front = "<rect x=\"\{n(left)}\" y=\"\{n(top + STACK)}\" width=\"\{n(bw)}\" height=\"\{n(bh)}\"\{SHAPE}\{@svg.ROUNDED}/>"
-    return back +
-      front +
-      @svg.label_svg(label, left + bw / 2, top + STACK + bh / 2, text, icons?)
+    out.write(
+      "<rect x=\"\{n(left + STACK)}\" y=\"\{n(top)}\" width=\"\{n(bw)}\" height=\"\{n(bh)}\"\{SHAPE}\{@svg.ROUNDED}/>" +
+      "<rect x=\"\{n(left)}\" y=\"\{n(top + STACK)}\" width=\"\{n(bw)}\" height=\"\{n(bh)}\"\{SHAPE}\{@svg.ROUNDED}/>",
+    )
+    @svg.write_label(
+      out,
+      label,
+      left + bw / 2,
+      top + STACK + bh / 2,
+      text,
+      icons?,
+    )
+    return
   }
   if kind == "queue" {
     let l = n(left + CAP)
     let r = n(left + w - CAP)
     let b = n(top + h)
     let ry = n(h / 2)
-    return "<path d=\"M\{l},\{n(top)}H\{r}A\{CAP},\{ry} 0 0 1 \{r},\{b}H\{l}A\{CAP},\{ry} 0 0 1 \{l},\{n(top)}Z\"\{SHAPE}/>" +
-      "<path d=\"M\{r},\{n(top)}A\{CAP},\{ry} 0 0 0 \{r},\{b}\"\{STROKE}/>" +
-      @svg.label_svg(label, cx - CAP / 2, top + h / 2, text, icons?)
+    out.write(
+      "<path d=\"M\{l},\{n(top)}H\{r}A\{CAP},\{ry} 0 0 1 \{r},\{b}H\{l}A\{CAP},\{ry} 0 0 1 \{l},\{n(top)}Z\"\{SHAPE}/>" +
+      "<path d=\"M\{r},\{n(top)}A\{CAP},\{ry} 0 0 0 \{r},\{b}\"\{STROKE}/>",
+    )
+    @svg.write_label(out, label, cx - CAP / 2, top + h / 2, text, icons?)
+    return
   }
-  "<rect x=\"\{n(left)}\" y=\"\{n(top)}\" width=\"\{n(w)}\" height=\"\{n(h)}\"\{SHAPE}\{@svg.ROUNDED}/>" +
-  @svg.label_svg(label, cx, top + h / 2, text, icons?)
+  out.write(
+    "<rect x=\"\{n(left)}\" y=\"\{n(top)}\" width=\"\{n(w)}\" height=\"\{n(h)}\"\{SHAPE}\{@svg.ROUNDED}/>",
+  )
+  @svg.write_label(out, label, cx, top + h / 2, text, icons?)
 }

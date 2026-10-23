@@ -3,6 +3,7 @@ package "Omochice/pele/diagrams/sequence"
 
 import {
   "Omochice/pele/errors",
+  "Omochice/pele/svg",
   "Omochice/pele/text",
   "Omochice/pele/types",
 }
@@ -135,6 +136,8 @@ pub fn render_sequence(SeqDb, Map[String, Json], @types.RenderOptions) -> @types
 pub let sequence : @types.Diagram
 
 pub fn tokenize(String) -> Tokens
+
+pub fn write_actor(@svg.Markup, String, Double, Double, ActorSize, @text.Label, icons? : (String) -> String?) -> Unit raise @errors.PeleError
 
 // Errors
 
