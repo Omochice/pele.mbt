@@ -128,9 +128,10 @@ pub fn render(
       })
     })
   })
-  let rendered = tag_errors(found, () => held(rendered))
   let output_limit = options.output_limit.unwrap_or(DEFAULT_OUTPUT_LIMIT)
-  if rendered.svg.length().to_double() > output_limit {
+  // pele refuses a drawing past its output limit however long it is, so the port's own limit
+  // stands only for a drawing the output limit allows.
+  if @svg.document_length(rendered.svg).to_double() > output_limit {
     raise @errors.pele_error(
       "Diagram output is longer than the limit of \{output_limit} characters.",
       code=Limit,
@@ -138,6 +139,7 @@ pub fn render(
       mermaid_type=found.mermaid_type,
     )
   }
+  let rendered = tag_errors(found, () => held(rendered))
   {
     kind: found.kind,
     mermaid_type: found.mermaid_type,
