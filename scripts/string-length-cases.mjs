@@ -453,6 +453,19 @@ export const CASES = [
   lazy('requirement', 'one requirement named by many &', () => `requirementDiagram\nrequirement "${'&'.repeat(54000000)}" {\n}\n`, RAISED),
   // A relationship's id holds the names of its ends.
   lazy('requirement', 'one relationship of a requirement named by many &', () => `requirementDiagram\nrequirement "${'&'.repeat(54000000)}" {\n}\nelement e {\n}\n"${'&'.repeat(54000000)}" - satisfies -> e\n`, RAISED),
+  lazy('flowchart', 'one tooltip of many &', () => `graph TD\nA\nclick A callback "${'&'.repeat(54000000)}"\n`, RAISED),
+  lazy('flowchart', 'one link of many &', () => `graph TD\nA\nclick A href "${'&'.repeat(54000000)}"\n`, RAISED),
+  // An internal link writes the node's label in its href and its data-href as well.
+  lazy('flowchart', 'one internal link of many &', () => `graph TD\nA["${'&'.repeat(54000000)}"]\nclass A internal-link\n`, RAISED),
+  lazy('flowchart', 'one image of many &', () => `graph TD\nA@{ img: "${'&'.repeat(54000000)}", label: "x" }\n`, RAISED),
+  lazy('flowchart', 'one icon of many &', () => `graph TD\nA@{ icon: "${'&'.repeat(54000000)}", label: "x" }\n`, RAISED),
+  // A subgraph named by a quoted string takes the string as its id.
+  lazy('flowchart', 'one subgraph id of many &', () => `graph TD\nsubgraph "${'&'.repeat(54000000)}" [x]\nA\nend\n`, RAISED),
+  lazy('swimlane', 'one tooltip of many &', () => `swimlane-beta TB\nsubgraph L\nA\nend\nclick A callback "${'&'.repeat(54000000)}"\n`, RAISED),
+  lazy('swimlane', 'one link of many &', () => `swimlane-beta TB\nsubgraph L\nA\nend\nclick A href "${'&'.repeat(54000000)}"\n`, RAISED),
+  lazy('swimlane', 'one lane id of many &', () => `swimlane-beta TB\nsubgraph "${'&'.repeat(54000000)}" [x]\nA\nend\n`, RAISED),
+  // Without a title a lane's id is its title as well.
+  lazy('swimlane', 'one lane named by many &', () => `swimlane-beta TB\nsubgraph "${'&'.repeat(54000000)}"\nA\nend\n`, RAISED),
 ];
 
 // A case whose source is built only when the check reaches it, as a getter in the source's place,
