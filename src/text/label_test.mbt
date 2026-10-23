@@ -16,7 +16,13 @@ fn layout(
   )
   let lines = label.lines.map(line => {
     line
-    .map(span => "\{span.text.escape()}/\{span.style}/\{span.width}")
+    .map(span => {
+      let icon = match span.icon {
+        Some(name) => "@" + name
+        None => ""
+      }
+      "\{span.text.escape()}\{icon}/\{span.style}/\{span.width}"
+    })
     .join(" ")
   })
   "\{lines.join(" | ")} widths=[\{label.widths.map(w => w.to_string()).join(", ")}] width=\{label.width} height=\{label.height} size=\{label.size} line=\{label.line_height}"
@@ -70,6 +76,63 @@ test "icons the host does not have leave no gap" {
   )
   inspect(
     layout("Cars fa:fa-car", 16, 4000),
+    content="\"Cars\"/0/33.776 widths=[33.776] width=33.776 height=24 size=16 line=24",
+  )
+}
+
+///|
+/// A host that has `fa:fa-car`, and an empty drawing for `fa:fa-empty`.
+fn car_icons(name : String) -> String? {
+  match name {
+    "fa:fa-car" => Some("<path/>")
+    "fa:fa-empty" => Some("")
+    _ => None
+  }
+}
+
+///|
+test "an icon the host has is a span a size and a quarter wide" {
+  @text.with_icons(Some(car_icons), () => {
+    inspect(
+      layout("fa:fa-car Cars", 16, 4000),
+      content="\"\"@fa:fa-car/0/20 \" Cars\"/0/38.224 widths=[58.224] width=58.224 height=24 size=16 line=24",
+    )
+    inspect(
+      layout("Cars fa:fa-car", 16, 4000),
+      content="\"Cars \"/0/38.224 \"\"@fa:fa-car/0/20 widths=[58.224] width=58.224 height=24 size=16 line=24",
+    )
+    inspect(
+      layout("<b>Bold</b> fa:fa-car", 14, 4000),
+      content="\"Bold\"/1/31.108 \" \"/0/3.892 \"\"@fa:fa-car/0/17.5 widths=[52.5] width=52.5 height=21 size=14 line=21",
+    )
+  })
+}
+
+///|
+test "an icon whose drawing is empty counts as missing in a label" {
+  @text.with_icons(Some(car_icons), () => {
+    inspect(
+      layout("fa:fa-empty Cars", 16, 4000),
+      content="\"Cars\"/0/33.776 widths=[33.776] width=33.776 height=24 size=16 line=24",
+    )
+  })
+}
+
+///|
+test "wrapping keeps an icon whole and the space before it" {
+  @text.with_icons(Some(car_icons), () => {
+    inspect(
+      layout("Go fa:fa-car fast and far away", 16, 60),
+      content="\"Go \"/0/25.792 \"\"@fa:fa-car/0/20 | \"fast and\"/0/56.928 | \"far\"/0/18.672 | \"away\"/0/37.344 widths=[45.792, 56.928, 18.672, 37.344] width=56.928 height=96 size=16 line=24",
+    )
+  })
+}
+
+///|
+test "icons are looked up only while a resolver is installed" {
+  @text.with_icons(Some(car_icons), () => ())
+  inspect(
+    layout("fa:fa-car Cars", 16, 4000),
     content="\"Cars\"/0/33.776 widths=[33.776] width=33.776 height=24 size=16 line=24",
   )
 }

@@ -16,6 +16,8 @@ pub let metrics_measurer : TextMeasurer
 
 pub fn table_measurer((Int32) -> AdvanceTable, Double) -> TextMeasurer
 
+pub fn[T] with_icons(((String) -> String?)?, () -> T raise?) -> T raise?
+
 // Errors
 
 // Types and methods
