@@ -25,9 +25,7 @@ pub fn mark_crossings(crossings : Crossings, route : Array[Double]) -> Unit {
 ///|
 /// The x of every point marked on the row of `y`, which is rounded as the rows are.
 pub fn Crossings::at(self : Crossings, y : Double) -> Array[Double]? {
-  ignore(self)
-  ignore(y)
-  None
+  self.rows.get(y.round())
 }
 
 ///|
