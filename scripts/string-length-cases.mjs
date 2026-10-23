@@ -344,6 +344,33 @@ export const CASES = [
   lazy('gantt', 'a title over no tasks past V8', () => `gantt\ntitle ${'"'.repeat(90000000)}\n`, RAISED),
   // A Gantt chart without tasks draws only its title.
   lazy('gantt', 'a title over no tasks longer than a doubling StringBuilder holds', () => `gantt\ntitle ${'<'.repeat(70000000)}\n`, RAISED),
+  // Each of these escapes 54 million `&` into more than a doubling StringBuilder holds, which pele
+  // draws, and 110 million into more than V8's longest string, which pele fails.
+  lazy('class', 'one member of many &', () => `classDiagram\nclass A {\n  ${'&'.repeat(54000000)}\n}\n`, RAISED),
+  lazy('class', 'one member past V8', () => `classDiagram\nclass A {\n  ${'&'.repeat(110000000)}\n}\n`, RAISED),
+  lazy('class', 'one annotation of many &', () => `classDiagram\nclass A {\n  <<${'&'.repeat(54000000)}>>\n}\n`, RAISED),
+  lazy('class', 'one annotation past V8', () => `classDiagram\nclass A {\n  <<${'&'.repeat(110000000)}>>\n}\n`, RAISED),
+  // A class is named in its data-id, and labelled by its name unless it has a label.
+  lazy('class', 'one class named by many &, with a short label', () => `classDiagram\nclass \`${'&'.repeat(54000000)}\`["x"]\n`, RAISED),
+  lazy('class', 'one class named past V8, with a short label', () => `classDiagram\nclass \`${'&'.repeat(110000000)}\`["x"]\n`, RAISED),
+  // An edge's id names both its ends, in the edge's data-id and in its label's.
+  lazy('class', 'an edge from a class named by many &', () => `classDiagram\nclass \`${'&'.repeat(54000000)}\`["x"]\n\`${'&'.repeat(54000000)}\` --> B\n`, RAISED),
+  lazy('class', 'an edge label from a class named by many &', () => `classDiagram\nclass \`${'&'.repeat(54000000)}\`["x"]\n\`${'&'.repeat(54000000)}\` --> B : l\n`, RAISED),
+  lazy('class', 'one cardinality of many &', () => `classDiagram\nA "${'&'.repeat(54000000)}" --> B\n`, RAISED),
+  lazy('class', 'one cardinality past V8', () => `classDiagram\nA "${'&'.repeat(110000000)}" --> B\n`, RAISED),
+  lazy('class', 'one tooltip of many &', () => `classDiagram\nclass A\nclick A call f() "${'&'.repeat(54000000)}"\n`, RAISED),
+  lazy('class', 'one tooltip past V8', () => `classDiagram\nclass A\nclick A call f() "${'&'.repeat(110000000)}"\n`, RAISED),
+  lazy('class', 'one link of many &', () => `classDiagram\nclass A\nclick A href "https://x/${'&'.repeat(54000000)}"\n`, RAISED),
+  lazy('class', 'one link past V8', () => `classDiagram\nclass A\nclick A href "https://x/${'&'.repeat(110000000)}"\n`, RAISED),
+  // A narrow host makes an edge run through the title of the first namespace, which is drawn again
+  // over the edges with the namespace's id.
+  lazy(
+    'class',
+    'a struck namespace title named by many &',
+    () =>
+      `classDiagram\n    namespace \`${'&'.repeat(54000000)}\`["Company.Engineering.Backend"] {\n        class Developer {\n            +writeCode()\n        }\n    }\n    namespace Company.Engineering.Frontend {\n        class Designer {\n            +createMockup()\n        }\n    }\n    namespace Company.Engineering {\n        class TechLead {\n            +planSprint()\n        }\n    }\n    TechLead --> Developer : leads\n    TechLead --> Designer : leads\n`,
+    { ...RAISED, maxWidth: 400 },
+  ),
 ];
 
 // A case whose source is built only when the check reaches it, as a getter in the source's place,
