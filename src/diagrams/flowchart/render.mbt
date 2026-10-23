@@ -81,12 +81,6 @@ pub fn edge_classes(classes : String) -> String {
 }
 
 ///|
-/// The node's classes without the `default` class that every node carries first.
-pub fn node_classes(classes : String) -> String {
-  @svg.node_class_names(classes)
-}
-
-///|
 /// `turned` draws a flowchart that runs across as one that runs down; `tight` sets nodes closer together.
 fn draw(
   db : FlowDb,

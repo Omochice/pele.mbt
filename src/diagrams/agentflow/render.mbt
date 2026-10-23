@@ -423,7 +423,7 @@ fn draw(
   for i, view in views {
     let c = cnodes[i]
     let node = view.node
-    let classes = @flowchart.node_classes(node.css_classes)
+    let classes = @svg.node_class_names(node.css_classes)
     let id = @svg.esc_text(node.id)
     let container_slot = node.color_index.unwrap_or(KIND_COUNT)
     if c.is_group {
