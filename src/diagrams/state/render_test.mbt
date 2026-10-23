@@ -204,6 +204,24 @@ test "draws [*] as a start dot or an end ring, separately in each composite" {
 }
 
 ///|
+test "draws [*] with ids scoped to its parent under the stateDiagram header and any state config" {
+  let body = "[*] --> a\n a --> [*]\n state a {\n [*] --> b\n b --> [*]\n }"
+  let legacy = drawn("stateDiagram\n" + body).unwrap().svg
+  inspect(
+    legacy == drawn("stateDiagram-v2\n" + body).unwrap().svg,
+    content="true",
+  )
+  let configured = drawn(
+    "---\nconfig:\n  state:\n    defaultRenderer: dagre-d3\n---\nstateDiagram\n" +
+    body,
+  ).unwrap()
+  inspect(configured.svg == legacy, content="true")
+  for id in ["root_start", "root_end", "a_start", "a_end"] {
+    inspect(legacy.contains("data-id=\"\{id}\""), content="true")
+  }
+}
+
+///|
 test "keeps a transition that arrives apart from one that leaves on the same side of a state" {
   let svg = drawn("stateDiagram-v2\n  Still --> Moving\n  Moving --> Still").unwrap().svg
   let tips = points_after(svg, "class=\"pele-marker\" d=\"M")
