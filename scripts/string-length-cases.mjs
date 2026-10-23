@@ -418,6 +418,17 @@ export const CASES = [
   lazy('block', 'one block colored past V8', () => `block-beta\nA\nstyle A color:${'&'.repeat(110000000)}\n`, RAISED),
   lazy('block', 'one block filled by many &', () => `block-beta\nA\nstyle A fill:${'&'.repeat(54000000)}\n`, RAISED),
   lazy('block', 'one block classed with a color of many &', () => `block-beta\nA\nclassDef c color:${'&'.repeat(54000000)};\nclass A c\n`, RAISED),
+  lazy('kanban', 'one card named by many &', () => `kanban\nc[Col]\n  ${'&'.repeat(54000000)}[x]\n`, RAISED),
+  lazy('kanban', 'one card named past V8', () => `kanban\nc[Col]\n  ${'&'.repeat(110000000)}[x]\n`, RAISED),
+  lazy('kanban', 'one column named by many &', () => `kanban\n${'&'.repeat(54000000)}[Col]\n  k[x]\n`, RAISED),
+  // A linked ticket is written in the link's address and as the link's text.
+  lazy('kanban', 'one linked ticket of many &', () => `---\nconfig:\n  kanban:\n    ticketBaseUrl: "https://x/#TICKET#"\n---\nkanban\nc[Col]\n  k[x]@{ ticket: "${'&'.repeat(54000000)}" }\n`, RAISED),
+  // A card breaks its text to fit its column, which math typeset wide enough widens to hold it on one line.
+  lazy('kanban', 'one card line of many & beside wide math', () => `kanban\nc[Col]\n  m[$$x$$]\n  k[${'&'.repeat(54000000)}]\n`, { ...RAISED, math: { x: { 14: { svg: '<path/>', width: 10000000000, height: 10 } } } }),
+  lazy('kanban', 'one card line past V8 beside wide math', () => `kanban\nc[Col]\n  m[$$x$$]\n  k[${'&'.repeat(110000000)}]\n`, { ...RAISED, math: { x: { 14: { svg: '<path/>', width: 10000000000, height: 10 } } } }),
+  // A card's icon is named in the data-icon of the host's drawing of it.
+  lazyWith('kanban', 'one card icon named by many &', () => `kanban\nc[Col]\n  k[x]@{ icon: "${'&'.repeat(54000000)}" }\n`, () => ({ ...RAISED, icons: { ['&'.repeat(54000000)]: '<path/>' } })),
+  lazyWith('kanban', 'one card icon named past V8', () => `kanban\nc[Col]\n  k[x]@{ icon: "${'&'.repeat(110000000)}" }\n`, () => ({ ...RAISED, icons: { ['&'.repeat(110000000)]: '<path/>' } })),
 ];
 
 // A case whose source is built only when the check reaches it, as a getter in the source's place,
@@ -425,5 +436,13 @@ export const CASES = [
 function lazy(diagram, name, source, options) {
   const entry = [diagram, name, undefined, options];
   Object.defineProperty(entry, 2, { get: source, enumerable: true });
+  return entry;
+}
+
+// A lazy case whose options are built only when the check reaches it too, for an icon named by a
+// text as long as the source.
+function lazyWith(diagram, name, source, options) {
+  const entry = lazy(diagram, name, source, undefined);
+  Object.defineProperty(entry, 3, { get: options, enumerable: true });
   return entry;
 }
