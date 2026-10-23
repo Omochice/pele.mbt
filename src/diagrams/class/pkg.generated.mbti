@@ -18,6 +18,7 @@ pub struct ClassDb {
   title : String?
   mut acc_title : String?
   mut acc_descr : String?
+  // private fields
 }
 pub fn ClassDb::add_annotation(Self, String, String) -> Unit
 pub fn ClassDb::add_class(Self, String) -> Unit
