@@ -143,9 +143,7 @@ fn text_block(
     } else {
       let width = label.widths[i]
       let cx = x + (if end { -width } else { width }) / 2
-      out.write(
-        @svg.label_svg(@text.label_line(label, i), cx, cy, attrs, icons?),
-      )
+      @svg.write_label(out, @text.label_line(label, i), cx, cy, attrs, icons?)
     }
   }
   out
