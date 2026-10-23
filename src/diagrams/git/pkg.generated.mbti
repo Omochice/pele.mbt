@@ -6,6 +6,8 @@ import {
 }
 
 // Values
+pub fn build_git(GitGraphAst, Map[String, Json], String?) -> GitModel raise @errors.PeleError
+
 pub fn parse_git(String) -> GitGraphAst raise @errors.PeleError
 
 pub fn[Db : GitDbParseProvider] parse_statement(StatementAst, Db) -> Unit raise @errors.PeleError
@@ -95,6 +97,19 @@ pub(all) struct GitGraphAst {
   acc_title : String?
   acc_descr : String?
   statements : Array[StatementAst]
+}
+
+pub(all) struct GitModel {
+  title : String?
+  acc_title : String?
+  acc_descr : String?
+  direction : GitDirection
+  commits : Map[String, GitCommit]
+  branches : Map[String, String?]
+  lanes : Array[String]
+  current_branch : String
+  head : GitCommit?
+  warnings : Array[String]
 }
 
 pub(all) struct MergeAst {
