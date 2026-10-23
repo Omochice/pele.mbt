@@ -298,6 +298,15 @@ export const CASES = [
   ['pie', 'a font list at V8\'s backtracking stack', 'pie\n"a": 1\n', { ...RAISED, fontFamily: `a${',a'.repeat(1525198)}` }],
   ['pie', 'a monospace font list just short of V8\'s backtracking stack', 'pie\n"a": 1\n', { ...RAISED, fontFamilyMono: `"a"${", 'b c'".repeat(1525197)}` }],
   ['pie', 'a monospace font list at V8\'s backtracking stack', 'pie\n"a": 1\n', { ...RAISED, fontFamilyMono: `"a"${", 'b c'".repeat(1525198)}` }],
+  // A list with a character past Latin-1 is matched as two-byte text, where the pattern takes four
+  // slots for each font after the first, two for each quoted character or blank, and four for each
+  // unquoted character after a font's first.
+  ['pie', 'a two-byte font list just short of V8\'s backtracking stack', 'pie\n"a": 1\n', { ...RAISED, fontFamily: `Ā${',a'.repeat(4194294)}` }],
+  ['pie', 'a two-byte font list at V8\'s backtracking stack', 'pie\n"a": 1\n', { ...RAISED, fontFamily: `Ā${',a'.repeat(4194295)}` }],
+  ['pie', 'a long two-byte font name just short of V8\'s backtracking stack', 'pie\n"a": 1\n', { ...RAISED, fontFamily: `Ā${'a'.repeat(4194294)}` }],
+  ['pie', 'a long two-byte font name at V8\'s backtracking stack', 'pie\n"a": 1\n', { ...RAISED, fontFamily: `Ā${'a'.repeat(4194295)}` }],
+  ['pie', 'a long quoted two-byte font name just short of V8\'s backtracking stack', 'pie\n"a": 1\n', { ...RAISED, fontFamily: `Ā,"${'a'.repeat(8388586)}"` }],
+  ['pie', 'a long quoted two-byte font name at V8\'s backtracking stack', 'pie\n"a": 1\n', { ...RAISED, fontFamily: `Ā,"${'a'.repeat(8388587)}"` }],
   // A YAML plain scalar cannot start with `"`, so a front matter title of `"` starts with `x`.
   lazy('flowchart', 'a front matter title past V8', () => `---\ntitle: x${'"'.repeat(90000000)}\n---\ngraph TD\nA\n`, RAISED),
   lazy('swimlane', 'a front matter title past V8', () => `---\ntitle: x${'"'.repeat(90000000)}\n---\nswimlane-beta TB\nsubgraph L\nA\nend\n`, RAISED),
