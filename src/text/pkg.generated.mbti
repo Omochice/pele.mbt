@@ -10,6 +10,8 @@ pub const STYLE_MONO : Int32 = 4
 
 pub fn decode_entities(String) -> String
 
+pub fn icon_markup(String) -> String
+
 pub fn layout_label(String?, Bool, TextMeasurer, Double, Double, base? : Int32) -> Label
 
 pub let metrics_measurer : TextMeasurer

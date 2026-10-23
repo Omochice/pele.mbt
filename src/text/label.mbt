@@ -1,6 +1,5 @@
-// pele also lays out icons from the host's resolver and $$math$$ from its typesetter. Neither
-// can reach a typst plugin yet, so labels behave as pele's do with both absent: icon names are
-// dropped, and math is left as text.
+// pele also lays out $$math$$ from its typesetter, which cannot reach a typst plugin yet, so
+// labels behave as pele's do without one and leave math as text.
 
 ///|
 /// A run of text with one emphasis, or an icon in place of text.
@@ -25,6 +24,10 @@ pub(all) struct Label {
 
 ///|
 const LINE_HEIGHT : Double = 1.5
+
+///|
+/// The room an icon takes in a line, in multiples of the font size.
+const ICON_WIDTH : Double = 1.25
 
 ///|
 fn empty_label() -> Label {
@@ -144,10 +147,17 @@ fn dedent(text : String) -> String {
 }
 
 ///|
+/// Whether the span is text, which a neighbor of the same emphasis can join.
+fn plain(span : Span) -> Bool {
+  span.icon is None
+}
+
+///|
 fn push_plain(line : Array[Span], text : String, style : Int32) -> Unit {
   let decoded = decode_entities(text)
   match line.last() {
-    Some(last) if last.style == style => last.text = last.text + decoded
+    Some(last) if plain(last) && last.style == style =>
+      last.text = last.text + decoded
     _ => line.push({ text: decoded, style, icon: None, width: 0, })
   }
 }
@@ -203,10 +213,13 @@ fn push_icons(line : Array[Span], text : String, style : Int32) -> Unit {
     push_text(line, @util.slice(text, last, end=start), style)
     last = end
     search = end
-    if @util.code_at(text, last) == ' '.to_int() {
+    let icon = @util.slice(text, start, end~)
+    if icon_markup(icon) != "" {
+      line.push({ text: "", style, icon: Some(icon), width: 0, })
+    } else if @util.code_at(text, last) == ' '.to_int() {
       last += 1
     } else if last == text.length() {
-      if line.last() is Some(before) {
+      if line.last() is Some(before) && plain(before) {
         before.text = @util.trim_end(before.text)
       }
     }
@@ -348,7 +361,11 @@ fn measure_spans(
 ) -> Double {
   let mut total = 0.0
   for span in line {
-    span.width = measurer.width(span.text, size, span.style)
+    span.width = if span.icon is Some(_) {
+      size * ICON_WIDTH
+    } else {
+      measurer.width(span.text, size, span.style)
+    }
     total += span.width
   }
   total
@@ -367,7 +384,7 @@ fn wrap(
   let mut current : Array[Span] = []
   let mut width = 0.0
   let commit = () => {
-    if current.last() is Some(last) {
+    if current.last() is Some(last) && plain(last) {
       let trimmed = @util.trim_end(last.text)
       if trimmed != last.text {
         last.text = trimmed
@@ -382,6 +399,15 @@ fn wrap(
     width = 0
   }
   for span in line {
+    if span.icon is Some(_) {
+      let w = size * ICON_WIDTH
+      if width > 0 && width + w > max {
+        commit()
+      }
+      current.push({ ..span, width: w, })
+      width += w
+      continue
+    }
     for piece in pieces(span.text) {
       let mut part = piece
       if width > 0 &&
@@ -390,7 +416,7 @@ fn wrap(
         part = @util.trim_start(part)
       }
       match current.last() {
-        Some(last) if last.style == span.style => {
+        Some(last) if plain(last) && last.style == span.style => {
           last.text = last.text + part
           last.width = measurer.width(last.text, size, last.style)
           width = 0
