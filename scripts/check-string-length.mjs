@@ -20,6 +20,9 @@ import { loadPlugin } from './plugin-host.mjs';
 import { peleOptions } from './plugin-options.mjs';
 import { CASES } from './string-length-cases.mjs';
 
+// pele reads dates in the host's time zone and the plugin in UTC, as the golden fixtures are made.
+process.env.TZ = 'UTC';
+
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const peleRoot = process.env.PELE_ROOT ?? join(root, 'vendor/pele');
 const wasmPath = join(root, '_build/wasm/release/build/plugin/plugin.wasm');
