@@ -216,3 +216,49 @@ test "entity codes are hidden as Mermaid hides them" {
     assert_eq(@preprocess.encode_entities(text), expected)
   }
 }
+
+///|
+/// How preprocessing `source` ends: the length of the text it leaves, or the error with its code, message and type.
+fn directive_outcome(source : String) -> String {
+  let result = @preprocess.preprocess(source) catch {
+    @errors.PeleError(failure) =>
+      return "\{failure.code.to_string()}: \{failure.message} \{failure.kind.unwrap_or("null")}"
+  }
+  "\{result.text.length()} code units"
+}
+
+///|
+test "a directive's body fails as nested too deeply where pele's pattern runs out of V8's backtracking stack" {
+  inspect(
+    directive_outcome("%%{init: \{"!".repeat(8388577)}}%%\npie\n\"a\": 1\n"),
+    content="11 code units",
+  )
+  inspect(
+    directive_outcome("%%{init: \{"!".repeat(8388578)}}%%\npie\n\"a\": 1\n"),
+    content="limit: Diagram is nested too deeply. null",
+  )
+}
+
+///|
+test "a directive without a colon runs one more character before V8's backtracking stack runs out" {
+  inspect(
+    directive_outcome("%%{wrap \{"!".repeat(8388578)}}%%\npie\n\"a\": 1\n"),
+    content="11 code units",
+  )
+  inspect(
+    directive_outcome("%%{wrap \{"!".repeat(8388579)}}%%\npie\n\"a\": 1\n"),
+    content="limit: Diagram is nested too deeply. null",
+  )
+}
+
+///|
+test "an unclosed directive counts the line breaks that trimming leaves out against V8's backtracking stack" {
+  inspect(
+    directive_outcome("pie\n\"a\": 1\n%%{init: \{"!".repeat(8388574)}\n\n\n"),
+    content="11 code units",
+  )
+  inspect(
+    directive_outcome("pie\n\"a\": 1\n%%{init: \{"!".repeat(8388575)}\n\n\n"),
+    content="limit: Diagram is nested too deeply. null",
+  )
+}

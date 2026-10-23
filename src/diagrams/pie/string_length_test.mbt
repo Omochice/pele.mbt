@@ -97,3 +97,16 @@ test "an entry name fails as nested too deeply where pele's pattern runs out of 
     content="limit: Diagram is nested too deeply. pie pie",
   )
 }
+
+///|
+#skip("slow: preprocesses eight million characters")
+test "a directive fails as nested too deeply, before its diagram is known, where pele's pattern runs out of V8's backtracking stack" {
+  inspect(
+    backtrack_outcome("%%{init: \{"!".repeat(8388577)}}%%\npie\n\"a\": 1\n"),
+    content="rendered",
+  )
+  inspect(
+    backtrack_outcome("%%{init: \{"!".repeat(8388578)}}%%\npie\n\"a\": 1\n"),
+    content="limit: Diagram is nested too deeply. null null",
+  )
+}

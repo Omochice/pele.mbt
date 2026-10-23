@@ -283,6 +283,15 @@ export const CASES = [
   lazy('agentflow', 'line breaks after the keyword at V8\'s backtracking stack', () => `agentflow-beta${'\n'.repeat(8388591)}a\n`, RAISED),
   lazy('agentflow', 'line breaks and a blank line after the keyword just short of V8\'s backtracking stack', () => `agentflow-beta${'\n'.repeat(8388589)} \na\n`, RAISED),
   lazy('agentflow', 'line breaks and a blank line after the keyword at V8\'s backtracking stack', () => `agentflow-beta${'\n'.repeat(8388590)} \na\n`, RAISED),
+  // pele reads a `%%{...}%%` directive in any diagram with a pattern that takes two slots for each
+  // character of its body, once in the trimmed text and once in the text itself, and fails before
+  // the diagram's type is known.
+  lazy('pie', 'a directive just short of V8\'s backtracking stack', () => `%%{init: ${'!'.repeat(8388577)}}%%\npie\n"a": 1\n`, RAISED),
+  lazy('pie', 'a directive at V8\'s backtracking stack', () => `%%{init: ${'!'.repeat(8388578)}}%%\npie\n"a": 1\n`, RAISED),
+  lazy('pie', 'a directive without a colon just short of V8\'s backtracking stack', () => `%%{wrap ${'!'.repeat(8388578)}}%%\npie\n"a": 1\n`, RAISED),
+  lazy('pie', 'a directive without a colon at V8\'s backtracking stack', () => `%%{wrap ${'!'.repeat(8388579)}}%%\npie\n"a": 1\n`, RAISED),
+  lazy('pie', 'an unclosed directive before trailing line breaks just short of V8\'s backtracking stack', () => `pie\n"a": 1\n%%{init: ${'!'.repeat(8388574)}\n\n\n`, RAISED),
+  lazy('pie', 'an unclosed directive before trailing line breaks at V8\'s backtracking stack', () => `pie\n"a": 1\n%%{init: ${'!'.repeat(8388575)}\n\n\n`, RAISED),
   // A YAML plain scalar cannot start with `"`, so a front matter title of `"` starts with `x`.
   lazy('flowchart', 'a front matter title past V8', () => `---\ntitle: x${'"'.repeat(90000000)}\n---\ngraph TD\nA\n`, RAISED),
   lazy('swimlane', 'a front matter title past V8', () => `---\ntitle: x${'"'.repeat(90000000)}\n---\nswimlane-beta TB\nsubgraph L\nA\nend\n`, RAISED),
