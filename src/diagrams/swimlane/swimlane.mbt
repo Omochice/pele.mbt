@@ -7,8 +7,7 @@ pub fn parse_swimlane(
   title : String?,
   limits : @types.ParseLimits,
 ) -> @flowchart.FlowDb raise @errors.PeleError {
-  ignore((source, config, title, limits))
-  raise @errors.pele_error("Swimlane diagrams are not read yet.")
+  @flowchart.parse_model(source, config, title, limits)
 }
 
 ///|
