@@ -157,4 +157,7 @@ export const CASES = [
     `C4Context\nBoundary(b, "${'fa:fa-a '.repeat(2200000)}") {\n  Person(p, "x")\n}\n`,
     { ...RAISED, icons: { 'fa:fa-a': '<path d="M4,4H20"/>' } },
   ],
+  ['mindmap', 'host icons in one node label', `mindmap\nroot["${Array(5400).fill('fa:fa-x').join(' ')}"]\n`, ICONS],
+  // A node without a label is named by its text, which is written in its data-id and in its label.
+  ['mindmap', 'one node named by many &', `mindmap\n${'&'.repeat(60000000)}\n`, RAISED],
 ];
