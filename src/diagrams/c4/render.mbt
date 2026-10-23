@@ -27,7 +27,7 @@ fn user_style(
   fill : String?,
   stroke : String?,
   color : String?,
-) -> @svg.ResolvedStyle {
+) -> @svg.RawStyle {
   let declarations = []
   if fill is Some(f) && f != "" {
     declarations.push("fill:" + f)
@@ -38,7 +38,7 @@ fn user_style(
   if color is Some(c) && c != "" {
     declarations.push("color:" + c)
   }
-  @svg.resolve_style(declarations)
+  @svg.resolve_raw_style(declarations)
 }
 
 ///|
@@ -73,19 +73,20 @@ fn write_linked(
   links : Array[@types.LinkInfo],
   options : @types.RenderOptions,
 ) -> Unit raise @errors.PeleError {
-  let start = match url {
+  let linked = match url {
     Some(url) if url != "" =>
-      @url.link_start(
+      @url.write_link_start(
+        out,
         @url.sanitize_url(unhide_entities(url)),
         id,
         links,
         options,
       )
-    _ => None
+    _ => false
   }
-  match start {
-    Some(start) => out.write_group(start, body, "</a>")
-    None => out.write_markup(body)
+  out.write_markup(body)
+  if linked {
+    out.write("</a>")
   }
 }
 
@@ -251,9 +252,13 @@ fn draw(
     let a = ends[index * 2]
     let b = ends[index * 2 + 1]
     let style = user_style(None, rel.line_color, None)
-    let color = match style.stroke {
-      Some(stroke) if stroke != "" => @svg.esc(stroke)
-      _ => "var(--_l)"
+    let write_marker = (x : Double, y : Double, dx : Double, dy : Double) => {
+      match style.stroke {
+        Some(stroke) if stroke != "" =>
+          @svg.write_marker_esc(edges_out, "arrow_point", x, y, dx, dy, stroke)
+        _ =>
+          edges_out.write(@svg.marker("arrow_point", x, y, dx, dy, "var(--_l)"))
+      }
     }
     let start_arrow = rel.type_ == "birel" || rel.type_ == "rel_b"
     let end_arrow = rel.type_ != "rel_b"
@@ -309,18 +314,16 @@ fn draw(
         r.ey + @svg.ARROW,
       )
     }
-    edges_out.write(
-      "<g class=\"pele-edge\" data-id=\"\{@svg.esc_text(rel.from + "-" + rel.to)}\"\{style.line}><path d=\"\{r.d}\"/>",
-    )
+    edges_out.write("<g class=\"pele-edge\" data-id=\"")
+    @svg.write_esc_text(edges_out, rel.from + "-" + rel.to)
+    edges_out.write("\"")
+    @svg.write_style(edges_out, style.line)
+    edges_out.write("><path d=\"\{r.d}\"/>")
     if start_arrow {
-      edges_out.write(
-        @svg.marker("arrow_point", r.sx, r.sy, r.sdx, r.sdy, color),
-      )
+      write_marker(r.sx, r.sy, r.sdx, r.sdy)
     }
     if end_arrow {
-      edges_out.write(
-        @svg.marker("arrow_point", r.ex, r.ey, r.edx, r.edy, color),
-      )
+      write_marker(r.ex, r.ey, r.edx, r.edy)
     }
     edges_out.write("</g>")
     routes.push(r)
@@ -433,23 +436,33 @@ fn draw(
       push_box(cx - lw / 2, top, cx + lw / 2, top + lh)
     }
     grow(cx - lw / 2, top, cx + lw / 2, top + lh)
-    labels_out.write(
-      "<g class=\"pele-edge-label\" data-id=\"\{@svg.esc_text(id)}\">",
-    )
+    labels_out.write("<g class=\"pele-edge-label\" data-id=\"")
+    @svg.write_esc_text(labels_out, id)
+    labels_out.write("\">")
     if rel.descr is Some(descr) && descr != "" {
-      labels_out.write("<title>\{@svg.esc_text(descr)}</title>")
+      labels_out.write("<title>")
+      @svg.write_esc_text(labels_out, descr)
+      labels_out.write("</title>")
     }
     labels_out.write(
       "<rect x=\"\{@svg.num(cx - lw / 2)}\" y=\"\{@svg.num(top)}\" width=\"\{@svg.num(lw)}\" height=\"\{@svg.num(lh)}\" rx=\"3\" fill=\"var(--_bg)\"/>",
     )
     let text = @svg.Markup::new()
-    @svg.write_label(text, label, cx, top + label.height / 2, style.text)
-    @svg.write_label(
+    @svg.write_label_styled(
+      text,
+      label,
+      cx,
+      top + label.height / 2,
+      "",
+      style.text,
+    )
+    @svg.write_label_styled(
       text,
       techn,
       cx,
       top + label.height + techn.height / 2,
-      " class=\"pele-c4-techn\" fill=\"var(--_m)\"\{style.text}",
+      " class=\"pele-c4-techn\" fill=\"var(--_m)\"",
+      style.text,
     )
     write_linked(labels_out, text, rel.link, id, links, options)
     labels_out.write("</g>")
@@ -468,36 +481,42 @@ fn draw(
       let x = g.x + group.head_x
       let mut y = g.y + HEAD_TOP
       let text = @svg.Markup::new()
-      @common.write_left_label(
+      @common.write_left_label_styled(
         text,
         group.labels[0],
         x,
         y,
-        " class=\"pele-cluster-label\" font-weight=\"var(--_hw)\"\{style.text}",
+        " class=\"pele-cluster-label\" font-weight=\"var(--_hw)\"",
+        style.text,
       )
       y += group.labels[0].height
-      @common.write_left_label(
+      @common.write_left_label_styled(
         text,
         group.labels[1],
         x,
         y,
-        " class=\"pele-c4-type\" font-size=\"\{small}\" fill=\"var(--_m)\"\{style.text}",
+        " class=\"pele-c4-type\" font-size=\"\{small}\" fill=\"var(--_m)\"",
+        style.text,
       )
       y += group.labels[1].height
-      @common.write_left_label(
+      @common.write_left_label_styled(
         text,
         group.labels[2],
         x,
         y,
-        " class=\"pele-c4-descr\" font-size=\"\{small}\" fill=\"var(--_m)\"\{style.text}",
+        " class=\"pele-c4-descr\" font-size=\"\{small}\" fill=\"var(--_m)\"",
+        style.text,
       )
       let is_node = boundary.node_type is Some(_)
       clusters.write(
-        "<g class=\"pele-cluster pele-c4-\{if is_node { "node" } else { "boundary" }}\" data-id=\"\{@svg.esc_text(boundary.alias_)}\">",
+        "<g class=\"pele-cluster pele-c4-\{if is_node { "node" } else { "boundary" }}\" data-id=\"",
       )
+      @svg.write_esc_text(clusters, boundary.alias_)
       clusters.write(
-        "<rect x=\"\{@svg.num(g.x)}\" y=\"\{@svg.num(g.y)}\" width=\"\{@svg.num(g.w)}\" height=\"\{@svg.num(g.h)}\" fill=\"none\" stroke=\"var(--_b)\"\{if is_node { "" } else { " stroke-dasharray=\"6 4\"" }}\{@svg.rounded(style.shape)}/>",
+        "\"><rect x=\"\{@svg.num(g.x)}\" y=\"\{@svg.num(g.y)}\" width=\"\{@svg.num(g.w)}\" height=\"\{@svg.num(g.h)}\" fill=\"none\" stroke=\"var(--_b)\"\{if is_node { "" } else { " stroke-dasharray=\"6 4\"" }}",
       )
+      @svg.write_rounded_style(clusters, style.shape)
+      clusters.write("/>")
       write_linked(
         clusters,
         text,
@@ -528,52 +547,60 @@ fn draw(
       } else {
         0
       }
-      let muted = " fill=\"var(--_m)\"\{style.text}"
       let mut y = dy - node.text_h / 2
       let fill = if external { "--_bg" } else { "--_s" }
       let body = @svg.Markup::new()
-      body.write(
-        @svg.draw_shape(
-          form,
-          w,
-          h,
-          " fill=\"var(\{fill})\"\{stroke}\{style.shape}",
-          stroke + style.line,
-        ),
+      @svg.write_shape_styled(
+        body,
+        form,
+        w,
+        h,
+        " fill=\"var(\{fill})\"\{stroke}",
+        style.shape,
+        stroke,
+        style.line,
       )
-      @svg.write_label(
+      @svg.write_label_styled(
         body,
         labels[0],
         dx,
         y + labels[0].height / 2,
-        " class=\"pele-c4-type\" font-size=\"\{small - 1}\"\{muted}",
+        " class=\"pele-c4-type\" font-size=\"\{small - 1}\" fill=\"var(--_m)\"",
+        style.text,
       )
       y += labels[0].height
-      @svg.write_label(
+      @svg.write_label_styled(
         body,
         labels[1],
         dx,
         y + labels[1].height / 2,
-        " class=\"pele-label\" font-weight=\"var(--_hw)\"\{style.text}",
+        " class=\"pele-label\" font-weight=\"var(--_hw)\"",
+        style.text,
       )
       y += labels[1].height
-      @svg.write_label(
+      @svg.write_label_styled(
         body,
         labels[2],
         dx,
         y + labels[2].height / 2,
-        " class=\"pele-c4-techn\" font-size=\"\{small}\"\{muted}",
+        " class=\"pele-c4-techn\" font-size=\"\{small}\" fill=\"var(--_m)\"",
+        style.text,
       )
       y += labels[2].height + 4
-      @svg.write_label(
+      @svg.write_label_styled(
         body,
         labels[3],
         dx,
         y + labels[3].height / 2,
-        " class=\"pele-c4-descr\" font-size=\"\{small}\"\{style.text}",
+        " class=\"pele-c4-descr\" font-size=\"\{small}\"",
+        style.text,
       )
       nodes_out.write(
-        "<g class=\"pele-node pele-shape-\{form} pele-c4-\{shape.kind}\{if external { " pele-c4-external" } else { "" }}\" data-id=\"\{@svg.esc_text(shape.alias_)}\" transform=\"translate(\{@svg.num(node.box.x + w / 2)},\{@svg.num(node.box.y + h / 2)})\">",
+        "<g class=\"pele-node pele-shape-\{form} pele-c4-\{shape.kind}\{if external { " pele-c4-external" } else { "" }}\" data-id=\"",
+      )
+      @svg.write_esc_text(nodes_out, shape.alias_)
+      nodes_out.write(
+        "\" transform=\"translate(\{@svg.num(node.box.x + w / 2)},\{@svg.num(node.box.y + h / 2)})\">",
       )
       write_linked(nodes_out, body, shape.link, shape.alias_, links, options)
       nodes_out.write("</g>")

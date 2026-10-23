@@ -111,6 +111,8 @@ pub fn word_at(String, Int32, String) -> Bool
 
 pub fn write_left_label(@svg.Markup, @text.Label, Double, Double, String) -> Unit raise @errors.PeleError
 
+pub fn write_left_label_styled(@svg.Markup, @text.Label, Double, Double, String, String) -> Unit raise @errors.PeleError
+
 pub let yaml : TokenType
 
 // Errors

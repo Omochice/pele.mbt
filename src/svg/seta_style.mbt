@@ -272,3 +272,30 @@ pub fn write_shape_styled(
   }
   out.write(@util.slice(drawn, from))
 }
+
+///|
+/// Writes the marker `marker` draws in the color `esc` makes of `color`, escaping it a piece at a
+/// time, since a color from the source can be tens of millions of `&` long.
+/// Raises pele's `limit` error when the markup would be longer than V8 allows.
+pub fn write_marker_esc(
+  out : Markup,
+  type_ : String,
+  x : Double,
+  y : Double,
+  dx : Double,
+  dy : Double,
+  color : String,
+) -> Unit raise @errors.PeleError {
+  let drawn = marker(type_, x, y, dx, dy, SHAPE_CSS)
+  let mut from = 0
+  while from < drawn.length() {
+    let at = @util.index_of(drawn, SHAPE_CSS, from~)
+    if at < 0 {
+      break
+    }
+    out.write(@util.slice(drawn, from, end=at))
+    write_esc(out, color)
+    from = at + SHAPE_CSS.length()
+  }
+  out.write(@util.slice(drawn, from))
+}
