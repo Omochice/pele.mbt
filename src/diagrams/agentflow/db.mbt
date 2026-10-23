@@ -13,6 +13,11 @@ pub struct AgentflowDb {
   mut title : String?
   mut acc_title : String?
   mut acc_descr : String?
+  /// Where each statement sits in the source, in the order the statements were read.
+  mappings : Array[ElementMapping]
+  diagnostics : Array[Diagnostic]
+  /// Lines of front matter before the text the parser sees, added to every reported line.
+  line_offset : Int32
   priv subgraph_lookup : Map[String, AgentSubgraph]
   priv global_nodes : Map[String, Unit]
   priv members : Map[String, Unit]
@@ -26,13 +31,17 @@ pub struct AgentflowDb {
 
 ///|
 /// An empty model.
-/// `max_edges` limits the edges, `inherit_dir` gives flows the diagram's direction, and `direction` stands in for a diagram without one.
+/// `max_edges` limits the edges, `inherit_dir` gives flows the diagram's direction, `direction` stands in for a diagram without one, and `line_offset` counts the lines of front matter.
 pub fn AgentflowDb::new(
   max_edges? : Int32,
   inherit_dir~ : Bool = false,
   direction? : String,
+  line_offset~ : Int32 = 0,
 ) -> AgentflowDb {
   {
+    mappings: [],
+    diagnostics: [],
+    line_offset,
     direction: None,
     nodes: Map([]),
     edges: [],
@@ -613,4 +622,17 @@ pub fn AgentflowDb::add_connector(
 /// The flow of the id, if there is one.
 pub fn AgentflowDb::subgraph(self : AgentflowDb, id : String) -> AgentSubgraph? {
   self.subgraph_lookup.get(id)
+}
+
+///|
+/// The diagram with presentation-only controls left out, for tools that read what it means.
+pub fn AgentflowDb::semantic_model(self : AgentflowDb) -> SemanticModel {
+  {
+    direction: self.direction,
+    vertices: [],
+    edges: [],
+    subgraphs: [],
+    connectors: [],
+    diagnostics: self.diagnostics,
+  }
 }

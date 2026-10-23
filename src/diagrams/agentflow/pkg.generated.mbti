@@ -76,6 +76,9 @@ pub struct AgentflowDb {
   mut title : String?
   mut acc_title : String?
   mut acc_descr : String?
+  mappings : Array[ElementMapping]
+  diagnostics : Array[Diagnostic]
+  line_offset : Int32
   // private fields
 }
 pub fn AgentflowDb::add_class(Self, String, Array[String]) -> Unit
@@ -86,7 +89,8 @@ pub fn AgentflowDb::add_single_link(Self, String, String, @flowchart.LinkInfo?, 
 pub fn AgentflowDb::add_subgraph(Self, @flowchart.FlowText?, Array[@flowchart.DocItem], @flowchart.FlowText?) -> String
 pub fn AgentflowDb::add_vertex(Self, String, text? : @flowchart.FlowText, kind? : String, style? : Array[String], classes? : Array[String], dir? : String, props? : Map[String, String]) -> Unit
 pub fn AgentflowDb::destruct_link(Self, String, start? : String) -> @flowchart.LinkInfo
-pub fn AgentflowDb::new(max_edges? : Int32, inherit_dir? : Bool, direction? : String) -> Self
+pub fn AgentflowDb::new(max_edges? : Int32, inherit_dir? : Bool, direction? : String, line_offset? : Int32) -> Self
+pub fn AgentflowDb::semantic_model(Self) -> SemanticModel
 pub fn AgentflowDb::set_acc_description(Self, String) -> Unit
 pub fn AgentflowDb::set_acc_title(Self, String) -> Unit
 pub fn AgentflowDb::set_class(Self, String, String) -> Unit
@@ -97,6 +101,73 @@ pub fn AgentflowDb::set_tooltip(Self, String, String?) -> Unit
 pub fn AgentflowDb::subgraph(Self, String) -> AgentSubgraph?
 pub fn AgentflowDb::update_link(Self, Array[String], Array[String]) -> Unit raise @errors.PeleError
 pub fn AgentflowDb::update_link_interpolate(Self, Array[String], String) -> Unit raise @errors.PeleError
+
+pub(all) struct Diagnostic {
+  id : String
+  severity : String
+  message : String
+  node_id : String?
+  edge_id : String?
+  position : ElementPosition?
+}
+
+pub(all) struct ElementMapping {
+  id : String
+  mut kind : String
+  position : ElementPosition
+}
+
+pub(all) struct ElementPosition {
+  start_line : Int32
+  start_column : Int32
+  mut end_line : Int32
+  mut end_column : Int32
+  start_index : Int32
+  end_index : Int32
+}
+
+pub(all) struct SemanticConnector {
+  id : String
+  title : String?
+  metadata : Map[String, Json]?
+}
+
+pub(all) struct SemanticEdge {
+  start : String
+  end : String
+  id : String?
+  label : String?
+  kind : String?
+  stroke : String?
+  edge_semantic : String?
+  length : Int32?
+  metadata : Map[String, Json]?
+}
+
+pub(all) struct SemanticModel {
+  direction : String?
+  vertices : Array[SemanticVertex]
+  edges : Array[SemanticEdge]
+  subgraphs : Array[SemanticSubgraph]
+  connectors : Array[SemanticConnector]
+  diagnostics : Array[Diagnostic]
+}
+
+pub(all) struct SemanticSubgraph {
+  id : String
+  title : String
+  nodes : Array[String]
+  direction : String?
+  metadata : Map[String, Json]?
+}
+
+pub(all) struct SemanticVertex {
+  id : String
+  label : String?
+  shape : String?
+  vertex_kind : String
+  metadata : Map[String, Json]?
+}
 
 pub(all) struct Tokens {
   types : Array[Int32]

@@ -121,6 +121,48 @@ fn dump_statements(db : @agentflow.AgentflowDb, full~ : Bool = false) -> String 
 }
 
 ///|
+fn position(p : @agentflow.ElementPosition) -> String {
+  "\{p.start_line}:\{p.start_column}-\{p.end_line}:\{p.end_column}"
+}
+
+///|
+fn metadata(value : Map[String, Json]?) -> String {
+  json(value.map(Json::object))
+}
+
+///|
+/// The whole model: its statements with their metadata, where each statement sits, and the semantic model.
+fn dump_model(db : @agentflow.AgentflowDb) -> String {
+  let out = [dump_statements(db, full=true)]
+  for m in db.mappings {
+    out.push("mapping \{q(m.id)} \{m.kind} \{position(m.position)}")
+  }
+  let s = db.semantic_model()
+  out.push("semantic dir=\{opt(s.direction)}")
+  for v in s.vertices {
+    out.push(
+      "sv \{q(v.id)} label=\{opt(v.label)} shape=\{opt(v.shape)} kind=\{q(v.vertex_kind)} metadata=\{metadata(v.metadata)}",
+    )
+  }
+  for e in s.edges {
+    out.push(
+      "se \{q(e.start)} \{q(e.end)} id=\{opt(e.id)} label=\{opt(e.label)} type=\{opt(e.kind)} stroke=\{opt(e.stroke)} semantic=\{opt(e.edge_semantic)} length=\{int(e.length)} metadata=\{metadata(e.metadata)}",
+    )
+  }
+  for g in s.subgraphs {
+    out.push(
+      "ss \{q(g.id)} title=\{q(g.title)} nodes=\{texts(Some(g.nodes))} direction=\{opt(g.direction)} metadata=\{metadata(g.metadata)}",
+    )
+  }
+  for c in s.connectors {
+    out.push(
+      "sc \{q(c.id)} title=\{opt(c.title)} metadata=\{metadata(c.metadata)}",
+    )
+  }
+  out.join("\n")
+}
+
+///|
 /// FNV-1a over UTF-16 code units, as the generator of the expectations hashes pele's dumps.
 fn fnv1a(text : String) -> String {
   let mut h : UInt32 = 0x811c9dc5U
