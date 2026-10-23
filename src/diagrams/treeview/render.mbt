@@ -330,7 +330,13 @@ fn draw(
         None => glyph(if directory { "folder" } else { "file" }).unwrap()
       }
       inner.write_string(
-        "<svg class=\"pele-icon\" data-icon=\"\{@svg.esc_text(icon)}\" x=\"\{@svg.num(inset + row.x)}\" y=\"\{@svg.num(cy - icon_size / 2)}\" width=\"\{@svg.num(icon_size)}\" height=\"\{@svg.num(icon_size)}\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"\{outline}\" stroke=\"var(--_m)\" stroke-width=\"1.5\"/></svg>",
+        @common.icon_svg(
+          icon,
+          inset + row.x,
+          cy - icon_size / 2,
+          icon_size,
+          drawing="<path d=\"\{outline}\" stroke=\"var(--_m)\" stroke-width=\"1.5\"/>",
+        ),
       )
     }
     let weight = if directory { " font-weight=\"var(--_hw)\"" } else { "" }

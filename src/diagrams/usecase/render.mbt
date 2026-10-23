@@ -305,7 +305,7 @@ fn figure(view : View) -> String {
       head = -14
       radius = 12
       "<rect x=\"-22\" y=\"-26\" width=\"44\" height=\"44\"\{@svg.rounded(SHAPE_ATTRS + shape)}/>" +
-      "<svg class=\"pele-icon\" data-icon=\"\{@svg.esc_text(node.icon.unwrap_or(""))}\" x=\"-14\" y=\"-18\" width=\"28\" height=\"28\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></svg>"
+      @common.icon_svg(node.icon.unwrap_or(""), -14, -18, 28)
     }
     _ =>
       "<circle cy=\"-21\" r=\"9\"\{SHAPE_ATTRS}\{shape}/><path d=\"M0,-12V10M-14,-3H14M0,10L-12,30M0,10L12,30\"\{line}/>"

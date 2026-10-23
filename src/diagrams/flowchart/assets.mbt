@@ -55,6 +55,5 @@ fn icon_svg(node : GraphNode, icon : String, view : NodeView) -> String {
   }
   let glyph = box * 0.6
   // The plugin has no icon resolver to ask, so the glyph stays empty as it does in pele without one.
-  frame +
-  "<svg class=\"pele-icon\" data-icon=\"\{@svg.esc_text(icon)}\" x=\"\{@svg.num(-glyph / 2)}\" y=\"\{@svg.num(top + (box - glyph) / 2)}\" width=\"\{@svg.num(glyph)}\" height=\"\{@svg.num(glyph)}\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></svg>"
+  frame + @common.icon_svg(icon, -glyph / 2, top + (box - glyph) / 2, glyph)
 }
