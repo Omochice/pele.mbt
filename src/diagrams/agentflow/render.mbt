@@ -445,6 +445,7 @@ fn draw(
           title_x,
           c.y - c.h / 2 + 8 + view.label.height / 2,
           " class=\"pele-cluster-label\" fill=\"var(--_m)\"\{view.style.text}",
+          icons?=options.icons,
         ),
       )
       clusters.write_string("</g>")
@@ -479,6 +480,7 @@ fn draw(
       0,
       view.dy,
       " class=\"pele-label\"\{view.style.text}",
+      icons?=options.icons,
     )
     if (classes + " ").contains(" internal-link ") &&
       node.label is Some(note) &&
@@ -557,7 +559,9 @@ fn draw(
         Some(style) => style.text
         None => ""
       }
-      labels_out.write_string(@svg.edge_label_svg(edge.id, label, x, y, text))
+      labels_out.write_string(
+        @svg.edge_label_svg(edge.id, label, x, y, text, icons?=options.icons),
+      )
     }
   }
   let loop_seen : Map[Int32, Int32] = Map([])
