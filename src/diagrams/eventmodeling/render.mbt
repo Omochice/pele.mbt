@@ -145,7 +145,13 @@ pub fn render_event_model(
   _config : @types.Config,
   options : @types.RenderOptions,
 ) -> @types.Rendered {
-  @common.turn_to_fit(options, _ => draw_across(model, options))
+  @common.turn_to_fit(options, down => {
+    if down {
+      draw_down(model, options)
+    } else {
+      draw_across(model, options)
+    }
+  })
 }
 
 ///|
