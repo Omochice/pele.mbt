@@ -523,6 +523,7 @@ pub fn render_gantt(
         pad + 8 + label.width / 2,
         y + h / 2,
         " class=\"pele-section-label\" data-id=\"\{@svg.esc_text(section)}\"",
+        icons?=options.icons,
       ),
     )
     row = end
