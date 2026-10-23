@@ -22,6 +22,14 @@ test "bold text is measured from the bold Arial table" {
 }
 
 ///|
+test "text of more font units than an Int32 counts is measured as pele measures it" {
+  inspect(
+    width("&".repeat(3000000), 16, @text.STYLE_BOLD),
+    content="34656000",
+  )
+}
+
+///|
 test "wide characters take an em and other non-ASCII characters an estimate" {
   inspect(width("日本語", 16, 0), content="48")
   inspect(width("\u{e9}", 16, 0), content="9.28")
