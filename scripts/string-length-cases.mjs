@@ -317,6 +317,7 @@ export const CASES = [
   lazy('flowchart', 'a front matter title past V8', () => `---\ntitle: x${'"'.repeat(90000000)}\n---\ngraph TD\nA\n`, RAISED),
   lazy('swimlane', 'a front matter title past V8', () => `---\ntitle: x${'"'.repeat(90000000)}\n---\nswimlane-beta TB\nsubgraph L\nA\nend\n`, RAISED),
   lazy('er', 'a front matter title past V8', () => `---\ntitle: x${'"'.repeat(90000000)}\n---\nerDiagram\nA {\n}\n`, RAISED),
+  lazy('block', 'a front matter title past V8', () => `---\ntitle: x${'"'.repeat(90000000)}\n---\nblock-beta\nA\n`, RAISED),
   lazy('agentflow', 'a front matter title past V8', () => `---\ntitle: x${'"'.repeat(90000000)}\n---\nagentflow-beta TB\n  a\n`, RAISED),
   lazy('architecture', 'a title past V8', () => `architecture-beta\ntitle ${'"'.repeat(90000000)}\nservice s(server)[x]\n`, RAISED),
   lazy('cynefin', 'a title past V8', () => `cynefin-beta\ntitle ${'"'.repeat(90000000)}\ncomplex\n  "x"\n`, RAISED),
