@@ -6,7 +6,11 @@ import {
 }
 
 // Values
+pub const MARKER_LENGTH : Double = 18
+
 pub fn build_er_graph(ErDb) -> ErGraph
+
+pub fn er_marker(String, Double, Double, Double, Double) -> String
 
 pub fn parse_er(String, ErDb) -> Unit raise @errors.PeleError
 
