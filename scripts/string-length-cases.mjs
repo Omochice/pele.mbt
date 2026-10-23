@@ -439,6 +439,12 @@ export const CASES = [
   // A node's icon is named in the data-icon of the host's drawing of it.
   lazyWith('mindmap', 'one icon named by many &', () => `mindmap\nroot\n  A\n  ::icon(${'&'.repeat(54000000)})\n`, () => ({ ...RAISED, icons: { ['&'.repeat(54000000)]: '<path/>' } })),
   lazyWith('mindmap', 'one icon named past V8', () => `mindmap\nroot\n  A\n  ::icon(${'&'.repeat(110000000)})\n`, () => ({ ...RAISED, icons: { ['&'.repeat(110000000)]: '<path/>' } })),
+  // A text's id is its data-id, written among its label's attributes.
+  lazy('venn', 'one text named by many &, with a short label', () => `venn-beta\nset A\n  text "${'&'.repeat(54000000)}"["x"]\n`, RAISED),
+  lazy('venn', 'one text named past V8, with a short label', () => `venn-beta\nset A\n  text "${'&'.repeat(110000000)}"["x"]\n`, RAISED),
+  lazy('venn', 'one set filled by many &', () => `venn-beta\nset A\nstyle A fill: "${'&'.repeat(54000000)}"\n`, RAISED),
+  lazy('venn', 'one set filled past V8', () => `venn-beta\nset A\nstyle A fill: "${'&'.repeat(110000000)}"\n`, RAISED),
+  lazy('venn', 'one set colored by many &', () => `venn-beta\nset A\nstyle A color: "${'&'.repeat(54000000)}"\n`, RAISED),
 ];
 
 // A case whose source is built only when the check reaches it, as a getter in the source's place,
