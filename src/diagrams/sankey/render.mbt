@@ -139,8 +139,10 @@ fn draw(
   for i, node in nodes {
     let id = db.nodes[i].id
     let height = @cmp.maximum(node.height, 1.0)
+    nodes_out.write("<rect class=\"pele-sankey-node\" data-id=\"")
+    @svg.write_esc_text(nodes_out, id)
     nodes_out.write(
-      "<rect class=\"pele-sankey-node\" data-id=\"\{@svg.esc_text(id)}\" x=\"\{@svg.num(node.x)}\" y=\"\{@svg.num(node.y)}\" width=\"\{@svg.num(node_width)}\" height=\"\{@svg.num(height)}\" rx=\"\{@svg.num(@cmp.minimum(2.0, height / 2))}\" fill=\"\{@svg.series_color(i)}\"\{node_style(i)}/>",
+      "\" x=\"\{@svg.num(node.x)}\" y=\"\{@svg.num(node.y)}\" width=\"\{@svg.num(node_width)}\" height=\"\{@svg.num(height)}\" rx=\"\{@svg.num(@cmp.minimum(2.0, height / 2))}\" fill=\"\{@svg.series_color(i)}\"\{node_style(i)}/>",
     )
     let value = if show_values {
       "\{prefix}\{rounded(node.value)}\{suffix}"
@@ -172,21 +174,28 @@ fn draw(
     min_y = @cmp.minimum(min_y, y - small * 0.75)
     max_y = @cmp.maximum(max_y, y + small * 0.75)
     let position = " x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y + small * 0.35)}\" text-anchor=\"\{if after { "start" } else { "end" }}\""
-    let text = @svg.esc(id) +
+    labels_out.write("<g class=\"pele-label\" data-id=\"")
+    @svg.write_esc_text(labels_out, id)
+    labels_out.write("\">")
+    if outlined {
+      labels_out.write(
+        "<text\{position} fill=\"none\" stroke=\"var(--_bg)\" stroke-width=\"3\" stroke-linejoin=\"round\">",
+      )
+      @svg.write_esc(labels_out, id)
+      labels_out.write(
+        "\{if value != "" { " " + @svg.esc(value) } else { "" }}</text>",
+      )
+    }
+    labels_out.write("<text\{position}>")
+    @svg.write_esc(labels_out, id)
+    labels_out.write(
       (if value != "" {
         " <tspan class=\"pele-sankey-value\" fill=\"var(--_m)\">\{@svg.esc(value)}</tspan>"
       } else {
         ""
-      })
-    labels_out.write(
-      "<g class=\"pele-label\" data-id=\"\{@svg.esc_text(id)}\">",
+      }) +
+      "</text></g>",
     )
-    if outlined {
-      labels_out.write(
-        "<text\{position} fill=\"none\" stroke=\"var(--_bg)\" stroke-width=\"3\" stroke-linejoin=\"round\">\{@svg.esc(id)}\{if value != "" { " " + @svg.esc(value) } else { "" }}</text>",
-      )
-    }
-    labels_out.write("<text\{position}>\{text}</text></g>")
   }
 
   let fixed = if link_color == "gradient" ||
@@ -204,16 +213,25 @@ fn draw(
     let x0 = nodes[link.source].x + node_width
     let x1 = nodes[link.target].x
     let mid = @svg.num((x0 + x1) / 2)
-    let from = @svg.esc_text(db.nodes[link.source].id)
-    let to = @svg.esc_text(db.nodes[link.target].id)
+    let from = db.nodes[link.source].id
+    let to = db.nodes[link.target].id
     let top_source = @svg.num(link.source_y - half)
     let top_target = @svg.num(link.target_y - half)
     let bottom_target = @svg.num(link.target_y + half)
     let bottom_source = @svg.num(link.source_y + half)
     let style = if fixed != "" { fixed } else { node_style(end) }
+    links_out.write("<path class=\"pele-sankey-link\" data-id=\"")
+    @svg.write_esc_text(links_out, from)
+    links_out.write("-&gt;")
+    @svg.write_esc_text(links_out, to)
     links_out.write(
-      "<path class=\"pele-sankey-link\" data-id=\"\{from}-&gt;\{to}\" d=\"M\{@svg.num(x0)},\{top_source}C\{mid},\{top_source} \{mid},\{top_target} \{@svg.num(x1)},\{top_target}L\{@svg.num(x1)},\{bottom_target}C\{mid},\{bottom_target} \{mid},\{bottom_source} \{@svg.num(x0)},\{bottom_source}Z\" fill=\"\{@svg.series_color(end)}\"\{style}>" +
-      "<title>\{from} → \{to}: \{@svg.esc_text(prefix)}\{rounded(link.value)}\{@svg.esc_text(suffix)}</title></path>",
+      "\" d=\"M\{@svg.num(x0)},\{top_source}C\{mid},\{top_source} \{mid},\{top_target} \{@svg.num(x1)},\{top_target}L\{@svg.num(x1)},\{bottom_target}C\{mid},\{bottom_target} \{mid},\{bottom_source} \{@svg.num(x0)},\{bottom_source}Z\" fill=\"\{@svg.series_color(end)}\"\{style}><title>",
+    )
+    @svg.write_esc_text(links_out, from)
+    links_out.write(" → ")
+    @svg.write_esc_text(links_out, to)
+    links_out.write(
+      ": \{@svg.esc_text(prefix)}\{rounded(link.value)}\{@svg.esc_text(suffix)}</title></path>",
     )
   }
 
