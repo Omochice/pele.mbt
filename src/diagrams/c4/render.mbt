@@ -233,7 +233,7 @@ fn draw(
   }
 
   // Every line is drawn before any label is placed, so that labels can keep off the arrowheads.
-  let edges_out = StringBuilder()
+  let edges_out = @svg.Markup::new()
   let trim = @svg.marker_trim("arrow_point")
   let lanes = Lanes::new()
   for i, group in order {
@@ -304,20 +304,20 @@ fn draw(
         r.ey + @svg.ARROW,
       )
     }
-    edges_out.write_string(
+    edges_out.write(
       "<g class=\"pele-edge\" data-id=\"\{@svg.esc_text(rel.from + "-" + rel.to)}\"\{style.line}><path d=\"\{r.d}\"/>",
     )
     if start_arrow {
-      edges_out.write_string(
+      edges_out.write(
         @svg.marker("arrow_point", r.sx, r.sy, r.sdx, r.sdy, color),
       )
     }
     if end_arrow {
-      edges_out.write_string(
+      edges_out.write(
         @svg.marker("arrow_point", r.ex, r.ey, r.edx, r.edy, color),
       )
     }
-    edges_out.write_string("</g>")
+    edges_out.write("</g>")
     routes.push(r)
   }
 
@@ -359,7 +359,7 @@ fn draw(
       bottom,
     )
   }
-  let labels_out = StringBuilder()
+  let labels_out = @svg.Markup::new()
   for index, rel in db.rels {
     let r = routes[index]
     let id = rel.from + "-" + rel.to
@@ -428,16 +428,16 @@ fn draw(
       push_box(cx - lw / 2, top, cx + lw / 2, top + lh)
     }
     grow(cx - lw / 2, top, cx + lw / 2, top + lh)
-    labels_out.write_string(
+    labels_out.write(
       "<g class=\"pele-edge-label\" data-id=\"\{@svg.esc_text(id)}\">",
     )
     if rel.descr is Some(descr) && descr != "" {
-      labels_out.write_string("<title>\{@svg.esc_text(descr)}</title>")
+      labels_out.write("<title>\{@svg.esc_text(descr)}</title>")
     }
-    labels_out.write_string(
+    labels_out.write(
       "<rect x=\"\{@svg.num(cx - lw / 2)}\" y=\"\{@svg.num(top)}\" width=\"\{@svg.num(lw)}\" height=\"\{@svg.num(lh)}\" rx=\"3\" fill=\"var(--_bg)\"/>",
     )
-    labels_out.write_string(
+    labels_out.write(
       link(
         @svg.label_svg(label, cx, top + label.height / 2, style.text) +
         @svg.label_svg(
@@ -452,10 +452,10 @@ fn draw(
         options,
       ),
     )
-    labels_out.write_string("</g>")
+    labels_out.write("</g>")
   }
-  let clusters = StringBuilder()
-  let nodes_out = StringBuilder()
+  let clusters = @svg.Markup::new()
+  let nodes_out = @svg.Markup::new()
   for i, group in order {
     if i > 0 {
       let boundary = group.boundary
@@ -488,16 +488,14 @@ fn draw(
         " class=\"pele-c4-descr\" font-size=\"\{small}\" fill=\"var(--_m)\"\{style.text}",
       )
       let is_node = boundary.node_type is Some(_)
-      clusters.write_string(
+      clusters.write(
         "<g class=\"pele-cluster pele-c4-\{if is_node { "node" } else { "boundary" }}\" data-id=\"\{@svg.esc_text(boundary.alias_)}\">",
       )
-      clusters.write_string(
+      clusters.write(
         "<rect x=\"\{@svg.num(g.x)}\" y=\"\{@svg.num(g.y)}\" width=\"\{@svg.num(g.w)}\" height=\"\{@svg.num(g.h)}\" fill=\"none\" stroke=\"var(--_b)\"\{if is_node { "" } else { " stroke-dasharray=\"6 4\"" }}\{@svg.rounded(style.shape)}/>",
       )
-      clusters.write_string(
-        link(text, boundary.link, boundary.alias_, links, options),
-      )
-      clusters.write_string("</g>")
+      clusters.write(link(text, boundary.link, boundary.alias_, links, options))
+      clusters.write("</g>")
     }
     for node in group.nodes {
       let shape = node.shape
@@ -558,10 +556,10 @@ fn draw(
         ),
       )
       let fill = if external { "--_bg" } else { "--_s" }
-      nodes_out.write_string(
+      nodes_out.write(
         "<g class=\"pele-node pele-shape-\{form} pele-c4-\{shape.kind}\{if external { " pele-c4-external" } else { "" }}\" data-id=\"\{@svg.esc_text(shape.alias_)}\" transform=\"translate(\{@svg.num(node.box.x + w / 2)},\{@svg.num(node.box.y + h / 2)})\">",
       )
-      nodes_out.write_string(
+      nodes_out.write(
         link(
           @svg.draw_shape(
             form,
@@ -577,7 +575,7 @@ fn draw(
           options,
         ),
       )
-      nodes_out.write_string("</g>")
+      nodes_out.write("</g>")
     }
   }
   let title = @text.layout_label(
@@ -598,8 +596,8 @@ fn draw(
   let height = (max_y - min_y + title_height + 2 * pad).ceil()
   let ox = pad - min_x + (inner - (max_x - min_x)) / 2
   let oy = pad + title_height - min_y
-  let content = StringBuilder()
-  content.write_string(
+  let content = @svg.Markup::new()
+  content.write(
     @svg.label_svg(
       title,
       width / 2,
@@ -607,31 +605,28 @@ fn draw(
       " class=\"pele-title\" font-weight=\"var(--_tw)\"",
     ),
   )
-  content.write_string(
-    "<g transform=\"translate(\{@svg.num(ox)},\{@svg.num(oy)})\">",
-  )
-  let clusters = clusters.to_string()
-  if clusters != "" {
-    content.write_string("<g class=\"pele-clusters\">\{clusters}</g>")
+  content.write("<g transform=\"translate(\{@svg.num(ox)},\{@svg.num(oy)})\">")
+  if !clusters.is_empty() {
+    content.write_group("<g class=\"pele-clusters\">", clusters, "</g>")
   }
-  let edges_out = edges_out.to_string()
-  if edges_out != "" {
-    content.write_string(
-      "<g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\">\{edges_out}</g>",
+  if !edges_out.is_empty() {
+    content.write_group(
+      "<g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\">",
+      edges_out, "</g>",
     )
   }
-  let nodes_out = nodes_out.to_string()
-  if nodes_out != "" {
-    content.write_string("<g class=\"pele-nodes\">\{nodes_out}</g>")
+  if !nodes_out.is_empty() {
+    content.write_group("<g class=\"pele-nodes\">", nodes_out, "</g>")
   }
-  let labels_out = labels_out.to_string()
-  if labels_out != "" {
-    content.write_string(
-      "<g class=\"pele-edge-labels\" font-size=\"\{small}\">\{labels_out}</g>",
+  if !labels_out.is_empty() {
+    content.write_group(
+      "<g class=\"pele-edge-labels\" font-size=\"\{small}\">",
+      labels_out,
+      "</g>",
     )
   }
-  content.write_string("</g>")
-  let svg = @svg.svg_document(
+  content.write("</g>")
+  let svg = @svg.markup_document(
     "c4",
     width,
     height,
@@ -639,7 +634,7 @@ fn draw(
     options,
     None,
     db.acc_descr,
-    content.to_string(),
+    content,
   )
   ({ svg, width, height, links, }, lanes.squeezed)
 }
