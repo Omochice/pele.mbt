@@ -5,14 +5,19 @@ const BASE : String = "---\nconfig:\n  kanban:\n    ticketBaseUrl: 'https://exam
 fn render(
   source : String,
   max_width? : Double,
+  icons? : @types.IconResolver,
 ) -> @types.RenderResult raise @errors.PeleError {
-  let options = { ..@types.RenderOptions::default(), max_width, }
+  let options = { ..@types.RenderOptions::default(), max_width, icons, }
   @core.render([@kanban.kanban], source, options)
 }
 
 ///|
-fn svg(source : String, max_width? : Double) -> String {
-  (render(source, max_width?) catch {
+fn svg(
+  source : String,
+  max_width? : Double,
+  icons? : @types.IconResolver,
+) -> String {
+  (render(source, max_width?, icons?) catch {
     @errors.PeleError(failure) => return failure.message
   }).svg
 }
@@ -220,4 +225,40 @@ test "the output has no non-finite number" {
   assert_false(has(out, "NaN"))
   assert_false(has(out, "Infinity"))
   assert_false(has(out, "undefined"))
+}
+
+///|
+/// A host that has exactly the icons in `pairs`, by name.
+fn host(pairs : Array[(String, String)]) -> @types.IconResolver {
+  let icons = Map::from_array(pairs)
+  name => icons.get(name)
+}
+
+///|
+test "columns and cards make room for the icons the host has and draw them" {
+  inspect(
+    svg(
+      "---\nconfig:\n  kanban:\n    ticketBaseUrl: 'https://example.com/browse/#TICKET#'\n---\nkanban\n  todo[fa:fa-car To do with a rather long column title]\n  ::icon(star)\n    a[fa:fa-car First card with a long label that wraps around]@{ icon: star, ticket: fa:fa-car T-1, assigned: 'fa:fa-car bob' }\n    b[Second]@{ icon: missing }\n  done[Done]\n  ::icon(blank)\n    c[Supercalifragilisticexpialidocious fa:fa-car fa:fa-car]@{ ticket: T-2 }\n",
+      icons=host([
+        ("star", "<path id=\"star\"/>"),
+        ("fa:fa-car", "<path id=\"car\"/>"),
+        ("blank", ""),
+      ]),
+    ),
+    content="<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-kanban\" viewBox=\"0 0 428 269\" width=\"428\" height=\"269\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_hw:var(--pele-heading-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"kanban\"><g class=\"pele-cluster pele-column\" data-id=\"todo\" transform=\"translate(8,8)\"><rect width=\"200\" height=\"253\" fill=\"var(--_s)\" style=\"rx:var(--_r)\"/><text class=\"pele-cluster-label\" font-weight=\"var(--_hw)\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"32\" y=\"25.6\" text-anchor=\"start\"> To do with a</tspan></text><svg class=\"pele-icon\" data-icon=\"fa:fa-car\" x=\"12\" y=\"11.2\" width=\"17.6\" height=\"17.6\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path id=\"car\"/></svg><text class=\"pele-cluster-label\" font-weight=\"var(--_hw)\" x=\"12\" y=\"49.6\">rather long</text><text class=\"pele-cluster-label\" font-weight=\"var(--_hw)\" x=\"12\" y=\"73.6\">column title</text><text class=\"pele-count\" x=\"188\" y=\"24.9\" text-anchor=\"end\" font-size=\"14\" fill=\"var(--_m)\">2</text><svg class=\"pele-icon\" data-icon=\"star\" x=\"156.72\" y=\"11.25\" width=\"17.5\" height=\"17.5\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path id=\"star\"/></svg><g class=\"pele-node pele-card\" data-id=\"a\" transform=\"translate(8,88)\" font-size=\"14\"><rect width=\"184\" height=\"108\" fill=\"var(--_bg)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"27.5\" y=\"25.4\" text-anchor=\"start\"> First card with a</tspan></text><svg class=\"pele-icon\" data-icon=\"fa:fa-car\" x=\"10\" y=\"12.8\" width=\"15.4\" height=\"15.4\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path id=\"car\"/></svg><text class=\"pele-label\" x=\"10\" y=\"46.4\">long label that wraps</text><text class=\"pele-label\" x=\"10\" y=\"67.4\">around</text><svg class=\"pele-icon\" data-icon=\"star\" x=\"156.5\" y=\"11.75\" width=\"17.5\" height=\"17.5\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path id=\"star\"/></svg><a href=\"https://example.com/browse/fa:fa-car T-1\" target=\"_blank\" rel=\"noopener\"><text class=\"pele-ticket\" fill=\"var(--_c)\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"27.5\" y=\"92.4\" text-anchor=\"start\"> T-1</tspan></text><svg class=\"pele-icon\" data-icon=\"fa:fa-car\" x=\"10\" y=\"79.8\" width=\"15.4\" height=\"15.4\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path id=\"car\"/></svg></a><text class=\"pele-assigned\" fill=\"var(--_m)\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"146.76\" y=\"92.4\" text-anchor=\"start\"> bob</tspan></text><svg class=\"pele-icon\" data-icon=\"fa:fa-car\" x=\"129.26\" y=\"79.8\" width=\"15.4\" height=\"15.4\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path id=\"car\"/></svg></g><g class=\"pele-node pele-card\" data-id=\"b\" transform=\"translate(8,204)\" font-size=\"14\"><rect width=\"184\" height=\"41\" fill=\"var(--_bg)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" x=\"10\" y=\"25.4\">Second</text></g></g><g class=\"pele-cluster pele-column\" data-id=\"done\" transform=\"translate(220,8)\"><rect width=\"200\" height=\"253\" fill=\"var(--_s)\" style=\"rx:var(--_r)\"/><text class=\"pele-cluster-label\" font-weight=\"var(--_hw)\" x=\"12\" y=\"25.6\">Done</text><text class=\"pele-count\" x=\"188\" y=\"24.9\" text-anchor=\"end\" font-size=\"14\" fill=\"var(--_m)\">1</text><g class=\"pele-node pele-card\" data-id=\"c\" transform=\"translate(8,88)\" font-size=\"14\"><rect width=\"184\" height=\"108\" fill=\"var(--_bg)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" x=\"10\" y=\"25.4\">Supercalifragilisticexpialid</text><text class=\"pele-label\" x=\"10\" y=\"46.4\">ocious</text><text class=\"pele-label\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"27.5\" y=\"67.4\" text-anchor=\"start\"> </tspan></text><svg class=\"pele-icon\" data-icon=\"fa:fa-car\" x=\"10\" y=\"54.8\" width=\"15.4\" height=\"15.4\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path id=\"car\"/></svg><svg class=\"pele-icon\" data-icon=\"fa:fa-car\" x=\"31.39\" y=\"54.8\" width=\"15.4\" height=\"15.4\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path id=\"car\"/></svg><a href=\"https://example.com/browse/T-2\" target=\"_blank\" rel=\"noopener\"><text class=\"pele-ticket\" fill=\"var(--_c)\" x=\"10\" y=\"92.4\">T-2</text></a></g></g></svg>",
+  )
+}
+
+///|
+test "a ticket without a link draws the host's icons" {
+  inspect(
+    svg(
+      "kanban\n  todo[To do]\n    a[A card]@{ icon: star, ticket: fa:fa-car T-1 }\n",
+      icons=host([
+        ("star", "<path id=\"star\"/>"),
+        ("fa:fa-car", "<path id=\"car\"/>"),
+      ]),
+    ),
+    content="<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-kanban\" viewBox=\"0 0 216 130\" width=\"216\" height=\"130\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_hw:var(--pele-heading-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"kanban\"><g class=\"pele-cluster pele-column\" data-id=\"todo\" transform=\"translate(8,8)\"><rect width=\"200\" height=\"114\" fill=\"var(--_s)\" style=\"rx:var(--_r)\"/><text class=\"pele-cluster-label\" font-weight=\"var(--_hw)\" x=\"12\" y=\"25.6\">To do</text><text class=\"pele-count\" x=\"188\" y=\"24.9\" text-anchor=\"end\" font-size=\"14\" fill=\"var(--_m)\">1</text><g class=\"pele-node pele-card\" data-id=\"a\" transform=\"translate(8,40)\" font-size=\"14\"><rect width=\"184\" height=\"66\" fill=\"var(--_bg)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" x=\"10\" y=\"25.4\">A card</text><svg class=\"pele-icon\" data-icon=\"star\" x=\"156.5\" y=\"11.75\" width=\"17.5\" height=\"17.5\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path id=\"star\"/></svg><text class=\"pele-ticket\" fill=\"var(--_m)\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"27.5\" y=\"50.4\" text-anchor=\"start\"> T-1</tspan></text><svg class=\"pele-icon\" data-icon=\"fa:fa-car\" x=\"10\" y=\"37.8\" width=\"15.4\" height=\"15.4\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path id=\"car\"/></svg></g></g></svg>",
+  )
 }
