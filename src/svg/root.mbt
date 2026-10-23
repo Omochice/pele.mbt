@@ -40,7 +40,7 @@ fn document_tag(
   acc_title : String?,
   acc_descr : String?,
   used : Set[String],
-) -> String {
+) -> String raise @errors.PeleError {
   let prefix = id_prefix(options)
   let aria = StringBuilder()
   if acc_title is Some(title) && title != "" {
@@ -106,6 +106,7 @@ fn document_head(
 ///|
 /// Wraps diagram content in the root `svg` element, with its accessible name and description,
 /// its theme aliases, and its fonts.
+/// Raises the limit error where pele's pattern for a font list runs out of V8's backtracking stack.
 pub fn svg_document(
   kind : String,
   width : Double,
@@ -115,7 +116,7 @@ pub fn svg_document(
   acc_title : String?,
   acc_descr : String?,
   content : String,
-) -> String {
+) -> String raise @errors.PeleError {
   let used : Set[String] = Set([])
   add_aliases(used, content)
   document_tag(

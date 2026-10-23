@@ -97,27 +97,28 @@ fn skip_space(text : String, from : Int32) -> Int32 {
 ///|
 /// Whether the list is font names, quoted or not, and nothing that could end the declaration
 /// it is put in.
-fn is_family_list(list : String) -> Bool {
-  let mut pos = skip_space(list, 0)
-  while true {
-    pos = family_end(list, pos)
-    if pos == -1 {
-      return false
+/// Each font after the first takes eleven slots of V8's backtracking stack, whatever its quotes and blanks, and the error pele reports is raised once they fill it.
+fn is_family_list(list : String) -> Bool raise @errors.PeleError {
+  let mut end = family_end(list, skip_space(list, 0))
+  let mut more = 0L
+  while end != -1 {
+    let after = skip_space(list, end)
+    if after == list.length() || @util.code_at(list, after) != ','.to_int() {
+      break
     }
-    let after = skip_space(list, pos)
-    if after == list.length() {
-      return true
+    end = family_end(list, skip_space(list, after + 1))
+    if end != -1 {
+      more += 1
     }
-    if @util.code_at(list, after) != ','.to_int() {
-      return false
-    }
-    pos = skip_space(list, after + 1)
   }
-  false
+  if @util.backtrack_stack_overflows(11L * more + 6) {
+    raise @errors.nested_too_deeply()
+  }
+  end != -1 && skip_space(list, end) == list.length()
 }
 
 ///|
-fn families(list : String?, generic : String) -> String {
+fn families(list : String?, generic : String) -> String raise @errors.PeleError {
   match list {
     Some(list) if list != "" && is_family_list(list) => list
     _ => generic
@@ -127,7 +128,12 @@ fn families(list : String?, generic : String) -> String {
 ///|
 /// The font declarations of the root element: the fonts labels were measured in, unless the page
 /// names others, with the rest of what text inherits pinned, as none of it was measured.
-pub fn font_style(size : Double, family : String?, mono : String?) -> String {
+/// Raises the limit error where pele's pattern for a font list runs out of V8's backtracking stack.
+pub fn font_style(
+  size : Double,
+  family : String?,
+  mono : String?,
+) -> String raise @errors.PeleError {
   ";--_fm:var(--pele-font-mono,\{families(mono, "monospace")});font:\{size}px sans-serif;" +
   "letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;" +
   "font-family:var(--pele-font,\{families(family, "sans-serif")})"

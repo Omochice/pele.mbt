@@ -45,7 +45,7 @@ pub fn esc(String) -> String
 
 pub fn esc_text(String) -> String
 
-pub fn font_style(Double, String?, String?) -> String
+pub fn font_style(Double, String?, String?) -> String raise @errors.PeleError
 
 pub fn inset_route(Array[Double], Int32, @layout.CNode, shape~ : String, w~ : Double, h~ : Double) -> Unit
 
@@ -89,7 +89,7 @@ pub fn span_style(Int32) -> String
 
 pub fn struck_title(@text.Label, Double, Double, String, String, Array[@layout.CNode], Int32, icons? : (String) -> String?) -> String
 
-pub fn svg_document(String, Double, Double, Double, @types.RenderOptions, String?, String?, String) -> String
+pub fn svg_document(String, Double, Double, Double, @types.RenderOptions, String?, String?, String) -> String raise @errors.PeleError
 
 pub fn text_style(String, Int32) -> String
 
