@@ -75,11 +75,11 @@ const DATED_STEP : Double = 200
 const FORMAT_STEP : Double = 400
 
 ///|
-/// The time a chart is scheduled against: `now` when it is a finite number.
-// pele falls back to the current time, which a plugin cannot read, so the epoch stands in for it.
+/// The time a chart is scheduled against: `now` when it is a finite number, else the epoch.
 pub fn clock(now : Double?) -> Double {
   match now {
     Some(time) if !time.is_nan() && !time.is_inf() => time
+    // pele falls back to the current time, which a plugin cannot read.
     _ => 0
   }
 }
