@@ -16,6 +16,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { isDeepStrictEqual } from 'node:util';
 import { loadPlugin } from './plugin-host.mjs';
+import { peleOptions } from './plugin-options.mjs';
 import { CASES } from './string-length-cases.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -45,7 +46,7 @@ const HOLD_LIMIT = 400000000;
 
 function peleOutcome(text, options) {
   try {
-    const result = render(text, options);
+    const result = render(text, peleOptions(options));
     return { svgLength: result.svg.length, svg: Buffer.from(result.svg), type: result.type, mermaidType: result.mermaidType };
   } catch (error) {
     return outcome(error);

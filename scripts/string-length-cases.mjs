@@ -6,6 +6,10 @@
 const names = (prefix, count) => Array.from({ length: count }, (_, i) => `${prefix}${i}`);
 const fill = `fill:#${'a'.repeat(50000)}`;
 export const RAISED = { limit: Number.MAX_VALUE, outputLimit: Number.MAX_VALUE };
+// A single label grows without bound when the host's drawing of an icon is drawn in each of its
+// icon spans, whatever diagram the label is in.
+const ICONS = { ...RAISED, icons: { 'fa:fa-x': `<path d="${'M0 0'.repeat(25000)}"/>` } };
+const iconLabel = (count) => `graph TD\nA["${Array(count).fill('fa:fa-x').join(' ')}"]\n`;
 
 export const CASES = [
   [
@@ -45,4 +49,6 @@ export const CASES = [
   // Leaves too small to draw are left out, so the fill is longer than elsewhere rather than the leaves more.
   ['treemap', 'styled leaves', `treemap-beta\n${names('L', 9000).map((name) => `"${name}": 1:::cc`).join('\n')}\nclassDef cc fill:#${'a'.repeat(60000)};\n`, RAISED],
   ['usecase', 'styled use cases', `usecase-beta\nclassDef c ${fill}\n${names('U', 10700).map((name) => `${name}("x"):::c`).join('\n')}\n`, RAISED],
+  ['flowchart', 'host icons in one node label', iconLabel(5400), ICONS],
+  ['flowchart', 'one node label longer than a doubling StringBuilder holds', iconLabel(3000), ICONS],
 ];

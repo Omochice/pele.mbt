@@ -55,3 +55,41 @@ test "nodes and edges that outgrow V8's longest string only together fail as nes
     content="limit: Diagram is nested too deeply. flowchart flowchart-v2",
   )
 }
+
+///|
+/// Options under which the host draws the icon `fa:fa-x` as a path of 100 thousand code units,
+/// with no limit on the source or the output.
+fn icon_options() -> @types.RenderOptions {
+  let drawing = "<path d=\"\{"M0 0".repeat(25000)}\"/>"
+  {
+    ..@types.RenderOptions::default(),
+    limit: Some(1.0 / 0.0),
+    output_limit: Some(1.0 / 0.0),
+    icons: Some(name => if name == "fa:fa-x" { Some(drawing) } else { None }),
+  }
+}
+
+///|
+fn icon_label(count : Int32) -> String {
+  "graph TD\nA[\"\{Array::make(count, "fa:fa-x").join(" ")}\"]\n"
+}
+
+///|
+#skip("slow: draws over 536 million code units before it fails")
+test "a node label drawing a host icon in each of thousands of spans fails as nested too deeply" {
+  inspect(
+    failure_of(icon_label(5400), icon_options()),
+    content="limit: Diagram is nested too deeply. flowchart flowchart-v2",
+  )
+}
+
+///|
+#skip("slow: draws over 300 million code units")
+test "a node label longer than a doubling StringBuilder holds is drawn" {
+  let svg = @core.render(
+      [@flowchart.flowchart],
+      icon_label(3000),
+      icon_options(),
+    ).svg
+  inspect(svg.length(), content="300835316")
+}
