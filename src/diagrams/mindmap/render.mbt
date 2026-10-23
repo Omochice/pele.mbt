@@ -24,20 +24,11 @@ fn left_label(
   let out = StringBuilder()
   let top = cy - label.height / 2
   for k in 0..<label.lines.length() {
-    let line : @text.Label = {
-      lines: [label.lines[k]],
-      widths: [label.widths[k]],
-      width: label.widths[k],
-      height: label.line_height,
-      size: label.size,
-      line_height: label.line_height,
-      heights: None,
-    }
     out.write_string(
       @svg.label_svg(
-        line,
+        @text.label_line(label, k),
         left + label.widths[k] / 2,
-        top + (k.to_double() + 0.5) * label.line_height,
+        top + @text.line_middle(label, k),
         attrs,
         icons?,
       ),
