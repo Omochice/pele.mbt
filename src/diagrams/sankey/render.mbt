@@ -250,15 +250,14 @@ fn draw(
   let width = (inner + 2 * pad).ceil()
   let height = (max_y - min_y + title_height + 2 * pad).ceil()
   let content = @svg.Markup::new()
-  content.write(
-    @svg.label_svg(
-      title,
-      width / 2,
-      pad + title.height / 2,
-      " class=\"pele-title\" font-weight=\"var(--_tw)\"",
-    ) +
-    "<g transform=\"translate(\{@svg.num(ox)},\{@svg.num(oy)})\">",
+  @svg.write_label(
+    content,
+    title,
+    width / 2,
+    pad + title.height / 2,
+    " class=\"pele-title\" font-weight=\"var(--_tw)\"",
   )
+  content.write("<g transform=\"translate(\{@svg.num(ox)},\{@svg.num(oy)})\">")
   content.write_group(
     "<g class=\"pele-sankey-links\" fill-opacity=\"0.4\">", links_out, "</g>",
   )
