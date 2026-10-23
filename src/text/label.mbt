@@ -1,8 +1,5 @@
-// pele also lays out $$math$$ from its typesetter, which cannot reach a typst plugin yet, so
-// labels behave as pele's do without one and leave math as text.
-
 ///|
-/// A run of text with one emphasis, or an icon in place of text.
+/// A run of text with one emphasis, or an icon or typeset math in place of text.
 pub(all) struct Span {
   mut text : String
   style : Int32
@@ -159,9 +156,32 @@ fn dedent(text : String) -> String {
 }
 
 ///|
+/// The first of the private use characters that stand for TeX while a label's markup is read, so
+/// that tags and emphasis markers inside TeX are left alone.
+const MARK : Int32 = 0xe000
+
+///|
+const MAX_MARKS : Int32 = 0x1900
+
+///|
+fn is_mark(c : Int32) -> Bool {
+  c >= 0xe000 && c <= 0xf8ff
+}
+
+///|
+/// The TeX each mark of the label being laid out stands for, and what it was typeset as.
+priv struct Marks {
+  tex : Array[String]
+  math : Array[MathMarkup?]
+}
+
+///|
+let marks : Ref[Marks?] = { val: None, }
+
+///|
 /// Whether the span is text, which a neighbor of the same emphasis can join.
 fn plain(span : Span) -> Bool {
-  span.icon is None
+  span.icon is None && span.math is None
 }
 
 ///|
@@ -176,9 +196,95 @@ fn push_plain(line : Array[Span], text : String, style : Int32) -> Unit {
 
 ///|
 fn push_text(line : Array[Span], text : String, style : Int32) -> Unit {
-  if text != "" {
-    push_plain(line, text, style)
+  if text == "" {
+    return
   }
+  guard marks.val is Some(found) && has_mark(text) else {
+    push_plain(line, text, style)
+    return
+  }
+  let mut last = 0
+  for i in 0..<text.length() {
+    let c = @util.code_at(text, i)
+    if !is_mark(c) {
+      continue
+    }
+    if i > last {
+      push_plain(line, @util.slice(text, last, end=i), style)
+    }
+    last = i + 1
+    let at = c - MARK
+    match found.math[at] {
+      Some(math) =>
+        line.push({
+          text: "",
+          style,
+          icon: None,
+          width: math.width,
+          math: Some(math),
+        })
+      None => push_plain(line, "$$\{found.tex[at]}$$", style)
+    }
+  }
+  if last < text.length() {
+    push_plain(line, @util.slice(text, last), style)
+  }
+}
+
+///|
+fn has_mark(text : String) -> Bool {
+  for i in 0..<text.length() {
+    if is_mark(@util.code_at(text, i)) {
+      return true
+    }
+  }
+  false
+}
+
+///|
+fn is_line_terminator(c : Int32) -> Bool {
+  c == '\n'.to_int() || c == '\r'.to_int() || c == 0x2028 || c == 0x2029
+}
+
+///|
+/// The end of the TeX of `\$\$(.+?)\$\$` matched at `at`, or -1.
+fn math_end(text : String, at : Int32) -> Int32 {
+  if !@util.starts_with_at(text, "$$", at) {
+    return -1
+  }
+  let mut e = at + 2
+  while e < text.length() && !is_line_terminator(@util.code_at(text, e)) {
+    if @util.starts_with_at(text, "$$", e + 1) {
+      return e + 1
+    }
+    e += 1
+  }
+  -1
+}
+
+///|
+/// Replaces each `$$TeX$$` with a mark, as `raw.replace(/\$\$(.+?)\$\$/g, …)` does, collecting
+/// the TeX in `found`.
+fn mark_math(raw : String, found : Marks) -> String {
+  let out = StringBuilder()
+  let mut last = 0
+  let mut at = 0
+  while at < raw.length() {
+    let end = math_end(raw, at)
+    if end == -1 {
+      at += 1
+      continue
+    }
+    if found.tex.length() < MAX_MARKS {
+      @util.write_range(out, raw, last, at)
+      found.tex.push(@util.slice(raw, at + 2, end~))
+      out.write_char(Int32::unsafe_to_char(MARK + found.tex.length() - 1))
+      last = end + 2
+    }
+    at = end + 2
+  }
+  @util.write_range(out, raw, last, raw.length())
+  out.to_string()
 }
 
 ///|
@@ -373,10 +479,10 @@ fn measure_spans(
 ) -> Double {
   let mut total = 0.0
   for span in line {
-    span.width = if span.icon is Some(_) {
-      size * ICON_WIDTH
-    } else {
-      measurer.width(span.text, size, span.style)
+    span.width = match (span.icon, span.math) {
+      (Some(_), _) => size * ICON_WIDTH
+      (None, Some(math)) => math.width
+      (None, None) => measurer.width(span.text, size, span.style)
     }
     total += span.width
   }
@@ -411,8 +517,11 @@ fn wrap(
     width = 0
   }
   for span in line {
-    if span.icon is Some(_) {
-      let w = size * ICON_WIDTH
+    if !plain(span) {
+      let w = match span.math {
+        Some(math) => math.width
+        None => size * ICON_WIDTH
+      }
       if width > 0 && width + w > max {
         commit()
       }
@@ -597,6 +706,25 @@ pub fn layout_label(
 ) -> Label {
   guard raw is Some(raw) && raw != "" else { return empty_label() }
   let line_height = (size * LINE_HEIGHT).round()
+  if math_active() && raw.contains("$$") && !has_mark(raw) {
+    let found = { tex: [], math: [], }
+    let marked = mark_math(raw, found)
+    if found.tex.length() > 0 {
+      for tex in found.tex {
+        found.math.push(typeset(decode_entities(tex), size))
+      }
+      return layout_markup(
+        marked,
+        markdown,
+        measurer,
+        size,
+        max_width,
+        base,
+        line_height,
+        Some(found),
+      )
+    }
+  }
   if !has_markup(raw) && !raw.contains("&") && !raw.contains("\u{fb02}") {
     let text = @util.trim(raw)
     let width = measurer.width(text, size, base)
@@ -637,40 +765,120 @@ pub fn layout_label(
       heights: None,
     }
   }
-  layout_lines(raw, markdown, measurer, size, max_width, base, line_height)
+  layout_markup(
+    raw,
+    markdown,
+    measurer,
+    size,
+    max_width,
+    base,
+    line_height,
+    None,
+  )
+}
+
+///|
+/// Lays out markup with `found` as the TeX its marks stand for.
+fn layout_markup(
+  raw : String,
+  markdown : Bool,
+  measurer : TextMeasurer,
+  size : Double,
+  max_width : Double,
+  base : Int32,
+  line_height : Double,
+  found : Marks?,
+) -> Label {
+  let outer = marks.val
+  marks.val = found
+  defer {
+    marks.val = outer
+  }
+  let label = layout_lines(
+    raw, markdown, measurer, size, max_width, base, line_height,
+  )
+  if found is Some(_) {
+    with_heights(label)
+  } else {
+    label
+  }
 }
 
 ///|
 /// The label with line heights for the math it holds, or without them when no line needs more
 /// than `line_height`.
 pub fn with_heights(label : Label) -> Label {
-  label
+  let mut heights : Array[Double]? = None
+  for i, line in label.lines {
+    let mut h = label.line_height
+    for span in line {
+      if span.math is Some(math) {
+        h = @util.js_max(h, (math.height + label.size / 4).ceil())
+      }
+    }
+    if h != label.line_height && heights is None {
+      heights = Some(label.lines.map(_ => label.line_height))
+    }
+    if heights is Some(heights) {
+      heights[i] = h
+    }
+  }
+  guard heights is Some(heights) else {
+    return if label.heights is None {
+      label
+    } else {
+      {
+        ..label,
+        heights: None,
+        height: label.lines.length().to_double() * label.line_height,
+      }
+    }
+  }
+  let mut height = 0.0
+  for h in heights {
+    height += h
+  }
+  { ..label, heights: Some(heights), height, }
 }
 
 ///|
 /// Whether a line holds typeset math.
 pub fn has_math(line : Array[Span]) -> Bool {
-  ignore(line)
-  false
+  line.iter().any(span => span.math is Some(_))
 }
 
 ///|
 /// The middle of line `i`, from the top of the label.
 pub fn line_middle(label : Label, i : Int32) -> Double {
-  (i.to_double() + 0.5) * label.line_height
+  guard label.heights is Some(heights) else {
+    return (i.to_double() + 0.5) * label.line_height
+  }
+  let mut top = 0.0
+  for k in 0..<i {
+    top += heights[k]
+  }
+  top + heights[i] / 2
 }
 
 ///|
 /// Line `i` of the label as a label of its own.
 pub fn label_line(label : Label, i : Int32) -> Label {
   let width = label.widths[i]
+  let height = match label.heights {
+    Some(heights) => heights[i]
+    None => label.line_height
+  }
   {
     lines: [label.lines[i]],
     widths: [width],
     width,
-    height: label.line_height,
+    height,
     size: label.size,
     line_height: label.line_height,
-    heights: None,
+    heights: if height != label.line_height {
+      Some([height])
+    } else {
+      None
+    },
   }
 }
