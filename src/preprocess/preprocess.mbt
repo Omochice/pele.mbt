@@ -330,7 +330,9 @@ fn directives(text : String, config : @types.Config) -> String {
           args is Some(body) &&
           body != "" {
           // Mermaid ignores an init directive whose body is not valid JSON.
-          let parsed = Some(@json.parse(@util.trim(body))) catch { _ => None }
+          let parsed = Some(@util.parse_json(@util.trim(body))) catch {
+            _ => None
+          }
           if parsed is Some(Object(record)) {
             merge(config, record) |> ignore
           }
