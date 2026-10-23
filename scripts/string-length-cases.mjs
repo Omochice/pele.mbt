@@ -127,4 +127,5 @@ export const CASES = [
   ['info', 'an accessible description past V8', `info\naccDescr: ${'&'.repeat(110000000)}\n`, RAISED],
   ['block', 'host icons in one block label', `block-beta\nA["${Array(5400).fill('fa:fa-x').join(' ')}"]\n`, ICONS],
   ['cynefin', 'host icons in one item', `cynefin-beta\ncomplex\n  "${Array(5400).fill('fa:fa-x').join(' ')}"\n`, ICONS],
+  ['gantt', 'host icons in one section label', `gantt\ndateFormat YYYY-MM-DD\nsection ${Array(5400).fill('fa:fa-x').join(' ')}\nt :2026-01-01, 1d\n`, ICONS],
 ];
