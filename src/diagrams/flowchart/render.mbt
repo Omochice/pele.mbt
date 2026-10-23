@@ -387,17 +387,16 @@ fn draw(
       let title_attrs = " class=\"pele-cluster-label\" fill=\"var(--_m)\"\{view.style.text}"
       let struck = @svg.title_crossed(c, view.label.width, title_x, crossings)
       if struck {
-        struck_titles.write(
-          @svg.struck_title(
-            view.label,
-            title_x,
-            title_y,
-            title_attrs,
-            id,
-            cnodes,
-            i,
-            icons?=options.icons,
-          ),
+        @svg.write_struck_title(
+          struck_titles,
+          view.label,
+          title_x,
+          title_y,
+          title_attrs,
+          id,
+          cnodes,
+          i,
+          icons?=options.icons,
         )
       }
       clusters.write("<g class=\"pele-cluster\{classes}\" data-id=\"\{id}\">")
@@ -405,14 +404,13 @@ fn draw(
         "<rect x=\"\{@svg.num(c.x - c.w / 2)}\" y=\"\{@svg.num(c.y - c.h / 2)}\" width=\"\{@svg.num(c.w)}\" height=\"\{@svg.num(c.h)}\" fill=\"var(--_a)\" fill-opacity=\"0.5\" stroke=\"var(--_b)\"\{@svg.rounded(view.style.shape)}/>",
       )
       if !struck {
-        clusters.write(
-          @svg.label_svg(
-            view.label,
-            title_x,
-            title_y,
-            title_attrs,
-            icons?=options.icons,
-          ),
+        @svg.write_label(
+          clusters,
+          view.label,
+          title_x,
+          title_y,
+          title_attrs,
+          icons?=options.icons,
         )
       }
       clusters.write("</g>")
@@ -431,13 +429,20 @@ fn draw(
         LINE_ATTRS + view.style.line,
       )
     }
-    let mut text = @svg.label_svg(
+    let text = @svg.Markup::new()
+    @svg.write_label(
+      text,
       view.label,
       0,
       view.dy,
       " class=\"pele-label\"\{view.style.text}",
       icons?=options.icons,
     )
+    let body = @svg.Markup::new()
+    if node.tooltip is Some(tooltip) && tooltip != "" {
+      body.write("<title>\{@svg.esc_text(tooltip)}</title>")
+    }
+    body.write(inner)
     if (classes + " ").contains(" internal-link ") &&
       node.label is Some(note) &&
       note != "" &&
@@ -450,23 +455,33 @@ fn draw(
       } else {
         ""
       }
-      text = "<a class=\"internal-link\"\{href} data-href=\"\{target}\">\{text}</a>"
+      body.write_group(
+        "<a class=\"internal-link\"\{href} data-href=\"\{target}\">",
+        text,
+        "</a>",
+      )
       links.push({ id: node.id, href: name, internal: true, })
+    } else {
+      body.write_markup(text)
     }
-    let mut body = inner + text
-    if node.tooltip is Some(tooltip) && tooltip != "" {
-      body = "<title>\{@svg.esc_text(tooltip)}</title>" + body
-    }
-    if node.link is Some(link) && link != "" {
-      let attrs = match node.link_target {
-        Some(target) if target != "" => " target=\"\{@svg.esc(target)}\""
-        _ => ""
+    let link_start = match node.link {
+      Some(link) if link != "" => {
+        let attrs = match node.link_target {
+          Some(target) if target != "" => " target=\"\{@svg.esc(target)}\""
+          _ => ""
+        }
+        @url.link_start(link, node.id, links, options, attrs~)
       }
-      body = @url.linked(body, link, node.id, links, options, attrs~)
+      _ => None
     }
     nodes_out.write(
-      "<g class=\"pele-node pele-shape-\{view.shape}\{classes}\" data-id=\"\{id}\" transform=\"translate(\{@svg.num(c.x)},\{@svg.num(c.y)})\">\{body}</g>",
+      "<g class=\"pele-node pele-shape-\{view.shape}\{classes}\" data-id=\"\{id}\" transform=\"translate(\{@svg.num(c.x)},\{@svg.num(c.y)})\">",
     )
+    match link_start {
+      Some(start) => nodes_out.write_group(start, body, "</a>")
+      None => nodes_out.write_markup(body)
+    }
+    nodes_out.write("</g>")
   }
   let reach = @svg.SideReach::new()
   for i, ce in cedges {
@@ -583,15 +598,14 @@ fn draw(
         Some(style) => style.text
         None => ""
       }
-      labels_out.write(
-        @svg.edge_label_svg(
-          edge.id,
-          label,
-          ce.label_x,
-          ce.label_y,
-          text,
-          icons?=options.icons,
-        ),
+      @svg.write_edge_label(
+        labels_out,
+        edge.id,
+        label,
+        ce.label_x,
+        ce.label_y,
+        text,
+        icons?=options.icons,
       )
     }
   }
