@@ -337,6 +337,7 @@ export const CASES = [
   lazy('railroad', 'a title past V8', () => `railroad-peg-beta\ntitle ${'"'.repeat(90000000)}\nr <- "a" ;\n`, RAISED),
   lazy('venn', 'a title past V8', () => `venn-beta\ntitle ${'"'.repeat(90000000)}\nset A\n`, RAISED),
   lazy('xychart', 'a title past V8', () => `xychart\ntitle "${'&'.repeat(110000000)}"\nbar [1]\n`, RAISED),
+  lazy('ishikawa', 'a front matter title past V8', () => `---\ntitle: x${'"'.repeat(90000000)}\n---\nishikawa-beta\nProblem\n  C\n`, RAISED),
 ];
 
 // A case whose source is built only when the check reaches it, as a getter in the source's place,
