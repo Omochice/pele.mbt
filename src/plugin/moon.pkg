@@ -1,5 +1,6 @@
 import {
   "Omochice/pele/core",
+  "Omochice/pele/diagrams/agentflow",
   "Omochice/pele/diagrams/architecture",
   "Omochice/pele/diagrams/block",
   "Omochice/pele/diagrams/c4",
