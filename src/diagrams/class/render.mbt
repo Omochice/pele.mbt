@@ -127,7 +127,7 @@ pub fn render_class(
   db : ClassDb,
   config : @types.Config,
   options : @types.RenderOptions,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   let fitted = (down : Bool) => {
     @common.tighten(options, tight => draw(db, config, options, down, tight))
   }
@@ -147,7 +147,7 @@ fn draw(
   options : @types.RenderOptions,
   turned : Bool,
   tight : Bool,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   let conf : Map[String, Json] = match config.get("class") {
     Some(Object(section)) => section
     _ => {}
@@ -842,9 +842,9 @@ fn draw(
     }
   }
   let num = @svg.num
-  let clusters = StringBuilder()
-  let struck_titles = StringBuilder()
-  let nodes_out = StringBuilder()
+  let clusters = @svg.Markup::new()
+  let struck_titles = @svg.Markup::new()
+  let nodes_out = @svg.Markup::new()
   for i, view in views {
     let c = cnodes[i]
     let node = view.node
@@ -864,7 +864,7 @@ fn draw(
       let struck = c.is_group &&
         @svg.title_crossed(c, view.label.width, title_x, crossings)
       if struck {
-        struck_titles.write_string(
+        struck_titles.write(
           @svg.struck_title(
             view.label,
             title_x + ox,
@@ -876,7 +876,7 @@ fn draw(
           ),
         )
       }
-      clusters.write_string(
+      clusters.write(
         "<g class=\"pele-cluster pele-namespace\" data-id=\"\{id}\">" +
         "<rect x=\"\{num(x - w / 2)}\" y=\"\{num(y - h / 2)}\" width=\"\{num(w)}\" height=\"\{num(h)}\" fill=\"var(--_a)\" fill-opacity=\"0.5\" stroke=\"var(--_b)\"\{@svg.ROUNDED}/>" +
         (if struck {
@@ -890,13 +890,13 @@ fn draw(
     }
     let at = " transform=\"translate(\{num(x)},\{num(y)})\""
     if node.class_node is Some(cls) {
-      nodes_out.write_string(
+      nodes_out.write(
         class_svg(view, cls, id, at, size, tiny, tiny_height, links, options),
       )
     } else if node.shape is NoteBox {
       let r = w / 2
       let t = -h / 2
-      nodes_out.write_string(
+      nodes_out.write(
         "<g class=\"pele-node pele-note\" data-id=\"\{id}\"\{at}>" +
         "<path d=\"M\{num(-r)},\{num(t)}H\{num(r - FOLD)}L\{num(r)},\{num(t + FOLD)}V\{num(-t)}H\{num(-r)}Z\" fill=\"var(--_a)\" stroke=\"var(--_b)\" stroke-linejoin=\"round\"/>" +
         "<path d=\"M\{num(r - FOLD)},\{num(t)}V\{num(t + FOLD)}H\{num(r)}\" fill=\"none\" stroke=\"var(--_b)\" stroke-linejoin=\"round\"/>" +
@@ -910,7 +910,7 @@ fn draw(
         "</g>",
       )
     } else {
-      nodes_out.write_string(
+      nodes_out.write(
         "<g class=\"pele-node pele-interface\" data-id=\"\{id}\"\{at}>" +
         @svg.label_svg(
           view.label,
@@ -923,8 +923,8 @@ fn draw(
       )
     }
   }
-  let edges_out = StringBuilder()
-  let labels_out = StringBuilder()
+  let edges_out = @svg.Markup::new()
+  let labels_out = @svg.Markup::new()
   for i, ce in cedges {
     let edge = drawn[i]
     let label = edge_labels[i]
@@ -971,7 +971,7 @@ fn draw(
     } else {
       " pele-relation"
     }
-    edges_out.write_string(
+    edges_out.write(
       "<g class=\"pele-edge\{kind}\" data-id=\"\{@svg.esc_text(edge.id)}\">" +
       "<path d=\"\{path.d}\"\{attrs}/>" +
       class_marker(start_type, path.sx, path.sy, path.sdx, path.sdy, LINE_COLOR) +
@@ -979,7 +979,7 @@ fn draw(
       "</g>",
     )
     if label.width > 0 {
-      labels_out.write_string(
+      labels_out.write(
         @svg.edge_label_svg(
           edge.id,
           label,
@@ -991,9 +991,9 @@ fn draw(
       )
     }
   }
-  let cards_out = StringBuilder()
+  let cards_out = @svg.Markup::new()
   for item in cards {
-    cards_out.write_string(
+    cards_out.write(
       match item.math {
         Some(math) =>
           @svg.label_svg(
@@ -1008,44 +1008,47 @@ fn draw(
       },
     )
   }
-  let content = StringBuilder()
-  let clusters_svg = clusters.to_string()
-  if clusters_svg != "" {
-    content.write_string("<g class=\"pele-clusters\">\{clusters_svg}</g>")
+  let content = @svg.Markup::new()
+  if !clusters.is_empty() {
+    content.write_group("<g class=\"pele-clusters\">", clusters, "</g>")
   }
-  let edges_svg = edges_out.to_string()
-  if edges_svg != "" {
-    content.write_string(
-      "<g class=\"pele-edges\" fill=\"none\" stroke=\"\{LINE_COLOR}\" stroke-linecap=\"round\">\{edges_svg}</g>",
+  if !edges_out.is_empty() {
+    content.write_group(
+      "<g class=\"pele-edges\" fill=\"none\" stroke=\"\{LINE_COLOR}\" stroke-linecap=\"round\">",
+      edges_out,
+      "</g>",
     )
   }
-  let struck_svg = struck_titles.to_string()
-  if struck_svg != "" {
-    content.write_string("<g class=\"pele-cluster-titles\">\{struck_svg}</g>")
-  }
-  let labels_svg = labels_out.to_string()
-  if labels_svg != "" {
-    content.write_string(
-      "<g class=\"pele-edge-labels\" font-size=\"\{small}\">\{labels_svg}</g>",
+  if !struck_titles.is_empty() {
+    content.write_group(
+      "<g class=\"pele-cluster-titles\">", struck_titles, "</g>",
     )
   }
-  let cards_svg = cards_out.to_string()
-  if cards_svg != "" {
-    content.write_string(
-      "<g class=\"pele-cardinalities\" font-size=\"\{tiny}\" fill=\"var(--_m)\">\{cards_svg}</g>",
+  if !labels_out.is_empty() {
+    content.write_group(
+      "<g class=\"pele-edge-labels\" font-size=\"\{small}\">",
+      labels_out,
+      "</g>",
     )
   }
-  content.write_string("<g class=\"pele-nodes\">\{nodes_out.to_string()}</g>")
-  let titled = @svg.with_title(
+  if !cards_out.is_empty() {
+    content.write_group(
+      "<g class=\"pele-cardinalities\" font-size=\"\{tiny}\" fill=\"var(--_m)\">",
+      cards_out,
+      "</g>",
+    )
+  }
+  content.write_group("<g class=\"pele-nodes\">", nodes_out, "</g>")
+  let titled = @svg.with_title_markup(
     db.title,
     measurer,
     size,
     pad,
     width,
     height,
-    content.to_string(),
+    content,
   )
-  let svg = @svg.svg_document(
+  let svg = @svg.markup_document(
     "class",
     titled.width,
     titled.height,

@@ -17,7 +17,7 @@ pub fn class_marker_trim(String) -> Double
 
 pub fn parse_class(String, ClassDb) -> Unit raise @errors.PeleError
 
-pub fn render_class(ClassDb, Map[String, Json], @types.RenderOptions) -> @types.Rendered
+pub fn render_class(ClassDb, Map[String, Json], @types.RenderOptions) -> @types.Rendered raise @errors.PeleError
 
 pub fn tokenize(String) -> Tokens
 

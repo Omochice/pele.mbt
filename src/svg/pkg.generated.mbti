@@ -93,6 +93,8 @@ pub fn title_label(String?, @text.TextMeasurer, Double, Double) -> @text.Label
 
 pub fn with_title(String?, @text.TextMeasurer, Double, Double, Double, Double, String) -> Titled
 
+pub fn with_title_markup(String?, @text.TextMeasurer, Double, Double, Double, Double, Markup) -> TitledMarkup raise @errors.PeleError
+
 // Errors
 
 // Types and methods
@@ -150,6 +152,12 @@ pub(all) struct Titled {
   width : Double
   height : Double
   content : String
+}
+
+pub(all) struct TitledMarkup {
+  width : Double
+  height : Double
+  content : Markup
 }
 
 // Type aliases
