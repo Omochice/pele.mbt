@@ -284,7 +284,8 @@ fn half(
 }
 
 ///|
-/// Draws the head whose tip is at (`x`, `y`) and points along `dir`. `up` is the side a half head sits on.
+/// Draws the head whose tip is at (`x`, `y`) and points along `dir`.
+/// `up` is the side a half head sits on.
 fn head(
   kind : Head,
   x : Double,
@@ -374,7 +375,8 @@ fn draw(
       infinity
     },
   )
-  // Mermaid's default of 35 corresponds to pele's default gap. Other values move it by the difference.
+  // Mermaid's default of 35 corresponds to pele's default gap.
+  // Other values move it by the difference.
   let msg_gap = @util.js_max(4, 14 + option(conf, "messageMargin", 35) - 35)
   let note_pad = @util.js_min(
     option(conf, "noteMargin", 10),
@@ -492,7 +494,8 @@ fn draw(
   let last = cols.length() - 1
   let col_count = cols.length()
 
-  // Widths between lifelines. Every message and note says how far apart the lifelines it touches must be.
+  // Widths between lifelines.
+  // Every message and note says how far apart the lifelines it touches must be.
   let needs : Map[Int32, Double] = Map([])
   let need = (lo : Int32, hi : Int32, width : Double) => {
     if lo < 0 || hi > last {

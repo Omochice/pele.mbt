@@ -308,7 +308,8 @@ fn SeqDb::add_signal(
   activate~ : Bool = false,
   central_connection? : Int32,
 ) -> Unit raise @errors.PeleError {
-  // Mermaid recounts every earlier message here. A running count per participant says the same.
+  // Mermaid recounts every earlier message here.
+  // A running count per participant says the same.
   if kind == ACTIVE_END {
     let count = match from {
       Some(from) if from != "" => self.active.get(from).unwrap_or(0)
@@ -465,7 +466,8 @@ fn SeqDb::add_properties(
 }
 
 ///|
-/// Mermaid reads the properties and links from a page element with this id. pele keeps the id.
+/// Mermaid reads the properties and links from a page element with this id.
+/// pele keeps the id.
 fn SeqDb::add_details(self : SeqDb, actor_id : String, text : SeqText) -> Unit {
   if self.actors.get(actor_id) is Some(actor) {
     actor.details = Some(text.text)

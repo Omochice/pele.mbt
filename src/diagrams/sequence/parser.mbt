@@ -80,6 +80,8 @@ pub fn parse_sequence(src : String, db : SeqDb) -> Unit raise @errors.PeleError 
     )
   }
 
+  // Tokens are told apart by their grammar names.
+  // Only `Error` and `Invalid` share one, and no rule expects either.
   fn expect(kind : Tok) -> String raise @errors.PeleError {
     if types[i].name() != kind.name() || types[i] is Error {
       raise fail("'\{kind.name()}'")
