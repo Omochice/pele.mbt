@@ -44,3 +44,65 @@ test "a commit id of tens of millions of entities fails as nested too deeply" {
     content="limit: Diagram is nested too deeply. gitGraph gitGraph",
   )
 }
+
+///|
+/// The outcome of rendering `source` with no limit on the source or the output, or the error it fails with.
+fn backtrack_outcome(source : String) -> String {
+  try {
+    @core.render([@git.git], source, {
+      ..@types.RenderOptions::default(),
+      limit: Some(1.0 / 0.0),
+      output_limit: Some(1.0 / 0.0),
+    })
+    |> ignore
+    "rendered"
+  } catch {
+    @errors.PeleError(failure) => {
+      let detail = if failure.code is Limit {
+        failure.message
+      } else {
+        "line \{failure.line}"
+      }
+      "\{failure.code.to_string()}: \{detail} \{failure.kind.unwrap_or("null")} \{failure.mermaid_type.unwrap_or("null")}"
+    }
+  }
+}
+
+///|
+#skip("slow: draws a commit id of four million characters")
+test "a double-quoted commit id fails as nested too deeply where pele's pattern runs out of V8's backtracking stack" {
+  inspect(
+    backtrack_outcome("gitGraph\ncommit id: \"\{"a".repeat(4194294)}\"\n"),
+    content="rendered",
+  )
+  inspect(
+    backtrack_outcome("gitGraph\ncommit id: \"\{"a".repeat(4194295)}\"\n"),
+    content="limit: Diagram is nested too deeply. gitGraph gitGraph",
+  )
+}
+
+///|
+#skip("slow: draws a commit id of four million characters")
+test "a single-quoted commit id runs one more character before V8's backtracking stack runs out" {
+  inspect(
+    backtrack_outcome("gitGraph\ncommit id: '\{"a".repeat(4194295)}'\n"),
+    content="rendered",
+  )
+  inspect(
+    backtrack_outcome("gitGraph\ncommit id: '\{"a".repeat(4194296)}'\n"),
+    content="limit: Diagram is nested too deeply. gitGraph gitGraph",
+  )
+}
+
+///|
+#skip("slow: lexes four million characters")
+test "an unclosed commit id counts every character to the end against V8's backtracking stack" {
+  inspect(
+    backtrack_outcome("gitGraph\ncommit id: \"\{"a".repeat(4194293)}\n"),
+    content="syntax: line 2 gitGraph gitGraph",
+  )
+  inspect(
+    backtrack_outcome("gitGraph\ncommit id: \"\{"a".repeat(4194294)}\n"),
+    content="limit: Diagram is nested too deeply. gitGraph gitGraph",
+  )
+}

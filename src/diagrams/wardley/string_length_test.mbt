@@ -69,3 +69,37 @@ test "a link label drawing a host icon in each of thousands of spans fails as ne
     content="limit: Diagram is nested too deeply. wardley wardley",
   )
 }
+
+///|
+/// The outcome of rendering `source` with no limit on the source or the output, or the error it fails with.
+fn backtrack_outcome(source : String) -> String {
+  try {
+    @core.render([@wardley.wardley], source, {
+      ..@types.RenderOptions::default(),
+      limit: Some(1.0 / 0.0),
+      output_limit: Some(1.0 / 0.0),
+    })
+    |> ignore
+    "rendered"
+  } catch {
+    @errors.PeleError(failure) =>
+      "\{failure.code.to_string()}: \{failure.message} \{failure.kind.unwrap_or("null")} \{failure.mermaid_type.unwrap_or("null")}"
+  }
+}
+
+///|
+#skip("slow: draws an anchor label of four million characters")
+test "an anchor label fails as nested too deeply where pele's pattern runs out of V8's backtracking stack" {
+  inspect(
+    backtrack_outcome(
+      "wardley-beta\nanchor \"\{"a".repeat(4194294)}\" [0.5, 0.5]\n",
+    ),
+    content="rendered",
+  )
+  inspect(
+    backtrack_outcome(
+      "wardley-beta\nanchor \"\{"a".repeat(4194295)}\" [0.5, 0.5]\n",
+    ),
+    content="limit: Diagram is nested too deeply. wardley wardley",
+  )
+}

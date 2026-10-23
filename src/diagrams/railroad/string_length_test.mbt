@@ -56,3 +56,66 @@ test "a special sequence of over a hundred million entities fails as nested too 
     content="limit: Diagram is nested too deeply. railroad railroadEbnf",
   )
 }
+
+///|
+/// The outcome of rendering `source` with no limit on the source or the output, or the error it fails with.
+fn backtrack_outcome(source : String) -> String {
+  try {
+    @core.render([@railroad.railroad], source, {
+      ..@types.RenderOptions::default(),
+      limit: Some(1.0 / 0.0),
+      output_limit: Some(1.0 / 0.0),
+    })
+    |> ignore
+    "rendered"
+  } catch {
+    @errors.PeleError(failure) =>
+      "\{failure.code.to_string()}: \{failure.message} \{failure.kind.unwrap_or("null")} \{failure.mermaid_type.unwrap_or("null")}"
+  }
+}
+
+///|
+#skip("slow: draws a terminal of four million characters")
+test "a double-quoted terminal fails as nested too deeply where pele's pattern runs out of V8's backtracking stack" {
+  inspect(
+    backtrack_outcome("railroad-peg-beta\nr <- \"\{"a".repeat(4194294)}\" ;\n"),
+    content="rendered",
+  )
+  inspect(
+    backtrack_outcome("railroad-peg-beta\nr <- \"\{"a".repeat(4194295)}\" ;\n"),
+    content="limit: Diagram is nested too deeply. railroad railroadPeg",
+  )
+  inspect(
+    backtrack_outcome("railroad-ebnf-beta\nr = \"\{"a".repeat(4194294)}\" ;\n"),
+    content="rendered",
+  )
+  inspect(
+    backtrack_outcome("railroad-ebnf-beta\nr = \"\{"a".repeat(4194295)}\" ;\n"),
+    content="limit: Diagram is nested too deeply. railroad railroadEbnf",
+  )
+  inspect(
+    backtrack_outcome(
+      "railroad-beta\nr = terminal(\"\{"a".repeat(4194294)}\") ;\n",
+    ),
+    content="rendered",
+  )
+  inspect(
+    backtrack_outcome(
+      "railroad-beta\nr = terminal(\"\{"a".repeat(4194295)}\") ;\n",
+    ),
+    content="limit: Diagram is nested too deeply. railroad railroad",
+  )
+}
+
+///|
+#skip("slow: draws a terminal of four million characters")
+test "a single-quoted terminal runs one more character before V8's backtracking stack runs out" {
+  inspect(
+    backtrack_outcome("railroad-peg-beta\nr <- '\{"a".repeat(4194295)}' ;\n"),
+    content="rendered",
+  )
+  inspect(
+    backtrack_outcome("railroad-peg-beta\nr <- '\{"a".repeat(4194296)}' ;\n"),
+    content="limit: Diagram is nested too deeply. railroad railroadPeg",
+  )
+}

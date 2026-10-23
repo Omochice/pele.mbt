@@ -51,3 +51,39 @@ test "a service label drawing a host icon in each of thousands of spans fails as
     content="limit: Diagram is nested too deeply. architecture architecture",
   )
 }
+
+///|
+/// The outcome of rendering `source` with no limit on the source or the output, or the error it fails with.
+fn backtrack_outcome(source : String) -> String {
+  try {
+    @core.render([@architecture.architecture], source, {
+      ..@types.RenderOptions::default(),
+      limit: Some(1.0 / 0.0),
+      output_limit: Some(1.0 / 0.0),
+    })
+    |> ignore
+    "rendered"
+  } catch {
+    @errors.PeleError(failure) => {
+      let detail = if failure.code is Limit {
+        failure.message
+      } else {
+        "line \{failure.line}"
+      }
+      "\{failure.code.to_string()}: \{detail} \{failure.kind.unwrap_or("null")} \{failure.mermaid_type.unwrap_or("null")}"
+    }
+  }
+}
+
+///|
+#skip("slow: lexes a string of four million characters")
+test "a string the grammar has no place for fails as nested too deeply where pele's pattern runs out of V8's backtracking stack" {
+  inspect(
+    backtrack_outcome("architecture-beta\n\"\{"a".repeat(4194294)}\"\n"),
+    content="syntax: line 2 architecture architecture",
+  )
+  inspect(
+    backtrack_outcome("architecture-beta\n\"\{"a".repeat(4194295)}\"\n"),
+    content="limit: Diagram is nested too deeply. architecture architecture",
+  )
+}

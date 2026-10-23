@@ -221,6 +221,37 @@ export const CASES = [
   lazy('git', 'a branch named by 140M a, drawn into a block of 512 MiB or more', () => `gitGraph\ncommit\nbranch ${'a'.repeat(140000000)}\ncommit\n`, RAISED),
   // The source alone needs such a block once it is decoded, before anything is drawn.
   lazy('git', 'a branch named by 270M a, read into a block of 512 MiB or more', () => `gitGraph\ncommit\nbranch ${'a'.repeat(270000000)}\ncommit\n`, RAISED),
+  // pele's pattern for a quoted string, `"([^"\\]|\\.)*"|'([^'\\]|\\.)*'`, takes four slots of V8's
+  // backtracking stack for each character or escape pair, and V8 throws once the stack holds more
+  // than 64 MiB: past 4194294 of them in a closed double-quoted string, one more in any other.
+  lazy('git', 'a double-quoted commit id just short of V8\'s backtracking stack', () => `gitGraph\ncommit id: "${'a'.repeat(4194294)}"\n`, RAISED),
+  lazy('git', 'a double-quoted commit id at V8\'s backtracking stack', () => `gitGraph\ncommit id: "${'a'.repeat(4194295)}"\n`, RAISED),
+  lazy('git', 'a single-quoted commit id just short of V8\'s backtracking stack', () => `gitGraph\ncommit id: '${'a'.repeat(4194295)}'\n`, RAISED),
+  lazy('git', 'a single-quoted commit id at V8\'s backtracking stack', () => `gitGraph\ncommit id: '${'a'.repeat(4194296)}'\n`, RAISED),
+  // An unclosed string runs to the end of the text, through the line break pele adds.
+  lazy('git', 'an unclosed commit id just short of V8\'s backtracking stack', () => `gitGraph\ncommit id: "${'a'.repeat(4194293)}\n`, RAISED),
+  lazy('git', 'an unclosed commit id at V8\'s backtracking stack', () => `gitGraph\ncommit id: "${'a'.repeat(4194294)}\n`, RAISED),
+  lazy('pie', 'an entry name just short of V8\'s backtracking stack', () => `pie\n"${'a'.repeat(4194294)}": 1\n`, RAISED),
+  lazy('pie', 'an entry name at V8\'s backtracking stack', () => `pie\n"${'a'.repeat(4194295)}": 1\n`, RAISED),
+  lazy('packet', 'a field label just short of V8\'s backtracking stack', () => `packet\n0-31: "${'a'.repeat(4194294)}"\n`, RAISED),
+  lazy('packet', 'a field label at V8\'s backtracking stack', () => `packet\n0-31: "${'a'.repeat(4194295)}"\n`, RAISED),
+  lazy('radar', 'an axis label just short of V8\'s backtracking stack', () => `radar-beta\naxis a["${'a'.repeat(4194294)}"]\n`, RAISED),
+  lazy('radar', 'an axis label at V8\'s backtracking stack', () => `radar-beta\naxis a["${'a'.repeat(4194295)}"]\n`, RAISED),
+  lazy('wardley', 'an anchor label just short of V8\'s backtracking stack', () => `wardley-beta\nanchor "${'a'.repeat(4194294)}" [0.5, 0.5]\n`, RAISED),
+  lazy('wardley', 'an anchor label at V8\'s backtracking stack', () => `wardley-beta\nanchor "${'a'.repeat(4194295)}" [0.5, 0.5]\n`, RAISED),
+  lazy('cynefin', 'an item just short of V8\'s backtracking stack', () => `cynefin-beta\ncomplex\n  "${'a'.repeat(4194294)}"\n`, RAISED),
+  lazy('cynefin', 'an item at V8\'s backtracking stack', () => `cynefin-beta\ncomplex\n  "${'a'.repeat(4194295)}"\n`, RAISED),
+  // The grammar has no place for a string, so pele lexes it and then fails to parse it.
+  lazy('architecture', 'a misplaced string just short of V8\'s backtracking stack', () => `architecture-beta\n"${'a'.repeat(4194294)}"\n`, RAISED),
+  lazy('architecture', 'a misplaced string at V8\'s backtracking stack', () => `architecture-beta\n"${'a'.repeat(4194295)}"\n`, RAISED),
+  lazy('railroad', 'a PEG terminal just short of V8\'s backtracking stack', () => `railroad-peg-beta\nr <- "${'a'.repeat(4194294)}" ;\n`, RAISED),
+  lazy('railroad', 'a PEG terminal at V8\'s backtracking stack', () => `railroad-peg-beta\nr <- "${'a'.repeat(4194295)}" ;\n`, RAISED),
+  lazy('railroad', 'a single-quoted PEG terminal just short of V8\'s backtracking stack', () => `railroad-peg-beta\nr <- '${'a'.repeat(4194295)}' ;\n`, RAISED),
+  lazy('railroad', 'a single-quoted PEG terminal at V8\'s backtracking stack', () => `railroad-peg-beta\nr <- '${'a'.repeat(4194296)}' ;\n`, RAISED),
+  lazy('railroad', 'an EBNF terminal just short of V8\'s backtracking stack', () => `railroad-ebnf-beta\nr = "${'a'.repeat(4194294)}" ;\n`, RAISED),
+  lazy('railroad', 'an EBNF terminal at V8\'s backtracking stack', () => `railroad-ebnf-beta\nr = "${'a'.repeat(4194295)}" ;\n`, RAISED),
+  lazy('railroad', 'a terminal just short of V8\'s backtracking stack', () => `railroad-beta\nr = terminal("${'a'.repeat(4194294)}") ;\n`, RAISED),
+  lazy('railroad', 'a terminal at V8\'s backtracking stack', () => `railroad-beta\nr = terminal("${'a'.repeat(4194295)}") ;\n`, RAISED),
 ];
 
 // A case whose source is built only when the check reaches it, as a getter in the source's place,

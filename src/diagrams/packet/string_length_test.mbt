@@ -38,3 +38,33 @@ test "a field of tens of millions of entities drawn down fails as nested too dee
   }
   inspect(failure, content="limit: Diagram is nested too deeply. packet packet")
 }
+
+///|
+/// The outcome of rendering `source` with no limit on the source or the output, or the error it fails with.
+fn backtrack_outcome(source : String) -> String {
+  try {
+    @core.render([@packet.packet], source, {
+      ..@types.RenderOptions::default(),
+      limit: Some(1.0 / 0.0),
+      output_limit: Some(1.0 / 0.0),
+    })
+    |> ignore
+    "rendered"
+  } catch {
+    @errors.PeleError(failure) =>
+      "\{failure.code.to_string()}: \{failure.message} \{failure.kind.unwrap_or("null")} \{failure.mermaid_type.unwrap_or("null")}"
+  }
+}
+
+///|
+#skip("slow: lexes a field of four million characters")
+test "a field label fails as nested too deeply where pele's pattern runs out of V8's backtracking stack" {
+  inspect(
+    backtrack_outcome("packet\n0-31: \"\{"a".repeat(4194294)}\"\n"),
+    content="rendered",
+  )
+  inspect(
+    backtrack_outcome("packet\n0-31: \"\{"a".repeat(4194295)}\"\n"),
+    content="limit: Diagram is nested too deeply. packet packet",
+  )
+}

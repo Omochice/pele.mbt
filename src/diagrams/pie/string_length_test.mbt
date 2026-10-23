@@ -67,3 +67,33 @@ test "an entry named by tens of millions of entities fails as nested too deeply"
     content="limit: Diagram is nested too deeply. pie pie",
   )
 }
+
+///|
+/// The outcome of rendering `source` with no limit on the source or the output, or the error it fails with.
+fn backtrack_outcome(source : String) -> String {
+  try {
+    @core.render([@pie.pie], source, {
+      ..@types.RenderOptions::default(),
+      limit: Some(1.0 / 0.0),
+      output_limit: Some(1.0 / 0.0),
+    })
+    |> ignore
+    "rendered"
+  } catch {
+    @errors.PeleError(failure) =>
+      "\{failure.code.to_string()}: \{failure.message} \{failure.kind.unwrap_or("null")} \{failure.mermaid_type.unwrap_or("null")}"
+  }
+}
+
+///|
+#skip("slow: draws an entry of four million characters")
+test "an entry name fails as nested too deeply where pele's pattern runs out of V8's backtracking stack" {
+  inspect(
+    backtrack_outcome("pie\n\"\{"a".repeat(4194294)}\": 1\n"),
+    content="rendered",
+  )
+  inspect(
+    backtrack_outcome("pie\n\"\{"a".repeat(4194295)}\": 1\n"),
+    content="limit: Diagram is nested too deeply. pie pie",
+  )
+}
