@@ -22,6 +22,32 @@ fn written_length(label : @text.Label) -> String {
 }
 
 ///|
+fn document_of(content : @svg.Markup) -> String raise @errors.PeleError {
+  @svg.markup_document(
+    "pie",
+    10,
+    20,
+    16,
+    @types.RenderOptions::default(),
+    None,
+    None,
+    content,
+  )
+}
+
+///|
+test "text escaped in pieces is written as it is escaped whole, with the aliases it names" {
+  let text = "&".repeat(1048572) + "var(--_w)" + "<\u{1}\"".repeat(400000)
+  let whole = @svg.Markup::new()
+  whole.write(@svg.esc(text))
+  let pieces = @svg.Markup::new()
+  @svg.write_esc(pieces, text)
+  let document = document_of(pieces)
+  inspect(document == document_of(whole), content="true")
+  inspect(document.contains("--_w:"), content="true")
+}
+
+///|
 #skip("slow: escapes 55 million characters")
 test "a label escaped past what a doubling StringBuilder holds is written" {
   inspect(written_length(ampersand_label(55000000, "")), content="275000048")
