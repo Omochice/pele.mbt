@@ -120,6 +120,7 @@ pub fn Markup::length(Self) -> Int32
 pub fn Markup::new() -> Self
 pub fn Markup::to_string(Self) -> String
 pub fn Markup::write(Self, String) -> Unit raise @errors.PeleError
+pub fn Markup::write_group(Self, String, Self, String) -> Unit raise @errors.PeleError
 pub fn Markup::write_markup(Self, Self) -> Unit raise @errors.PeleError
 
 pub(all) struct ResolvedStyle {

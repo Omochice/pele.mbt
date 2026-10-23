@@ -604,33 +604,28 @@ fn draw(
       " class=\"pele-title\" font-weight=\"var(--_tw)\"",
     ),
   )
-  fn group(
-    start : String,
-    section : @svg.Markup,
-  ) -> Unit raise @errors.PeleError {
-    content.write(start)
-    content.write_markup(section)
-    content.write("</g>")
-  }
   if !clusters.is_empty() {
-    group("<g class=\"pele-clusters\">", clusters)
+    content.write_group("<g class=\"pele-clusters\">", clusters, "</g>")
   }
   if !edges_out.is_empty() {
-    group(
+    content.write_group(
       "<g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\">",
-      edges_out,
+      edges_out, "</g>",
     )
   }
   if !struck_titles.is_empty() {
-    group("<g class=\"pele-cluster-titles\">", struck_titles)
-  }
-  if !labels_out.is_empty() {
-    group(
-      "<g class=\"pele-edge-labels\" font-size=\"\{edge_size}\">",
-      labels_out,
+    content.write_group(
+      "<g class=\"pele-cluster-titles\">", struck_titles, "</g>",
     )
   }
-  group("<g class=\"pele-nodes\">", nodes_out)
+  if !labels_out.is_empty() {
+    content.write_group(
+      "<g class=\"pele-edge-labels\" font-size=\"\{edge_size}\">",
+      labels_out,
+      "</g>",
+    )
+  }
+  content.write_group("<g class=\"pele-nodes\">", nodes_out, "</g>")
   let svg = @svg.markup_document(
     match variant {
       Some(variant) => variant.kind

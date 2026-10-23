@@ -117,6 +117,20 @@ pub fn Markup::write_markup(
 }
 
 ///|
+/// Appends `section` between `start` and `end`, as a group of markup is written.
+/// Raises pele's `limit` error when the markup would be longer than V8 allows.
+pub fn Markup::write_group(
+  self : Markup,
+  start : String,
+  section : Markup,
+  end : String,
+) -> Unit raise @errors.PeleError {
+  self.write(start)
+  self.write_markup(section)
+  self.write(end)
+}
+
+///|
 fn Markup::write_to(self : Markup, out : StringBuilder) -> Unit {
   for piece in self.pieces {
     out.write_string(piece)
