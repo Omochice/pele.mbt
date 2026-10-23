@@ -32,8 +32,7 @@ fn answer(source_len : Int32, options_len : Int32) -> Int32 {
   write_args(bytes_addr(args))
   let source = @utf8.decode_lossy(args[0:source_len])
   let options = @utf8.decode_lossy(args[source_len:source_len + options_len])
-  let (status, body) = respond(source, options)
-  let out = @utf8.encode(body.stringify())
+  let (status, out) = encode(reply(source, options))
   sent.val = out
   send_result(bytes_addr(out), out.length())
   status

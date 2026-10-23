@@ -1,5 +1,14 @@
 ///|
-fn respond(source : String, options : String) -> (Int32, Json) {
+/// What the plugin answers, before it is written as JSON.
+priv enum Reply {
+  /// A drawing, whose SVG is rewritten for typst under the theme, when there is one, as it is written.
+  Drawn(@types.RenderResult, Map[String, String]?)
+  /// A failure, as the JSON object that reports it.
+  Failed(Json)
+}
+
+///|
+fn reply(source : String, options : String) -> Reply {
   try {
     let options = @util.parse_json(options)
     let result = @core.render(
@@ -16,19 +25,31 @@ fn respond(source : String, options : String) -> (Int32, Json) {
       source,
       decode_options(options),
     )
-    let svg = match decode_theme(options) {
-      Some(theme) => {
-        let out = StringBuilder()
-        @typst.write_drawable(result.svg, theme, out)
-        out.to_string()
-      }
-      None => result.svg
-    }
-    (0, success({ ..result, svg, }))
+    Drawn(result, decode_theme(options))
   } catch {
-    @errors.PeleError(failure) => (1, pele_failure(failure))
-    @util.JsonError(message, _) => (1, foreign_failure("SyntaxError", message))
-    error => (1, foreign_failure("TypeError", error.to_string()))
+    @errors.PeleError(failure) => Failed(pele_failure(failure))
+    @util.JsonError(message, _) =>
+      Failed(foreign_failure("SyntaxError", message))
+    error => Failed(foreign_failure("TypeError", error.to_string()))
+  }
+}
+
+///|
+/// The reply as UTF-8 JSON, with the status the plugin returns: 0 for a drawing and 1 for a failure.
+fn encode(reply : Reply) -> (Int32, Bytes) {
+  match reply {
+    Drawn(result, theme) => {
+      let svg = match theme {
+        Some(theme) => {
+          let out = StringBuilder()
+          @typst.write_drawable(result.svg, theme, out)
+          out.to_string()
+        }
+        None => result.svg
+      }
+      (0, @utf8.encode(success({ ..result, svg, }).stringify()))
+    }
+    Failed(json) => (1, @utf8.encode(json.stringify()))
   }
 }
 
