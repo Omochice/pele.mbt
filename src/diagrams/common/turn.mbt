@@ -6,8 +6,8 @@ const BREAKPOINT : Double = 640
 /// the width it has is under the breakpoint, across does not fit, and down is narrower.
 pub fn turn_to_fit(
   options : @types.RenderOptions,
-  draw : (Bool) -> @types.Rendered,
-) -> @types.Rendered {
+  draw : (Bool) -> @types.Rendered raise?,
+) -> @types.Rendered raise? {
   let across = draw(false)
   guard options.auto_direction != Some(false) &&
     options.max_width is Some(available) &&

@@ -105,6 +105,6 @@ pub fn render_swimlane(
   db : @flowchart.FlowDb,
   config : @types.Config,
   options : @types.RenderOptions,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   @flowchart.render_flowchart(db, config, options, variant~)
 }

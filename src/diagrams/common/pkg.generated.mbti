@@ -98,7 +98,7 @@ pub fn tokenize(String, ArrayView[TokenType], String) -> Tokens raise @errors.Pe
 
 pub fn tokenize_outline(String, Bool) -> OutlineTokens
 
-pub fn turn_to_fit(@types.RenderOptions, (Bool) -> @types.Rendered) -> @types.Rendered
+pub fn turn_to_fit(@types.RenderOptions, (Bool) -> @types.Rendered raise?) -> @types.Rendered raise?
 
 pub let whitespace : TokenType
 

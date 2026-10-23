@@ -77,7 +77,7 @@ pub fn render_flowchart(
   config : @types.Config,
   options : @types.RenderOptions,
   variant? : FlowVariant,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   let fitted = (down : Bool) => {
     @common.tighten(options, tight => {
       draw(db, config, options, variant, down, tight)
@@ -119,7 +119,7 @@ fn draw(
   variant : FlowVariant?,
   turned : Bool,
   tight : Bool,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   let group_pad = if tight { 12.0 } else { GROUP_PAD }
   let flow = match variant {
     Some(variant) =>
@@ -352,9 +352,9 @@ fn draw(
       @svg.mark_crossings(crossings, e.route)
     }
   }
-  let clusters = StringBuilder()
-  let struck_titles = StringBuilder()
-  let nodes_out = StringBuilder()
+  let clusters = @svg.Markup::new()
+  let struck_titles = @svg.Markup::new()
+  let nodes_out = @svg.Markup::new()
   for i, view in views {
     let c = cnodes[i]
     let node = view.node
@@ -363,7 +363,7 @@ fn draw(
     if c.is_group &&
       c.parent < 0 &&
       variant is Some({ draw_group: Some(draw_group), .. }) {
-      clusters.write_string(
+      clusters.write(
         draw_group(
           c,
           view.label,
@@ -387,7 +387,7 @@ fn draw(
       let title_attrs = " class=\"pele-cluster-label\" fill=\"var(--_m)\"\{view.style.text}"
       let struck = @svg.title_crossed(c, view.label.width, title_x, crossings)
       if struck {
-        struck_titles.write_string(
+        struck_titles.write(
           @svg.struck_title(
             view.label,
             title_x,
@@ -400,14 +400,12 @@ fn draw(
           ),
         )
       }
-      clusters.write_string(
-        "<g class=\"pele-cluster\{classes}\" data-id=\"\{id}\">",
-      )
-      clusters.write_string(
+      clusters.write("<g class=\"pele-cluster\{classes}\" data-id=\"\{id}\">")
+      clusters.write(
         "<rect x=\"\{@svg.num(c.x - c.w / 2)}\" y=\"\{@svg.num(c.y - c.h / 2)}\" width=\"\{@svg.num(c.w)}\" height=\"\{@svg.num(c.h)}\" fill=\"var(--_a)\" fill-opacity=\"0.5\" stroke=\"var(--_b)\"\{@svg.rounded(view.style.shape)}/>",
       )
       if !struck {
-        clusters.write_string(
+        clusters.write(
           @svg.label_svg(
             view.label,
             title_x,
@@ -417,7 +415,7 @@ fn draw(
           ),
         )
       }
-      clusters.write_string("</g>")
+      clusters.write("</g>")
       continue
     }
     let inner = if node.img is Some(img) && img != "" {
@@ -466,7 +464,7 @@ fn draw(
       }
       body = @url.linked(body, link, node.id, links, options, attrs~)
     }
-    nodes_out.write_string(
+    nodes_out.write(
       "<g class=\"pele-node pele-shape-\{view.shape}\{classes}\" data-id=\"\{id}\" transform=\"translate(\{@svg.num(c.x)},\{@svg.num(c.y)})\">\{body}</g>",
     )
   }
@@ -488,8 +486,8 @@ fn draw(
       drawn[i].arrow_type_end,
     )
   }
-  let edges_out = StringBuilder()
-  let labels_out = StringBuilder()
+  let edges_out = @svg.Markup::new()
+  let labels_out = @svg.Markup::new()
   let loop_seen : Map[Int32, Int32] = Map([])
   for i, ce in cedges {
     let edge = drawn[i]
@@ -568,24 +566,24 @@ fn draw(
         Some(style) => style.line
         None => ""
       }
-      edges_out.write_string(
+      edges_out.write(
         "<g class=\"pele-edge\{edge_classes(edge.classes)}\" data-id=\"\{@svg.esc_text(edge.id)}\"\{line}>",
       )
-      edges_out.write_string("<path d=\"\{path.d}\"\{attrs}/>")
-      edges_out.write_string(
+      edges_out.write("<path d=\"\{path.d}\"\{attrs}/>")
+      edges_out.write(
         @svg.marker(start_type, path.sx, path.sy, path.sdx, path.sdy, color),
       )
-      edges_out.write_string(
+      edges_out.write(
         @svg.marker(end_type, path.ex, path.ey, path.edx, path.edy, color),
       )
-      edges_out.write_string("</g>")
+      edges_out.write("</g>")
     }
     if label.width > 0 {
       let text = match style {
         Some(style) => style.text
         None => ""
       }
-      labels_out.write_string(
+      labels_out.write(
         @svg.edge_label_svg(
           edge.id,
           label,
@@ -597,8 +595,8 @@ fn draw(
       )
     }
   }
-  let content = StringBuilder()
-  content.write_string(
+  let content = @svg.Markup::new()
+  content.write(
     @svg.label_svg(
       title,
       width / 2,
@@ -606,28 +604,34 @@ fn draw(
       " class=\"pele-title\" font-weight=\"var(--_tw)\"",
     ),
   )
-  let clusters_svg = clusters.to_string()
-  if clusters_svg != "" {
-    content.write_string("<g class=\"pele-clusters\">\{clusters_svg}</g>")
+  fn group(
+    start : String,
+    section : @svg.Markup,
+  ) -> Unit raise @errors.PeleError {
+    content.write(start)
+    content.write_markup(section)
+    content.write("</g>")
   }
-  let edges_svg = edges_out.to_string()
-  if edges_svg != "" {
-    content.write_string(
-      "<g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\">\{edges_svg}</g>",
+  if !clusters.is_empty() {
+    group("<g class=\"pele-clusters\">", clusters)
+  }
+  if !edges_out.is_empty() {
+    group(
+      "<g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\">",
+      edges_out,
     )
   }
-  let struck_svg = struck_titles.to_string()
-  if struck_svg != "" {
-    content.write_string("<g class=\"pele-cluster-titles\">\{struck_svg}</g>")
+  if !struck_titles.is_empty() {
+    group("<g class=\"pele-cluster-titles\">", struck_titles)
   }
-  let labels_svg = labels_out.to_string()
-  if labels_svg != "" {
-    content.write_string(
-      "<g class=\"pele-edge-labels\" font-size=\"\{edge_size}\">\{labels_svg}</g>",
+  if !labels_out.is_empty() {
+    group(
+      "<g class=\"pele-edge-labels\" font-size=\"\{edge_size}\">",
+      labels_out,
     )
   }
-  content.write_string("<g class=\"pele-nodes\">\{nodes_out.to_string()}</g>")
-  let svg = @svg.svg_document(
+  group("<g class=\"pele-nodes\">", nodes_out)
+  let svg = @svg.markup_document(
     match variant {
       Some(variant) => variant.kind
       None => "flowchart"
@@ -638,7 +642,7 @@ fn draw(
     options,
     db.acc_title,
     db.acc_descr,
-    content.to_string(),
+    content,
   )
   { svg, width, height, links, }
 }

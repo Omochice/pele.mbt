@@ -1,4 +1,5 @@
 import {
+  "Omochice/pele/errors",
   "Omochice/pele/layout",
   "Omochice/pele/text",
   "Omochice/pele/types",
@@ -8,7 +9,9 @@ import {
 }
 
 import {
+  "Omochice/pele/errors",
   "Omochice/pele/layout",
   "Omochice/pele/text",
+  "Omochice/pele/types",
   "moonbitlang/core/double",
 } for "test"

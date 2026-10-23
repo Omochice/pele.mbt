@@ -10,7 +10,7 @@ import {
 // Values
 pub fn parse_swimlane(String, Map[String, Json], String?, @types.ParseLimits) -> @flowchart.FlowDb raise @errors.PeleError
 
-pub fn render_swimlane(@flowchart.FlowDb, Map[String, Json], @types.RenderOptions) -> @types.Rendered
+pub fn render_swimlane(@flowchart.FlowDb, Map[String, Json], @types.RenderOptions) -> @types.Rendered raise @errors.PeleError
 
 pub let swimlane : @types.Diagram
 
