@@ -31,6 +31,8 @@ git submodule update --init vendor/pele
 node scripts/gen-golden.mjs
 ```
 
+`PELE_ROOT` names another built pele checkout to read instead of `vendor/pele`, for a git worktree whose submodule is not initialised.
+
 The script deletes everything in `golden/` except this README and then rewrites it.
 Corpus inputs are collected by a port of `loadCorpus` in `vendor/pele/tests/support/corpus.ts`, which takes string literals from `tests/compat/<diagram>/*.spec.{js,ts}` that match a per-diagram keyword and adds `tests/corpus/<diagram>-docs.json`.
 `tests/corpus/agentflow-reference.json` is not included because its entries are objects rather than plain source strings.

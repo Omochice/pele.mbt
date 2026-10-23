@@ -9,7 +9,8 @@ import { fileURLToPath } from 'node:url';
 process.env.TZ = 'UTC';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const peleRoot = join(root, 'vendor/pele');
+// A git worktree has no initialised submodule of its own, so the checkout can be named instead.
+const peleRoot = process.env.PELE_ROOT ?? join(root, 'vendor/pele');
 const goldenDir = join(root, 'golden');
 const { render } = await import(join(peleRoot, 'dist/pele.js'));
 
