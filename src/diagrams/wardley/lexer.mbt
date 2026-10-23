@@ -1,4 +1,118 @@
 ///|
+const LBRACKET : Int32 = 0
+
+///|
+const COMMA : Int32 = 1
+
+///|
+const RBRACKET : Int32 = 2
+
+///|
+const AT : Int32 = 3
+
+///|
+const SLASH : Int32 = 4
+
+///|
+const LPAREN : Int32 = 5
+
+///|
+const RPAREN : Int32 = 6
+
+///|
+const MINUS : Int32 = 7
+
+///|
+const LBRACE : Int32 = 8
+
+///|
+const RBRACE : Int32 = 9
+
+///|
+const NUMBER : Int32 = 10
+
+///|
+const ARROW : Int32 = 11
+
+///|
+const LINK_PORT : Int32 = 12
+
+///|
+const LINK_ARROW : Int32 = 13
+
+///|
+const LINK_LABEL : Int32 = 14
+
+///|
+const STRATEGY : Int32 = 15
+
+///|
+const WARDLEY : Int32 = 16
+
+///|
+const SIZE : Int32 = 17
+
+///|
+const EVOLUTION : Int32 = 18
+
+///|
+const ANCHOR : Int32 = 19
+
+///|
+const COMPONENT : Int32 = 20
+
+///|
+const LABEL : Int32 = 21
+
+///|
+const INERTIA : Int32 = 22
+
+///|
+const EVOLVE : Int32 = 23
+
+///|
+const PIPELINE : Int32 = 24
+
+///|
+const NOTE : Int32 = 25
+
+///|
+const ANNOTATIONS : Int32 = 26
+
+///|
+const ANNOTATION : Int32 = 27
+
+///|
+const ACCELERATOR : Int32 = 28
+
+///|
+const DEACCELERATOR : Int32 = 29
+
+///|
+const NAME : Int32 = 30
+
+///|
+const ACC_DESCR : Int32 = 32
+
+///|
+const ACC_TITLE : Int32 = 33
+
+///|
+const TITLE : Int32 = 34
+
+///|
+const INT : Int32 = 35
+
+///|
+const STRING : Int32 = 36
+
+///|
+const ID : Int32 = 37
+
+///|
+const NEWLINE : Int32 = 38
+
+///|
 fn digits_end(src : String, from : Int32) -> Int32 {
   let mut i = from
   while @util.is_digit(@util.code_at(src, i)) {
@@ -211,7 +325,7 @@ fn one_of(
 const LETTERS : String = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
 ///|
-/// Mermaid's Wardley lexer, in its matching order.
+/// Mermaid's Wardley lexer, in its matching order, which the constants above index.
 pub let wardley_tokens : Array[@common.TokenType] = [
   @common.literal("[", "["),
   @common.literal(",", ","),
