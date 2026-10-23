@@ -149,4 +149,12 @@ export const CASES = [
     { ...RAISED, math: { x: { 14: { svg: `<path d="${'M0 0'.repeat(25000)}"/>`, width: 10, height: 10 } } } },
   ],
   ['architecture', 'host icons in one service label', `architecture-beta\nservice s(server)[${Array(5400).fill('fa:fa-x').join(' ')}]\n`, ICONS],
+  // Each icon span of a C4 label draws only an empty icon box, so one label needs millions of them.
+  ['c4', 'icon spans in one person label', `C4Context\nPerson(p, "${'fa:fa-a '.repeat(2200000)}")\n`, { ...RAISED, icons: { 'fa:fa-a': '<path d="M4,4H20"/>' } }],
+  [
+    'c4',
+    'icon spans in one boundary label',
+    `C4Context\nBoundary(b, "${'fa:fa-a '.repeat(2200000)}") {\n  Person(p, "x")\n}\n`,
+    { ...RAISED, icons: { 'fa:fa-a': '<path d="M4,4H20"/>' } },
+  ],
 ];
