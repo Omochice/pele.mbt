@@ -1,7 +1,13 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "Omochice/pele/diagrams/class"
 
+import {
+  "Omochice/pele/errors",
+}
+
 // Values
+pub fn parse_class(String, ClassDb) -> Unit raise @errors.PeleError
+
 pub fn tokenize(String) -> Tokens
 
 // Errors
