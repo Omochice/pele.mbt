@@ -3,6 +3,7 @@ package "Omochice/pele/diagrams/sequence"
 
 import {
   "Omochice/pele/errors",
+  "Omochice/pele/text",
 }
 
 // Values
@@ -114,7 +115,15 @@ pub const STICK_TOP : Int32 = 43
 
 pub const STICK_TOP_DOTTED : Int32 = 53
 
+pub fn actor_kind(String) -> String
+
+pub fn actor_size(String, @text.Label, Double, Double, padding_x? : Double) -> ActorSize
+
+pub fn draw_actor(String, Double, Double, ActorSize, @text.Label) -> String
+
 pub fn is_css_color(String) -> Bool
+
+pub fn is_figure(String) -> Bool
 
 pub fn parse_sequence(String, SeqDb) -> Unit raise @errors.PeleError
 
@@ -123,6 +132,11 @@ pub fn tokenize(String) -> Tokens
 // Errors
 
 // Types and methods
+pub(all) struct ActorSize {
+  w : Double
+  h : Double
+}
+
 pub(all) struct SeqActor {
   mut box : SeqBox?
   name : String
