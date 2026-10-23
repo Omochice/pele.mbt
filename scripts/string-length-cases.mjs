@@ -436,6 +436,9 @@ export const CASES = [
   lazy('sankey', 'a node color of many &', () => `---\nconfig:\n  sankey:\n    nodeColors:\n      A: "${'&'.repeat(54000000)}"\n---\nsankey\n\nA,B,1\n`, RAISED),
   lazy('sankey', 'a link color of many &', () => `---\nconfig:\n  sankey:\n    linkColor: "${'&'.repeat(54000000)}"\n---\nsankey\n\nA,B,1\n`, RAISED),
   lazy('sankey', 'a link color past V8', () => `---\nconfig:\n  sankey:\n    linkColor: "${'&'.repeat(110000000)}"\n---\nsankey\n\nA,B,1\n`, RAISED),
+  // A node's icon is named in the data-icon of the host's drawing of it.
+  lazyWith('mindmap', 'one icon named by many &', () => `mindmap\nroot\n  A\n  ::icon(${'&'.repeat(54000000)})\n`, () => ({ ...RAISED, icons: { ['&'.repeat(54000000)]: '<path/>' } })),
+  lazyWith('mindmap', 'one icon named past V8', () => `mindmap\nroot\n  A\n  ::icon(${'&'.repeat(110000000)})\n`, () => ({ ...RAISED, icons: { ['&'.repeat(110000000)]: '<path/>' } })),
 ];
 
 // A case whose source is built only when the check reaches it, as a getter in the source's place,
