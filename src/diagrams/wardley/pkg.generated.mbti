@@ -12,7 +12,7 @@ pub fn build_wardley(WardleyAst, String?) -> WardleyModel raise @errors.PeleErro
 
 pub fn parse_wardley(String) -> WardleyAst raise @errors.PeleError
 
-pub fn render_wardley(WardleyModel, Map[String, Json], @types.RenderOptions) -> @types.Rendered
+pub fn render_wardley(WardleyModel, Map[String, Json], @types.RenderOptions) -> @types.Rendered raise @errors.PeleError
 
 pub let wardley : @types.Diagram
 

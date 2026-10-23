@@ -195,7 +195,7 @@ pub fn render_wardley(
   model : WardleyModel,
   config : @types.Config,
   options : @types.RenderOptions,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   let natural = dimension(config, model.size.map(s => s.0), "width", 900)
   @common.fit_width(options, natural, 160, (plot_w, tight) => {
     draw(model, config, options, plot_w, natural, tight)
@@ -210,7 +210,7 @@ fn draw(
   plot_w : Double,
   natural_w : Double,
   tight : Bool,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   let size = options.font_size.unwrap_or(16)
   let small = (size * 0.8125).round()
   let tiny = (size * 0.6875).round()
@@ -254,8 +254,8 @@ fn draw(
   let boundaries = model.stage_boundaries.unwrap_or([])
   let custom = model.stage_boundaries is Some(_) &&
     boundaries.length() == stages.length()
-  let frame = StringBuilder()
-  let stage_labels = StringBuilder()
+  let frame = @svg.Markup::new()
+  let stage_labels = @svg.Markup::new()
   let mut stage_bottom = plot_h
   let mut previous = 0.0
   let count = stages.length().to_double()
@@ -268,7 +268,7 @@ fn draw(
     }
     previous = end
     if index > 0 {
-      frame.write_string(
+      frame.write(
         "<path class=\"pele-wardley-stage\" d=\"M\{@svg.num(start * plot_w)},0V\{@svg.num(plot_h)}\" stroke=\"var(--_b)\" stroke-dasharray=\"4 4\"/>",
       )
     }
@@ -278,7 +278,7 @@ fn draw(
       small,
       @util.js_max(48, (end - start).abs() * plot_w - 12),
     )
-    stage_labels.write_string(
+    stage_labels.write(
       centered(
         label,
         (start + end) / 2 * plot_w,
@@ -291,12 +291,12 @@ fn draw(
   if show_grid {
     for i in 1..<4 {
       let at = i.to_double()
-      frame.write_string(
+      frame.write(
         "<path class=\"pele-wardley-grid\" d=\"M\{@svg.num(plot_w * at / 4)},0V\{@svg.num(plot_h)}M0,\{@svg.num(plot_h * at / 4)}H\{@svg.num(plot_w)}\" stroke=\"var(--_b)\" stroke-dasharray=\"2 6\"/>",
       )
     }
   }
-  frame.write_string(
+  frame.write(
     "<path class=\"pele-wardley-axis\" d=\"M0,0V\{@svg.num(plot_h)}H\{@svg.num(plot_w)}\" stroke=\"\{LINE}\"/>",
   )
   let x_title = layout(measurer, "Evolution", small, wrap)
@@ -322,7 +322,7 @@ fn draw(
   }
 
   // Pipelines: a box around the components, with the parent as a square on its top edge.
-  let pipelines = StringBuilder()
+  let pipelines = @svg.Markup::new()
   let members : Map[String, Set[String]] = Map([])
   for pipeline in model.pipelines {
     members.set(pipeline.node_id, Set::from_array(pipeline.component_ids))
@@ -345,7 +345,7 @@ fn draw(
     } else {
       ""
     }
-    pipelines.write_string(
+    pipelines.write(
       "<g class=\"pele-wardley-pipeline\" data-id=\"\{@svg.esc_text(pipeline.node_id)}\">" +
       "<rect x=\"\{@svg.num(left - PIPELINE_PAD)}\" y=\"\{@svg.num(top)}\" width=\"\{@svg.num(right - left + 2 * PIPELINE_PAD)}\" height=\"\{@svg.num(4 * R)}\" fill=\"var(--_s)\" stroke=\"var(--_b)\"\{@svg.ROUNDED}/>" +
       dashes +
@@ -407,7 +407,7 @@ fn draw(
     }
     taken.set(at.node.id, taken.get(at.node.id).unwrap_or(0) | quadrant)
   }
-  let links = StringBuilder()
+  let links = @svg.Markup::new()
   for link in model.links {
     guard positions.get(link.source) is Some(from) &&
       positions.get(link.target) is Some(to) &&
@@ -474,7 +474,7 @@ fn draw(
     } else {
       ""
     }
-    links.write_string(
+    links.write(
       "<g class=\"pele-edge\{dashed_class}\" data-id=\"\{@svg.esc_text(link.source)}-\{@svg.esc_text(link.target)}\">" +
       "<path d=\"M\{@svg.num(x1)},\{@svg.num(y1)}L\{@svg.num(x2)},\{@svg.num(y2)}\" stroke=\"\{LINE}\"\{dashed_stroke}/>" +
       heads.to_string() +
@@ -484,7 +484,7 @@ fn draw(
   }
 
   // Evolution: a dashed arrow to where the component is heading, drawn as an open circle.
-  let trends = StringBuilder()
+  let trends = @svg.Markup::new()
   for trend in model.trends {
     guard positions.get(trend.node_id) is Some(origin) else { continue }
     let tx = project_x(trend.target_x)
@@ -509,12 +509,12 @@ fn draw(
       ""
     }
     bounds.grow(tx - R, ty - R, tx + R, ty + R)
-    trends.write_string(
+    trends.write(
       "<g class=\"pele-wardley-trend\" data-id=\"\{@svg.esc_text(trend.node_id)}\">\{arrow}" +
       "<circle cx=\"\{@svg.num(tx)}\" cy=\"\{@svg.num(ty)}\" r=\"\{R}\" fill=\"var(--_bg)\" stroke=\"\{ACCENT}\"/></g>",
     )
   }
-  let nodes = StringBuilder()
+  let nodes = @svg.Markup::new()
   let tri = 1.2 * R
   let dot = 0.7 * R
   for _, at in positions {
@@ -622,11 +622,11 @@ fn draw(
     } else {
       "component"
     }
-    nodes.write_string(
+    nodes.write(
       "<g class=\"pele-node pele-wardley-\{kind}\" data-id=\"\{@svg.esc_text(node.id)}\">\{shape.to_string()}\{caption}</g>",
     )
   }
-  let annotations = StringBuilder()
+  let annotations = @svg.Markup::new()
   for annotation in model.annotations {
     let label = layout(
       measurer,
@@ -646,7 +646,7 @@ fn draw(
         y,
         " font-size=\"\{tiny}\" font-weight=\"var(--_hw)\"",
       )
-    annotations.write_string(
+    annotations.write(
       "<g class=\"pele-wardley-annotation\" data-id=\"\{@svg.esc_text(annotation.number.to_string())}\">\{mark}</g>",
     )
   }
@@ -676,10 +676,10 @@ fn draw(
       None => (0, legend_top)
     }
     bounds.grow(bx, by, bx + width, by + height)
-    let rows = StringBuilder()
+    let rows = @svg.Markup::new()
     let mut y = by + 7
     for line in lines {
-      rows.write_string(
+      rows.write(
         start_label(
           line,
           bx + 10,
@@ -689,13 +689,15 @@ fn draw(
       )
       y += line.height
     }
-    annotations.write_string(
-      "<g class=\"pele-wardley-annotations\"><rect x=\"\{@svg.num(bx)}\" y=\"\{@svg.num(by)}\" width=\"\{@svg.num(width)}\" height=\"\{@svg.num(height)}\" fill=\"var(--_bg)\" stroke=\"var(--_b)\"\{@svg.ROUNDED}/>\{rows.to_string()}</g>",
+    annotations.write_group(
+      "<g class=\"pele-wardley-annotations\"><rect x=\"\{@svg.num(bx)}\" y=\"\{@svg.num(by)}\" width=\"\{@svg.num(width)}\" height=\"\{@svg.num(height)}\" fill=\"var(--_bg)\" stroke=\"var(--_b)\"\{@svg.ROUNDED}/>",
+      rows,
+      "</g>",
     )
   }
-  let notes = StringBuilder()
+  let notes = @svg.Markup::new()
   for note in model.notes {
-    notes.write_string(
+    notes.write(
       starting(
         layout(
           measurer,
@@ -712,7 +714,7 @@ fn draw(
   }
 
   // Accelerators point right, deaccelerators left.
-  let forces = StringBuilder()
+  let forces = @svg.Markup::new()
   let force = (name : String, px : Double, py : Double, forward : Bool) => {
     let x = project_x(px)
     let y = project_y(py)
@@ -727,7 +729,7 @@ fn draw(
     let d = "M\{@svg.num(tail)},\{@svg.num(y - half)}H\{@svg.num(neck)}V\{@svg.num(y - half - 8)}L\{@svg.num(tip)},\{@svg.num(y)}L\{@svg.num(neck)},\{@svg.num(y + half + 8)}V\{@svg.num(y + half)}H\{@svg.num(tail)}Z"
     bounds.grow(x, y - half - 8, x + FORCE_WIDTH, y + half + 8)
     let kind = if forward { "accelerator" } else { "deaccelerator" }
-    forces.write_string(
+    forces.write(
       "<g class=\"pele-wardley-\{kind}\" data-id=\"\{@svg.esc_text(name)}\">" +
       "<path d=\"\{d}\" fill=\"var(--_s)\" stroke=\"\{LINE}\"/>" +
       centered(
@@ -764,36 +766,37 @@ fn draw(
   let ty = pad + title_height - bounds.min_y
   let total_width = (right - left + 2 * pad).ceil()
   let total_height = (bounds.max_y - bounds.min_y + title_height + 2 * pad).ceil()
-  let edges = links.to_string()
-  let trend_marks = trends.to_string()
-  let content = @svg.label_svg(
+  let content = @svg.Markup::new()
+  content.write(
+    @svg.label_svg(
       title,
       tx + plot_w / 2,
       pad + title.height / 2,
       " class=\"pele-title\" font-weight=\"var(--_tw)\"",
-    ) +
-    "<g transform=\"translate(\{@svg.num(tx)},\{@svg.num(ty)})\">" +
-    "<g class=\"pele-wardley-frame\" fill=\"none\">\{frame.to_string()}</g>" +
-    stage_labels.to_string() +
-    axis_labels +
-    pipelines.to_string() +
-    (if edges != "" {
-      "<g class=\"pele-edges\" fill=\"none\">\{edges}</g>"
-    } else {
-      ""
-    }) +
-    (if trend_marks != "" {
-      "<g class=\"pele-wardley-trends\" fill=\"none\">\{trend_marks}</g>"
-    } else {
-      ""
-    }) +
-    nodes.to_string() +
-    annotations.to_string() +
-    notes.to_string() +
-    forces.to_string() +
-    "</g>"
+    ),
+  )
+  content.write("<g transform=\"translate(\{@svg.num(tx)},\{@svg.num(ty)})\">")
+  content.write_group(
+    "<g class=\"pele-wardley-frame\" fill=\"none\">", frame, "</g>",
+  )
+  content.write_markup(stage_labels)
+  content.write(axis_labels)
+  content.write_markup(pipelines)
+  if !links.is_empty() {
+    content.write_group("<g class=\"pele-edges\" fill=\"none\">", links, "</g>")
+  }
+  if !trends.is_empty() {
+    content.write_group(
+      "<g class=\"pele-wardley-trends\" fill=\"none\">", trends, "</g>",
+    )
+  }
+  content.write_markup(nodes)
+  content.write_markup(annotations)
+  content.write_markup(notes)
+  content.write_markup(forces)
+  content.write("</g>")
   {
-    svg: @svg.svg_document(
+    svg: @svg.markup_document(
       "wardley",
       total_width,
       total_height,
