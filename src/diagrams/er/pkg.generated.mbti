@@ -6,6 +6,8 @@ import {
 }
 
 // Values
+pub fn build_er_graph(ErDb) -> ErGraph
+
 pub fn parse_er(String, ErDb) -> Unit raise @errors.PeleError
 
 pub fn tokenize(String) -> Tokens
@@ -70,6 +72,34 @@ pub(all) struct ErEntity {
   attributes : Array[ErAttribute]
   mut css_classes : String
   css_styles : Array[String]
+}
+
+pub(all) struct ErGraph {
+  nodes : Array[ErGraphNode]
+  edges : Array[ErGraphEdge]
+}
+
+pub(all) struct ErGraphEdge {
+  id : String
+  start : String
+  end : String
+  label : String
+  arrow_type_start : String
+  arrow_type_end : String
+  dashed : Bool
+}
+
+pub(all) struct ErGraphNode {
+  id : String
+  label : String
+  alias_name : String
+  attributes : Array[ErAttribute]
+  is_group : Bool
+  parent_id : String?
+  css_styles : Array[String]
+  css_compiled_styles : Array[String]
+  css_classes : String
+  dir : String?
 }
 
 pub(all) struct ErRelationship {
