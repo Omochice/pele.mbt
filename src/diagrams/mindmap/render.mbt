@@ -188,18 +188,6 @@ fn draw(
     } else {
       0
     }
-    let inner = match node.icon {
-      Some(icon) if drawn[i] =>
-        inner +
-        @common.icon_svg(
-          icon,
-          -shift - label.width / 2,
-          dy[i] - glyph / 2,
-          glyph,
-          icons?=options.icons,
-        )
-      _ => inner
-    }
     let kind = if shape != "" {
       shape
     } else if pill {
@@ -226,12 +214,22 @@ fn draw(
       "<g class=\"pele-node pele-shape-\{kind}\{if i > 0 { "" } else { " pele-root" }}\{@svg.class_names(node.class_.unwrap_or(""))}\" data-id=\"",
     )
     @svg.write_esc_text(into, node.node_id)
-    into.write_group(
+    into.write(
       "\" transform=\"translate(\{@svg.num(cx)},\{@svg.num(top + h[i] / 2)})\">" +
       inner,
-      text,
-      "</g>",
     )
+    if node.icon is Some(icon) && drawn[i] {
+      @common.write_icon(
+        into,
+        icon,
+        -shift - label.width / 2,
+        dy[i] - glyph / 2,
+        glyph,
+        icons?=options.icons,
+      )
+    }
+    into.write_markup(text)
+    into.write("</g>")
   }
   let title = @svg.title_label(
     model.title,
