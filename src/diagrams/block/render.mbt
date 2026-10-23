@@ -949,14 +949,13 @@ fn draw(
       clusters.write(
         "<g class=\"pele-cluster\{classes}\" data-id=\"\{id}\"><rect x=\"\{@svg.num(c.x - c.w / 2)}\" y=\"\{@svg.num(top)}\" width=\"\{@svg.num(c.w)}\" height=\"\{@svg.num(c.h)}\" fill=\"var(--_a)\" fill-opacity=\"0.5\" stroke=\"var(--_b)\"\{@svg.rounded(v.style.shape)}/>",
       )
-      clusters.write(
-        @svg.label_svg(
-          v.label,
-          c.x,
-          top + (c.head + gap) / 2 + 2,
-          " class=\"pele-cluster-label\" fill=\"var(--_m)\"\{v.style.text}",
-          icons?=options.icons,
-        ),
+      @svg.write_label(
+        clusters,
+        v.label,
+        c.x,
+        top + (c.head + gap) / 2 + 2,
+        " class=\"pele-cluster-label\" fill=\"var(--_m)\"\{v.style.text}",
+        icons?=options.icons,
       )
       clusters.write("</g>")
       continue
@@ -979,14 +978,13 @@ fn draw(
         )
       },
     )
-    nodes.write(
-      @svg.label_svg(
-        v.label,
-        v.dx,
-        v.dy,
-        " class=\"pele-label\"\{v.style.text}",
-        icons?=options.icons,
-      ),
+    @svg.write_label(
+      nodes,
+      v.label,
+      v.dx,
+      v.dy,
+      " class=\"pele-label\"\{v.style.text}",
+      icons?=options.icons,
     )
     nodes.write("</g>")
   }
@@ -1035,15 +1033,14 @@ fn draw(
     )
     edges.write("</g>")
     if route.label.width > 0 {
-      labels.write(
-        @svg.edge_label_svg(
-          edge.id,
-          route.label,
-          route.lx + ox,
-          route.ly + oy,
-          "",
-          icons?=options.icons,
-        ),
+      @svg.write_edge_label(
+        labels,
+        edge.id,
+        route.label,
+        route.lx + ox,
+        route.ly + oy,
+        "",
+        icons?=options.icons,
       )
     }
   }
