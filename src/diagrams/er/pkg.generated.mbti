@@ -7,6 +7,92 @@ pub fn tokenize(String) -> Tokens
 // Errors
 
 // Types and methods
+pub(all) enum Cardinality {
+  ZeroOrOne
+  ZeroOrMore
+  OneOrMore
+  OnlyOne
+  MdParent
+}
+pub fn Cardinality::name(Self) -> String
+
+pub(all) enum DocItem {
+  Name(String)
+  Dir(String)
+}
+
+pub(all) struct ErAttribute {
+  data_type : String
+  name : String
+  keys : Array[String]
+  comment : String
+}
+
+pub(all) struct ErClassDef {
+  id : String
+  styles : Array[String]
+  text_styles : Array[String]
+}
+
+pub struct ErDb {
+  mut direction : String
+  entities : Map[String, ErEntity]
+  relationships : Array[ErRelationship]
+  classes : Map[String, ErClassDef]
+  subgraphs : Array[ErSubgraph]
+  mut title : String?
+  mut acc_title : String?
+  mut acc_descr : String?
+  // private fields
+}
+pub fn ErDb::add_attributes(Self, String, Array[ErAttribute]) -> Unit
+pub fn ErDb::add_class(Self, Array[String], Array[String]) -> Unit
+pub fn ErDb::add_css_styles(Self, Array[String], Array[String]) -> Unit
+pub fn ErDb::add_entity(Self, String, alias_name? : String) -> ErEntity
+pub fn ErDb::add_relationship(Self, String, String, String, RelSpec) -> Unit
+pub fn ErDb::add_sub_graph(Self, String, Array[DocItem], String) -> String
+pub fn ErDb::new() -> Self
+pub fn ErDb::set_acc_description(Self, String) -> Unit
+pub fn ErDb::set_acc_title(Self, String) -> Unit
+pub fn ErDb::set_class(Self, Array[String], Array[String]) -> Unit
+pub fn ErDb::set_direction(Self, String) -> Unit
+
+pub(all) struct ErEntity {
+  id : String
+  label : String
+  mut alias_name : String
+  attributes : Array[ErAttribute]
+  mut css_classes : String
+  css_styles : Array[String]
+}
+
+pub(all) struct ErRelationship {
+  entity_a : String
+  role_a : String
+  entity_b : String
+  rel_spec : RelSpec
+}
+
+pub(all) struct ErSubgraph {
+  id : String
+  nodes : Array[String]
+  title : String
+  classes : Array[String]
+  css_styles : Array[String]
+  dir : String?
+}
+
+pub(all) enum Identification {
+  NonIdentifying
+  Identifying
+}
+
+pub(all) struct RelSpec {
+  card_a : Cardinality
+  rel_type : Identification
+  card_b : Cardinality
+}
+
 pub(all) enum Tok {
   End
   Error
