@@ -98,6 +98,7 @@ pub fn struck_title(
   id : String,
   nodes : Array[@layout.CNode],
   index : Int32,
+  icons? : @types.IconResolver,
 ) -> String {
   let mut depth = 1
   let mut p = nodes[index].parent
@@ -118,7 +119,8 @@ pub fn struck_title(
     x,
     y,
     " fill=\"none\" stroke=\"\{fill}\" stroke-width=\"5\" stroke-linejoin=\"round\"",
+    icons?,
   ) +
-  label_svg(label, x, y, attrs) +
+  label_svg(label, x, y, attrs, icons?) +
   "</g>"
 }

@@ -387,6 +387,7 @@ fn draw(
             id,
             cnodes,
             i,
+            icons?=options.icons,
           ),
         )
       }
@@ -398,7 +399,13 @@ fn draw(
       )
       if !struck {
         clusters.write_string(
-          @svg.label_svg(view.label, title_x, title_y, title_attrs),
+          @svg.label_svg(
+            view.label,
+            title_x,
+            title_y,
+            title_attrs,
+            icons?=options.icons,
+          ),
         )
       }
       clusters.write_string("</g>")
@@ -407,7 +414,7 @@ fn draw(
     let inner = if node.img is Some(img) && img != "" {
       picture(node, img, view, options)
     } else if node.icon is Some(icon) && icon != "" {
-      icon_svg(node, icon, view)
+      icon_svg(node, icon, view, options.icons)
     } else {
       @svg.draw_shape(
         view.shape,
@@ -422,6 +429,7 @@ fn draw(
       0,
       view.dy,
       " class=\"pele-label\"\{view.style.text}",
+      icons?=options.icons,
     )
     if (classes + " ").contains(" internal-link ") &&
       node.label is Some(note) &&
@@ -569,7 +577,14 @@ fn draw(
         None => ""
       }
       labels_out.write_string(
-        @svg.edge_label_svg(edge.id, label, ce.label_x, ce.label_y, text),
+        @svg.edge_label_svg(
+          edge.id,
+          label,
+          ce.label_x,
+          ce.label_y,
+          text,
+          icons?=options.icons,
+        ),
       )
     }
   }

@@ -76,7 +76,7 @@ pub fn shared_style(@text.Label) -> Int32
 
 pub fn span_style(Int32) -> String
 
-pub fn struck_title(@text.Label, Double, Double, String, String, Array[@layout.CNode], Int32) -> String
+pub fn struck_title(@text.Label, Double, Double, String, String, Array[@layout.CNode], Int32, icons? : (String) -> String?) -> String
 
 pub fn svg_document(String, Double, Double, Double, @types.RenderOptions, String?, String?, String) -> String
 

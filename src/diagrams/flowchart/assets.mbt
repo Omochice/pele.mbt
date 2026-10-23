@@ -41,7 +41,12 @@ fn picture(
 }
 
 ///|
-fn icon_svg(node : GraphNode, icon : String, view : NodeView) -> String {
+fn icon_svg(
+  node : GraphNode,
+  icon : String,
+  view : NodeView,
+  icons : @types.IconResolver?,
+) -> String {
   let box = asset_size(node.asset_height, 48)
   let top = asset_top(node, view, box)
   let frame = match node.shape {
@@ -54,6 +59,6 @@ fn icon_svg(node : GraphNode, icon : String, view : NodeView) -> String {
     }
   }
   let glyph = box * 0.6
-  // The plugin has no icon resolver to ask, so the glyph stays empty as it does in pele without one.
-  frame + @common.icon_svg(icon, -glyph / 2, top + (box - glyph) / 2, glyph)
+  frame +
+  @common.icon_svg(icon, -glyph / 2, top + (box - glyph) / 2, glyph, icons?)
 }
