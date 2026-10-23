@@ -52,7 +52,7 @@ fn text_size(lines : Array[Line]) -> (Double, Double) {
 fn render_venn(
   model : VennDb,
   options : @types.RenderOptions,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   let size = options.font_size.unwrap_or(16)
   let small = (size * 0.875).round()
   let tiny = (size * 0.8125).round()
@@ -262,26 +262,26 @@ fn render_venn(
     y: c.y * scale + oy,
     r: c.r * scale,
   })
-  let sets = StringBuilder()
+  let sets = @svg.Markup::new()
   for i, c in placed {
     let color = @svg.series_color(i)
     let style = match regions.get(c.id) {
       Some(region) => region.style
       None => @svg.resolve_style([])
     }
-    sets.write_string(
+    sets.write(
       "<circle class=\"pele-venn-set\" data-id=\"\{@svg.esc_text(c.id)}\" cx=\"\{@svg.num(c.x)}\" cy=\"\{@svg.num(c.y)}\" r=\"\{@svg.num(c.r)}\" fill=\"\{color}\" fill-opacity=\"0.2\" stroke=\"\{color}\"\{style.shape}/>",
     )
   }
-  let overlaps = StringBuilder()
-  let labels = StringBuilder()
+  let overlaps = @svg.Markup::new()
+  let labels = @svg.Markup::new()
   for _, region in regions {
     let id = @svg.esc_text(region.sets.join("|"))
     // An overlap is only drawn when a style gives it a look of its own; otherwise the circles show it.
     if region.sets.length() > 1 && region.style.shape != "" {
       let d = region_path(region.inside.map(i => placed[i]), @svg.num)
       if d != "" {
-        overlaps.write_string(
+        overlaps.write(
           "<path class=\"pele-venn-overlap\" data-id=\"\{id}\" d=\"\{d}\" fill=\"none\"\{region.style.shape}/>",
         )
       }
@@ -292,7 +292,7 @@ fn render_venn(
     }
     let x = region.spot.x * scale + ox
     let mut y = region.spot.y * scale + oy - total / 2
-    let content = StringBuilder()
+    let content = @svg.Markup::new()
     for line in region.lines {
       let attrs = match line.id {
         None =>
@@ -303,34 +303,35 @@ fn render_venn(
           " class=\"pele-venn-text\" data-id=\"\{@svg.esc_text(text)}\" font-size=\"\{tiny}\" fill=\"var(--_m)\"" +
           style_of(text).text
       }
-      content.write_string(
+      content.write(
         @svg.label_svg(line.label, x, y + line.label.height / 2, attrs),
       )
       y += line.label.height
     }
-    labels.write_string(
-      "<g class=\"pele-venn-region\" data-id=\"\{id}\">\{content.to_string()}</g>",
+    labels.write_group(
+      "<g class=\"pele-venn-region\" data-id=\"\{id}\">",
+      content,
+      "</g>",
     )
   }
-  let body = @svg.label_svg(
+  let body = @svg.Markup::new()
+  body.write(
+    @svg.label_svg(
       title,
       width / 2,
       pad + title.height / 2,
       " class=\"pele-title\" font-weight=\"var(--_tw)\"",
-    ) +
-    "<g class=\"pele-venn-sets\">\{sets.to_string()}</g>" +
-    (if overlaps.is_empty() {
-      ""
-    } else {
-      "<g class=\"pele-venn-overlaps\">\{overlaps.to_string()}</g>"
-    }) +
-    (if labels.is_empty() {
-      ""
-    } else {
-      "<g class=\"pele-venn-labels\">\{labels.to_string()}</g>"
-    })
+    ),
+  )
+  body.write_group("<g class=\"pele-venn-sets\">", sets, "</g>")
+  if !overlaps.is_empty() {
+    body.write_group("<g class=\"pele-venn-overlaps\">", overlaps, "</g>")
+  }
+  if !labels.is_empty() {
+    body.write_group("<g class=\"pele-venn-labels\">", labels, "</g>")
+  }
   {
-    svg: @svg.svg_document(
+    svg: @svg.markup_document(
       "venn",
       width,
       height,
