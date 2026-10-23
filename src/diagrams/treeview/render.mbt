@@ -312,10 +312,10 @@ fn draw(
     let node = row.node
     let cy = top + row.cy
     let directory = node.node_type is Directory
-    let inner = StringBuilder()
+    let inner = @svg.Markup::new()
     if row.highlighted {
       let x = inset + row.x - HIGHLIGHT_OVERHANG
-      inner.write_string(
+      inner.write(
         "<rect class=\"pele-tree-highlight\" x=\"\{@svg.num(x)}\" y=\"\{@svg.num(top + row.top + 1)}\" width=\"\{@svg.num(total_width - inset + HIGHLIGHT_OVERHANG - x)}\" height=\"\{@svg.num(row.height - 2)}\" fill=\"var(--_c)\" fill-opacity=\"0.14\"\{@svg.ROUNDED}/>",
       )
     }
@@ -329,7 +329,7 @@ fn draw(
         Some(outline) => outline
         None => glyph(if directory { "folder" } else { "file" }).unwrap()
       }
-      inner.write_string(
+      inner.write(
         @common.icon_svg(
           icon,
           inset + row.x,
@@ -343,43 +343,45 @@ fn draw(
     let weight = if directory { " font-weight=\"var(--_hw)\"" } else { "" }
     match row.label {
       Some(label) =>
-        inner.write_string(
-          @common.left_label_svg(
-            label,
-            inset + row.label_x,
-            top + row.top + padding_y,
-            " class=\"pele-label\"\{weight}",
-          ),
+        @common.write_left_label(
+          inner,
+          label,
+          inset + row.label_x,
+          top + row.top + padding_y,
+          " class=\"pele-label\"\{weight}",
         )
       None =>
         if row.text != "" {
-          inner.write_string(
-            "<text class=\"pele-label\" x=\"\{@svg.num(inset + row.label_x)}\" y=\"\{@svg.num(cy + baseline)}\"\{weight} xml:space=\"preserve\">\{@svg.esc(row.text)}</text>",
+          inner.write(
+            "<text class=\"pele-label\" x=\"\{@svg.num(inset + row.label_x)}\" y=\"\{@svg.num(cy + baseline)}\"\{weight} xml:space=\"preserve\">",
           )
+          @svg.write_esc(inner, row.text)
+          inner.write("</text>")
         }
     }
     match (row.description, node.description) {
       (Some(label), _) =>
-        inner.write_string(
-          @common.left_label_svg(
-            label,
-            inset + row.label_x,
-            top +
-            row.top +
-            padding_y +
-            row.label.map(l => l.height).unwrap_or(0),
-            " class=\"pele-tree-description\" font-style=\"italic\" fill=\"var(--_m)\"",
-          ),
+        @common.write_left_label(
+          inner,
+          label,
+          inset + row.label_x,
+          top + row.top + padding_y + row.label.map(l => l.height).unwrap_or(0),
+          " class=\"pele-tree-description\" font-style=\"italic\" fill=\"var(--_m)\"",
         )
-      (None, Some(description)) =>
-        inner.write_string(
-          "<text class=\"pele-tree-description\" x=\"\{@svg.num(inset + desc_x)}\" y=\"\{@svg.num(cy + baseline)}\" font-style=\"italic\" fill=\"var(--_m)\" xml:space=\"preserve\">\{@svg.esc(@text.decode_entities(description))}</text>",
+      (None, Some(description)) => {
+        inner.write(
+          "<text class=\"pele-tree-description\" x=\"\{@svg.num(inset + desc_x)}\" y=\"\{@svg.num(cy + baseline)}\" font-style=\"italic\" fill=\"var(--_m)\" xml:space=\"preserve\">",
         )
+        @svg.write_esc_text(inner, description)
+        inner.write("</text>")
+      }
       (None, None) => ()
     }
     body.write(
-      "<g class=\"pele-node pele-tree-\{if directory { "dir" } else { "file" }}\{@svg.class_names(node.css_class.unwrap_or(""))}\" data-id=\"\{@svg.esc_text(node.name)}\">\{inner.to_string()}</g>",
+      "<g class=\"pele-node pele-tree-\{if directory { "dir" } else { "file" }}\{@svg.class_names(node.css_class.unwrap_or(""))}\" data-id=\"",
     )
+    @svg.write_esc_text(body, node.name)
+    body.write_group("\">", inner, "</g>")
   }
   let content = @svg.Markup::new()
   content.write(
