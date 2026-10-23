@@ -3,12 +3,17 @@ package "Omochice/pele/diagrams/eventmodeling"
 
 import {
   "Omochice/pele/errors",
+  "Omochice/pele/types",
 }
 
 // Values
 pub fn build_event_model(EventModelAst, String?) -> EventModelingModel raise @errors.PeleError
 
+pub let eventmodeling : @types.Diagram
+
 pub fn read_event_model(String) -> EventModelAst raise @errors.PeleError
+
+pub fn render_event_model(EventModelingModel, Map[String, Json], @types.RenderOptions) -> @types.Rendered
 
 // Errors
 
