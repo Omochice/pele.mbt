@@ -157,8 +157,10 @@ pub struct SeqDb {
   mut title : String?
   mut acc_title : String?
   mut acc_descr : String?
+  // private fields
 }
 pub fn SeqDb::apply(Self, Array[SeqStatement]) -> Unit raise @errors.PeleError
+pub fn SeqDb::auto_wrap(Self) -> Bool
 pub fn SeqDb::new(wrap? : Bool, sequence_wrap? : Bool) -> Self
 pub fn SeqDb::parse_box_data(Self, String) -> SeqBoxData
 pub fn SeqDb::parse_message(Self, String) -> SeqText
