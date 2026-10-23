@@ -788,122 +788,157 @@ fn draw(
     let w = view.w
     let h = view.h
     let label_attrs = " class=\"pele-label\"\{style.text}"
-    let mut body = ""
+    let body = @svg.Markup::new()
     match view.kind {
       K_COMPOSITE => {
         let left = x - c.w / 2
         let top = y - c.h / 2
-        body = rect(
-          left,
-          top,
-          c.w,
-          c.h,
-          " rx=\"\{CORNER}\" fill=\"var(--_a)\" fill-opacity=\"0.5\" stroke=\"var(--_b)\"\{style.shape}",
+        body.write(
+          rect(
+            left,
+            top,
+            c.w,
+            c.h,
+            " rx=\"\{CORNER}\" fill=\"var(--_a)\" fill-opacity=\"0.5\" stroke=\"var(--_b)\"\{style.shape}",
+          ),
         )
         if view.title_h > 0 {
-          body = body +
-            "<path d=\"M\{@svg.num(left)},\{@svg.num(top + view.title_h)}H\{@svg.num(left + c.w)}\"\{RULE}\{style.line}/>" +
-            @svg.label_svg(
-              view.label,
-              title_x(c, view.label.width, crossings) + pad,
-              top + view.title_h / 2,
-              " class=\"pele-cluster-label\"\{style.text}",
-              icons?=options.icons,
-            )
+          body.write(
+            "<path d=\"M\{@svg.num(left)},\{@svg.num(top + view.title_h)}H\{@svg.num(left + c.w)}\"\{RULE}\{style.line}/>",
+          )
+          @svg.write_label(
+            body,
+            view.label,
+            title_x(c, view.label.width, crossings) + pad,
+            top + view.title_h / 2,
+            " class=\"pele-cluster-label\"\{style.text}",
+            icons?=options.icons,
+          )
         }
         divide(children[i], left, top + view.title_h, left + c.w, top + c.h)
       }
-      K_START => body = "<circle r=\"7\" fill=\"var(--_l)\"\{style.shape}/>"
+      K_START =>
+        body.write("<circle r=\"7\" fill=\"var(--_l)\"\{style.shape}/>")
       K_END =>
-        body = "<circle r=\"8.5\" fill=\"var(--_bg)\" stroke=\"var(--_l)\"\{style.line}/><circle r=\"5\" fill=\"var(--_l)\"\{style.shape}/>"
+        body.write(
+          "<circle r=\"8.5\" fill=\"var(--_bg)\" stroke=\"var(--_l)\"\{style.line}/><circle r=\"5\" fill=\"var(--_l)\"\{style.shape}/>",
+        )
       K_CHOICE =>
-        body = "<polygon points=\"0,\{@svg.num(-h / 2)} \{@svg.num(w / 2)},0 0,\{@svg.num(h / 2)} \{@svg.num(-w / 2)},0\"\{SURFACE}\{style.shape}/>"
+        body.write(
+          "<polygon points=\"0,\{@svg.num(-h / 2)} \{@svg.num(w / 2)},0 0,\{@svg.num(h / 2)} \{@svg.num(-w / 2)},0\"\{SURFACE}\{style.shape}/>",
+        )
       K_FORK | K_JOIN =>
-        body = rect(
-          -w / 2,
-          -h / 2,
-          w,
-          h,
-          " rx=\"2\" fill=\"var(--_l)\"\{style.shape}",
+        body.write(
+          rect(
+            -w / 2,
+            -h / 2,
+            w,
+            h,
+            " rx=\"2\" fill=\"var(--_l)\"\{style.shape}",
+          ),
         )
       K_NOTE => {
         let r = @svg.num(w / 2)
         let b = @svg.num(h / 2)
         let fold = @svg.num(w / 2 - FOLD)
         let corner = @svg.num(FOLD - h / 2)
-        body = "<path d=\"M-\{r},-\{b}H\{fold}L\{r},\{corner}V\{b}H-\{r}Z\" fill=\"var(--_bg)\" stroke=\"var(--_b)\"/>" +
-          "<path d=\"M\{fold},-\{b}V\{corner}H\{r}\"\{RULE}/>" +
-          @svg.label_svg(
+        body.write(
+          "<path d=\"M-\{r},-\{b}H\{fold}L\{r},\{corner}V\{b}H-\{r}Z\" fill=\"var(--_bg)\" stroke=\"var(--_b)\"/>" +
+          "<path d=\"M\{fold},-\{b}V\{corner}H\{r}\"\{RULE}/>",
+        )
+        @svg.write_label(
+          body,
+          view.label,
+          0,
+          0,
+          " class=\"pele-label\" font-size=\"\{small}\" fill=\"var(--_m)\"",
+          icons?=options.icons,
+        )
+      }
+      _ => {
+        body.write(
+          rect(
+            -w / 2,
+            -h / 2,
+            w,
+            h,
+            " rx=\"\{@svg.num(@util.js_min(CORNER, h / 2))}\"\{SURFACE}\{style.shape}",
+          ),
+        )
+        if view.kind == K_STATE {
+          @svg.write_label(
+            body,
             view.label,
             0,
             0,
-            " class=\"pele-label\" font-size=\"\{small}\" fill=\"var(--_m)\"",
+            label_attrs,
             icons?=options.icons,
           )
-      }
-      _ => {
-        body = rect(
-          -w / 2,
-          -h / 2,
-          w,
-          h,
-          " rx=\"\{@svg.num(@util.js_min(CORNER, h / 2))}\"\{SURFACE}\{style.shape}",
-        )
-        if view.kind == K_STATE {
-          body = body +
-            @svg.label_svg(view.label, 0, 0, label_attrs, icons?=options.icons)
         } else {
           let mut at = PAD_Y - h / 2 + view.label.height
-          body = body +
-            "<path d=\"M\{@svg.num(-w / 2)},\{@svg.num(at + 6)}H\{@svg.num(w / 2)}\"\{RULE}\{style.line}/>" +
-            @svg.label_svg(
-              view.label,
-              0,
-              at - view.label.height / 2,
-              label_attrs,
-              icons?=options.icons,
-            )
+          body.write(
+            "<path d=\"M\{@svg.num(-w / 2)},\{@svg.num(at + 6)}H\{@svg.num(w / 2)}\"\{RULE}\{style.line}/>",
+          )
+          @svg.write_label(
+            body,
+            view.label,
+            0,
+            at - view.label.height / 2,
+            label_attrs,
+            icons?=options.icons,
+          )
           at += 14
           for line in view.lines {
-            body = body +
-              @svg.label_svg(
-                line,
-                0,
-                at + line.height / 2,
-                " class=\"pele-state-description\" font-size=\"\{small}\"\{style.text}",
-                icons?=options.icons,
-              )
+            @svg.write_label(
+              body,
+              line,
+              0,
+              at + line.height / 2,
+              " class=\"pele-state-description\" font-size=\"\{small}\"\{style.text}",
+              icons?=options.icons,
+            )
             at += line.height
           }
         }
       }
     }
-    if db.links.get(node.id) is Some(link) {
-      // Entity codes are resolved first, so the URL is checked in the form a browser would follow.
-      let tooltip = @text.decode_entities(unquote(link.tooltip))
-      if tooltip != "" {
-        body = "<title>\{@svg.esc(tooltip)}</title>" + body
+    let mut tooltip = ""
+    let link_start = match db.links.get(node.id) {
+      Some(link) => {
+        // Entity codes are resolved first, so the URL is checked in the form a browser would follow.
+        tooltip = @text.decode_entities(unquote(link.tooltip))
+        @url.link_start(
+          @url.safe_url(unquote(link.url)),
+          node.id,
+          links,
+          options,
+          attrs=" target=\"_blank\"",
+        )
       }
-      body = @url.linked(
-        body,
-        @url.safe_url(unquote(link.url)),
-        node.id,
-        links,
-        options,
-        attrs=" target=\"_blank\"",
-      )
+      None => None
     }
     let open = "<g class=\"\{kind_classes[view.kind]}\{@svg.class_names(strip_mermaid_classes(node.css_classes))}\" data-id=\"\{@svg.esc_text(node.id)}\""
-    if view.kind == K_COMPOSITE {
-      clusters.write("\{open}>\{body}</g>")
+    let out = if view.kind == K_COMPOSITE {
+      clusters.write("\{open}>")
+      clusters
     } else {
-      let placed = "\{open} transform=\"translate(\{@svg.num(x)},\{@svg.num(y)})\">\{body}</g>"
-      if view.kind == K_NOTE {
-        notes_out.write(placed)
-      } else {
-        nodes_out.write(placed)
-      }
+      let out = if view.kind == K_NOTE { notes_out } else { nodes_out }
+      out.write(
+        "\{open} transform=\"translate(\{@svg.num(x)},\{@svg.num(y)})\">",
+      )
+      out
     }
+    if link_start is Some(start) {
+      out.write(start)
+    }
+    if tooltip != "" {
+      out.write("<title>\{@svg.esc(tooltip)}</title>")
+    }
+    out.write_markup(body)
+    if link_start is Some(_) {
+      out.write("</a>")
+    }
+    out.write("</g>")
   }
 
   // Moves a route end from the layout box onto the drawn shape, and spreads the ends along a bar.
@@ -1074,15 +1109,14 @@ fn draw(
       "</g>",
     )
     if label.width > 0 {
-      labels_out.write(
-        @svg.edge_label_svg(
-          edge.id,
-          label,
-          ce.label_x + pad,
-          ce.label_y + pad,
-          "",
-          icons?=options.icons,
-        ),
+      @svg.write_edge_label(
+        labels_out,
+        edge.id,
+        label,
+        ce.label_x + pad,
+        ce.label_y + pad,
+        "",
+        icons?=options.icons,
       )
     }
   }
