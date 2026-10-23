@@ -120,9 +120,9 @@ fn write_text_left(
     lines[0][0].icon is None &&
     lines[0][0].math is None &&
     lines[0][0].style == 0 {
-    out.write(
-      "<text\{attrs} x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\">\{@svg.esc(lines[0][0].text)}</text>",
-    )
+    out.write("<text\{attrs} x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\">")
+    @svg.write_esc(out, lines[0][0].text)
+    out.write("</text>")
     return
   }
   let shared = @svg.shared_style(label)
@@ -150,8 +150,13 @@ fn write_text_left(
     for span in line {
       if span.icon is Some(name) {
         let side = label.size * 1.1
-        extra.write(
-          @common.icon_svg(name, sx, line_y - shift - side / 2, side, icons?),
+        @common.write_icon(
+          extra,
+          name,
+          sx,
+          line_y - shift - side / 2,
+          side,
+          icons?,
         )
       } else if span.text != "" {
         let pos = if has_icon || !placed {
@@ -160,8 +165,10 @@ fn write_text_left(
           ""
         }
         body.write(
-          "<tspan\{pos}\{@svg.span_style(span.style & shared.lnot())}>\{@svg.esc(span.text)}</tspan>",
+          "<tspan\{pos}\{@svg.span_style(span.style & shared.lnot())}>",
         )
+        @svg.write_esc(body, span.text)
+        body.write("</tspan>")
         placed = true
       }
       sx += span.width
@@ -557,9 +564,10 @@ fn draw(
         crossings,
         GROUP_PAD,
       )
+      clusters.write("<g class=\"pele-cluster\{classes}\"")
+      @svg.write_data_id(clusters, node.id)
       clusters.write(
-        "<g class=\"pele-cluster\{classes}\" data-id=\"\{@svg.esc_text(node.id)}\">" +
-        "<rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(c.w)}\" height=\"\{@svg.num(c.h)}\" fill=\"var(--_a)\" fill-opacity=\"0.5\" stroke=\"var(--_b)\"\{@svg.rounded(view.style.shape)}/>",
+        "><rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(c.w)}\" height=\"\{@svg.num(c.h)}\" fill=\"var(--_a)\" fill-opacity=\"0.5\" stroke=\"var(--_b)\"\{@svg.rounded(view.style.shape)}/>",
       )
       @svg.write_label(
         clusters,
@@ -602,25 +610,24 @@ fn draw(
     if (classes + " ").contains(" internal-link ") &&
       !label.is_empty() &&
       options.links != Some(false) {
+      name.write("<a class=\"internal-link\"")
       // The name ends up in an href, so it gets the same check as a URL.
-      let target = @svg.esc(display)
-      let href = if @url.link_url(@url.sanitize_url(display), options)
-        is Some(_) {
-        " href=\"\{target}\"\{@url.rel_attr(options)}"
-      } else {
-        ""
+      if @url.link_url(@url.sanitize_url(display), options) is Some(_) {
+        name.write(" href=\"")
+        @svg.write_esc(name, display)
+        name.write("\"\{@url.rel_attr(options)}")
       }
-      name.write_group(
-        "<a class=\"internal-link\"\{href} data-href=\"\{target}\">",
-        label,
-        "</a>",
-      )
+      name.write(" data-href=\"")
+      @svg.write_esc(name, display)
+      name.write_group("\">", label, "</a>")
       links.push({ id: node.label, href: display, internal: true, })
     } else {
       name.write_markup(label)
     }
+    nodes_out.write("<g class=\"pele-node pele-entity\{classes}\"")
+    @svg.write_data_id(nodes_out, node.label)
     nodes_out.write(
-      "<g class=\"pele-node pele-entity\{classes}\" data-id=\"\{@svg.esc_text(node.label)}\" transform=\"translate(\{@svg.num(c.x)},\{@svg.num(c.y)})\">",
+      " transform=\"translate(\{@svg.num(c.x)},\{@svg.num(c.y)})\">",
     )
     if view.rows.length() == 0 {
       nodes_out.write(
@@ -809,15 +816,11 @@ fn draw(
     }
     let kind = if edge.dashed { "non-identifying" } else { "identifying" }
     let dash = if edge.dashed { " stroke-dasharray=\"4 3\"" } else { "" }
-    edges_out.write(
-      "<g class=\"pele-edge pele-er-\{kind}\" data-id=\"\{@svg.esc_text(edge.id)}\">" +
-      "<path d=\"\{d}\"\{dash}/>" +
-      start +
-      end +
-      "</g>",
-    )
+    edges_out.write("<g class=\"pele-edge pele-er-\{kind}\"")
+    @svg.write_data_id(edges_out, edge.id)
+    edges_out.write("><path d=\"\{d}\"\{dash}/>" + start + end + "</g>")
     if label.width > 0 {
-      @svg.write_edge_label(
+      @svg.write_edge_label_with_id(
         labels_out,
         edge.id,
         label,
