@@ -116,6 +116,8 @@ pub const STICK_TOP_DOTTED : Int32 = 53
 
 pub fn is_css_color(String) -> Bool
 
+pub fn parse_sequence(String, SeqDb) -> Unit raise @errors.PeleError
+
 pub fn tokenize(String) -> Tokens
 
 // Errors
