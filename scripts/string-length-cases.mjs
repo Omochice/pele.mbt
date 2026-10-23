@@ -339,6 +339,7 @@ export const CASES = [
   lazy('xychart', 'a title past V8', () => `xychart\ntitle "${'&'.repeat(110000000)}"\nbar [1]\n`, RAISED),
   lazy('ishikawa', 'a front matter title past V8', () => `---\ntitle: x${'"'.repeat(90000000)}\n---\nishikawa-beta\nProblem\n  C\n`, RAISED),
   lazy('eventmodeling', 'a title past V8', () => `eventmodeling title ${'"'.repeat(90000000)}\ntf 01 evt E\n`, RAISED),
+  lazy('sankey', 'a front matter title past V8', () => `---\ntitle: x${'"'.repeat(90000000)}\n---\nsankey\n\nA,B,1\n`, RAISED),
 ];
 
 // A case whose source is built only when the check reaches it, as a getter in the source's place,
