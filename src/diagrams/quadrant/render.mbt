@@ -57,7 +57,7 @@ fn render_quadrant(
   model : QuadrantDb,
   config : @types.Config,
   options : @types.RenderOptions,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   let size = options.font_size.unwrap_or(16)
   let axis_size = (size * 0.875).round()
   let point_size = (size * 0.75).round()
@@ -165,7 +165,7 @@ fn render_quadrant(
     true
   }
   let text_top = length(config, "quadrantTextTopPadding", 5, 200)
-  let quadrants = StringBuilder()
+  let quadrants = @svg.Markup::new()
   for k in 0..<4 {
     let x = if k == 0 || k == 3 { left + w - tile_w } else { left }
     let y = if k < 2 { top } else { top + h - tile_h }
@@ -180,7 +180,7 @@ fn render_quadrant(
     taken.push(cy - text.height / 2)
     taken.push(cx + text.width / 2)
     taken.push(cy + text.height / 2)
-    quadrants.write_string(
+    quadrants.write(
       "<g class=\"pele-quadrant\" data-id=\"\{k + 1}\">" +
       "<rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(tile_w)}\" height=\"\{@svg.num(tile_h)}\"\{@svg.ROUNDED}/>" +
       @svg.label_svg(
@@ -189,14 +189,14 @@ fn render_quadrant(
       "</g>",
     )
   }
-  let axes = StringBuilder()
+  let axes = @svg.Markup::new()
   if has_x {
     let y = if x_below {
       top + h + x_pad + x_height / 2
     } else {
       top - x_pad - x_height / 2
     }
-    axes.write_string(
+    axes.write(
       @svg.label_svg(
         x_left,
         if x_right.height > 0 {
@@ -223,7 +223,7 @@ fn render_quadrant(
         ""
       }
     }
-    axes.write_string(
+    axes.write(
       turned(
         y_bottom,
         if y_top.height > 0 {
@@ -297,7 +297,7 @@ fn render_quadrant(
       taken.push(dot.cy + dot.reach)
     }
   }
-  let labels = StringBuilder()
+  let labels = @svg.Markup::new()
   for dot in dots {
     let { cx, cy, reach, text, } = dot
     let half_w = text.width / 2
@@ -360,30 +360,44 @@ fn render_quadrant(
       taken.push(tx + half_w)
       taken.push(ty + half_h)
     }
-    labels.write_string(@svg.label_svg(text, tx, ty, " class=\"pele-label\""))
+    labels.write(@svg.label_svg(text, tx, ty, " class=\"pele-label\""))
   }
   // Mermaid puts each new point under the ones before it.
   circles.rev_in_place()
-  let content = @svg.label_svg(
+  let content = @svg.Markup::new()
+  content.write(
+    @svg.label_svg(
       title,
       width / 2,
       title_pad / 2 + title.height / 2,
       " class=\"pele-title\" font-weight=\"var(--_tw)\"",
-    ) +
-    "<g class=\"pele-quadrants\" fill=\"var(--_s)\" stroke=\"var(--_b)\">\{quadrants.to_string()}</g>" +
-    (if axes.is_empty() {
-      ""
-    } else {
-      "<g class=\"pele-axis-labels\" font-size=\"\{axis_size}\" fill=\"var(--_m)\">\{axes.to_string()}</g>"
-    }) +
-    (if !dots.is_empty() {
-      "<g class=\"pele-points\" fill=\"\{fill}\">\{circles.join("")}</g>" +
-      "<g class=\"pele-point-labels\" font-size=\"\{point_size}\">\{labels.to_string()}</g>"
-    } else {
-      ""
-    })
+    ),
+  )
+  content.write_group(
+    "<g class=\"pele-quadrants\" fill=\"var(--_s)\" stroke=\"var(--_b)\">", quadrants,
+    "</g>",
+  )
+  if !axes.is_empty() {
+    content.write_group(
+      "<g class=\"pele-axis-labels\" font-size=\"\{axis_size}\" fill=\"var(--_m)\">",
+      axes,
+      "</g>",
+    )
+  }
+  if !dots.is_empty() {
+    content.write("<g class=\"pele-points\" fill=\"\{fill}\">")
+    for circle in circles {
+      content.write(circle)
+    }
+    content.write("</g>")
+    content.write_group(
+      "<g class=\"pele-point-labels\" font-size=\"\{point_size}\">",
+      labels,
+      "</g>",
+    )
+  }
   {
-    svg: @svg.svg_document(
+    svg: @svg.markup_document(
       "quadrantChart",
       width,
       height,
