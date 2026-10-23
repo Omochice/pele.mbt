@@ -519,13 +519,12 @@ fn render_cynefin(
   let total_width = total_width.ceil()
   let total_height = (height + title_height + 2.0 * pad).ceil()
   let content = @svg.Markup::new()
-  content.write(
-    @svg.label_svg(
-      title,
-      x0 + width / 2,
-      pad + title.height / 2,
-      " class=\"pele-title\" font-weight=\"var(--_tw)\"",
-    ),
+  @svg.write_label(
+    content,
+    title,
+    x0 + width / 2,
+    pad + title.height / 2,
+    " class=\"pele-title\" font-weight=\"var(--_tw)\"",
   )
   content.write(
     "<g class=\"pele-cynefin-regions\">\{fills.to_string()}</g>" +
