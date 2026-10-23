@@ -444,8 +444,8 @@ pub fn render_gantt(
   }
 
   // Vertical markers take no row. Their labels go under the axis, on as many lines as it takes to keep them apart.
-  let vert_lines = StringBuilder()
-  let vert_labels = StringBuilder()
+  let vert_lines = @svg.Markup::new()
+  let vert_labels = @svg.Markup::new()
   let vert_ends : Array[Double] = []
   let vert_top = plot_bottom + tick_height + 4
   let vert_line = (label_size * 1.5).round()
@@ -475,10 +475,10 @@ pub fn render_gantt(
     }
     extent = @util.js_max(extent, vert_ends[line])
     let id = @svg.esc_text(task.id)
-    vert_lines.write_string(
+    vert_lines.write(
       "<path class=\"pele-vert\" data-id=\"\{id}\" d=\"M\{@svg.num(vx)},\{@svg.num(plot_top - grid_lead)}V\{@svg.num(plot_bottom)}\"/>",
     )
-    vert_labels.write_string(
+    vert_labels.write(
       @svg.label_svg(
         label,
         cx,
@@ -498,8 +498,8 @@ pub fn render_gantt(
   pad).ceil()
 
   // Section bands, one per run of rows that share a section, shaded on alternate sections.
-  let bands = StringBuilder()
-  let section_out = StringBuilder()
+  let bands = @svg.Markup::new()
+  let section_out = @svg.Markup::new()
   let mut row = 0
   while row < row_count {
     let section = row_section[row]
@@ -512,12 +512,12 @@ pub fn render_gantt(
     let h = (end - row).to_double() * row_height
     if categories.length() > 1 || section != "" {
       let fill = if index % 2 == 0 { "var(--_s)" } else { "none" }
-      bands.write_string(
+      bands.write(
         "<rect class=\"pele-section pele-section-\{index}\" x=\"0\" y=\"\{@svg.num(y)}\" width=\"\{width}\" height=\"\{@svg.num(h)}\" fill=\"\{fill}\"/>",
       )
     }
     let label = section_labels[section]
-    section_out.write_string(
+    section_out.write(
       @svg.label_svg(
         label,
         pad + 8 + label.width / 2,
@@ -567,7 +567,7 @@ pub fn render_gantt(
     flush()
   }
   let links : Array[@types.LinkInfo] = []
-  let tasks_out = StringBuilder()
+  let tasks_out = @svg.Markup::new()
   for bar in bars {
     let task = bar.task
     let cy = plot_top + bar.row.to_double() * row_height + row_height / 2
@@ -635,7 +635,7 @@ pub fn render_gantt(
     if model.links.get(task.id) is Some(url) {
       body = @url.linked(body, url, task.id, links, options)
     }
-    tasks_out.write_string(
+    tasks_out.write(
       "<g class=\"\{classes.to_string()}\" data-id=\"\{@svg.esc_text(task.id)}\">\{body}</g>",
     )
   }
@@ -665,43 +665,50 @@ pub fn render_gantt(
     } else {
       ""
     })
-  let content = StringBuilder()
-  content.write_string(
+  let content = @svg.Markup::new()
+  content.write(
     @svg.label_svg(title, width / 2, pad + title.height / 2, title_attrs),
   )
-  if bands.to_string() != "" {
-    content.write_string("<g class=\"pele-sections\">\{bands.to_string()}</g>")
+  if !bands.is_empty() {
+    content.write_group("<g class=\"pele-sections\">", bands, "</g>")
   }
   if excluded.to_string() != "" {
-    content.write_string(
+    content.write(
       "<g class=\"pele-excluded\" fill=\"var(--_a)\">\{excluded.to_string()}</g>",
     )
   }
-  content.write_string(
+  content.write(
     "<g class=\"pele-grid\" fill=\"none\"><path d=\"\{grid.to_string()}\" stroke=\"var(--_b)\" stroke-dasharray=\"1 3\"/><path d=\"\{axis_line}\" stroke=\"var(--_b)\"/></g>",
   )
-  if vert_lines.to_string() != "" {
-    content.write_string(
-      "<g class=\"pele-verts\" fill=\"none\" stroke=\"var(--_l)\" stroke-width=\"1.5\" stroke-dasharray=\"4 3\">\{vert_lines.to_string()}</g>",
+  if !vert_lines.is_empty() {
+    content.write_group(
+      "<g class=\"pele-verts\" fill=\"none\" stroke=\"var(--_l)\" stroke-width=\"1.5\" stroke-dasharray=\"4 3\">",
+      vert_lines, "</g>",
     )
   }
-  content.write_string(today)
-  content.write_string(
-    "<g class=\"pele-tasks\" font-size=\"\{@svg.num(label_size)}\">\{tasks_out.to_string()}</g>",
+  content.write(today)
+  content.write_group(
+    "<g class=\"pele-tasks\" font-size=\"\{@svg.num(label_size)}\">",
+    tasks_out,
+    "</g>",
   )
-  content.write_string(
-    "<g class=\"pele-section-labels\" font-size=\"\{@svg.num(section_size)}\">\{section_out.to_string()}</g>",
+  content.write_group(
+    "<g class=\"pele-section-labels\" font-size=\"\{@svg.num(section_size)}\">",
+    section_out,
+    "</g>",
   )
-  content.write_string(
+  content.write(
     "<g class=\"pele-axis\" font-size=\"\{tick_size}\" fill=\"var(--_m)\">\{axis_bottom.to_string()}\{axis_top.to_string()}</g>",
   )
-  if vert_labels.to_string() != "" {
-    content.write_string(
-      "<g class=\"pele-vert-labels\" font-size=\"\{@svg.num(label_size)}\">\{vert_labels.to_string()}</g>",
+  if !vert_labels.is_empty() {
+    content.write_group(
+      "<g class=\"pele-vert-labels\" font-size=\"\{@svg.num(label_size)}\">",
+      vert_labels,
+      "</g>",
     )
   }
   {
-    svg: @svg.svg_document(
+    svg: @svg.markup_document(
       "gantt",
       width,
       height,
@@ -709,7 +716,7 @@ pub fn render_gantt(
       options,
       model.acc_title,
       model.acc_descr,
-      content.to_string(),
+      content,
     ),
     width,
     height,
