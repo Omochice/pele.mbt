@@ -18,6 +18,14 @@ pub fn render(source_len : Int32, options_len : Int32) -> Int32 {
 }
 
 ///|
+/// Renders as `render` does, but returns 0 for a failure too, with the same JSON `error` object.
+/// typst cannot catch a plugin's error, so a caller that wants to report the failure itself reads it from here.
+pub fn try_render(source_len : Int32, options_len : Int32) -> Int32 {
+  ignore(answer(source_len, options_len))
+  0
+}
+
+///|
 /// Reads the host's arguments, sends it the JSON response and returns the response's status.
 fn answer(source_len : Int32, options_len : Int32) -> Int32 {
   let args = Bytes::make(source_len + options_len, 0)

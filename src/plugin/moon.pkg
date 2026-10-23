@@ -41,5 +41,10 @@ import {
 }
 
 options(
-  link: { "wasm": { "exports": [ "render" ], "export-memory-name": "memory" } },
+  link: {
+    "wasm": {
+      "exports": [ "render", "try_render" ],
+      "export-memory-name": "memory",
+    },
+  },
 )

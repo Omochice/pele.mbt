@@ -4,6 +4,8 @@ package "Omochice/pele/plugin"
 // Values
 pub fn render(Int32, Int32) -> Int32
 
+pub fn try_render(Int32, Int32) -> Int32
+
 // Errors
 
 // Types and methods
