@@ -77,3 +77,26 @@ test "an item fails as nested too deeply where pele's pattern runs out of V8's b
     content="limit: Diagram is nested too deeply. cynefin cynefin",
   )
 }
+
+
+///|
+#skip("slow: escapes over 536 million code units before it fails")
+test "a title outgrowing V8's longest string fails as nested too deeply" {
+  let failure = try {
+    @core.render(
+      [@cynefin.cynefin],
+      "cynefin-beta\ntitle \{"\"".repeat(90000000)}\ncomplex\n  \"x\"\n",
+      { ..@types.RenderOptions::default(), limit: Some(1.0 / 0.0), },
+    )
+    |> ignore
+    "rendered"
+  } catch {
+    @errors.PeleError(failure) =>
+      "\{failure.code.to_string()}: \{failure.message} \{failure.kind.unwrap_or("null")} \{failure.mermaid_type.unwrap_or("null")}"
+  }
+  inspect(
+    failure,
+    content="limit: Diagram is nested too deeply. cynefin cynefin",
+  )
+}
+
