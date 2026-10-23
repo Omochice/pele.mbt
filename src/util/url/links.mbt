@@ -82,9 +82,25 @@ pub fn linked(
   options : @types.RenderOptions,
   attrs~ : String = "",
 ) -> String {
-  guard link_url(url, options) is Some(href) else { return body }
+  match link_start(url, id, links, options, attrs~) {
+    Some(start) => start + body + "</a>"
+    None => body
+  }
+}
+
+///|
+/// The start tag of the anchor `linked` wraps a body in, with the link recorded in `links`, or
+/// `None` when the link is refused.
+pub fn link_start(
+  url : String,
+  id : String,
+  links : Array[@types.LinkInfo],
+  options : @types.RenderOptions,
+  attrs~ : String = "",
+) -> String? {
+  guard link_url(url, options) is Some(href) else { return None }
   links.push({ id, href, internal: false, })
-  "<a href=\"\{@svg.esc(href)}\"\{attrs}\{rel_attr(options)}>\{body}</a>"
+  Some("<a href=\"\{@svg.esc(href)}\"\{attrs}\{rel_attr(options)}>")
 }
 
 ///|
