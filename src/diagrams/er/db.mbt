@@ -6,7 +6,7 @@ pub struct ErDb {
   relationships : Array[ErRelationship]
   classes : Map[String, ErClassDef]
   subgraphs : Array[ErSubgraph]
-  mut title : String?
+  title : String?
   mut acc_title : String?
   mut acc_descr : String?
   priv subgraph_lookup : Map[String, ErSubgraph]
@@ -14,15 +14,15 @@ pub struct ErDb {
 }
 
 ///|
-/// An empty model that runs top to bottom.
-pub fn ErDb::new() -> ErDb {
+/// An empty model that runs top to bottom, with the title front matter gave.
+pub fn ErDb::new(title? : String) -> ErDb {
   {
     direction: "TB",
     entities: Map([]),
     relationships: [],
     classes: Map([]),
     subgraphs: [],
-    title: None,
+    title,
     acc_title: None,
     acc_descr: None,
     subgraph_lookup: Map([]),
@@ -37,14 +37,25 @@ pub fn ErDb::add_entity(
   name : String,
   alias_name~ : String = "",
 ) -> ErEntity {
-  ignore((self.subgraph_lookup, self.claimed, alias_name))
-  {
-    id: name,
-    label: name,
-    alias_name: "",
-    attributes: [],
-    css_classes: "",
-    css_styles: [],
+  match self.entities.get(name) {
+    Some(entity) => {
+      if entity.alias_name == "" && alias_name != "" {
+        entity.alias_name = alias_name
+      }
+      entity
+    }
+    None => {
+      let entity = {
+        id: "entity-\{name}-\{self.entities.length()}",
+        label: name,
+        alias_name,
+        attributes: [],
+        css_classes: "default",
+        css_styles: [],
+      }
+      self.entities.set(name, entity)
+      entity
+    }
   }
 }
 
@@ -55,7 +66,10 @@ pub fn ErDb::add_attributes(
   name : String,
   attributes : Array[ErAttribute],
 ) -> Unit {
-  ignore((self, name, attributes))
+  let entity = self.add_entity(name)
+  for i = attributes.length() - 1; i >= 0; i = i - 1 {
+    entity.attributes.push(attributes[i])
+  }
 }
 
 ///|
@@ -67,14 +81,22 @@ pub fn ErDb::add_relationship(
   entity_b : String,
   spec : RelSpec,
 ) -> Unit {
-  ignore((self, entity_a, role_a, entity_b, spec))
+  let entity_a = if self.subgraph_lookup.contains(entity_a) {
+    entity_a
+  } else {
+    self.add_entity(entity_a).id
+  }
+  let entity_b = if self.subgraph_lookup.contains(entity_b) {
+    entity_b
+  } else {
+    self.add_entity(entity_b).id
+  }
+  self.relationships.push({ entity_a, role_a, entity_b, rel_spec: spec, })
 }
 
 ///|
 pub fn ErDb::set_direction(self : ErDb, dir : String) -> Unit {
-  ignore(dir)
-  self.direction = "TB"
-  self.title = None
+  self.direction = dir
 }
 
 ///|
@@ -84,7 +106,14 @@ pub fn ErDb::add_css_styles(
   ids : Array[String],
   styles : Array[String],
 ) -> Unit {
-  ignore((self, ids, styles))
+  for id in ids {
+    if self.entities.get(id) is Some(entity) {
+      entity.css_styles.push_iter(styles.iter())
+    }
+    if self.subgraph_lookup.get(id) is Some(subgraph) {
+      subgraph.css_styles.push_iter(styles.iter())
+    }
+  }
 }
 
 ///|
@@ -94,7 +123,31 @@ pub fn ErDb::add_class(
   ids : Array[String],
   styles : Array[String],
 ) -> Unit {
-  ignore((self, ids, styles))
+  for id in ids {
+    let def = match self.classes.get(id) {
+      Some(def) => def
+      None => {
+        let def = { id, styles: [], text_styles: [], }
+        self.classes.set(id, def)
+        def
+      }
+    }
+    for style in styles {
+      if style.contains("color") {
+        def.text_styles.push(replace_first(style, "fill", "bgFill"))
+      }
+      def.styles.push(style)
+    }
+  }
+}
+
+///|
+fn replace_first(text : String, old : String, new : String) -> String {
+  let at = @util.index_of(text, old)
+  if at == -1 {
+    return text
+  }
+  @util.slice(text, 0, end=at) + new + @util.slice(text, at + old.length())
 }
 
 ///|
@@ -104,7 +157,16 @@ pub fn ErDb::set_class(
   ids : Array[String],
   class_names : Array[String],
 ) -> Unit {
-  ignore((self, ids, class_names))
+  for id in ids {
+    if self.entities.get(id) is Some(entity) {
+      for name in class_names {
+        entity.css_classes = entity.css_classes + " " + name
+      }
+    }
+    if self.subgraph_lookup.get(id) is Some(subgraph) {
+      subgraph.classes.push_iter(class_names.iter())
+    }
+  }
 }
 
 ///|
@@ -115,18 +177,65 @@ pub fn ErDb::add_sub_graph(
   list : Array[DocItem],
   title : String,
 ) -> String {
-  ignore((self, list, title))
+  let id = @util.trim(id)
+  let seen = Set([])
+  let nodes = []
+  let mut dir = None
+  for item in list {
+    match item {
+      Dir(value) => dir = Some(value)
+      Name(name) => {
+        let trimmed = @util.trim(name)
+        if trimmed == "" || seen.contains(trimmed) {
+          continue
+        }
+        seen.add(trimmed)
+        // A name is claimed as written, while repeats are spotted trimmed, as in Mermaid.
+        if !self.claimed.contains(name) {
+          nodes.push(name)
+        }
+      }
+    }
+  }
+  for node in nodes {
+    self.claimed.add(node)
+  }
+  let subgraph = {
+    id,
+    nodes,
+    title: @util.trim(title),
+    classes: [],
+    css_styles: [],
+    dir,
+  }
+  self.subgraphs.push(subgraph)
+  self.subgraph_lookup.set(id, subgraph)
   id
 }
 
 ///|
 pub fn ErDb::set_acc_title(self : ErDb, text : String) -> Unit {
-  ignore(text)
-  self.acc_title = None
+  self.acc_title = Some(@util.trim_start(text))
 }
 
 ///|
 pub fn ErDb::set_acc_description(self : ErDb, text : String) -> Unit {
-  ignore(text)
-  self.acc_descr = None
+  let out = StringBuilder()
+  let mut from = 0
+  let mut i = 0
+  while i < text.length() {
+    let c = @util.code_at(text, i)
+    i += 1
+    if c == '\n'.to_int() &&
+      i < text.length() &&
+      @util.is_space(@util.code_at(text, i)) {
+      @util.write_range(out, text, from, i)
+      while i < text.length() && @util.is_space(@util.code_at(text, i)) {
+        i += 1
+      }
+      from = i
+    }
+  }
+  @util.write_range(out, text, from, text.length())
+  self.acc_descr = Some(out.to_string())
 }

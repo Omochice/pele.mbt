@@ -40,7 +40,7 @@ pub struct ErDb {
   relationships : Array[ErRelationship]
   classes : Map[String, ErClassDef]
   subgraphs : Array[ErSubgraph]
-  mut title : String?
+  title : String?
   mut acc_title : String?
   mut acc_descr : String?
   // private fields
@@ -51,7 +51,7 @@ pub fn ErDb::add_css_styles(Self, Array[String], Array[String]) -> Unit
 pub fn ErDb::add_entity(Self, String, alias_name? : String) -> ErEntity
 pub fn ErDb::add_relationship(Self, String, String, String, RelSpec) -> Unit
 pub fn ErDb::add_sub_graph(Self, String, Array[DocItem], String) -> String
-pub fn ErDb::new() -> Self
+pub fn ErDb::new(title? : String) -> Self
 pub fn ErDb::set_acc_description(Self, String) -> Unit
 pub fn ErDb::set_acc_title(Self, String) -> Unit
 pub fn ErDb::set_class(Self, Array[String], Array[String]) -> Unit
