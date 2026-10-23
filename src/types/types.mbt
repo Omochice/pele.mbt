@@ -3,7 +3,7 @@
 pub type Config = Map[String, Json]
 
 ///|
-/// The subset of pele's `RenderOptions` that a host can pass as data.
+/// The subset of pele's `RenderOptions` that the port takes.
 /// `None` selects pele's default.
 pub(all) struct RenderOptions {
   font_family : String?
@@ -25,6 +25,7 @@ pub(all) struct RenderOptions {
   image_schemes : Array[String]?
   config : Config?
   now : Double?
+  measurer : @text.TextMeasurer?
 }
 
 ///|
@@ -50,7 +51,15 @@ pub fn RenderOptions::default() -> RenderOptions {
     image_schemes: None,
     config: None,
     now: None,
+    measurer: None,
   }
+}
+
+///|
+/// The measurer labels are laid out with, as pele's `options.measurer ?? defaultMeasurer(fontFamily)`.
+/// pele's default falls back to its Arial table where no canvas exists, as in a plugin, so the font family never changes a width.
+pub fn RenderOptions::text_measurer(self : RenderOptions) -> @text.TextMeasurer {
+  self.measurer.unwrap_or(@text.metrics_measurer)
 }
 
 ///|

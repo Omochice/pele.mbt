@@ -84,5 +84,6 @@ fn decode_options(json : Json) -> @types.RenderOptions {
     image_schemes: strings_field(fields, "imageSchemes"),
     config: config_field(fields, "config"),
     now: number_field(fields, "now"),
+    measurer: None,
   }
 }

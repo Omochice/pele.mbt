@@ -3,6 +3,7 @@ package "Omochice/pele/types"
 
 import {
   "Omochice/pele/errors",
+  "Omochice/pele/text",
 }
 
 // Values
@@ -51,8 +52,10 @@ pub(all) struct RenderOptions {
   image_schemes : Array[String]?
   config : Map[String, Json]?
   now : Double?
+  measurer : @text.TextMeasurer?
 }
 pub fn RenderOptions::default() -> Self
+pub fn RenderOptions::text_measurer(Self) -> @text.TextMeasurer
 
 pub(all) struct RenderResult {
   kind : String

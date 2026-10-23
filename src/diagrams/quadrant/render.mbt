@@ -61,7 +61,7 @@ fn render_quadrant(
   let size = options.font_size.unwrap_or(16)
   let axis_size = (size * 0.875).round()
   let point_size = (size * 0.75).round()
-  let measurer = @text.metrics_measurer
+  let measurer = options.text_measurer()
   let natural = @util.js_max(100, length(config, "chartWidth", 500, 4000)).round()
   let width = @common.cap_width(options, natural, 280).round()
   let height = (@util.js_max(100, length(config, "chartHeight", 500, 4000)) *

@@ -188,7 +188,7 @@ fn draw(
   let graph = build_er_graph(db)
   let size = options.font_size.unwrap_or(16)
   let small_size = (size * 0.875).round()
-  let measurer = @text.metrics_measurer
+  let measurer = options.text_measurer()
   let pad = options.padding.unwrap_or(8)
   let index : Map[String, Int32] = Map([])
   for i, node in graph.nodes {

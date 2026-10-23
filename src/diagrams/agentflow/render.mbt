@@ -129,7 +129,7 @@ fn draw(
   let section = agentflow_section(config)
   let size = options.font_size.unwrap_or(16)
   let edge_size = (size * 0.875).round()
-  let measurer = @text.metrics_measurer
+  let measurer = options.text_measurer()
   let wrap_width = @flowchart.number_option(section, "wrappingWidth", 120)
   let min_width = @flowchart.number_option(section, "minNodeWidth", 120)
   let pad = options.padding.unwrap_or(8)

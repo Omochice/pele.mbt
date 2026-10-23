@@ -153,7 +153,7 @@ fn draw(
   let small = (size * 0.875).round()
   let tiny = (size * 0.8).round()
   let tiny_height = (tiny * 1.4).round()
-  let measurer = @text.metrics_measurer
+  let measurer = options.text_measurer()
   let pad = options.padding.unwrap_or(8)
   // pele keeps annotations and cardinalities literal unless $$math$$ in them is typeset; with no typesetter here, they always are.
   let card_width = (raw : String) => {

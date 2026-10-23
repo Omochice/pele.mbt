@@ -639,7 +639,7 @@ fn draw(
 ) -> @types.Rendered raise @errors.PeleError {
   let size = options.font_size.unwrap_or(16)
   let edge_size = (size * 0.875).round()
-  let measurer = @text.metrics_measurer
+  let measurer = options.text_measurer()
   let pad = options.padding.unwrap_or(8)
   let gap = @util.js_min(
     configured_gap(config),

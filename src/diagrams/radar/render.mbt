@@ -95,7 +95,7 @@ fn draw(
 ) -> @types.Rendered {
   let size = options.font_size.unwrap_or(16)
   let small = (size * 0.875).round()
-  let measurer = @text.metrics_measurer
+  let measurer = options.text_measurer()
   let pad = options.padding.unwrap_or(8)
   let axis_scale = number_option(config, "axisScaleFactor", 1, 0, 10)
   let label_factor = number_option(config, "axisLabelFactor", 1.05, 0, 10)

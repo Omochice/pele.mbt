@@ -145,7 +145,7 @@ fn draw(
 ) -> @types.Rendered {
   let size = options.font_size.unwrap_or(16)
   let small = (size * 0.75).round()
-  let measurer = @text.metrics_measurer
+  let measurer = options.text_measurer()
   let pad = options.padding.unwrap_or(8)
   let show_branches = flag(config, "showBranches", true)
   let show_commit_label = flag(config, "showCommitLabel", true)

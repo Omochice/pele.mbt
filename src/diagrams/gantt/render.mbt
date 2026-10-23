@@ -173,7 +173,7 @@ pub fn render_gantt(
   options : @types.RenderOptions,
 ) -> @types.Rendered raise @errors.PeleError {
   let size = options.font_size.unwrap_or(16)
-  let measurer = @text.metrics_measurer
+  let measurer = options.text_measurer()
   let pad = options.padding.unwrap_or(8)
   let now = clock(options.now)
   let label_size = setting(config, "fontSize", 4, 72).unwrap_or(

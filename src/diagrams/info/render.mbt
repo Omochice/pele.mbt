@@ -9,7 +9,7 @@ fn render_info(
   options : @types.RenderOptions,
 ) -> @types.Rendered {
   let size = options.font_size.unwrap_or(16)
-  let measurer = @text.metrics_measurer
+  let measurer = options.text_measurer()
   let pad = options.padding.unwrap_or(8)
   let title = @text.layout_label(
     model.title,

@@ -165,7 +165,7 @@ fn draw_across(
   let mono = (size * 0.75).round()
   let mono_step = (mono * 1.4).round()
   let small_step = (small * 1.5).round()
-  let measurer = @text.metrics_measurer
+  let measurer = options.text_measurer()
   let pad = options.padding.unwrap_or(8)
   let widest = (rows : Array[String], font_size : Double, style : Int32) => {
     let mut width = 0.0

@@ -339,7 +339,7 @@ fn draw(
   let padding = setting(config, "padding", 20, 0, 256)
   let group_pad = if tight { @util.js_min(padding, 12) } else { padding }
   let small = (size * 0.875).round()
-  let measurer = @text.metrics_measurer
+  let measurer = options.text_measurer()
   let pad = options.padding.unwrap_or(8)
   let half = icon_size / 2
   let nodes = model.nodes.values().collect()

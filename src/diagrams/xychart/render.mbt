@@ -130,7 +130,7 @@ pub fn render_xychart(
   let size = options.font_size.unwrap_or(16)
   let small = (size * 0.875).round()
   let tiny = (size * 0.75).round()
-  let measurer = @text.metrics_measurer
+  let measurer = options.text_measurer()
   let pad = options.padding.unwrap_or(8)
   let natural = dimension(chart.get("width"), 700)
   let width = @common.cap_width(options, natural, 240)

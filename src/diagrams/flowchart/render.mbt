@@ -139,7 +139,7 @@ fn draw(
   let tight_variant = variant is Some(_) && tight
   let size = options.font_size.unwrap_or(16)
   let edge_size = (size * 0.875).round()
-  let measurer = @text.metrics_measurer
+  let measurer = options.text_measurer()
   let wrap_width = @util.js_min(
     number_option(flow, "wrappingWidth", 200),
     if tight_variant {

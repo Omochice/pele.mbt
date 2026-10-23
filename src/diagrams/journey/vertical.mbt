@@ -6,7 +6,7 @@ fn vertical_journey(
 ) -> @types.Rendered {
   let size = options.font_size.unwrap_or(16)
   let small = (size * 0.875).round()
-  let measurer = @text.metrics_measurer
+  let measurer = options.text_measurer()
   let pad = options.padding.unwrap_or(8)
   let room = @util.js_max(140, options.max_width.unwrap_or(320) - 2 * pad)
   let title = @common.fit_label(

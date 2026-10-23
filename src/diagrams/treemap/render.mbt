@@ -148,7 +148,7 @@ fn render_treemap(
 ) -> @types.Rendered {
   let size = options.font_size.unwrap_or(16)
   let small = (size * 0.875).round()
-  let measurer = @text.metrics_measurer
+  let measurer = options.text_measurer()
   let pad = match options.padding {
     Some(padding) => padding
     None => number_option(config, "diagramPadding", 8, 0, 2000)

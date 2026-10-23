@@ -119,7 +119,7 @@ fn render_cynefin(
   let size = options.font_size.unwrap_or(16)
   let small = (size * 0.8125).round()
   let item_size = (size * 0.875).round()
-  let measurer = @text.metrics_measurer
+  let measurer = options.text_measurer()
   let pad = options.padding.unwrap_or(8)
   let show_descriptions = match section(config) {
     Some(values) =>

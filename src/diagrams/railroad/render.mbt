@@ -304,7 +304,7 @@ fn draw(
   let padding = option(config, "padding", -1, 200)
   let line_height = (size * 1.5).round()
   let m : Metrics = {
-    measurer: @text.metrics_measurer,
+    measurer: options.text_measurer(),
     size,
     padding: if padding < 0 {
       12

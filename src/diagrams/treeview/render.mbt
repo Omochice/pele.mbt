@@ -103,7 +103,7 @@ fn draw(
   tight : Bool,
 ) -> @types.Rendered {
   let size = options.font_size.unwrap_or(16)
-  let measurer = @text.metrics_measurer
+  let measurer = options.text_measurer()
   let pad = options.padding.unwrap_or(8)
   let icons = icon_config(config)
   let { padding_x, padding_y, row_indent, line_thickness, } = tree_settings(

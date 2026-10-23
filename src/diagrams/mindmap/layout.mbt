@@ -72,7 +72,7 @@ fn layout(
   down : Bool,
 ) -> Layout {
   let size = options.font_size.unwrap_or(16)
-  let measurer = @text.metrics_measurer
+  let measurer = options.text_measurer()
   let wrap = max_node_width(config)
   let nodes = model.nodes
   let n = nodes.length()

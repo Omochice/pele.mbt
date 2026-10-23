@@ -39,7 +39,7 @@ fn draw_down(
   let small = (size * 0.875).round()
   let mono = (size * 0.75).round()
   let pad = options.padding.unwrap_or(8)
-  let measurer = @text.metrics_measurer
+  let measurer = options.text_measurer()
   let room = @util.js_max(160, options.max_width.unwrap_or(320) - 2.0 * pad)
   // A relation that skips a card runs down a rail beside the cards.
   // Relations into one card share a rail; others whose runs overlap take the next rail out, so that no two follow the same line.

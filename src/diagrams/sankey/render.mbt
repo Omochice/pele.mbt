@@ -91,7 +91,7 @@ fn draw(
 ) -> @types.Rendered raise @errors.PeleError {
   let size = options.font_size.unwrap_or(16)
   let small = (size * 0.875).round()
-  let measurer = @text.metrics_measurer
+  let measurer = options.text_measurer()
   let pad = options.padding.unwrap_or(8)
   let chart_height = number_option(conf, "height", 400, 1, 10000)
   let node_width = @cmp.minimum(

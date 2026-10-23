@@ -63,7 +63,7 @@ fn horizontal_journey(
   let size = options.font_size.unwrap_or(16)
   let small = (size * 0.875).round()
   let tiny = (size * 0.75).round()
-  let measurer = @text.metrics_measurer
+  let measurer = options.text_measurer()
   let pad = options.padding.unwrap_or(8)
   let tasks = model.tasks
   let n = tasks.length()

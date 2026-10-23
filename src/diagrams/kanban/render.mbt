@@ -127,7 +127,7 @@ pub fn render_kanban(
   let small = (size * 0.875).round()
   let line = (size * 1.5).round()
   let small_line = (small * 1.5).round()
-  let measurer = @text.metrics_measurer
+  let measurer = options.text_measurer()
   let pad = options.padding.unwrap_or(8)
   let conf = match config.get("kanban") {
     Some(Object(conf)) => conf

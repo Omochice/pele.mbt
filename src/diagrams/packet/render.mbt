@@ -89,7 +89,7 @@ fn draw(
   let size = options.font_size.unwrap_or(16)
   let label_size = (size * 0.875).round()
   let bit_size = (size * 0.625).round()
-  let measurer = @text.metrics_measurer
+  let measurer = options.text_measurer()
   let pad = options.padding.unwrap_or(8)
   let row_height = packet_option(config, "rowHeight", 32, 1, 400)
   let mut bit_width = packet_option(config, "bitWidth", 32, 1, 400)
