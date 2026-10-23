@@ -45,7 +45,7 @@ pub fn render_journey(
   model : JourneyDb,
   _config : @types.Config,
   options : @types.RenderOptions,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   @common.turn_to_fit(options, down => {
     if down {
       vertical_journey(model, options)
@@ -59,7 +59,7 @@ pub fn render_journey(
 fn horizontal_journey(
   model : JourneyDb,
   options : @types.RenderOptions,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   let size = options.font_size.unwrap_or(16)
   let small = (size * 0.875).round()
   let tiny = (size * 0.75).round()
@@ -179,7 +179,7 @@ fn horizontal_journey(
   let chart_bottom = chart_top + 4.0 * LEVEL
   let right = left + plot_w
 
-  let body = StringBuilder()
+  let body = @svg.Markup::new()
   let mut bottom = top
   if n > 0 {
     let grid = StringBuilder()
@@ -193,15 +193,15 @@ fn horizontal_journey(
         "<text x=\"\{@svg.num(left - 12)}\" y=\"\{@svg.num(y + tiny * 0.35)}\">\{score}</text>",
       )
     }
-    body.write_string(
+    body.write(
       "<path class=\"pele-grid\" d=\"\{grid}\" fill=\"none\" stroke=\"var(--_a)\"/>" +
       "<g class=\"pele-scale\" font-size=\"\{tiny}\" text-anchor=\"end\" fill=\"var(--_m)\">\{scale}</g>",
     )
 
-    let line = StringBuilder()
-    let stems = StringBuilder()
-    let faces = StringBuilder()
-    let cards : Array[String] = []
+    let line = @svg.Markup::new()
+    let stems = @svg.Markup::new()
+    let faces = @svg.Markup::new()
+    let cards : Array[@svg.Markup] = []
     for index, task in tasks {
       let x = left + index.to_double() * pitch
       let cx = x + card_w / 2
@@ -212,15 +212,15 @@ fn horizontal_journey(
         @util.js_min(5, @util.js_max(1, score))
       }
       let y = chart_top + (5 - level) * LEVEL
-      line.write_string(
+      line.write(
         "\{if index == 0 { "M" } else { "L" }}\{@svg.num(cx)},\{@svg.num(y)}",
       )
-      stems.write_string(
+      stems.write(
         "M\{@svg.num(cx)},\{@svg.num(cards_y + card_h)}V\{@svg.num(y - FACE)}",
       )
-      faces.write_string(face(cx, y, mood_of(score)))
+      faces.write(face(cx, y, mood_of(score)))
 
-      let dots = StringBuilder()
+      let dots = @svg.Markup::new()
       let people = named(task.people)
       let count = people.length()
       let step = @util.js_min(
@@ -232,12 +232,13 @@ fn horizontal_journey(
         let dot_x = cx + (k.to_double() - (count - 1).to_double() / 2) * step
         let dot_y = cards_y + card_h - PAD_Y - DOT
         let color = @svg.series_color(actor.get(name).unwrap_or(0))
-        dots.write_string(
+        dots.write(
           "<circle class=\"pele-actor\" cx=\"\{@svg.num(dot_x)}\" cy=\"\{@svg.num(dot_y)}\" r=\"\{DOT}\" fill=\"\{color}\" stroke=\"var(--_s)\">" +
           "<title>\{@svg.esc_text(name)}</title></circle>",
         )
       }
-      cards.push(
+      let card = @svg.Markup::new()
+      card.write(
         "<g class=\"pele-node pele-task\" data-id=\"\{@svg.esc_text(@util.trim(task.task))}\">" +
         "<rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(cards_y)}\" width=\"\{@svg.num(card_w)}\" height=\"\{@svg.num(card_h)}\" fill=\"var(--_s)\" stroke=\"var(--_b)\"\{@svg.ROUNDED}/>" +
         @svg.label_svg(
@@ -245,32 +246,33 @@ fn horizontal_journey(
           cx,
           cards_y + PAD_Y + text_h / 2,
           " font-size=\"\{small}\"",
-        ) +
-        dots.to_string() +
-        "</g>",
+        ),
       )
+      card.write_markup(dots)
+      card.write("</g>")
+      cards.push(card)
     }
-    body.write_string(
-      "<path class=\"pele-stems\" d=\"\{stems}\" fill=\"none\" stroke=\"var(--_b)\" stroke-dasharray=\"2 3\"/>",
+    body.write_group(
+      "<path class=\"pele-stems\" d=\"", stems, "\" fill=\"none\" stroke=\"var(--_b)\" stroke-dasharray=\"2 3\"/>",
     )
     if n > 1 {
-      body.write_string(
-        "<path class=\"pele-edge\" d=\"\{line}\" fill=\"none\" stroke=\"var(--_l)\" stroke-linejoin=\"round\"/>",
+      body.write_group(
+        "<path class=\"pele-edge\" d=\"", line, "\" fill=\"none\" stroke=\"var(--_l)\" stroke-linejoin=\"round\"/>",
       )
     }
-    body.write_string(faces.to_string())
+    body.write_markup(faces)
 
     for run in runs {
-      let members = StringBuilder()
+      let members = @svg.Markup::new()
       for k in run.start..<(run.start + run.count) {
-        members.write_string(cards[k])
+        members.write_markup(cards[k])
       }
       match run.label {
-        None => body.write_string(members.to_string())
+        None => body.write_markup(members)
         Some(label) => {
           let x = left + run.start.to_double() * pitch
           let w = run.count.to_double() * pitch - GAP
-          body.write_string(
+          body.write(
             "<g class=\"pele-cluster pele-section\" data-id=\"\{@svg.esc_text(@util.trim(tasks[run.start].section))}\">" +
             "<rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(top)}\" width=\"\{@svg.num(w)}\" height=\"\{@svg.num(band_h)}\" fill=\"var(--_a)\"\{@svg.ROUNDED}/>" +
             @svg.label_svg(
@@ -278,10 +280,10 @@ fn horizontal_journey(
               x + w / 2,
               top + band_h / 2,
               " font-size=\"\{small}\" font-weight=\"var(--_hw)\"",
-            ) +
-            members.to_string() +
-            "</g>",
+            ),
           )
+          body.write_markup(members)
+          body.write("</g>")
         }
       }
     }
@@ -290,11 +292,11 @@ fn horizontal_journey(
     if legend.length() > 0 {
       let x0 = left + (plot_w - legend_w) / 2
       let y0 = bottom + 16
-      let items = StringBuilder()
+      let items = @svg.Markup::new()
       for item in legend {
         let cy = y0 + item.y + item.h / 2
         let color = @svg.series_color(actor.get(item.name).unwrap_or(0))
-        items.write_string(
+        items.write(
           "<g class=\"pele-legend-item\" data-id=\"\{@svg.esc_text(item.name)}\">" +
           "<circle cx=\"\{@svg.num(x0 + item.x + DOT)}\" cy=\"\{@svg.num(cy)}\" r=\"\{DOT}\" fill=\"\{color}\"/>" +
           @svg.label_svg(
@@ -306,8 +308,10 @@ fn horizontal_journey(
           "</g>",
         )
       }
-      body.write_string(
-        "<g class=\"pele-legend\" font-size=\"\{small}\">\{items}</g>",
+      body.write_group(
+        "<g class=\"pele-legend\" font-size=\"\{small}\">",
+        items,
+        "</g>",
       )
       bottom = y0 + legend_h
     }
@@ -315,15 +319,18 @@ fn horizontal_journey(
 
   let total_width = (width + 2 * pad).ceil()
   let total_height = (@util.js_max(bottom, pad) + pad).ceil()
-  let content = @svg.label_svg(
+  let content = @svg.Markup::new()
+  content.write(
+    @svg.label_svg(
       title,
       pad + width / 2,
       pad + title.height / 2,
       " class=\"pele-title\" font-weight=\"var(--_tw)\"",
-    ) +
-    body.to_string()
+    ),
+  )
+  content.write_markup(body)
   {
-    svg: @svg.svg_document(
+    svg: @svg.markup_document(
       "journey",
       total_width,
       total_height,

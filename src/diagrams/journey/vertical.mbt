@@ -3,7 +3,7 @@
 fn vertical_journey(
   model : JourneyDb,
   options : @types.RenderOptions,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   let size = options.font_size.unwrap_or(16)
   let small = (size * 0.875).round()
   let measurer = options.text_measurer()
@@ -23,7 +23,7 @@ fn vertical_journey(
   }
   let mut y = pad + (if title.height != 0 { title.height + 16 } else { 0.0 })
   let mut section : String? = None
-  let body = StringBuilder()
+  let body = @svg.Markup::new()
   let mut width = title.width
   let count = model.tasks.length()
   for index, task in model.tasks {
@@ -37,7 +37,7 @@ fn vertical_journey(
         base=@text.STYLE_BOLD,
       )
       if head.height != 0 {
-        body.write_string(
+        body.write(
           @svg.label_svg(
             head,
             pad + 8 + head.width / 2,
@@ -59,10 +59,10 @@ fn vertical_journey(
       h += @util.js_max(16, person.1.height) + 4
     }
     let w = @util.js_max(room, label.width + 72)
-    body.write_string(
+    body.write(
       "<g class=\"pele-node pele-journey-step\" data-id=\"\{index}\"><rect x=\"\{@svg.num(pad)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(w)}\" height=\"\{@svg.num(h)}\" fill=\"var(--_s)\" stroke=\"var(--_b)\"\{@svg.ROUNDED}/>",
     )
-    body.write_string(
+    body.write(
       @svg.label_svg(
         label,
         pad + PAD_X + label.width / 2,
@@ -71,10 +71,10 @@ fn vertical_journey(
       ),
     )
     let cx = pad + w - 28
-    body.write_string(face(cx, y + PAD_Y + FACE, mood_of(task.score)))
+    body.write(face(cx, y + PAD_Y + FACE, mood_of(task.score)))
     if !task.score.is_nan() {
       let shown = @util.js_min(5, @util.js_max(1, task.score))
-      body.write_string(
+      body.write(
         "<text class=\"pele-journey-score\" x=\"\{@svg.num(cx)}\" y=\"\{@svg.num(y + PAD_Y + 2.0 * FACE + small)}\" font-size=\"\{small}\" text-anchor=\"middle\">\{@svg.num(shown)}</text>",
       )
     }
@@ -82,7 +82,7 @@ fn vertical_journey(
     for person in people {
       let ph = @util.js_max(16, person.1.height)
       let color = @svg.series_color(actors.get(person.0).unwrap_or(0))
-      body.write_string(
+      body.write(
         "<circle class=\"pele-actor\" cx=\"\{@svg.num(pad + 16)}\" cy=\"\{@svg.num(py + ph / 2)}\" r=\"\{DOT}\" fill=\"\{color}\"/>" +
         @svg.label_svg(
           person.1,
@@ -93,10 +93,10 @@ fn vertical_journey(
       )
       py += ph + 4
     }
-    body.write_string("</g>")
+    body.write("</g>")
     y += h
     if index + 1 < count {
-      body.write_string(
+      body.write(
         "<path class=\"pele-edge\" d=\"M\{@svg.num(pad + w / 2)},\{@svg.num(y)}v16\" fill=\"none\" stroke=\"var(--_l)\"/>",
       )
     }
@@ -109,15 +109,18 @@ fn vertical_journey(
     y - (if count > 0 { 16.0 } else { 0.0 }),
   ) +
   pad).ceil()
-  let content = @svg.label_svg(
+  let content = @svg.Markup::new()
+  content.write(
+    @svg.label_svg(
       title,
       total_width / 2,
       pad + title.height / 2,
       " class=\"pele-title\" font-weight=\"var(--_tw)\"",
-    ) +
-    body.to_string()
+    ),
+  )
+  content.write_markup(body)
   {
-    svg: @svg.svg_document(
+    svg: @svg.markup_document(
       "journey",
       total_width,
       height,
