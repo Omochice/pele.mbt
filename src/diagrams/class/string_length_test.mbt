@@ -266,3 +266,26 @@ test "a static member of a class colored by tens of millions of entities fails a
     content="limit: Diagram is nested too deeply. class classDiagram",
   )
 }
+
+///|
+#skip("slow: lexes 70 million tokens before it fails")
+test "a generic of 140 million < fails with its whole line quoted" {
+  let generic = "<".repeat(140000000)
+  let failure = try {
+    @core.render([@class.class], "classDiagram\nclass A~\{generic}~\n", {
+      ..@types.RenderOptions::default(),
+      limit: Some(1.0 / 0.0),
+    })
+    |> ignore
+    "rendered"
+  } catch {
+    @errors.PeleError(failure) => {
+      assert_eq(
+        failure.message,
+        "Parse error on line 2:\nclass A~\{generic}~\n----------^\nExpecting 'UNICODE_TEXT', 'NUM', 'ALPHA', 'MINUS', got 'ANNOTATION_START'",
+      )
+      "\{failure.code.to_string()}: \{failure.message.length()} \{failure.kind.unwrap_or("null")} \{failure.mermaid_type.unwrap_or("null")}"
+    }
+  }
+  inspect(failure, content="syntax: 140000118 class classDiagram")
+}
