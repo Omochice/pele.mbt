@@ -96,3 +96,12 @@ test "class names keep word characters and hyphens, one space apart" {
   inspect(@svg.class_names("a\"><tag>b"), content=" a tag b")
   inspect(@svg.class_names("ä.b"), content=" b")
 }
+
+///|
+test "node class names leave out the default class every node carries first" {
+  inspect(@svg.node_class_names("default"), content="")
+  inspect(@svg.node_class_names("default hot cold"), content=" hot cold")
+  inspect(@svg.node_class_names("default\thot"), content=" hot")
+  inspect(@svg.node_class_names("defaulted"), content=" ed")
+  inspect(@svg.node_class_names("hot default"), content=" hot default")
+}

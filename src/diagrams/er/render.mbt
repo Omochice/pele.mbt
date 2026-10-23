@@ -511,7 +511,7 @@ fn draw(
   for i, view in views {
     let c = cnodes[i]
     let node = view.node
-    let classes = @svg.class_names(strip_default(node.css_classes))
+    let classes = @svg.node_class_names(node.css_classes)
     if c.is_group {
       view.w = c.w
       view.h = c.h
@@ -797,20 +797,6 @@ fn draw(
     content.to_string(),
   )
   { svg, width, height, links, }
-}
-
-///|
-/// The classes without the leading `default` every entity has, as `/^default\s?/` removes it.
-fn strip_default(classes : String) -> String {
-  if !classes.has_prefix("default") {
-    return classes
-  }
-  let rest = 7
-  if rest < classes.length() && @util.is_space(@util.code_at(classes, rest)) {
-    @util.slice(classes, rest + 1)
-  } else {
-    @util.slice(classes, rest)
-  }
 }
 
 ///|

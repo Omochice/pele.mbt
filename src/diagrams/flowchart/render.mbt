@@ -79,22 +79,6 @@ fn edge_classes(classes : String) -> String {
 }
 
 ///|
-/// The node's classes without the `default` class that every node carries first.
-fn node_classes(classes : String) -> String {
-  let rest = if classes.has_prefix("default") {
-    let after = @util.slice(classes, 7)
-    if @util.is_space(@util.code_at(after, 0)) {
-      @util.slice(after, 1)
-    } else {
-      after
-    }
-  } else {
-    classes
-  }
-  @svg.class_names(rest)
-}
-
-///|
 /// `turned` draws a flowchart that runs across as one that runs down; `tight` sets nodes closer together.
 fn draw(
   db : FlowDb,
@@ -315,7 +299,7 @@ fn draw(
   for i, view in views {
     let c = cnodes[i]
     let node = view.node
-    let classes = node_classes(node.css_classes)
+    let classes = @svg.node_class_names(node.css_classes)
     let id = @svg.esc_text(node.id)
     if c.is_group {
       let title_x = @svg.cluster_title_x(

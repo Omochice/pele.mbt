@@ -50,6 +50,8 @@ pub fn marker(String, Double, Double, Double, Double, String) -> String
 
 pub fn marker_trim(String) -> Double
 
+pub fn node_class_names(String) -> String
+
 pub fn num(Double) -> String
 
 pub fn resolve_style(Array[String]) -> ResolvedStyle

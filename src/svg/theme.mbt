@@ -149,6 +149,22 @@ pub fn class_names(raw : String) -> String {
 }
 
 ///|
+/// A node's classes as `class_names` writes them, without the `default` class every node carries first, as `/^default\s?/` removes it.
+pub fn node_class_names(classes : String) -> String {
+  let rest = if classes.has_prefix("default") {
+    let after = @util.slice(classes, 7)
+    if @util.is_space(@util.code_at(after, 0)) {
+      @util.slice(after, 1)
+    } else {
+      after
+    }
+  } else {
+    classes
+  }
+  class_names(rest)
+}
+
+///|
 let series : Array[String] = [
   "#4c78a8", "#f58518", "#54a24b", "#e45756", "#72b7b2", "#eeca3b", "#b279a2", "#9d755d",
 ]

@@ -250,22 +250,6 @@ pub fn render_requirement(
 }
 
 ///|
-/// The node's classes without the `default` class that every node carries first.
-fn node_classes(classes : String) -> String {
-  let rest = if classes.has_prefix("default") {
-    let after = @util.slice(classes, 7)
-    if @util.is_space(@util.code_at(after, 0)) {
-      @util.slice(after, 1)
-    } else {
-      after
-    }
-  } else {
-    classes
-  }
-  @svg.class_names(rest)
-}
-
-///|
 fn label(
   text : String,
   markdown : Bool,
@@ -504,7 +488,7 @@ fn draw(
       "pele-element"
     }
     nodes_out.write_string(
-      "<g class=\"pele-node \{kind_class}\{node_classes(view.node.css_classes)}\" data-id=\"\{@svg.esc_text(view.node.id)}\" transform=\"translate(\{n(cnodes[i].x + ox)},\{n(cnodes[i].y + oy)})\">\{body.to_string()}</g>",
+      "<g class=\"pele-node \{kind_class}\{@svg.node_class_names(view.node.css_classes)}\" data-id=\"\{@svg.esc_text(view.node.id)}\" transform=\"translate(\{n(cnodes[i].x + ox)},\{n(cnodes[i].y + oy)})\">\{body.to_string()}</g>",
     )
   }
   let edges_out = StringBuilder()
