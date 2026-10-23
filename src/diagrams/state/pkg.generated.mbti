@@ -3,12 +3,17 @@ package "Omochice/pele/diagrams/state"
 
 import {
   "Omochice/pele/errors",
+  "Omochice/pele/types",
 }
 
 // Values
 pub fn build_state_graph(Array[Stmt], Map[String, StateStmt], Map[String, StateClassDef]) -> StateGraph raise @errors.PeleError
 
 pub fn parse_state(String, StateDb) -> Array[Stmt] raise @errors.PeleError
+
+pub fn render_state(StateDb, Map[String, Json], @types.RenderOptions) -> @types.Rendered
+
+pub let state : @types.Diagram
 
 pub fn tokenize(String) -> Tokens
 
