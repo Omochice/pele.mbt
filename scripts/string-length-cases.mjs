@@ -141,4 +141,11 @@ export const CASES = [
   ['er', 'host icons in one entity name', `erDiagram\nA["${Array(5400).fill('fa:fa-x').join(' ')}"] {\n}\n`, ICONS],
   ['er', 'host icons in one attribute comment', `erDiagram\nA {\n  string name "${Array(5400).fill('fa:fa-x').join(' ')}"\n}\n`, ICONS],
   ['usecase', 'host icons in one use case label', `usecase-beta\nU("${Array(5400).fill('fa:fa-x').join(' ')}")\n`, ICONS],
+  // A requirement diagram draws no host icons, but it typesets math.
+  [
+    'requirement',
+    'host math in one field',
+    `requirementDiagram\nrequirement r {\n  text: "${Array(5400).fill('$$x$$').join(' ')}"\n}\n`,
+    { ...RAISED, math: { x: { 14: { svg: `<path d="${'M0 0'.repeat(25000)}"/>`, width: 10, height: 10 } } } },
+  ],
 ];

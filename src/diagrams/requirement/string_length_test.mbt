@@ -20,3 +20,36 @@ test "elements outgrowing V8's longest string fail as nested too deeply" {
     content="limit: Diagram is nested too deeply. requirement requirement",
   )
 }
+
+///|
+#skip("slow: draws over 536 million code units before it fails")
+test "a field drawing host math in each of thousands of spans fails as nested too deeply" {
+  let drawing = "<path d=\"\{"M0 0".repeat(25000)}\"/>"
+  let maths = Array::make(5400, "$$x$$").join(" ")
+  let failure = try {
+    @core.render(
+      [@requirement.requirement],
+      "requirementDiagram\nrequirement r {\n  text: \"\{maths}\"\n}\n",
+      {
+        ..@types.RenderOptions::default(),
+        limit: Some(1.0 / 0.0),
+        math: Some((tex, size) => {
+          if tex == "x" && size == 14 {
+            Some({ "svg": drawing, "width": 10, "height": 10 })
+          } else {
+            None
+          }
+        }),
+      },
+    )
+    |> ignore
+    "rendered"
+  } catch {
+    @errors.PeleError(failure) =>
+      "\{failure.code.to_string()}: \{failure.message} \{failure.kind.unwrap_or("null")} \{failure.mermaid_type.unwrap_or("null")}"
+  }
+  inspect(
+    failure,
+    content="limit: Diagram is nested too deeply. requirement requirement",
+  )
+}
