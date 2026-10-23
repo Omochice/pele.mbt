@@ -55,6 +55,7 @@ fn draw_lane(
   classes : String,
   id : String,
   dir : @layout.Dir,
+  icons : @types.IconResolver?,
 ) -> String {
   let left = c.x - c.w / 2
   let top = c.y - c.h / 2
@@ -66,6 +67,7 @@ fn draw_lane(
     cx,
     cy,
     " class=\"pele-cluster-label\" fill=\"var(--_m)\"\{style.text}",
+    icons?,
   )
   let band_w = if sideways { c.pad_top } else { c.w }
   let band_h = if sideways { c.h } else { c.pad_top }

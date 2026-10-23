@@ -58,7 +58,7 @@ pub(all) struct FlowVariant {
     @layout.LayeredOptions,
     Bool,
   ) -> @layout.CompoundResult
-  /// Draws a top-level group from its laid out box, title, style, classes, escaped id and the diagram's direction.
+  /// Draws a top-level group from its laid out box, title, style, classes, escaped id, the diagram's direction and the host's icons.
   draw_group : ((
     @layout.CNode,
     @text.Label,
@@ -66,6 +66,7 @@ pub(all) struct FlowVariant {
     String,
     String,
     @layout.Dir,
+    @types.IconResolver?,
   ) -> String)?
 }
 
@@ -363,7 +364,15 @@ fn draw(
       c.parent < 0 &&
       variant is Some({ draw_group: Some(draw_group), .. }) {
       clusters.write_string(
-        draw_group(c, view.label, view.style, classes, id, root_dir),
+        draw_group(
+          c,
+          view.label,
+          view.style,
+          classes,
+          id,
+          root_dir,
+          options.icons,
+        ),
       )
       continue
     }
