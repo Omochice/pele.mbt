@@ -95,3 +95,38 @@ test "a section of tens of millions of entities fails as nested too deeply" {
     content="limit: Diagram is nested too deeply. journey journey",
   )
 }
+
+///|
+#skip("slow: draws over 360 million code units")
+test "a front matter title wrapped past what a StringBuilder grows to is drawn as pele draws it" {
+  let title = "<".repeat(70000000)
+  inspect(
+    outcome("---\ntitle: \{title}\n---\njourney\nsection S\n  T: 5: Me\n"),
+    content="363951473 wide 334",
+  )
+}
+
+///|
+#skip("slow: draws over 360 million code units across before it draws down")
+test "a front matter title wrapped past what a StringBuilder grows to is drawn down as pele draws it" {
+  let title = "<".repeat(70000000)
+  inspect(
+    outcome(
+      "---\ntitle: \{title}\n---\njourney\nsection S\n  T: 5: Me\n",
+      max_width=300,
+    ),
+    content="368205619 wide 300",
+  )
+}
+
+///|
+#skip("slow: escapes over 536 million code units before it fails")
+test "a title outgrowing V8's longest string fails as nested too deeply" {
+  inspect(
+    outcome_of(
+      "journey\ntitle \{"\"".repeat(90000000)}\nsection S\n  T: 5: Me\n",
+      { ..@types.RenderOptions::default(), limit: Some(1.0 / 0.0), },
+    ),
+    content="limit: Diagram is nested too deeply. journey journey",
+  )
+}

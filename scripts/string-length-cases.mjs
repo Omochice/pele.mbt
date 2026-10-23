@@ -307,6 +307,10 @@ export const CASES = [
   ['pie', 'a long two-byte font name at V8\'s backtracking stack', 'pie\n"a": 1\n', { ...RAISED, fontFamily: `Ā${'a'.repeat(4194295)}` }],
   ['pie', 'a long quoted two-byte font name just short of V8\'s backtracking stack', 'pie\n"a": 1\n', { ...RAISED, fontFamily: `Ā,"${'a'.repeat(8388586)}"` }],
   ['pie', 'a long quoted two-byte font name at V8\'s backtracking stack', 'pie\n"a": 1\n', { ...RAISED, fontFamily: `Ā,"${'a'.repeat(8388587)}"` }],
+  // A journey wraps its title into lines, each its own tspan, after escaping every `<` of it.
+  lazy('journey', 'a front matter title wrapped past what a doubling StringBuilder holds', () => `---\ntitle: ${'<'.repeat(70000000)}\n---\njourney\nsection S\n  T: 5: Me\n`, RAISED),
+  lazy('journey', 'a front matter title wrapped past what a doubling StringBuilder holds, drawn down', () => `---\ntitle: ${'<'.repeat(70000000)}\n---\njourney\nsection S\n  T: 5: Me\n`, { ...RAISED, maxWidth: 300 }),
+  lazy('journey', 'a title past V8', () => `journey\ntitle ${'"'.repeat(90000000)}\nsection S\n  T: 5: Me\n`, RAISED),
   // A YAML plain scalar cannot start with `"`, so a front matter title of `"` starts with `x`.
   lazy('flowchart', 'a front matter title past V8', () => `---\ntitle: x${'"'.repeat(90000000)}\n---\ngraph TD\nA\n`, RAISED),
   lazy('swimlane', 'a front matter title past V8', () => `---\ntitle: x${'"'.repeat(90000000)}\n---\nswimlane-beta TB\nsubgraph L\nA\nend\n`, RAISED),
