@@ -175,4 +175,7 @@ export const CASES = [
   ['treeview', 'one entry described by many &', `treeView-beta\n  a "${'&'.repeat(110000000)}"\n`, RAISED],
   ['wardley', 'host icons in one anchor label', `wardley-beta\nanchor "${Array(5400).fill('fa:fa-x').join(' ')}" [0.5, 0.5]\n`, ICONS],
   ['wardley', 'host icons in one link label', `wardley-beta\ncomponent A [0.2, 0.2]\ncomponent B [0.8, 0.8]\nA->B; ${Array(5400).fill('fa:fa-x').join(' ')}\n`, ICONS],
+  // pele fails this while parsing, as it does a commit id of the same length; the port fails as
+  // the slice's and the legend item's data-ids and the label pass V8's longest string.
+  ['pie', 'one entry named by many &', `pie\n"${'&'.repeat(54000000)}": 1\n`, RAISED],
 ];

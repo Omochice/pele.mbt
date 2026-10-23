@@ -44,3 +44,28 @@ test "an accessible description outgrowing V8's longest string fails as nested t
   }
   inspect(failure, content="limit: Diagram is nested too deeply. pie pie")
 }
+
+
+///|
+fn outcome_of(source : String, options : @types.RenderOptions) -> String {
+  try {
+    @core.render([@pie.pie], source, options) |> ignore
+    "rendered"
+  } catch {
+    @errors.PeleError(failure) =>
+      "\{failure.code.to_string()}: \{failure.message} \{failure.kind.unwrap_or("null")} \{failure.mermaid_type.unwrap_or("null")}"
+  }
+}
+
+///|
+#skip("slow: escapes 54 million characters several times before it fails")
+test "an entry named by tens of millions of entities fails as nested too deeply" {
+  inspect(
+    outcome_of("pie\n\"\{"&".repeat(54000000)}\": 1\n", {
+      ..@types.RenderOptions::default(),
+      limit: Some(1.0 / 0.0),
+    }),
+    content="limit: Diagram is nested too deeply. pie pie",
+  )
+}
+
