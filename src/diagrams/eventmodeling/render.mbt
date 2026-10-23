@@ -96,26 +96,27 @@ fn hard_wrap(text : String, columns : Int32) -> Array[String] {
 }
 
 ///|
-fn lines(
+/// Writes `rows` to `out` as the lines of one text, each starting at `x`.
+fn write_lines(
+  out : @svg.Markup,
   rows : Array[String],
   x : Double,
   y : Double,
   step : Double,
   attrs : String,
-) -> String {
-  let body = StringBuilder()
+) -> Unit raise @errors.PeleError {
+  let body = @svg.Markup::new()
   for i, row in rows {
     if row != "" {
-      body.write_string(
-        "<tspan x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y + i.to_double() * step)}\">\{@svg.esc(row)}</tspan>",
+      body.write(
+        "<tspan x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y + i.to_double() * step)}\">",
       )
+      @svg.write_esc(body, row)
+      body.write("</tspan>")
     }
   }
-  let body = body.to_string()
-  if body == "" {
-    ""
-  } else {
-    "<text\{attrs} xml:space=\"preserve\">\{body}</text>"
+  if !body.is_empty() {
+    out.write_group("<text\{attrs} xml:space=\"preserve\">", body, "</text>")
   }
 }
 
@@ -268,17 +269,19 @@ fn draw_across(
   for band in bands {
     band.y = y
     band.h += 2.0 * LANE_PAD
+    lanes.write("<g class=\"pele-cluster pele-em-lane\" data-id=\"")
+    @svg.write_esc_text(lanes, band.lane.label)
     lanes.write(
-      "<g class=\"pele-cluster pele-em-lane\" data-id=\"\{@svg.esc_text(band.lane.label)}\">" +
-      "<rect x=\"\{@svg.num(left)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(lane_width)}\" height=\"\{@svg.num(band.h)}\" fill=\"var(--_s)\"\{@svg.ROUNDED}/>" +
-      @svg.label_svg(
-        band.label,
-        left + LANE_PAD + band.label.width / 2,
-        y + band.h / 2,
-        " class=\"pele-cluster-label\" font-size=\"\{@svg.num(small)}\" font-weight=\"var(--_hw)\" fill=\"var(--_m)\"",
-      ) +
-      "</g>",
+      "\"><rect x=\"\{@svg.num(left)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(lane_width)}\" height=\"\{@svg.num(band.h)}\" fill=\"var(--_s)\"\{@svg.ROUNDED}/>",
     )
+    @svg.write_label(
+      lanes,
+      band.label,
+      left + LANE_PAD + band.label.width / 2,
+      y + band.h / 2,
+      " class=\"pele-cluster-label\" font-size=\"\{@svg.num(small)}\" font-weight=\"var(--_hw)\" fill=\"var(--_m)\"",
+    )
+    lanes.write("</g>")
     y += band.h + LANE_GAP
   }
   let mut bottom = if bands.length() > 0 { y - LANE_GAP } else { top }
@@ -296,22 +299,25 @@ fn draw_across(
         "<rect \{frame} fill=\"var(--_bg)\"\{@svg.ROUNDED}/><rect \{frame} fill=\"\{@svg.series_color(series)}\" fill-opacity=\"0.22\" stroke=\"\{@svg.series_color(series)}\"\{@svg.ROUNDED}/>"
     }
     let name_y = item.y + BOX_PAD_Y + item.name.height / 2
-    let text = @svg.label_svg(
-        item.name,
-        item.x + item.w / 2,
-        name_y,
-        " class=\"pele-label\" font-size=\"\{@svg.num(name_size)}\" font-weight=\"var(--_hw)\"",
-      ) +
-      lines(
-        item.data,
-        item.x + BOX_PAD_X,
-        item.y + BOX_PAD_Y + item.name.height + 6 + mono_step / 2 + mono * 0.35,
-        mono_step,
-        " class=\"pele-em-data\" font-family=\"\{FONT_MONO}\" font-size=\"\{@svg.num(mono)}\"",
-      )
     nodes.write(
-      "<g class=\"pele-node pele-em-\{kind_class(item.box.kind)}\{if item.box.reset { " pele-em-reset" } else { "" }}\" data-id=\"\{@svg.esc_text(item.box.id)}\">\{shape}\{text}</g>",
+      "<g class=\"pele-node pele-em-\{kind_class(item.box.kind)}\{if item.box.reset { " pele-em-reset" } else { "" }}\" data-id=\"\{@svg.esc_text(item.box.id)}\">\{shape}",
     )
+    @svg.write_label(
+      nodes,
+      item.name,
+      item.x + item.w / 2,
+      name_y,
+      " class=\"pele-label\" font-size=\"\{@svg.num(name_size)}\" font-weight=\"var(--_hw)\"",
+    )
+    write_lines(
+      nodes,
+      item.data,
+      item.x + BOX_PAD_X,
+      item.y + BOX_PAD_Y + item.name.height + 6 + mono_step / 2 + mono * 0.35,
+      mono_step,
+      " class=\"pele-em-data\" font-family=\"\{FONT_MONO}\" font-size=\"\{@svg.num(mono)}\"",
+    )
+    nodes.write("</g>")
   }
 
   let edges = @svg.Markup::new()
@@ -379,12 +385,12 @@ fn draw_across(
   let cards = @svg.Markup::new()
   let mut any_card = false
   let mut cards_right = 0.0
-  let card = (
+  fn card(
     kind : String,
     heading : String,
     frame : String,
     rows : Array[String],
-  ) => {
+  ) -> Unit raise @errors.PeleError {
     let named = match names.get(frame) {
       Some(name) => " " + name
       None => ""
@@ -405,22 +411,24 @@ fn draw_across(
     any_card = true
     cards.write(
       "<g class=\"pele-em-\{kind}\" data-id=\"\{@svg.esc_text(frame)}\">" +
-      "<rect x=\"\{@svg.num(left)}\" y=\"\{@svg.num(cy)}\" width=\"\{@svg.num(w)}\" height=\"\{@svg.num(h)}\" fill=\"var(--_bg)\" stroke=\"var(--_b)\"\{@svg.ROUNDED}/>" +
-      @svg.label_svg(
-        head,
-        left + BOX_PAD_X + head.width / 2,
-        cy + BOX_PAD_Y + head.height / 2,
-        " font-size=\"\{@svg.num(small)}\" font-weight=\"var(--_hw)\"",
-      ) +
-      lines(
-        rows,
-        left + BOX_PAD_X,
-        cy + BOX_PAD_Y + head.height + small_step / 2 + small * 0.35,
-        small_step,
-        " font-size=\"\{@svg.num(small)}\"",
-      ) +
-      "</g>",
+      "<rect x=\"\{@svg.num(left)}\" y=\"\{@svg.num(cy)}\" width=\"\{@svg.num(w)}\" height=\"\{@svg.num(h)}\" fill=\"var(--_bg)\" stroke=\"var(--_b)\"\{@svg.ROUNDED}/>",
     )
+    @svg.write_label(
+      cards,
+      head,
+      left + BOX_PAD_X + head.width / 2,
+      cy + BOX_PAD_Y + head.height / 2,
+      " font-size=\"\{@svg.num(small)}\" font-weight=\"var(--_hw)\"",
+    )
+    write_lines(
+      cards,
+      rows,
+      left + BOX_PAD_X,
+      cy + BOX_PAD_Y + head.height + small_step / 2 + small * 0.35,
+      small_step,
+      " font-size=\"\{@svg.num(small)}\"",
+    )
+    cards.write("</g>")
     bottom = cy + h
     cards_right = @util.js_max(cards_right, w)
   }

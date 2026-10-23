@@ -191,37 +191,41 @@ fn draw_down(
       Some(series) =>
         "<rect \{frame} fill=\"\{@svg.series_color(series)}\" fill-opacity=\"0.22\" stroke=\"\{@svg.series_color(series)}\"\{@svg.ROUNDED}/>"
     }
-    let data_text = match data {
-      Some(data) =>
-        lines(
-          label_rows(data),
-          pad + BOX_PAD_X,
-          cy + BOX_PAD_Y + name.height + 6 + data.line_height / 2 + mono * 0.35,
-          data.line_height,
-          " class=\"pele-em-data\" font-family=\"\{FONT_MONO}\" font-size=\"\{@svg.num(mono)}\"",
-        )
-      None => ""
-    }
-    nodes.write(
-      "<g class=\"pele-cluster pele-em-lane\" data-id=\"\{@svg.esc_text(box.lane.label)}\">" +
-      @common.left_label_svg(
-        lane,
-        pad + BOX_PAD_X,
-        y,
-        " class=\"pele-cluster-label\" font-size=\"\{@svg.num(small)}\" font-weight=\"var(--_hw)\" fill=\"var(--_m)\"",
-      ) +
-      "<g class=\"pele-node pele-em-\{kind_class(box.kind)}\{if box.reset { " pele-em-reset" } else { "" }}\" data-id=\"\{@svg.esc_text(box.id)}\"><rect \{frame} fill=\"var(--_bg)\" stroke=\"var(--_b)\"\{@svg.ROUNDED}/>" +
-      overlay +
-      @svg.label_svg(
-        name,
-        pad + BOX_PAD_X + name.width / 2,
-        cy + BOX_PAD_Y + name.height / 2,
-        " class=\"pele-label\" font-size=\"\{@svg.num(small)}\" font-weight=\"var(--_hw)\"",
-      ) +
-      "<text class=\"pele-em-frame\" x=\"\{@svg.num(pad + w - BOX_PAD_X)}\" y=\"\{@svg.num(cy + BOX_PAD_Y + small)}\" text-anchor=\"end\" font-size=\"\{@svg.num(mono)}\" fill=\"var(--_m)\">\{@svg.esc(box.id)}</text>" +
-      data_text +
-      "</g></g>",
+    nodes.write("<g class=\"pele-cluster pele-em-lane\" data-id=\"")
+    @svg.write_esc_text(nodes, box.lane.label)
+    nodes.write("\">")
+    @common.write_left_label(
+      nodes,
+      lane,
+      pad + BOX_PAD_X,
+      y,
+      " class=\"pele-cluster-label\" font-size=\"\{@svg.num(small)}\" font-weight=\"var(--_hw)\" fill=\"var(--_m)\"",
     )
+    nodes.write(
+      "<g class=\"pele-node pele-em-\{kind_class(box.kind)}\{if box.reset { " pele-em-reset" } else { "" }}\" data-id=\"\{@svg.esc_text(box.id)}\"><rect \{frame} fill=\"var(--_bg)\" stroke=\"var(--_b)\"\{@svg.ROUNDED}/>" +
+      overlay,
+    )
+    @svg.write_label(
+      nodes,
+      name,
+      pad + BOX_PAD_X + name.width / 2,
+      cy + BOX_PAD_Y + name.height / 2,
+      " class=\"pele-label\" font-size=\"\{@svg.num(small)}\" font-weight=\"var(--_hw)\"",
+    )
+    nodes.write(
+      "<text class=\"pele-em-frame\" x=\"\{@svg.num(pad + w - BOX_PAD_X)}\" y=\"\{@svg.num(cy + BOX_PAD_Y + small)}\" text-anchor=\"end\" font-size=\"\{@svg.num(mono)}\" fill=\"var(--_m)\">\{@svg.esc(box.id)}</text>",
+    )
+    if data is Some(data) {
+      write_lines(
+        nodes,
+        label_rows(data),
+        pad + BOX_PAD_X,
+        cy + BOX_PAD_Y + name.height + 6 + data.line_height / 2 + mono * 0.35,
+        data.line_height,
+        " class=\"pele-em-data\" font-family=\"\{FONT_MONO}\" font-size=\"\{@svg.num(mono)}\"",
+      )
+    }
+    nodes.write("</g></g>")
     placed[box.id] = { y: cy, h, w, index, lane: lane.width, }
     width = @util.js_max(width, w + gutter)
     bottom = cy + h
@@ -268,7 +272,12 @@ fn draw_down(
     )
   }
   let names = frame_names(model)
-  let card = (kind : String, heading : String, frame : String, raw : String) => {
+  fn card(
+    kind : String,
+    heading : String,
+    frame : String,
+    raw : String,
+  ) -> Unit raise @errors.PeleError {
     let named = match names.get(frame) {
       Some(name) => " " + name
       None => ""
@@ -288,22 +297,24 @@ fn draw_down(
     )
     let h = 2.0 * BOX_PAD_Y + head.height + body.height
     cards.write(
-      "<g class=\"pele-em-\{kind}\" data-id=\"\{@svg.esc_text(frame)}\"><rect x=\"\{@svg.num(pad)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(w)}\" height=\"\{@svg.num(h)}\" fill=\"var(--_bg)\" stroke=\"var(--_b)\"\{@svg.ROUNDED}/>" +
-      @svg.label_svg(
-        head,
-        pad + BOX_PAD_X + head.width / 2,
-        y + BOX_PAD_Y + head.height / 2,
-        " font-size=\"\{@svg.num(small)}\" font-weight=\"var(--_hw)\"",
-      ) +
-      lines(
-        label_rows(body),
-        pad + BOX_PAD_X,
-        y + BOX_PAD_Y + head.height + body.line_height / 2 + small * 0.35,
-        body.line_height,
-        " font-size=\"\{@svg.num(small)}\"",
-      ) +
-      "</g>",
+      "<g class=\"pele-em-\{kind}\" data-id=\"\{@svg.esc_text(frame)}\"><rect x=\"\{@svg.num(pad)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(w)}\" height=\"\{@svg.num(h)}\" fill=\"var(--_bg)\" stroke=\"var(--_b)\"\{@svg.ROUNDED}/>",
     )
+    @svg.write_label(
+      cards,
+      head,
+      pad + BOX_PAD_X + head.width / 2,
+      y + BOX_PAD_Y + head.height / 2,
+      " font-size=\"\{@svg.num(small)}\" font-weight=\"var(--_hw)\"",
+    )
+    write_lines(
+      cards,
+      label_rows(body),
+      pad + BOX_PAD_X,
+      y + BOX_PAD_Y + head.height + body.line_height / 2 + small * 0.35,
+      body.line_height,
+      " font-size=\"\{@svg.num(small)}\"",
+    )
+    cards.write("</g>")
     bottom = y + h
     y = bottom + CARD_GAP
     width = @util.js_max(width, w)
