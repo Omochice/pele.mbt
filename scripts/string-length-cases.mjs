@@ -116,4 +116,7 @@ export const CASES = [
   // Drawn across past the port's hold limit, which is only measured, then down past V8's longest string.
   ['journey', 'long people, drawn down past V8 after across past the port', `journey\nsection S\n${names('T', 1630).map((name) => `  ${name}: 5: ${names('P', 10).map((person) => `${person}${'&'.repeat(5000)}`).join(', ')}`).join('\n')}\n`, { ...RAISED, maxWidth: 300 }],
   ['ishikawa', 'long causes, drawn down past V8 after across past the port', `ishikawa-beta\nProblem\n${names('C', 915).map((name) => `${name}${'&'.repeat(50000)}`).join('\n')}\n`, { ...RAISED, maxWidth: 300 }],
+  // Each `&` of an accessible description is escaped to five code units in the document's head.
+  ['pie', 'an accessible description longer than a doubling StringBuilder holds', `pie\naccDescr: ${'&'.repeat(60000000)}\n"a":1\n`, RAISED],
+  ['pie', 'an accessible description past V8', `pie\naccDescr: ${'&'.repeat(110000000)}\n"a":1\n`, RAISED],
 ];

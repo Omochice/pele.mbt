@@ -15,3 +15,32 @@ test "a legend outgrowing V8's longest string fails as nested too deeply" {
   }
   inspect(failure, content="limit: Diagram is nested too deeply. pie pie")
 }
+
+///|
+#skip("slow: draws over 300 million code units")
+test "an accessible description longer than a doubling StringBuilder holds is drawn" {
+  let descr = "&".repeat(60000000)
+  let svg = @core.render([@pie.pie], "pie\naccDescr: \{descr}\n\"a\":1\n", {
+      ..@types.RenderOptions::default(),
+      limit: Some(1.0 / 0.0),
+    }).svg
+  inspect(svg.length(), content="300001356")
+}
+
+///|
+#skip("slow: escapes over 536 million code units before it fails")
+test "an accessible description outgrowing V8's longest string fails as nested too deeply" {
+  let descr = "&".repeat(110000000)
+  let failure = try {
+    @core.render([@pie.pie], "pie\naccDescr: \{descr}\n\"a\":1\n", {
+      ..@types.RenderOptions::default(),
+      limit: Some(1.0 / 0.0),
+    })
+    |> ignore
+    "rendered"
+  } catch {
+    @errors.PeleError(failure) =>
+      "\{failure.code.to_string()}: \{failure.message} \{failure.kind.unwrap_or("null")} \{failure.mermaid_type.unwrap_or("null")}"
+  }
+  inspect(failure, content="limit: Diagram is nested too deeply. pie pie")
+}
