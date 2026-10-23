@@ -1,0 +1,12 @@
+import {
+  "Omochice/pele/diagrams/flowchart",
+  "Omochice/pele/errors",
+  "Omochice/pele/types",
+}
+
+import {
+  "Omochice/pele/core",
+  "Omochice/pele/diagrams/flowchart",
+  "Omochice/pele/errors",
+  "Omochice/pele/types",
+} for "test"

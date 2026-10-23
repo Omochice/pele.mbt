@@ -1,0 +1,21 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Omochice/pele/diagrams/swimlane"
+
+import {
+  "Omochice/pele/diagrams/flowchart",
+  "Omochice/pele/errors",
+  "Omochice/pele/types",
+}
+
+// Values
+pub fn parse_swimlane(String, Map[String, Json], String?, @types.ParseLimits) -> @flowchart.FlowDb raise @errors.PeleError
+
+pub let swimlane : @types.Diagram
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
