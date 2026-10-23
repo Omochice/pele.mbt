@@ -9,6 +9,10 @@ import {
 // Values
 pub const HEAD : Double = 26
 
+pub const HEAD_LEFT : Double = 16
+
+pub const HEAD_TOP : Double = 10
+
 pub const LANE : Double = 20
 
 pub fn crosses(Array[Double], Double, Double, Double, Double) -> Bool
