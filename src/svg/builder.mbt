@@ -133,7 +133,6 @@ pub fn label_svg(
   attrs : String,
   icons? : @types.IconResolver,
 ) -> String {
-  ignore(icons)
   let lines = label.lines
   if lines.is_empty() {
     return ""
@@ -141,13 +140,40 @@ pub fn label_svg(
   let lh = label.line_height
   let shift = label.size * 0.35
   let mut top = cy - label.height / 2
-  if lines.length() == 1 && lines[0].length() == 1 && lines[0][0].style == 0 {
+  if lines.length() == 1 &&
+    lines[0].length() == 1 &&
+    lines[0][0].icon is None &&
+    lines[0][0].style == 0 {
     return "<text\{attrs} x=\"\{num(cx)}\" y=\"\{num(top + lh / 2 + shift)}\" text-anchor=\"middle\">\{esc(lines[0][0].text)}</text>"
   }
   let shared = shared_style(label)
   let body = StringBuilder()
-  for line in lines {
-    let y = top + lh / 2 + shift
+  let extra = StringBuilder()
+  for i, line in lines {
+    let mid = top + lh / 2
+    let y = mid + shift
+    top += lh
+    if line.iter().any(span => span.icon is Some(_)) {
+      let mut x = cx - label.widths[i] / 2
+      for span in line {
+        if span.icon is Some(name) {
+          let side = label.size * 1.1
+          let drawing = match icons {
+            Some(resolve) => resolve(name).unwrap_or("")
+            None => ""
+          }
+          extra.write_string(
+            "<svg class=\"pele-icon\" data-icon=\"\{esc_text(name)}\" x=\"\{num(x)}\" y=\"\{num(mid - side / 2)}\" width=\"\{num(side)}\" height=\"\{num(side)}\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\{drawing}</svg>",
+          )
+        } else if span.text != "" {
+          body.write_string(
+            "<tspan x=\"\{num(x)}\" y=\"\{num(y)}\" text-anchor=\"start\"\{span_style(span.style & shared.lnot())}>\{esc(span.text)}</tspan>",
+          )
+        }
+        x += span.width
+      }
+      continue
+    }
     for j, span in line {
       let pos = if j == 0 { " x=\"\{num(cx)}\" y=\"\{num(y)}\"" } else { "" }
       body.write_string(
@@ -157,7 +183,6 @@ pub fn label_svg(
     if line.is_empty() {
       body.write_string("<tspan x=\"\{num(cx)}\" y=\"\{num(y)}\"> </tspan>")
     }
-    top += lh
   }
-  "<text\{text_style(attrs, shared)} text-anchor=\"middle\" xml:space=\"preserve\">\{body.to_string()}</text>"
+  "<text\{text_style(attrs, shared)} text-anchor=\"middle\" xml:space=\"preserve\">\{body.to_string()}</text>\{extra.to_string()}"
 }
