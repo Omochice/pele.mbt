@@ -198,4 +198,5 @@ export const CASES = [
   ['radar', 'one curve labelled by many &', `radar-beta\naxis a\ncurve c["${'&'.repeat(110000000)}"]{1}\n`, RAISED],
   // A quoted terminal fails in pele while parsing past 4194294 characters; a special sequence does not.
   ['railroad', 'one special sequence of many &', `railroad-ebnf-beta\nr = ? ${'&'.repeat(110000000)} ? ;\n`, RAISED],
+  ['sankey', 'one node named by many &', `sankey\n\nA${'&'.repeat(54000000)},B,1\n`, RAISED],
 ];
