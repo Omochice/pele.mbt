@@ -4,6 +4,8 @@ package "Omochice/pele/typst"
 // Values
 pub fn hoist_radii(String) -> String
 
+pub fn mix_colors(String) -> String
+
 pub fn resolve_vars(String, Map[String, String]) -> String
 
 // Errors
