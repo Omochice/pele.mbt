@@ -110,8 +110,6 @@ pub fn break_label(
   measurer : @text.TextMeasurer,
   room : Double,
 ) -> @text.Label {
-  // pele also keeps math spans whole and recomputes line heights for math.
-  // Labels here have no math, as in pele without a typesetter.
   if label.width <= room {
     return label
   }
@@ -132,7 +130,7 @@ pub fn break_label(
       width = 0
     }
     for span in spans {
-      if span.icon is Some(_) {
+      if span.icon is Some(_) || span.math is Some(_) {
         if current.length() > 0 && width + span.width > room {
           commit()
         }
@@ -144,8 +142,9 @@ pub fn break_label(
       for k in 0..<(starts.length() - 1) {
         let char = @util.slice(span.text, starts[k], end=starts[k + 1])
         let mut last = match current.last() {
-          Some(last) if last.icon is None && last.style == span.style =>
-            Some(last)
+          Some(last) if last.icon is None &&
+            last.math is None &&
+            last.style == span.style => Some(last)
           _ => None
         }
         let next_width = match last {
@@ -186,12 +185,17 @@ pub fn break_label(
   for w in widths {
     width = @util.js_max(width, w)
   }
-  {
+  let broken = {
     ..label,
     lines,
     widths,
     width,
     height: lines.length().to_double() * label.line_height,
+  }
+  if label.heights is Some(_) {
+    @text.with_heights(broken)
+  } else {
+    broken
   }
 }
 
