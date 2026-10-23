@@ -62,9 +62,10 @@ test "rgb() and rgba() are read in their comma and space forms" {
     stroke("color-mix(in srgb, rgba(255, 0, 0, 0.2) 25%, rgb(0 0 255 / 60%))"),
     content="#1a00e680",
   )
+  // Chrome stores the alpha of the comma form as a byte, 128/255, and computes #5500aac0, while CSS Color 4 keeps it 0.5.
   inspect(
     stroke("color-mix(in srgb, rgb(255,0,0,50%), rgba(0 0 255))"),
-    content="#5500aac0",
+    content="#5500aabf",
   )
   inspect(stroke("color-mix(in srgb, rgb(1e2 0 0), blue)"), content="#320080")
 }
