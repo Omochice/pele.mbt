@@ -82,6 +82,8 @@ pub fn title_crossed(@layout.CNode, Double, Double, Crossings) -> Bool
 
 pub fn title_label(String?, @text.TextMeasurer, Double, Double) -> @text.Label
 
+pub fn with_title(String?, @text.TextMeasurer, Double, Double, Double, Double, String) -> Titled
+
 // Errors
 
 // Types and methods
@@ -125,6 +127,12 @@ pub struct SideReach {
 pub fn SideReach::add(Self, Int32, Int32, String) -> Unit
 pub fn SideReach::new() -> Self
 pub fn SideReach::of(Self, Int32, Int32) -> Double
+
+pub(all) struct Titled {
+  width : Double
+  height : Double
+  content : String
+}
 
 // Type aliases
 

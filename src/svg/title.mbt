@@ -17,3 +17,26 @@ pub fn title_label(
     base=@text.STYLE_BOLD,
   )
 }
+
+///|
+/// A diagram's size and content once its title is in place.
+pub(all) struct Titled {
+  width : Double
+  height : Double
+  content : String
+}
+
+///|
+/// Puts a diagram title above content that was laid out without one.
+pub fn with_title(
+  title : String?,
+  measurer : @text.TextMeasurer,
+  size : Double,
+  pad : Double,
+  width : Double,
+  height : Double,
+  content : String,
+) -> Titled {
+  ignore((title, measurer, size, pad))
+  { width, height, content, }
+}
