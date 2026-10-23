@@ -107,6 +107,85 @@ test "break_label cuts lines too wide between characters and keeps their emphasi
 }
 
 ///|
+/// Each line's spans as text, icon, emphasis and width, then the line widths.
+fn spans_of(label : @text.Label) -> String {
+  let lines = label.lines.map(line => {
+    line
+    .map(span => {
+      let icon = match span.icon {
+        Some(name) => "@" + name
+        None => ""
+      }
+      "\{span.text.escape()}\{icon}/\{span.style}/\{span.width}"
+    })
+    .join(" ")
+  })
+  "\{lines.join(" | ")} widths=[\{label.widths.map(w => w.to_string()).join(", ")}]"
+}
+
+///|
+test "break_label keeps icon spans whole and joins no text to them" {
+  let m = @text.metrics_measurer
+  let icons = (name : String) => {
+    if name == "fa:fa-car" {
+      Some("<path/>")
+    } else {
+      None
+    }
+  }
+  @text.with_icons(Some(icons), () => {
+    let label = @common.break_label(
+      @text.layout_label(Some("abcdef fa:fa-car ghijkl"), false, m, 16, 4000),
+      m,
+      40,
+    )
+    inspect(
+      spans_of(label),
+      content="\"abcd\"/0/34.688 | \"ef \"/0/17.792 \"\"@fa:fa-car/0/20 | \" ghijk\"/0/37.344 | \"l\"/0/3.552 widths=[34.688, 37.792, 37.344, 3.552]",
+    )
+    inspect(
+      spans_of(
+        @common.break_label(
+          @text.layout_label(
+            Some("fa:fa-car fa:fa-car fa:fa-car"),
+            false,
+            m,
+            16,
+            4000,
+          ),
+          m,
+          30,
+        ),
+      ),
+      content="\"\"@fa:fa-car/0/20 \" \"/0/4.448 | \"\"@fa:fa-car/0/20 \" \"/0/4.448 | \"\"@fa:fa-car/0/20 widths=[24.448, 24.448, 20]",
+    )
+  })
+}
+
+///|
+test "left_label_svg centers a line holding an icon and leaves its square empty" {
+  let m = @text.metrics_measurer
+  let icons = (name : String) => {
+    if name == "fa:fa-car" {
+      Some("<path/>")
+    } else {
+      None
+    }
+  }
+  @text.with_icons(Some(icons), () => {
+    let label = @common.break_label(
+      @text.layout_label(Some("abcdef fa:fa-car ghijkl"), false, m, 16, 4000),
+      m,
+      40,
+    )
+    inspect(
+      @common.left_label_svg(label, 0, 0, " class=\"x\""),
+      content="<text class=\"x\" x=\"0\" y=\"17.6\" text-anchor=\"start\" xml:space=\"preserve\">abcd</text><text class=\"x\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"0\" y=\"41.6\" text-anchor=\"start\">ef </tspan></text><svg class=\"pele-icon\" data-icon=\"fa:fa-car\" x=\"17.79\" y=\"27.2\" width=\"17.6\" height=\"17.6\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></svg><text class=\"x\" x=\"0\" y=\"65.6\" text-anchor=\"start\" xml:space=\"preserve\"> ghijk</text><text class=\"x\" x=\"0\" y=\"89.6\" text-anchor=\"start\" xml:space=\"preserve\">l</text>",
+    )
+  })
+}
+
+///|
 test "break_label matches pele on labels of every string of up to four pieces" {
   let pieces = [
     "<b>",
