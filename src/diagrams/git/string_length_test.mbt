@@ -107,7 +107,6 @@ test "an unclosed commit id counts every character to the end against V8's backt
   )
 }
 
-
 ///|
 #skip("slow: escapes over 536 million code units before it fails")
 test "a title outgrowing V8's longest string fails as nested too deeply" {
@@ -128,4 +127,3 @@ test "a title outgrowing V8's longest string fails as nested too deeply" {
     content="limit: Diagram is nested too deeply. gitGraph gitGraph",
   )
 }
-

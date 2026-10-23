@@ -128,7 +128,6 @@ test "a quoted service label not closed by its bracket runs one more character b
   )
 }
 
-
 ///|
 #skip("slow: escapes over 536 million code units before it fails")
 test "a title outgrowing V8's longest string fails as nested too deeply" {
@@ -149,4 +148,3 @@ test "a title outgrowing V8's longest string fails as nested too deeply" {
     content="limit: Diagram is nested too deeply. architecture architecture",
   )
 }
-

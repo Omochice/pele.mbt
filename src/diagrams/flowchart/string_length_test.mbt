@@ -144,7 +144,6 @@ test "line breaks after the keyword fail as nested too deeply where pele's patte
   )
 }
 
-
 ///|
 #skip("slow: escapes over 536 million code units before it fails")
 test "a front matter title outgrowing V8's longest string fails as nested too deeply" {
@@ -165,4 +164,3 @@ test "a front matter title outgrowing V8's longest string fails as nested too de
     content="limit: Diagram is nested too deeply. flowchart flowchart-v2",
   )
 }
-

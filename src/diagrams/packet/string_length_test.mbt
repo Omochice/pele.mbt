@@ -69,7 +69,6 @@ test "a field label fails as nested too deeply where pele's pattern runs out of 
   )
 }
 
-
 ///|
 #skip("slow: escapes over 536 million code units before it fails")
 test "a title outgrowing V8's longest string fails as nested too deeply" {
@@ -87,4 +86,3 @@ test "a title outgrowing V8's longest string fails as nested too deeply" {
   }
   inspect(failure, content="limit: Diagram is nested too deeply. packet packet")
 }
-
