@@ -274,6 +274,59 @@ pub fn write_shape_styled(
 }
 
 ///|
+/// Whether the `style` attribute `resolve_style` makes of `css` contains `needle`, found in the
+/// escaped attribute as it would be written, without escaping all of `css` at once.
+pub fn style_contains(css : String, needle : String) -> Bool {
+  let n = needle.length()
+  if n == 0 {
+    return true
+  }
+  if css == "" {
+    return false
+  }
+  let ring = FixedArray::make(n, 0)
+  let mut count = 0
+  let found = (c : Int32) => {
+    ring[count % n] = c
+    count += 1
+    if count < n {
+      return false
+    }
+    for k in 0..<n {
+      if ring[(count - n + k) % n] != needle.unsafe_get(k).to_int() {
+        return false
+      }
+    }
+    true
+  }
+  let feed = (text : String) => {
+    for i in 0..<text.length() {
+      if found(text.unsafe_get(i).to_int()) {
+        return true
+      }
+    }
+    false
+  }
+  if feed(" style=\"") {
+    return true
+  }
+  for i in 0..<css.length() {
+    let c = @util.code_at(css, i)
+    let hit = match c {
+      0x26 => feed("&amp;")
+      0x3c => feed("&lt;")
+      0x3e => feed("&gt;")
+      0x22 => feed("&quot;")
+      _ => if is_xml_forbidden(c) { false } else { found(c) }
+    }
+    if hit {
+      return true
+    }
+  }
+  feed("\"")
+}
+
+///|
 /// Writes the marker `marker` draws in the color `esc` makes of `color`, escaping it a piece at a
 /// time, since a color from the source can be tens of millions of `&` long.
 /// Raises pele's `limit` error when the markup would be longer than V8 allows.
