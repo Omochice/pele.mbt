@@ -161,8 +161,12 @@ This ceiling is the one intentional, platform-imposed difference from pele; ever
 ### Which diagrams can reach it
 
 A diagram reaches the ceiling when some repeated part of its source multiplies into the SVG without a cap, so that a source within the limit draws an SVG past it.
-Every diagram that writes a `classDef` or `style` into each of many elements can: the flowchart (and the swimlane it renders through), class, state, ER, block, agentflow, requirement, treemap, and use case diagrams each have an amplifying input in `scripts/string-length-cases.mjs` and a skipped test in `src/diagrams/<diagram>/string_length_test.mbt`.
-A diagram that draws host icons can also reach it, because the icon markup the host supplies is unbounded and a label may hold many icon spans.
+Every diagram that writes a `classDef` or `style` into each of many elements can.
+The flowchart (and the swimlane it renders through), class, state, ER, block, agentflow, requirement, treemap, and use case diagrams build their SVG with `Markup` and so fail with a `limit` error where pele does; each has an amplifying input in `scripts/string-length-cases.mjs` and a skipped test in `src/diagrams/<diagram>/string_length_test.mbt`.
 
-A diagram cannot reach it when its SVG is bounded by a small multiple of its source, which the `limit` option caps: a source long enough to draw an oversized SVG is itself rejected first, at a different point than pele's concatenation.
-The gantt chart caps its axis ticks, the packet diagram its SVG by the bit count, and the radar chart its graticule rings, so none amplifies past the cap.
+The other diagrams still build their SVG with a plain `StringBuilder`, which traps when it grows past 2^28 code units rather than reporting the `limit` error.
+A diagram that draws host icons can be driven there, because the icon markup the host supplies is unbounded and a label may hold many icon spans; the icon-drawing ones not yet converted are the architecture, c4, cynefin, gantt, git, kanban, mindmap, sequence, treeview, and wardley diagrams, and pie draws host icons in its slice labels as well.
+Moving each to `Markup` is the same change the diagrams above have had; it is follow-up work.
+
+A diagram cannot reach the ceiling on its own structure when its SVG is bounded by a small multiple of its source, which the `limit` option caps: a source long enough to draw an oversized SVG is itself rejected first, at a different point than pele's concatenation.
+The gantt chart caps its axis ticks, the packet diagram its SVG by the bit count, and the radar chart its graticule rings, so those paths do not amplify past the cap, though gantt and radar can still amplify through the host icons they draw.
