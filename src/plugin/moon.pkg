@@ -2,6 +2,7 @@ import {
   "Omochice/pele/core",
   "Omochice/pele/diagrams/architecture",
   "Omochice/pele/diagrams/cynefin",
+  "Omochice/pele/diagrams/er",
   "Omochice/pele/diagrams/eventmodeling",
   "Omochice/pele/diagrams/flowchart",
   "Omochice/pele/diagrams/git",
