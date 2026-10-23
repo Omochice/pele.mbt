@@ -49,6 +49,41 @@ test "markup grows to V8's longest string and fails one code unit past it" {
 }
 
 ///|
+test "markup longer than a doubling StringBuilder can grow to turns into a string" {
+  let markup = markup_of(268435456 + 3)
+  markup.write("<g>")
+  let text = markup.to_string()
+  inspect(text.length(), content="268435462")
+  inspect(@util.slice(text, 268435456), content="aaa<g>")
+}
+
+///|
+test "a document as long as V8's longest string turns into a string" {
+  let start = @svg.markup_document(
+    "pie",
+    10,
+    20,
+    16,
+    @types.RenderOptions::default(),
+    None,
+    None,
+    @svg.Markup::new(),
+  ).length()
+  let document = @svg.markup_document(
+    "pie",
+    10,
+    20,
+    16,
+    @types.RenderOptions::default(),
+    None,
+    None,
+    markup_of(@svg.MAX_STRING_LENGTH - start),
+  )
+  inspect(document.length(), content="536870888")
+  inspect(@util.slice(document, 536870888 - 9), content="aaa</svg>")
+}
+
+///|
 test "markup fails when other markup appended to it would make it longer than V8's longest string" {
   let half = @svg.MAX_STRING_LENGTH / 2
   let markup = markup_of(half)
