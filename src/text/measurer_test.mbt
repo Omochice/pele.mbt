@@ -44,3 +44,12 @@ test "monospace text uses fixed advances" {
   inspect(width("abc", 16, @text.STYLE_MONO), content="28.8")
   inspect(width("日本", 10, @text.STYLE_MONO), content="24")
 }
+
+///|
+test "text whose advances pass 2^31 font units is measured in full" {
+  inspect(width("a".repeat(5000000), 16, 0), content="44480000")
+  inspect(
+    width("日".repeat(3000000), 16, @text.STYLE_MONO),
+    content="57600000",
+  )
+}
