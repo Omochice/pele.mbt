@@ -62,7 +62,17 @@ fn maximum(a : Double, b : Double) -> Double {
 
 ///|
 fn replace_controls(text : String) -> String {
-  let out = StringBuilder()
+  let mut controls = 0
+  for i in 0..<text.length() {
+    if @util.code_at(text, i) is ('\n' | '\r' | '\t') {
+      controls += 1
+    }
+  }
+  if controls == 0 {
+    return text
+  }
+  // Built at its final size, which can be twice the text's, past what a doubling builder reaches.
+  let out = StringBuilder(size_hint=(text.length() + controls) * 2)
   for i in 0..<text.length() {
     let c = @util.code_at(text, i)
     if c == '\n'.to_int() {
@@ -83,11 +93,44 @@ fn replace_controls(text : String) -> String {
 /// Mermaid's `#35;` codes still stand for characters, and escapes that would be invisible are written out.
 fn shown(text : String) -> String {
   let decoded = if @util.index_of(text, "¶ß") != -1 {
-    @text.decode_entities(text.replace_all(old="&", new="&amp;"))
+    decode_codes(text)
   } else {
     text
   }
   replace_controls(decoded)
+}
+
+///|
+/// The code units of text whose `&`s are escaped and decoded back at once.
+const DECODED_CHUNK : Int32 = 1048576
+
+///|
+/// `text` with its `#35;` codes decoded and every `&` kept, as escaping each `&` and decoding the
+/// whole does.
+/// Escaping a text of tens of millions of `&` makes five times as much, past what a doubling
+/// StringBuilder holds, so it is done a piece at a time, cut before an `&`: each `&` escapes to an
+/// entity of its own, and no code holds one.
+fn decode_codes(text : String) -> String {
+  let decode = (piece : String) => {
+    @text.decode_entities(piece.replace_all(old="&", new="&amp;"))
+  }
+  if text.length() <= DECODED_CHUNK {
+    return decode(text)
+  }
+  let out = StringBuilder()
+  let mut start = 0
+  while start < text.length() {
+    let mut end = start + DECODED_CHUNK
+    if end > text.length() {
+      end = text.length()
+    }
+    while end < text.length() && @util.code_at(text, end) != '&' {
+      end += 1
+    }
+    out.write_string(decode(@util.slice(text, start, end~)))
+    start = end
+  }
+  out.to_string()
 }
 
 ///|
