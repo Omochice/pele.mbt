@@ -1,5 +1,10 @@
 import {
   "Omochice/pele/errors",
   "Omochice/pele/svg",
+  "Omochice/pele/types",
   "Omochice/pele/util",
 }
+
+import {
+  "Omochice/pele/core",
+} for "test"

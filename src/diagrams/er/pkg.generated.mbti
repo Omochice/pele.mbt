@@ -3,6 +3,7 @@ package "Omochice/pele/diagrams/er"
 
 import {
   "Omochice/pele/errors",
+  "Omochice/pele/types",
 }
 
 // Values
@@ -10,9 +11,13 @@ pub const MARKER_LENGTH : Double = 18
 
 pub fn build_er_graph(ErDb) -> ErGraph
 
+pub let er : @types.Diagram
+
 pub fn er_marker(String, Double, Double, Double, Double) -> String
 
 pub fn parse_er(String, ErDb) -> Unit raise @errors.PeleError
+
+pub fn render_er(ErDb, Map[String, Json], @types.RenderOptions) -> @types.Rendered
 
 pub fn tokenize(String) -> Tokens
 
