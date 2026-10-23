@@ -26,7 +26,18 @@ fn plain_text(text : String) -> String {
   if !text.contains("<") && !text.contains(":fa-") {
     return text
   }
-  let out = StringBuilder()
+  let mut length = text.length()
+  for i in 0..<text.length() {
+    let c = text.unsafe_get(i)
+    if c == '<' && br_end(text, i) == -1 {
+      length += 3
+    } else if c == ':' && @util.starts_with_at(text, ":fa-", i) {
+      length += 6
+    }
+  }
+  // Sized to the escaped text, because a doubling builder past 2^28 code units asks wasm for a
+  // block of 1 GiB that it refuses, and a title of tens of millions of `<` escapes past that.
+  let out = StringBuilder(size_hint=length * 2)
   let mut last = 0
   for i in 0..<text.length() {
     let c = text.unsafe_get(i)

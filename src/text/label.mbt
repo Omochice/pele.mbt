@@ -397,10 +397,23 @@ fn inline(
   let mut html_style = open_style
   let mut style = html_style
   let mut marked = 0
+  // The text between tags is taken as slices of the source, joined only across a tag that sets no
+  // emphasis, because copying a long line a code unit at a time into a doubling builder outgrows
+  // what wasm can allocate.
   let text = StringBuilder()
-  let flush = () => {
-    push_icons(line, text.to_string(), style)
-    text.reset()
+  let mut joined = false
+  let mut run = 0
+  let flush = (at : Int32) => {
+    let piece = if joined {
+      @util.write_range(text, source, run, at)
+      let piece = text.to_string()
+      text.reset()
+      piece
+    } else {
+      @util.slice(source, run, end=at)
+    }
+    joined = false
+    push_icons(line, piece, style)
   }
   let n = source.length()
   let mut i = 0
@@ -418,7 +431,7 @@ fn inline(
           0
         }
         if bit != 0 {
-          flush()
+          flush(i)
           html_style = if closing {
             (html_style & bit.lnot()) | (base & bit)
           } else {
@@ -429,7 +442,11 @@ fn inline(
           } else {
             style | bit
           }
+        } else {
+          @util.write_range(text, source, run, i)
+          joined = true
         }
+        run = end
         i = end
         continue
       }
@@ -453,7 +470,7 @@ fn inline(
         @util.is_word(prev) &&
         @util.is_word(next)
       if (can_open || can_close) && !wordy {
-        flush()
+        flush(i)
         marked = if can_open { marked | bit } else { marked & bit.lnot() }
         style = if can_open {
           style | bit
@@ -461,13 +478,13 @@ fn inline(
           (style & bit.lnot()) | (base & bit)
         }
         i += length
+        run = i
         continue
       }
     }
-    @util.write_range(text, source, i, i + 1)
     i += 1
   }
-  flush()
+  flush(n)
   html_style
 }
 
