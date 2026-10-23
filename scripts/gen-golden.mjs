@@ -74,21 +74,25 @@ const diagrams = {
   xychart: /xychart/i,
 };
 
+// The string literals of a test file whose source text passes `accept`, with their escapes evaluated.
+function* stringLiterals(src, accept) {
+  for (const m of src.matchAll(/`((?:[^`\\]|\\.)*)`|'((?:[^'\\\n]|\\.)*)'|"((?:[^"\\\n]|\\.)*)"/g)) {
+    const raw = m[1] ?? m[2] ?? m[3];
+    if (!accept(raw)) continue;
+    try {
+      yield new Function('return `' + raw.replace(/`/g, '\\`').replace(/\$\{/g, '\\${') + '`')();
+    } catch {
+      continue;
+    }
+  }
+}
+
 // Port of loadCorpus in vendor/pele/tests/support/corpus.ts, with paths anchored to the pele root.
 function loadCorpus(diagram, keyword) {
   const seeds = new Set();
   const dir = join(peleRoot, 'tests/compat', diagram);
   for (const file of readdirSync(dir).filter((f) => /\.spec\.[jt]s$/.test(f))) {
-    const src = readFileSync(join(dir, file), 'utf8');
-    for (const m of src.matchAll(/`((?:[^`\\]|\\.)*)`|'((?:[^'\\\n]|\\.)*)'|"((?:[^"\\\n]|\\.)*)"/g)) {
-      const raw = m[1] ?? m[2] ?? m[3];
-      if (!keyword.test(raw)) continue;
-      try {
-        seeds.add(new Function('return `' + raw.replace(/`/g, '\\`').replace(/\$\{/g, '\\${') + '`')());
-      } catch {
-        continue;
-      }
-    }
+    for (const seed of stringLiterals(readFileSync(join(dir, file), 'utf8'), (raw) => keyword.test(raw))) seeds.add(seed);
   }
   for (const sample of JSON.parse(readFileSync(join(peleRoot, 'tests/corpus', `${diagram}-docs.json`), 'utf8'))) {
     seeds.add(sample);
