@@ -8,7 +8,8 @@ pub(all) struct Cell {
   mut space : Bool
   /// Height reserved above a container's grid for its title.
   mut head : Double
-  /// Size the content needs. Set by the caller for leaves, computed here for containers.
+  /// Size the content needs.
+  /// Set by the caller for leaves, computed here for containers.
   mut nw : Double
   mut nh : Double
   mut col : Double
@@ -46,6 +47,7 @@ pub fn cell(nw : Double, nh : Double, span~ : Double = 1) -> Cell {
 
 ///|
 /// The column and row of the cell at that position on a grid of that width, as Mermaid computes them.
+/// Raises a semantic error for a column count that is zero or not an integer, or a position that is not a count.
 pub fn calculate_block_position(
   columns : Double,
   position : Double,
@@ -96,7 +98,8 @@ fn measure(
   let mut tallest = 0.0
   for child in box.children {
     let (px, py) = calculate_block_position(columns, position)
-    // Mermaid lets a block wider than the rest of its row stick out of the grid. Here it stops at the last column.
+    // Mermaid lets a block wider than the rest of its row stick out of the grid.
+    // Here it stops at the last column.
     let mut span = if child.span >= 1 {
       @util.js_min(child.span, MAX_SPAN)
     } else {
@@ -177,6 +180,7 @@ fn arrange(box : Cell, gap : Double, inset : Double) -> Unit {
 ///|
 /// Lays out a tree of cells in place, and gives its width and height.
 /// The root has no border, so its grid starts at the origin.
+/// Raises the error of `calculate_block_position` for a container whose column count is zero or not an integer.
 pub fn layout(
   root : Cell,
   gap : Double,

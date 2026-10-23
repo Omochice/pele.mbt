@@ -79,6 +79,7 @@ pub(all) enum Statement {
 }
 
 ///|
+/// A class: the declarations of its `classDef` statements, and those of them that apply to text.
 pub(all) struct BlockClassDef {
   id : String
   styles : Array[String]

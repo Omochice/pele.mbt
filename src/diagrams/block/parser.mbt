@@ -121,7 +121,8 @@ fn Parser::node_statement(self : Parser) -> Statement raise @errors.PeleError {
     }
     let link = self.tokens.texts[self.i - 1]
     let to = self.node()
-    // Mermaid keeps only the last link of `A --> B --> C` and loses its start. Here every link counts.
+    // Mermaid keeps only the last link of `A --> B --> C` and loses its start.
+    // Here every link counts.
     let list = match chain {
       Some(list) => list
       None => {
@@ -197,6 +198,7 @@ fn composite(
 ///|
 /// Reads a block diagram into `db`, as Mermaid's grammar does.
 /// Composites nest without recursion: each open one keeps the statement list of its parent.
+/// Raises a syntax error where the grammar rejects the source.
 pub fn parse_block(src : String, db : BlockDb) -> Unit raise @errors.PeleError {
   let p : Parser = { src, tokens: tokenize(src), db, i: 0, }
   p.expect(Key) |> ignore

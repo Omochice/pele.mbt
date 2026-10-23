@@ -582,6 +582,7 @@ fn configured_gap(config : @types.Config) -> Double {
 
 ///|
 /// Draws a block diagram.
+/// Raises a semantic error for a composite with blocks whose column count is zero or not an integer.
 pub fn render_block(
   db : BlockDb,
   config : @types.Config,

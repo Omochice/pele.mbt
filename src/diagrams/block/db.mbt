@@ -48,6 +48,7 @@ pub fn edge_str_to_edge_start_data(type_str : String) -> String {
 }
 
 ///|
+/// `thick` for a link drawn with `==`, otherwise `normal`.
 pub fn edge_str_to_thickness(type_str : String) -> String {
   if type_str.contains("==") {
     "thick"
@@ -57,6 +58,7 @@ pub fn edge_str_to_thickness(type_str : String) -> String {
 }
 
 ///|
+/// `dotted` for a link drawn with dots, otherwise `solid`.
 pub fn edge_str_to_pattern(type_str : String) -> String {
   if type_str.contains(".-") {
     "dotted"
@@ -107,7 +109,8 @@ pub struct BlockDb {
 }
 
 ///|
-/// An empty diagram. `warn` hears of blocks wider than their grid, which Mermaid logs.
+/// An empty diagram.
+/// `warn` hears of blocks wider than their grid, which Mermaid logs.
 pub fn BlockDb::new(title? : String, warn? : (String) -> Unit) -> BlockDb {
   {
     title,
@@ -235,6 +238,7 @@ fn BlockDb::warn_wide(self : BlockDb, f : Frame, block : Block) -> Unit {
 ///|
 /// Builds the tree from the statements of a document.
 /// Composites nest without recursion, so deep nesting cannot exhaust the stack.
+/// Raises a limit error when the space blocks would pass 100000.
 pub fn BlockDb::set_hierarchy(
   self : BlockDb,
   statements : Array[Statement],
