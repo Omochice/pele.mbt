@@ -276,13 +276,12 @@ fn draw(
     )
   }
   // Mermaid puts a packet's title under it.
-  content.write(
-    @svg.label_svg(
-      title,
-      total_width / 2,
-      total_height - pad - title.height / 2,
-      " class=\"pele-title\" font-weight=\"var(--_tw)\"",
-    ),
+  @svg.write_label(
+    content,
+    title,
+    total_width / 2,
+    total_height - pad - title.height / 2,
+    " class=\"pele-title\" font-weight=\"var(--_tw)\"",
   )
   {
     svg: @svg.markup_document(
