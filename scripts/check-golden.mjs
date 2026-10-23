@@ -1,13 +1,14 @@
 // Renders every golden source of the ported diagrams through the wasm plugin and compares the
 // result with pele's output byte for byte.
 //
-// Usage: node scripts/check-golden.mjs [diagram ...]
+// Usage: node scripts/check-golden.mjs [--profile name ...] [diagram ...]
+// Without --profile every profile in the manifest is checked.
 // Build the plugin first with `moon build --target wasm --release`.
 
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { isDeepStrictEqual } from 'node:util';
+import { isDeepStrictEqual, parseArgs } from 'node:util';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const goldenDir = join(root, 'golden');
@@ -17,13 +18,23 @@ const wasmPath = join(root, '_build/wasm/release/build/plugin/plugin.wasm');
 // so the list grows as diagrams are ported.
 const PORTED = ['agentflow', 'architecture', 'block', 'c4', 'class', 'cynefin', 'er', 'eventmodeling', 'flowchart', 'gantt', 'git', 'info', 'ishikawa', 'journey', 'kanban', 'mindmap', 'packet', 'pie', 'quadrant', 'radar', 'railroad', 'requirement', 'sankey', 'sequence', 'state', 'swimlane', 'timeline', 'treemap', 'treeview', 'usecase', 'venn', 'wardley', 'xychart'];
 
-const requested = process.argv.slice(2);
+const { values: flags, positionals: requested } = parseArgs({
+  allowPositionals: true,
+  options: { profile: { type: 'string', multiple: true } },
+});
 const diagrams = requested.length > 0 ? requested : PORTED;
 const manifest = JSON.parse(readFileSync(join(goldenDir, 'manifest.json'), 'utf8'));
-const profiles = Object.entries(manifest.profiles).map(([name, options]) => ({
-  name,
-  optionBytes: Buffer.from(JSON.stringify(options)),
-}));
+const unknown = (flags.profile ?? []).filter((name) => !Object.hasOwn(manifest.profiles, name));
+if (unknown.length > 0) {
+  console.error(`unknown profile ${unknown.join(', ')}; the manifest has ${Object.keys(manifest.profiles).join(', ')}`);
+  process.exit(1);
+}
+const profiles = Object.entries(manifest.profiles)
+  .filter(([name]) => flags.profile === undefined || flags.profile.includes(name))
+  .map(([name, options]) => ({
+    name,
+    optionBytes: Buffer.from(JSON.stringify(options)),
+  }));
 
 if (!existsSync(wasmPath)) {
   console.error(`missing ${wasmPath}; run \`moon build --target wasm --release\` first`);
