@@ -143,20 +143,41 @@ pub fn label_svg(
   if lines.length() == 1 &&
     lines[0].length() == 1 &&
     lines[0][0].icon is None &&
+    lines[0][0].math is None &&
     lines[0][0].style == 0 {
     return "<text\{attrs} x=\"\{num(cx)}\" y=\"\{num(top + lh / 2 + shift)}\" text-anchor=\"middle\">\{esc(lines[0][0].text)}</text>"
   }
   let shared = shared_style(label)
+  let mut look : MathLook? = None
   let body = StringBuilder()
   let extra = StringBuilder()
   for i, line in lines {
-    let mid = top + lh / 2
+    let h = match label.heights {
+      Some(heights) => heights[i]
+      None => lh
+    }
+    let mid = top + h / 2
     let y = mid + shift
-    top += lh
-    if line.iter().any(span => span.icon is Some(_)) {
+    if line.iter().any(span => span.icon is Some(_) || span.math is Some(_)) {
       let mut x = cx - label.widths[i] / 2
       for span in line {
-        if span.icon is Some(name) {
+        if span.math is Some(math) {
+          let box = "x=\"\{num(x)}\" y=\"\{num(mid - math.height / 2)}\" width=\"\{num(math.width)}\" height=\"\{num(math.height)}\""
+          let math_look = match look {
+            Some(math_look) => math_look
+            None => {
+              let math_look = MathLook::of(attrs)
+              look = Some(math_look)
+              math_look
+            }
+          }
+          extra.write_string(
+            match math_look.halo {
+              None => math_svg(math, box, label.size, math_look.attrs)
+              Some(halo) => "<rect \{box} rx=\"2\" fill=\"\{halo}\"/>"
+            },
+          )
+        } else if span.icon is Some(name) {
           let side = label.size * 1.1
           let drawing = match icons {
             Some(resolve) => resolve(name).unwrap_or("")
@@ -172,17 +193,106 @@ pub fn label_svg(
         }
         x += span.width
       }
-      continue
+    } else {
+      for j, span in line {
+        let pos = if j == 0 { " x=\"\{num(cx)}\" y=\"\{num(y)}\"" } else { "" }
+        body.write_string(
+          "<tspan\{pos}\{span_style(span.style & shared.lnot())}>\{esc(span.text)}</tspan>",
+        )
+      }
+      if line.is_empty() {
+        body.write_string("<tspan x=\"\{num(cx)}\" y=\"\{num(y)}\"> </tspan>")
+      }
     }
-    for j, span in line {
-      let pos = if j == 0 { " x=\"\{num(cx)}\" y=\"\{num(y)}\"" } else { "" }
-      body.write_string(
-        "<tspan\{pos}\{span_style(span.style & shared.lnot())}>\{esc(span.text)}</tspan>",
-      )
-    }
-    if line.is_empty() {
-      body.write_string("<tspan x=\"\{num(cx)}\" y=\"\{num(y)}\"> </tspan>")
-    }
+    top += h
   }
   "<text\{text_style(attrs, shared)} text-anchor=\"middle\" xml:space=\"preserve\">\{body.to_string()}</text>\{extra.to_string()}"
+}
+
+///|
+/// How math is drawn under a text's attributes.
+/// Only color and opacity are copied, so that the math keeps the size it was typeset at, and an
+/// outlined text, such as a cluster title, hides what is behind its math with a patch of `halo`.
+priv struct MathLook {
+  attrs : String
+  halo : String?
+}
+
+///|
+/// The value of the first ` name="…"` attribute, as `/ name="([^"]*)"/` captures it.
+fn attr_value(attrs : String, name : String) -> String? {
+  let key = " \{name}=\""
+  let at = @util.index_of(attrs, key)
+  guard at != -1 else { return None }
+  let start = at + key.length()
+  let end = @util.index_of(attrs, "\"", from=start)
+  guard end != -1 else { return None }
+  Some(@util.slice(attrs, start, end~))
+}
+
+///|
+/// The value of the first `name:` declaration, as `/(?:^|;)\s*name:([^;]*)/` captures it.
+fn style_value(style : String, name : String) -> String? {
+  let mut start = 0
+  while start <= style.length() {
+    let mut i = start
+    while @util.is_space(@util.code_at(style, i)) {
+      i += 1
+    }
+    if @util.starts_with_at(style, name + ":", i) {
+      let from = i + name.length() + 1
+      let end = @util.index_of(style, ";", from~)
+      return Some(
+        @util.slice(
+          style,
+          from,
+          end=if end == -1 { style.length() } else { end },
+        ),
+      )
+    }
+    let next = @util.index_of(style, ";", from=start)
+    guard next != -1 else { return None }
+    start = next + 1
+  }
+  None
+}
+
+///|
+fn MathLook::of(attrs : String) -> MathLook {
+  let style = attr_value(attrs, "style").unwrap_or("")
+  let fill = match style_value(style, "fill") {
+    Some(fill) => @util.trim(fill)
+    None => @util.trim(attr_value(attrs, "fill").unwrap_or(""))
+  }
+  if fill == "none" {
+    return {
+      attrs: "",
+      halo: Some(attr_value(attrs, "stroke").unwrap_or("none")),
+    }
+  }
+  let color = if fill == "" { "" } else { " color=\"\{fill}\"" }
+  let opacity = match style_value(style, "opacity") {
+    Some(opacity) if @util.trim(opacity) != "" =>
+      " opacity=\"\{@util.trim(opacity)}\""
+    _ => ""
+  }
+  { attrs: color + opacity, halo: None, }
+}
+
+///|
+/// The host's markup in a box, trusted as it is.
+fn math_svg(
+  math : @text.MathMarkup,
+  box : String,
+  size : Double,
+  attrs : String,
+) -> String {
+  match math.body {
+    Svg(svg) =>
+      "<svg class=\"pele-math\" \{box} overflow=\"visible\"\{attrs}>\{svg}</svg>"
+    Html(html) =>
+      "<foreignObject class=\"pele-math\" \{box} overflow=\"visible\"\{attrs}>" +
+      "<div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:\{num(size)}px;line-height:normal;white-space:nowrap\">\{html}</div>" +
+      "</foreignObject>"
+  }
 }
