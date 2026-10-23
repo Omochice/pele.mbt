@@ -14,6 +14,33 @@ let lane_max_dummies = 20000
 let lane_max_hops = 10000
 
 ///|
+let route_budget = 2000000.0
+
+///|
+/// Parallel lines closer than this are drawn as one.
+let near_line = 4.0
+
+///|
+let lane_rounds = 3
+
+///|
+let relay = 8.0
+
+///|
+let turn = 20.0
+
+///|
+/// The room a lane keeps beside a handoff along its margin.
+let margin = 20.0
+
+///|
+/// How much of a lane's margin is between a handoff along it and the lane's items.
+let leg = 14.0
+
+///|
+let close = 3.0
+
+///|
 /// What every layout of the same lanes shares: the lanes, the items that are ranked and placed, and the relations between them.
 priv struct Lanes {
   nodes : Array[CNode]
@@ -36,6 +63,15 @@ priv struct Lanes {
 }
 
 ///|
+priv struct Placed {
+  width : Double
+  height : Double
+  routed : FixedArray[Bool]
+  margins : FixedArray[Bool]
+  work : Double
+}
+
+///|
 /// Lays out swimlanes: every top-level group is a lane, a band that runs the length of the diagram along the flow.
 /// Ranks are shared by all lanes, so a step sits level with the steps that happen at the same time in other lanes, and each node stays inside its own lane.
 /// Node centers and sizes are written into `nodes`, and routes and label centers into `edges`.
@@ -49,7 +85,53 @@ pub fn lane_layout(
   if nodes.length() == 0 {
     return { width: 0, height: 0, }
   }
-  Lanes::new(nodes, edges, dir, opt, lane_pad).place()
+  let lanes = Lanes::new(nodes, edges, dir, opt, lane_pad)
+  let m = lanes.ledges.length()
+  let mut plain = FixedArray::make(m, false)
+  let mut margins = FixedArray::make(lanes.lane_count, false)
+  let mut placed = lanes.place(plain, margins)
+  // A handoff that was given a simple route needs no room kept for it through the ranks it passes, so the lanes are laid out again without it.
+  // A handoff that then loses its route goes back to the ranked one.
+  // Routing is most of the work, so a large graph is laid out once.
+  let mut round = 0
+  while round < lane_rounds && placed.work <= route_budget / relay {
+    let next = if round == 0 {
+      placed.routed
+    } else {
+      FixedArray::makei(m, k => plain[k] && placed.routed[k])
+    }
+    if same_flags(next, plain) && same_flags(placed.margins, margins) {
+      break
+    }
+    plain = next
+    margins = placed.margins
+    placed = lanes.place(plain, margins)
+    round += 1
+  }
+  let lost = for k in 0..<m {
+    if plain[k] && !placed.routed[k] {
+      break true
+    }
+  } nobreak {
+    false
+  }
+  if lost {
+    placed = lanes.place(
+      FixedArray::make(m, false),
+      FixedArray::make(lanes.lane_count, false),
+    )
+  }
+  { width: placed.width, height: placed.height, }
+}
+
+///|
+fn same_flags(a : FixedArray[Bool], b : FixedArray[Bool]) -> Bool {
+  for k in 0..<a.length() {
+    if a[k] != b[k] {
+      return false
+    }
+  }
+  true
 }
 
 ///|
@@ -174,14 +256,39 @@ fn Lanes::new(
 }
 
 ///|
-/// Where one layout of the lanes put its items: every item's rank, and the bands and lanes they sit in.
+fn sign(x : Double) -> Double {
+  if x > 0 {
+    1
+  } else if x < 0 {
+    -1
+  } else {
+    x
+  }
+}
+
+///|
+/// A way around the steps between a handoff's ends, along the margin of `lane`.
+priv struct Around {
+  pts : Array[Double]
+  cost : Double
+  lane : Int32
+}
+
+///|
+/// Where one layout of the lanes put its items: every item's rank, lane and box, and the bands and lanes they sit in.
 /// Positions are kept across and along the flow, and `px` and `py` turn them into the diagram's.
 priv struct Placement {
   sideways : Bool
   flipped : Bool
+  pad : FixedArray[Double]
   rank_of : FixedArray[Int32]
+  lane_at : FixedArray[Int32]
+  size : FixedArray[Double]
+  depth : FixedArray[Double]
+  across : FixedArray[Double]
   band_start : FixedArray[Double]
   band_end : FixedArray[Double]
+  lane_start : FixedArray[Double]
   head : Double
   length : Double
   breadth : Double
@@ -230,18 +337,33 @@ fn Placement::amid(self : Placement, i : Int32) -> Double {
 }
 
 ///|
-/// Lays the ranked items out and routes the relations through the ranks they pass.
-fn Lanes::place(self : Lanes) -> CompoundResult {
+/// Lays the ranked items out and routes the relations.
+/// A `plain` relation is a handoff that takes a simple route of its own, and so keeps no room through the ranks it passes.
+/// A lane in `margins` keeps room along its margin for a handoff that goes around.
+fn Lanes::place(
+  self : Lanes,
+  plain : FixedArray[Bool],
+  margins : FixedArray[Bool],
+) -> Placed {
   let { nodes, edges, opt, lanes, lane_count, real, lnodes, ledges, step, .. } = self
   let m = ledges.length()
-  let pad = self.lane_pads
+  let pad = FixedArray::makei(lane_count, lane => {
+    let room = self.lane_pads[lane]
+    if margins[lane] {
+      @util.js_max(room, margin)
+    } else {
+      room
+    }
+  })
   // Items: the real ones, then a dummy for every rank an edge passes through.
   let mut dummies = 0
   let span = FixedArray::make(m, 0)
   for k in 0..<m {
     let d = lnodes[ledges[k].head].rank - lnodes[ledges[k].tail].rank
     span[k] = if d < 0 { -d } else { d }
-    dummies += span[k] - 1
+    if !plain[k] {
+      dummies += span[k] - 1
+    }
   }
   let direct = dummies > lane_max_dummies
   let total = real.length() + (if direct { 0 } else { dummies })
@@ -268,7 +390,7 @@ fn Lanes::place(self : Lanes) -> CompoundResult {
     let e = ledges[k]
     let a = if e.reversed { e.head } else { e.tail }
     let b = if e.reversed { e.tail } else { e.head }
-    if direct || span[k] < 2 {
+    if direct || span[k] < 2 || plain[k] {
       links.push(a)
       links.push(b)
       continue
@@ -486,7 +608,48 @@ fn Lanes::place(self : Lanes) -> CompoundResult {
   // Along the flow: one band per rank, after the lane titles.
   let band_start = FixedArray::make(max_rank + 1, 0.0)
   let band_end = FixedArray::make(max_rank + 1, 0.0)
-  let sep = opt.rank_sep / step.to_double()
+  // The room after a rank is for the relations that turn there or are only as long as they were asked to be.
+  // Where just plain handoffs and straight lines pass, the ranks close up, as far as the label of a handoff between them leaves it a line to sit on.
+  let sep = FixedArray::make(max_rank + 1, opt.rank_sep / step.to_double())
+  if plain.iter().any(on => on) {
+    let full = opt.rank_sep / step.to_double()
+    sep.fill(full / close)
+    for k in 0..<m {
+      let e = ledges[k]
+      let a = if e.reversed { e.head } else { e.tail }
+      let b = if e.reversed { e.tail } else { e.head }
+      if plain[k] {
+        if e.label_h <= 0 || span[k] > step {
+          continue
+        }
+        let room = @util.js_min(
+          full,
+          (e.label_h + 2 * turn - @util.js_min(depth[a], depth[b]) / 2) /
+          span[k].to_double(),
+        )
+        for r in rank_of[a]..<rank_of[b] {
+          if room > sep[r] {
+            sep[r] = room
+          }
+        }
+        continue
+      }
+      let d0 = first_dummy[k]
+      if d0 < 0 || span[k] <= step * e.minlen {
+        for r in rank_of[a]..<rank_of[b] {
+          sep[r] = full
+        }
+        continue
+      }
+      for d in (d0 - 1)..<(d0 + span[k] - 1) {
+        let u = if d < d0 { a } else { d }
+        let v = if d + 1 < d0 + span[k] - 1 { d + 1 } else { b }
+        if lane_at[u] != lane_at[v] || (across[u] - across[v]).abs() >= 0.5 {
+          sep[rank_of[u]] = full
+        }
+      }
+    }
+  }
   let mut at = head + self.end_pad
   for r in 0..<=max_rank {
     let mut deepest = 0.0
@@ -497,14 +660,20 @@ fn Lanes::place(self : Lanes) -> CompoundResult {
     }
     band_start[r] = at
     band_end[r] = at + deepest
-    at += deepest + (if r == max_rank { 0 } else { sep })
+    at += deepest + (if r == max_rank { 0 } else { sep[r] })
   }
   let placement : Placement = {
     sideways: self.sideways,
     flipped: self.flipped,
+    pad,
     rank_of,
+    lane_at,
+    size,
+    depth,
+    across,
     band_start,
     band_end,
+    lane_start,
     head,
     length: at + self.end_pad,
     breadth: lane_start[lane_count],
@@ -599,6 +768,16 @@ fn Lanes::place(self : Lanes) -> CompoundResult {
     e.label_x = (ax + bx) / 2
     e.label_y = (ay + by) / 2
   }
+  let mut route_points = 0
+  for e in edges {
+    route_points += e.route.length() / 3
+  }
+  let work = m.to_double() *
+    (real.length() + edges.length() + route_points).to_double()
+  let router = Router::new(self, placement)
+  if work <= route_budget {
+    router.route_handoffs(work)
+  }
   {
     width: if sideways {
       length
@@ -610,7 +789,450 @@ fn Lanes::place(self : Lanes) -> CompoundResult {
     } else {
       length
     },
+    routed: router.routed,
+    margins: router.used,
+    work,
   }
+}
+
+///|
+/// Moves handoffs off their ranked routes, and records which ones it moved and the lanes whose margins it took.
+priv struct Router {
+  lanes : Lanes
+  at : Placement
+  /// Each relation's label center, across and along the flow.
+  labels : Array[(Double, Double)]
+  routed : FixedArray[Bool]
+  used : FixedArray[Bool]
+}
+
+///|
+fn Router::new(lanes : Lanes, at : Placement) -> Router {
+  let labels = lanes.edges.map(e => {
+    (
+      if at.sideways {
+        e.label_y
+      } else {
+        e.label_x
+      },
+      at.flip(if at.sideways { e.label_x } else { e.label_y }),
+    )
+  })
+  {
+    lanes,
+    at,
+    labels,
+    routed: FixedArray::make(lanes.ledges.length(), false),
+    used: FixedArray::make(lanes.lane_count, false),
+  }
+}
+
+///|
+fn overlaps(
+  c0 : Double,
+  a0 : Double,
+  c1 : Double,
+  a1 : Double,
+  lc : Double,
+  la : Double,
+  cw : Double,
+  ah : Double,
+) -> Bool {
+  c1 > lc - cw / 2 && c0 < lc + cw / 2 && a1 > la - ah / 2 && a0 < la + ah / 2
+}
+
+///|
+/// Whether a box across and along the flow misses every item but `src` and `dst`, and every label but that of relation `ei`.
+fn Router::clear(
+  self : Router,
+  c0 : Double,
+  a0 : Double,
+  c1 : Double,
+  a1 : Double,
+  src : Int32,
+  dst : Int32,
+  ei : Int32,
+) -> Bool {
+  let at = self.at
+  for i in 0..<self.lanes.real.length() {
+    if i != src &&
+      i != dst &&
+      overlaps(
+        c0,
+        a0,
+        c1,
+        a1,
+        at.across[i],
+        at.amid(i),
+        at.size[i] + 8,
+        at.depth[i] + 8,
+      ) {
+      return false
+    }
+  }
+  for i, e in self.lanes.edges {
+    // A step's own loop keeps its label inside the step's box, and has no place here.
+    if i != ei &&
+      e.label_w > 0 &&
+      e.src != e.dst &&
+      overlaps(
+        c0,
+        a0,
+        c1,
+        a1,
+        self.labels[i].0,
+        self.labels[i].1,
+        if at.sideways {
+          e.label_h
+        } else {
+          e.label_w
+        },
+        if at.sideways {
+          e.label_w
+        } else {
+          e.label_h
+        },
+      ) {
+      return false
+    }
+  }
+  true
+}
+
+///|
+/// How many relations other than `ei` have a stretch inside a box of the diagram.
+/// A stretch's whole box counts, including its curve.
+fn Router::crossings(
+  self : Router,
+  x0 : Double,
+  y0 : Double,
+  x1 : Double,
+  y1 : Double,
+  ei : Int32,
+) -> Int32 {
+  let mut count = 0
+  for i, e in self.lanes.edges {
+    if i == ei {
+      continue
+    }
+    let route = e.route
+    for j = 3; j < route.length(); j = j + 3 {
+      if @util.js_max(route[j - 3], route[j]) > x0 &&
+        @util.js_min(route[j - 3], route[j]) < x1 &&
+        @util.js_max(route[j - 2], route[j + 1]) > y0 &&
+        @util.js_min(route[j - 2], route[j + 1]) < y1 {
+        count += 1
+        break
+      }
+    }
+  }
+  count
+}
+
+///|
+/// Whether a stretch of the diagram runs along a line that a relation other than `ei` already takes.
+/// Two relations drawn along one line read as a single path.
+/// Those that leave the same step or arrive at the same step may share a trunk; any other pair must not.
+fn Router::retraces(
+  self : Router,
+  x0 : Double,
+  y0 : Double,
+  x1 : Double,
+  y1 : Double,
+  ei : Int32,
+) -> Bool {
+  let edges = self.lanes.edges
+  let upright = (x1 - x0).abs() < 0.5
+  let lo = if upright { @util.js_min(y0, y1) } else { @util.js_min(x0, x1) }
+  let hi = if upright { @util.js_max(y0, y1) } else { @util.js_max(x0, x1) }
+  let line = if upright { x0 } else { y0 }
+  let along_at = if upright { 0 } else { 1 }
+  let span_at = if upright { 1 } else { 0 }
+  for i, other in edges {
+    if i == ei || other.src == edges[ei].src || other.dst == edges[ei].dst {
+      continue
+    }
+    let route = other.route
+    for j = 3; j < route.length(); j = j + 3 {
+      let u0 = route[j - 3 + along_at]
+      let u1 = route[j + along_at]
+      if (u0 - line).abs() >= near_line || (u1 - line).abs() >= near_line {
+        continue
+      }
+      let v0 = route[j - 3 + span_at]
+      let v1 = route[j + span_at]
+      if @util.js_min(hi, @util.js_max(v0, v1)) -
+        @util.js_max(lo, @util.js_min(v0, v1)) >
+        1 {
+        return true
+      }
+    }
+  }
+  false
+}
+
+///|
+/// Routes handoff `k` through `pts`, across and along the flow, when nothing is in the way, keeping `room` clear around each stretch.
+/// A labelled handoff also needs a stretch long enough for its label.
+fn Router::attempt(
+  self : Router,
+  k : Int32,
+  pts : Array[Double],
+  room : Double,
+) -> Bool {
+  let at = self.at
+  let e = self.lanes.ledges[k]
+  let ei = self.lanes.edge_of[k]
+  let out = self.lanes.edges[ei]
+  for p = 2; p < pts.length(); p = p + 2 {
+    if !self.clear(
+        @util.js_min(pts[p - 2], pts[p]) - room,
+        @util.js_min(pts[p - 1], pts[p + 1]) - room,
+        @util.js_max(pts[p - 2], pts[p]) + room,
+        @util.js_max(pts[p - 1], pts[p + 1]) + room,
+        e.tail,
+        e.head,
+        ei,
+      ) {
+      return false
+    }
+    if self.retraces(
+        at.px(pts[p - 2], pts[p - 1]),
+        at.py(pts[p - 2], pts[p - 1]),
+        at.px(pts[p], pts[p + 1]),
+        at.py(pts[p], pts[p + 1]),
+        ei,
+      ) {
+      return false
+    }
+  }
+  let mut lc = 0.0
+  let mut la = 0.0
+  let mut longest = -1.0
+  if out.label_w > 0 {
+    let cw = e.label_w
+    let ah = e.label_h
+    for p = 2; p < pts.length(); p = p + 2 {
+      let cc = (pts[p - 2] + pts[p]) / 2
+      let ca = (pts[p - 1] + pts[p + 1]) / 2
+      let across_run = (pts[p] - pts[p - 2]).abs()
+      let along_run = (pts[p + 1] - pts[p - 1]).abs()
+      let run = across_run + along_run
+      if run <= longest ||
+        (if across_run > 0 { across_run < cw + 8 } else { along_run < ah + 8 }) {
+        continue
+      }
+      if cc - cw / 2 < 0 ||
+        cc + cw / 2 > at.breadth ||
+        ca - ah / 2 < 0 ||
+        ca + ah / 2 > at.length {
+        continue
+      }
+      // Include the ends here: the label must clear both shapes it connects.
+      if !self.clear(
+          cc - cw / 2,
+          ca - ah / 2,
+          cc + cw / 2,
+          ca + ah / 2,
+          -1,
+          -1,
+          ei,
+        ) {
+        continue
+      }
+      // A label moved onto a handoff must not cover a return path that keeps its ranked route.
+      // A segment's whole box is kept clear, including its curve.
+      let lx = at.px(cc, ca)
+      let ly = at.py(cc, ca)
+      if self.crossings(
+          lx - out.label_w / 2,
+          ly - out.label_h / 2,
+          lx + out.label_w / 2,
+          ly + out.label_h / 2,
+          ei,
+        ) >
+        0 {
+        continue
+      }
+      lc = cc
+      la = ca
+      longest = run
+    }
+    if longest < 0 {
+      return false
+    }
+  }
+  // A point short of each corner and one past it keep the turn close to the corner, so that the line stays under its label and the handoff takes little room.
+  let way = [pts[0], pts[1]]
+  for p = 2; p < pts.length(); p = p + 2 {
+    let dx = pts[p] - pts[p - 2]
+    let dy = pts[p + 1] - pts[p - 1]
+    let run = dx.abs() + dy.abs()
+    let first = if p > 2 { turn } else { 0 }
+    let last = if p + 2 < pts.length() { turn } else { 0 }
+    if run > first + last + 1 {
+      if first != 0 {
+        way.push(pts[p - 2] + dx / run * first)
+        way.push(pts[p - 1] + dy / run * first)
+      }
+      if last != 0 {
+        way.push(pts[p] - dx / run * last)
+        way.push(pts[p + 1] - dy / run * last)
+      }
+    }
+    way.push(pts[p])
+    way.push(pts[p + 1])
+  }
+  let route : Array[Double] = []
+  for p = 0; p < way.length(); p = p + 2 {
+    let crosswise = if p == 0 { way[0] != way[2] } else { way[p] != way[p - 2] }
+    route.push(at.px(way[p], way[p + 1]))
+    route.push(at.py(way[p], way[p + 1]))
+    route.push(if crosswise { 1 - at.axis() } else { at.axis() })
+  }
+  out.route = route
+  if out.label_w > 0 {
+    out.label_x = at.px(lc, la)
+    out.label_y = at.py(lc, la)
+    self.labels[ei] = (lc, la)
+  }
+  self.routed[k] = true
+  true
+}
+
+///|
+/// A handoff can leave towards the other lane, then arrive along the flow (or vice versa).
+/// In particular, a decision's return branch must not leave through its incoming side and retrace the path past the preceding step.
+/// Each handoff tries the two single-corner routes, and keeps its ranked route when a node or another label blocks them.
+fn Router::route_handoffs(self : Router, work : Double) -> Unit {
+  let at = self.at
+  for k, e in self.lanes.ledges {
+    let a = e.tail
+    let b = e.head
+    if at.lane_at[a] == at.lane_at[b] || (at.across[b] - at.across[a]).abs() < 1 {
+      continue
+    }
+    let ac = at.across[a]
+    let bc = at.across[b]
+    let aa = at.amid(a)
+    let ba = at.amid(b)
+    let dc = sign(bc - ac)
+    let da = sign(ba - aa)
+    if self.attempt(
+        k,
+        [ac + dc * at.size[a] / 2, aa, bc, aa, bc, ba - da * at.depth[b] / 2],
+        2,
+      ) {
+      continue
+    }
+    if self.attempt(
+        k,
+        [ac, aa + da * at.depth[a] / 2, ac, ba, bc - dc * at.size[b] / 2, ba],
+        2,
+      ) {
+      continue
+    }
+    if work > route_budget / relay {
+      continue
+    }
+    for way in self.ways_around(k) {
+      if !self.attempt(k, way.pts, 1) {
+        continue
+      }
+      self.used[way.lane] = true
+      break
+    }
+  }
+}
+
+///|
+/// How many relations other than `ei` start or end at a point of the diagram.
+fn Router::meets(self : Router, x : Double, y : Double, ei : Int32) -> Int32 {
+  let mut count = 0
+  for i, e in self.lanes.edges {
+    let route = e.route
+    if i == ei || route.length() == 0 {
+      continue
+    }
+    let last = route.length() - 3
+    if ((route[0] - x).abs() < 1 && (route[1] - y).abs() < 1) ||
+      ((route[last] - x).abs() < 1 && (route[last + 1] - y).abs() < 1) {
+      count += 1
+    }
+  }
+  count
+}
+
+///|
+/// The ways a handoff can go around the steps between its ends when both corners are blocked, as for a return past them: out to the margin of a lane, along it, and back in level with its end.
+/// The ways that cross the fewest other relations and share the fewest ends with them come first, then the shortest.
+fn Router::ways_around(self : Router, k : Int32) -> Array[Around] {
+  let at = self.at
+  let e = self.lanes.ledges[k]
+  let ei = self.lanes.edge_of[k]
+  let a = e.tail
+  let b = e.head
+  let ac = at.across[a]
+  let bc = at.across[b]
+  let aa = at.amid(a)
+  let ba = at.amid(b)
+  let around : Array[Around] = []
+  let sides = if at.lane_at[a] < at.lane_at[b] {
+    [at.lane_at[b], at.lane_at[a]]
+  } else {
+    [at.lane_at[a], at.lane_at[b]]
+  }
+  for lane in sides {
+    // A lane that keeps no margin yet has less room there, and the handoff stays inside it.
+    let inset = @util.js_max(
+      at.pad[lane] - leg,
+      @util.js_min(at.pad[lane] / 2, margin - leg),
+    )
+    for ch in [at.lane_start[lane] + inset, at.lane_start[lane + 1] - inset] {
+      if (ch - ac).abs() < at.size[a] / 2 + 4 ||
+        (ch - bc).abs() < at.size[b] / 2 + 4 {
+        continue
+      }
+      let pts = [
+        ac + sign(ch - ac) * at.size[a] / 2,
+        aa,
+        ch,
+        aa,
+        ch,
+        ba,
+        bc + sign(ch - bc) * at.size[b] / 2,
+        ba,
+      ]
+      let mut cost = (self.meets(
+          at.px(pts[0], pts[1]),
+          at.py(pts[0], pts[1]),
+          ei,
+        ) +
+        self.meets(at.px(pts[6], pts[7]), at.py(pts[6], pts[7]), ei)).to_double() *
+        1.0e6
+      for p = 2; p < pts.length(); p = p + 2 {
+        let x0 = at.px(pts[p - 2], pts[p - 1])
+        let y0 = at.py(pts[p - 2], pts[p - 1])
+        let x1 = at.px(pts[p], pts[p + 1])
+        let y1 = at.py(pts[p], pts[p + 1])
+        cost += self
+          .crossings(
+            @util.js_min(x0, x1),
+            @util.js_min(y0, y1),
+            @util.js_max(x0, x1),
+            @util.js_max(y0, y1),
+            ei,
+          )
+          .to_double() *
+          1.0e6 +
+          (x1 - x0).abs() +
+          (y1 - y0).abs()
+      }
+      around.push({ pts, cost, lane, })
+    }
+  }
+  sort_array(around, (p, q) => p.cost - q.cost)
+  around
 }
 
 ///|
