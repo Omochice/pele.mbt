@@ -144,3 +144,25 @@ The `metrics` profile holds a monospace-like table in 2048 units per em with a d
 
 Every coordinate in the SVG output is formatted by `num()` in `vendor/pele/src/svg/builder.ts`.
 It rounds to hundredths and drops trailing zeros, so a port has to reproduce it exactly, including its handling of negative values and zero, for a byte-exact comparison.
+
+## Output ceiling
+
+pele builds its SVG by string concatenation, and V8 throws a `RangeError` once a string would pass 536870888 UTF-16 code units, the longest string it makes on a 64-bit host.
+pele reports that as the `limit` error "Diagram is nested too deeply." before it checks its own output limit, so an input whose SVG crosses that length fails there even under the default options.
+The port reproduces this: `src/svg/markup.mbt` tracks a drawing's length as it is assembled and raises the same error at the same point.
+`scripts/check-string-length.mjs` renders, through pele's dist and through the plugin, one amplifying input per diagram that can reach it, and checks the three bands against each other: an input pele rejects, one pele draws within the port's reach, and one pele draws past it.
+`scripts/string-length-cases.mjs` lists the inputs.
+
+The port stops below V8's longest string.
+It runs as wasm32 with one linear memory of at most 4 GiB, and holds a drawing's pieces, the single string made of them, and the UTF-8 bytes of the response at once, a fit diagram several times over, so it stops at 400000000 code units of SVG (`HOLD_LIMIT` in `src/svg/markup.mbt`).
+An SVG larger than that, which pele draws and a wasm32 plugin cannot hold, fails with the `limit` error "Diagram output is too large for the wasm port: it would hold more than 400000000 code units, the most the port can hold at once.", tagged with the diagram's type.
+This ceiling is the one intentional, platform-imposed difference from pele; every SVG at or under it is drawn byte for byte as pele draws it.
+
+### Which diagrams can reach it
+
+A diagram reaches the ceiling when some repeated part of its source multiplies into the SVG without a cap, so that a source within the limit draws an SVG past it.
+Every diagram that writes a `classDef` or `style` into each of many elements can: the flowchart (and the swimlane it renders through), class, state, ER, block, agentflow, requirement, treemap, and use case diagrams each have an amplifying input in `scripts/string-length-cases.mjs` and a skipped test in `src/diagrams/<diagram>/string_length_test.mbt`.
+A diagram that draws host icons can also reach it, because the icon markup the host supplies is unbounded and a label may hold many icon spans.
+
+A diagram cannot reach it when its SVG is bounded by a small multiple of its source, which the `limit` option caps: a source long enough to draw an oversized SVG is itself rejected first, at a different point than pele's concatenation.
+The gantt chart caps its axis ticks, the packet diagram its SVG by the bit count, and the radar chart its graticule rings, so none amplifies past the cap.

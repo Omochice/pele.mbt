@@ -39,13 +39,28 @@ function outcome(error) {
   return { name: error.name, code: error.code ?? null, message: error.message, type: error.type ?? null, mermaidType: error.mermaidType ?? null };
 }
 
+// The most code units the wasm port holds, as src/svg/markup.mbt's HOLD_LIMIT; past it the port
+// returns a limit error where pele still draws, the one platform-imposed difference from pele.
+const HOLD_LIMIT = 400000000;
+
 function peleOutcome(text, options) {
   try {
-    const { svg } = render(text, options);
-    return { svgLength: svg.length, svg: Buffer.from(svg) };
+    const result = render(text, options);
+    return { svgLength: result.svg.length, svg: Buffer.from(result.svg), type: result.type, mermaidType: result.mermaidType };
   } catch (error) {
     return outcome(error);
   }
+}
+
+// The port's own limit error for a drawing past its hold limit, tagged like the drawing.
+function portLimit(type, mermaidType) {
+  return {
+    name: 'PeleError',
+    code: 'limit',
+    message: `Diagram output is too large for the wasm port: it would hold more than ${HOLD_LIMIT} code units, the most the port can hold at once.`,
+    type,
+    mermaidType,
+  };
 }
 
 // The SVG of a drawing's answer, unescaped from its JSON string as UTF-8 bytes.
@@ -99,18 +114,24 @@ for (const [diagram, name, text, options] of cases) {
   const want = peleOutcome(text, options);
   const got = pluginOutcome(text, options);
   let pass;
+  let band;
   let note = `plugin memory grown to ${got.mib} MiB`;
-  if (want.svg) {
+  const { mib, ...error } = got;
+  if (!want.svg) {
+    band = 'pele errors';
+    pass = isDeepStrictEqual(want, error);
+  } else if (want.svgLength <= HOLD_LIMIT) {
+    band = 'pele draws, within the port';
     pass = got.svg !== undefined && got.svg.equals(want.svg);
     const themed = pluginOutcome(text, { ...options, theme: {} });
     if (themed.trap || themed.code !== undefined) pass = false;
     note += `, through the theme ${themed.trap ?? `${themed.mib} MiB`}`;
   } else {
-    const { mib, ...error } = got;
-    pass = isDeepStrictEqual(want, error);
+    band = 'pele draws, past the port';
+    pass = isDeepStrictEqual(portLimit(want.type, want.mermaidType), error);
   }
   if (!pass) failed++;
-  console.log(`${pass ? 'PASS' : 'FAIL'} ${diagram}: ${name}: pele ${summary(want)}${pass ? '' : `, plugin ${summary(got)}`}; ${note}`);
+  console.log(`${pass ? 'PASS' : 'FAIL'} ${diagram}: ${name} (${band}): pele ${summary(want)}${pass ? '' : `, plugin ${summary(got)}`}; ${note}`);
 }
 console.log(`\ntotal ${cases.length - failed}/${cases.length} passed`);
 process.exit(failed > 0 ? 1 : 0);

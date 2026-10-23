@@ -124,9 +124,24 @@ Compiling a document that embeds pele's SVG with typst 0.15.1 showed the followi
 With a theme, the plugin therefore replaces every reference with its value, drops the custom property declarations, computes each `color-mix()` it can read to a hex code and moves corner radii into `rx` and `ry` attributes.
 Without a theme, the plugin returns pele's output byte for byte.
 
+## Output ceiling
+
+pele builds its SVG by string concatenation, and the longest string V8 makes on a 64-bit host is 536870888 UTF-16 code units; past that pele reports the `limit` error "Diagram is nested too deeply.".
+The plugin reproduces that outcome exactly.
+
+The plugin reaches its own limit first.
+It runs as wasm32, where all of a render lives in one linear memory of at most 4 GiB, and a drawing is held three times over at its largest: the pieces it is built from, the single string made of them, and the UTF-8 bytes of the JSON response.
+A diagram that fits to its width is also drawn several times so their widths can be compared.
+So the plugin stops at 400000000 code units of SVG, a little above half of V8's longest string: a drawing larger than that fails with the `limit` error "Diagram output is too large for the wasm port: it would hold more than 400000000 code units, the most the port can hold at once.", tagged with the diagram's type, where pele would still draw it.
+The several-render fit path at that ceiling peaks at about 3.1 GiB, inside wasm's 4 GiB.
+
+This ceiling is the one intentional, platform-imposed difference from pele: every input whose SVG is at most 400000000 code units is drawn byte for byte as pele draws it, and only inputs between the ceiling and V8's longest string, which pele draws and a wasm32 plugin cannot hold, come out as this `limit` error rather than as a drawing.
+A second guard covers a response whose bytes, rather than code units, would not fit one of wasm's memory blocks: a JSON response over 1000000000 bytes, which a drawing under the code-unit ceiling reaches only when it is almost all non-ASCII text, fails with a `limit` error naming that byte limit.
+
 ## Limitations
 
 - The outline of a cluster title is not drawn when `surface-alt` or `bg` is a color the plugin cannot mix, as listed under [Theme](#theme).
+- A diagram whose SVG would be longer than 400000000 code units fails with a `limit` error rather than being drawn, as described under [Output ceiling](#output-ceiling).
 
 ## Checking
 

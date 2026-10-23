@@ -27,6 +27,14 @@ export const CASES = [
     `graph TD\nclassDef c ${fill}\n${names('n', 6000).map((name) => `${name}:::c`).join(';')}\n`,
     RAISED,
   ],
+  // pele draws this between the port's hold limit and V8's longest string, so the port returns its
+  // own limit error: the one intentional, platform-imposed difference from pele.
+  [
+    'flowchart',
+    'edges pele draws past the port but under V8',
+    `graph LR\nclassDef c ${fill}\n${names('n', 10600).map((name) => `${name}:::c`).join('-->')}\n`,
+    { ...RAISED, maxEdges: 1000000000, maxWidth: 300 },
+  ],
   ['swimlane', 'styled nodes in a lane', `swimlane-beta TB\nclassDef c ${fill}\nsubgraph L\n${names('n', 10700).map((name) => `${name}:::c`).join('\n')}\nend\n`, RAISED],
   ['class', 'styled classes', `classDiagram\nclassDef c ${fill}\n${names('C', 10700).map((name) => `class ${name}:::c`).join('\n')}\n`, RAISED],
   ['state', 'styled states', `stateDiagram-v2\nclassDef c ${fill}\n${names('S', 10700).map((name) => `[*] --> ${name}:::c`).join('\n')}\n`, RAISED],
