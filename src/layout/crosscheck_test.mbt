@@ -9,12 +9,24 @@ fn js_number(value : Double) -> String {
 }
 
 ///|
+/// A layout of a compound graph, such as `compound_layout`.
+type Layout = (
+  Array[@layout.CNode],
+  Array[@layout.CEdge],
+  @layout.Dir,
+  @layout.LayeredOptions,
+) -> @layout.CompoundResult
+
+///|
 /// Lays out a graph written as space-separated fields, and writes the result the same way.
 /// The input is the direction, the options, then each node and each edge.
 /// The output is the size, each node's center and size, then each edge's route and label center.
 /// The expectations below are pele v1.8.0's own output for the same input, run in Node and written with `String`, so the strings match only when every coordinate is the same double.
 /// They cover layouts that flowchart, class and state goldens make, and pele's random test graphs.
-fn run_oracle(input : String) -> String {
+fn run_oracle(
+  input : String,
+  layout~ : Layout = @layout.compound_layout,
+) -> String {
   let fields = input.split(" ").map(field => field.to_owned()).collect()
   let mut at = 0
   let next = fn() {
@@ -88,7 +100,7 @@ fn run_oracle(input : String) -> String {
       label_y: 0,
     }
   })
-  let size = @layout.compound_layout(nodes, edges, dir, opt)
+  let size = layout(nodes, edges, dir, opt)
   let out = [js_number(size.width), js_number(size.height)]
   for node in nodes {
     out.push(js_number(node.x))
@@ -109,8 +121,12 @@ fn run_oracle(input : String) -> String {
 
 ///|
 /// Fails at the first field where the layout differs from pele's.
-fn check_oracle(input : String, expected : String) -> Unit raise {
-  let actual = run_oracle(input)
+fn check_oracle(
+  input : String,
+  expected : String,
+  layout~ : Layout = @layout.compound_layout,
+) -> Unit raise {
+  let actual = run_oracle(input, layout~)
   if actual == expected {
     return
   }
