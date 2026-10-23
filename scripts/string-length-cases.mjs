@@ -378,6 +378,14 @@ export const CASES = [
   lazy('class', 'one class stroked by many &', () => `classDiagram\nclass A {\n  x\n}\nstyle A stroke:${'&'.repeat(54000000)}\n`, RAISED),
   // A static member is underlined in its own copy of the class's text style.
   lazy('class', 'a static member of a class colored by many &', () => `classDiagram\nclass A {\n  +x$\n}\nstyle A color:${'&'.repeat(54000000)}\n`, RAISED),
+  lazy('state', 'one state named by many &, with a short label', () => `stateDiagram-v2\nstate "x" as ${'&'.repeat(54000000)}\n`, RAISED),
+  lazy('state', 'one state named past V8, with a short label', () => `stateDiagram-v2\nstate "x" as ${'&'.repeat(110000000)}\n`, RAISED),
+  // A note is named after its state, and so is the edge to it, which names both.
+  lazy('state', 'a note on a state named by many &', () => `stateDiagram-v2\nstate "x" as ${'&'.repeat(54000000)}\nnote right of ${'&'.repeat(54000000)} : n\n`, RAISED),
+  lazy('state', 'one tooltip of many &', () => `stateDiagram-v2\nA\nclick A "https://x" "${'&'.repeat(54000000)}"\n`, RAISED),
+  lazy('state', 'one tooltip past V8', () => `stateDiagram-v2\nA\nclick A "https://x" "${'&'.repeat(110000000)}"\n`, RAISED),
+  lazy('state', 'one link of many &', () => `stateDiagram-v2\nA\nclick A href "https://x/${'&'.repeat(54000000)}"\n`, RAISED),
+  lazy('state', 'one link past V8', () => `stateDiagram-v2\nA\nclick A href "https://x/${'&'.repeat(110000000)}"\n`, RAISED),
 ];
 
 // A case whose source is built only when the check reaches it, as a getter in the source's place,
