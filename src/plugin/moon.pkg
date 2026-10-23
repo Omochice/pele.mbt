@@ -9,6 +9,7 @@ import {
   "Omochice/pele/diagrams/er",
   "Omochice/pele/diagrams/eventmodeling",
   "Omochice/pele/diagrams/flowchart",
+  "Omochice/pele/diagrams/gantt",
   "Omochice/pele/diagrams/git",
   "Omochice/pele/diagrams/info",
   "Omochice/pele/diagrams/ishikawa",
