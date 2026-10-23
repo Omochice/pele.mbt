@@ -54,6 +54,7 @@ pub fn SeqDb::auto_wrap(self : SeqDb) -> Bool {
 }
 
 ///|
+/// Sets the accessible title, without its leading whitespace.
 pub fn SeqDb::set_acc_title(self : SeqDb, text : String) -> Unit {
   self.acc_title = Some(@util.trim_start(text))
 }
@@ -77,6 +78,7 @@ pub fn SeqDb::set_acc_description(self : SeqDb, text : String) -> Unit {
 }
 
 ///|
+/// Sets the title drawn above the diagram.
 pub fn SeqDb::set_diagram_title(self : SeqDb, text : String) -> Unit {
   self.title = Some(text)
 }
