@@ -363,13 +363,12 @@ fn draw(
   let ox = pad + (inner - (max_x - min_x)) / 2 - min_x
   let oy = pad + title_height - min_y
   let content = @svg.Markup::new()
-  content.write(
-    @svg.label_svg(
-      title,
-      width / 2,
-      pad + title.height / 2,
-      " class=\"pele-title\" font-weight=\"var(--_tw)\"",
-    ),
+  @svg.write_label(
+    content,
+    title,
+    width / 2,
+    pad + title.height / 2,
+    " class=\"pele-title\" font-weight=\"var(--_tw)\"",
   )
   if !body.is_empty() {
     content.write_group(
@@ -508,13 +507,12 @@ fn vertical_causes(
   let total_width = (width + 2 * pad).ceil()
   let height = (@util.js_max(pad + title.height, y - 12) + pad).ceil()
   let content = @svg.Markup::new()
-  content.write(
-    @svg.label_svg(
-      title,
-      total_width / 2,
-      pad + title.height / 2,
-      " class=\"pele-title\" font-weight=\"var(--_tw)\"",
-    ),
+  @svg.write_label(
+    content,
+    title,
+    total_width / 2,
+    pad + title.height / 2,
+    " class=\"pele-title\" font-weight=\"var(--_tw)\"",
   )
   content.write_markup(edges)
   content.write_markup(nodes)
