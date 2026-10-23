@@ -4,7 +4,9 @@
 
 = Class diagram
 
-#mermaid(```
+At 400 wide, the edges run through the titles of the innermost namespaces, which are outlined in the tint of the namespaces behind them.
+
+#mermaid(maxWidth: 400, ```
 classDiagram
   namespace Company.Engineering.Backend {
     class Developer {
