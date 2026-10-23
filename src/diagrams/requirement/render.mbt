@@ -83,7 +83,7 @@ fn restyle(
     let mut total = 0.0
     let spans = line.map(span => {
       let style = span.style | bits
-      let w = if span.icon is Some(_) {
+      let w = if span.icon is Some(_) || span.math is Some(_) {
         span.width
       } else {
         measurer.width(span.text, label.size, style)
@@ -110,8 +110,21 @@ fn start_text(
 ) -> String {
   let shared = @svg.shared_style(label)
   let body = StringBuilder()
+  let math = StringBuilder()
   for i, line in label.lines {
-    let y = top + (i.to_double() + 0.5) * label.line_height + label.size * 0.35
+    let middle = top + @text.line_middle(label, i)
+    if @text.has_math(line) {
+      math.write_string(
+        @svg.label_svg(
+          @text.label_line(label, i),
+          x + label.widths[i] / 2,
+          middle,
+          attrs,
+        ),
+      )
+      continue
+    }
+    let y = middle + label.size * 0.35
     let mut first = true
     for span in line {
       if span.text == "" {
@@ -129,11 +142,12 @@ fn start_text(
     }
   }
   let body = body.to_string()
-  if body == "" {
+  (if body == "" {
     ""
   } else {
     "<text\{@svg.text_style(attrs, shared)} text-anchor=\"start\" xml:space=\"preserve\">\{body}</text>"
-  }
+  }) +
+  math.to_string()
 }
 
 ///|
