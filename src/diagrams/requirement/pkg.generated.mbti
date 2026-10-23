@@ -3,6 +3,7 @@ package "Omochice/pele/diagrams/requirement"
 
 import {
   "Omochice/pele/errors",
+  "Omochice/pele/types",
 }
 
 // Values
@@ -128,7 +129,13 @@ pub const T_VERIFY_INSPECTION : Int32 = 34
 
 pub const T_VERIFY_TEST : Int32 = 35
 
+pub fn parse_model(String, String?) -> RequirementDb raise @errors.PeleError
+
 pub fn parse_requirement(String, RequirementDb) -> Unit raise @errors.PeleError
+
+pub fn render_requirement(RequirementDb, Map[String, Json], @types.RenderOptions) -> @types.Rendered
+
+pub let requirement : @types.Diagram
 
 pub let token_names : Array[String]
 
