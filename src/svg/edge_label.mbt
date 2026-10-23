@@ -7,11 +7,12 @@ pub fn edge_label_svg(
   x : Double,
   y : Double,
   attrs : String,
+  icons? : @types.IconResolver,
 ) -> String {
   let w = label.width + 8
   let h = label.height
   "<g class=\"pele-edge-label\" data-id=\"\{esc_text(id)}\">" +
   "<rect x=\"\{num(x - w / 2)}\" y=\"\{num(y - h / 2)}\" width=\"\{num(w)}\" height=\"\{num(h)}\" rx=\"3\" fill=\"var(--_bg)\"/>" +
-  label_svg(label, x, y, attrs) +
+  label_svg(label, x, y, attrs, icons?) +
   "</g>"
 }

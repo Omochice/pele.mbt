@@ -30,7 +30,7 @@ pub fn cluster_title_x(@layout.CNode, Double, Crossings, Double) -> Double
 
 pub fn draw_shape(String, Double, Double, String, String) -> String
 
-pub fn edge_label_svg(String, @text.Label, Double, Double, String) -> String
+pub fn edge_label_svg(String, @text.Label, Double, Double, String, icons? : (String) -> String?) -> String
 
 pub fn end_side(Array[Double], Int32, @layout.CNode) -> Int32
 

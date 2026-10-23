@@ -49,8 +49,14 @@ fn rank(values : Array[Int32]) -> Map[Int32, Int32] {
 }
 
 ///|
-fn icon_slot(name : String, x : Double, y : Double, side : Double) -> String {
-  @common.icon_svg(name, x, y, side, drawing=builtin_icon(name))
+fn icon_slot(
+  name : String,
+  x : Double,
+  y : Double,
+  side : Double,
+  icons : @types.IconResolver?,
+) -> String {
+  @common.icon_svg(name, x, y, side, icons?, drawing=builtin_icon(name))
 }
 
 ///|
@@ -100,7 +106,7 @@ fn fit(
           break
         }
         let rest = width - span.width
-        if rest + dots < max_width {
+        if span.icon is None && rest + dots < max_width {
           let mut lo = 0
           let mut hi = span.text.length()
           while lo < hi {
@@ -755,7 +761,14 @@ fn draw(
       min_y = @util.js_min(min_y, y - label.height / 2)
       max_y = @util.js_max(max_y, y + label.height / 2)
       labels_out.write_string(
-        @svg.edge_label_svg(edge.lhs_id + "-" + edge.rhs_id, label, x, y, ""),
+        @svg.edge_label_svg(
+          edge.lhs_id + "-" + edge.rhs_id,
+          label,
+          x,
+          y,
+          "",
+          icons?=options.icons,
+        ),
       )
     }
   }
@@ -793,7 +806,9 @@ fn draw(
       let cy = y + 6 + head_h[g] / 2
       let mut text_x = start
       if group.icon is Some(icon) && icon != "" {
-        head.write_string(icon_slot(icon, start, cy - badge / 2, badge))
+        head.write_string(
+          icon_slot(icon, start, cy - badge / 2, badge, options.icons),
+        )
         text_x += badge + 6
       }
       head.write_string(
@@ -802,6 +817,7 @@ fn draw(
           text_x + label.width / 2,
           cy,
           " class=\"pele-cluster-label\" fill=\"var(--_m)\"",
+          icons?=options.icons,
         ),
       )
     }
@@ -825,7 +841,13 @@ fn draw(
     }
     let inner = match (node.icon, node.icon_text) {
       (Some(icon), _) if icon != "" =>
-        icon_slot(icon, -glyph / 2, (icon_size - glyph) / 2, glyph)
+        icon_slot(
+          icon,
+          -glyph / 2,
+          (icon_size - glyph) / 2,
+          glyph,
+          options.icons,
+        )
       (_, Some(icon_text)) if icon_text != "" => {
         let text = @text.layout_label(
           Some(icon_text),
@@ -848,6 +870,7 @@ fn draw(
           0,
           half,
           " class=\"pele-icon-text\" font-size=\"\{whole(text_size)}\"",
+          icons?=options.icons,
         )
       }
       _ => ""
@@ -861,6 +884,7 @@ fn draw(
         0,
         icon_size + LABEL_GAP + labels[i].height / 2,
         " class=\"pele-label\"",
+        icons?=options.icons,
       ) +
       "</g>",
     )
