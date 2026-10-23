@@ -90,6 +90,21 @@ Each value is an SVG fragment drawn in a 24 by 24 box, whose strokes take the te
 A name the dictionary lacks, or one whose value is not a string, takes no room in a label and keeps the diagram's own drawing elsewhere.
 An empty string draws nothing in place of an architecture or tree view icon's built-in drawing.
 
+## Math
+
+pele typesets `$$…$$` in labels with a function the host gives it, and typst cannot pass a function to a plugin, so `math` takes the typeset markup as data instead.
+It maps each TeX string, then the font size in pixels written as a number such as `"16"` or `"13.5"`, to a dictionary of `svg` markup and the `width` and `height` of the box it is drawn in.
+
+```typ
+#let math = ("x^2": ("16": (svg: "<text y=\"16\" fill=\"currentColor\">x²</text>", width: 18, height: 20)))
+#mermaid(math: math, "graph LR\n  A[\"$$x^2$$ grows\"]")
+```
+
+Node labels ask for the diagram's font size, while edge labels and class cardinalities ask for smaller ones.
+TeX the map does not hold at the size asked for stays as its text, and so does TeX in diagram titles and in the diagram types pele does not typeset math in.
+pele also takes `html` markup in place of `svg`, but typst warns about the `foreignObject` that holds it and draws nothing there.
+[golden/README.md](../golden/README.md#math) states the exact rules.
+
 ## Why the SVG is rewritten
 
 Compiling a document that embeds pele's SVG with typst 0.15.1 showed the following.
@@ -105,7 +120,6 @@ Without a theme, the plugin returns pele's output byte for byte.
 ## Limitations
 
 - typst does not evaluate `color-mix()`, so the halo pele draws behind the titles of nested clusters is left out.
-- Math, which pele takes as a function, is not supported.
 
 ## Checking
 
