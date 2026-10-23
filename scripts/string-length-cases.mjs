@@ -128,4 +128,11 @@ export const CASES = [
   ['block', 'host icons in one block label', `block-beta\nA["${Array(5400).fill('fa:fa-x').join(' ')}"]\n`, ICONS],
   ['cynefin', 'host icons in one item', `cynefin-beta\ncomplex\n  "${Array(5400).fill('fa:fa-x').join(' ')}"\n`, ICONS],
   ['gantt', 'host icons in one section label', `gantt\ndateFormat YYYY-MM-DD\nsection ${Array(5400).fill('fa:fa-x').join(' ')}\nt :2026-01-01, 1d\n`, ICONS],
+  // A card breaks its label to fit the column, so the math is typeset almost without width to keep it on one line.
+  [
+    'kanban',
+    'host math in one line of a card',
+    `kanban\nc[Col]\n  k[${'$$x$$'.repeat(5400)}]\n`,
+    { ...RAISED, math: { x: { 14: { svg: `<path d="${'M0 0'.repeat(25000)}"/>`, width: 0.001, height: 10 } } } },
+  ],
 ];
