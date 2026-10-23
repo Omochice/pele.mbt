@@ -448,6 +448,16 @@ export const CASES = [
   // A text holding a `#35;` code is shown with every `&` escaped and the whole decoded back.
   lazy('railroad', 'one special sequence with a code and many &', () => `railroad-ebnf-beta\nr = ? #35;${'&'.repeat(54000000)} ? ;\n`, RAISED),
   lazy('railroad', 'one special sequence with a code past V8', () => `railroad-ebnf-beta\nr = ? #35;${'&'.repeat(110000000)} ? ;\n`, RAISED),
+  lazy('gantt', 'one task id of many &', () => `gantt\ndateFormat YYYY-MM-DD\nsection s\nt :${'&'.repeat(54000000)}, 2026-01-01, 1d\n`, RAISED),
+  // A vertical marker's id is written in its line's data-id and in its label's.
+  lazy('gantt', 'one vertical marker id of many &', () => `gantt\ndateFormat YYYY-MM-DD\nsection s\nt :2026-01-01, 3d\nv :vert, ${'&'.repeat(54000000)}, 2026-01-02, 0d\n`, RAISED),
+  // A section's text is written in its label's data-id and as its label.
+  lazy('gantt', 'one section of many &', () => `gantt\ndateFormat YYYY-MM-DD\nsection ${'&'.repeat(54000000)}\nt :2026-01-01, 1d\n`, RAISED),
+  // Every tick of an axis format without directives has the same label, which is drawn once on each axis.
+  lazy('gantt', 'an axis format of many &', () => `gantt\ndateFormat YYYY-MM-DD\naxisFormat ${'&'.repeat(54000000)}\nsection s\nt :2026-01-01, 1d\n`, RAISED),
+  lazy('gantt', 'an axis format of many &, on both axes', () => `gantt\ndateFormat YYYY-MM-DD\naxisFormat ${'&'.repeat(54000000)}\ntopAxis\nsection s\nt :2026-01-01, 1d\n`, RAISED),
+  lazy('gantt', 'a today marker style of many &', () => `gantt\ndateFormat YYYY-MM-DD\ntodayMarker stroke:${'&'.repeat(54000000)}\nsection s\nt :2026-01-01, 3d\n`, { ...RAISED, now: Date.UTC(2026, 0, 2) }),
+  lazy('gantt', 'a task link of many &', () => `gantt\ndateFormat YYYY-MM-DD\nsection s\nt :a, 2026-01-01, 1d\nclick a href "${'&'.repeat(54000000)}"\n`, RAISED),
   // An entity's name is written in its data-id and, unless an alias takes its place, as its label.
   lazy('er', 'one aliased entity named by many &', () => `erDiagram\n"${'&'.repeat(54000000)}"["x"] {\n}\n`, RAISED),
   lazy('er', 'one entity named by many &', () => `erDiagram\n"${'&'.repeat(54000000)}" {\n}\n`, RAISED),
