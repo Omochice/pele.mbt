@@ -199,4 +199,7 @@ export const CASES = [
   // A quoted terminal fails in pele while parsing past 4194294 characters; a special sequence does not.
   ['railroad', 'one special sequence of many &', `railroad-ebnf-beta\nr = ? ${'&'.repeat(110000000)} ? ;\n`, RAISED],
   ['sankey', 'one node named by many &', `sankey\n\nA${'&'.repeat(54000000)},B,1\n`, RAISED],
+  // A period's and a section's text are written in their data-ids and as their labels.
+  ['timeline', 'one period of many &', `timeline\n  ${'&'.repeat(54000000)} : e\n`, RAISED],
+  ['timeline', 'one section of many &', `timeline\nsection ${'&'.repeat(54000000)}\n  p : e\n`, RAISED],
 ];
