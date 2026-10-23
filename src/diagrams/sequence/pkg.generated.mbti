@@ -125,6 +125,8 @@ pub fn is_css_color(String) -> Bool
 
 pub fn is_figure(String) -> Bool
 
+pub fn number_messages(Array[SeqMessage], Bool) -> Numbering
+
 pub fn parse_sequence(String, SeqDb) -> Unit raise @errors.PeleError
 
 pub fn tokenize(String) -> Tokens
@@ -135,6 +137,12 @@ pub fn tokenize(String) -> Tokens
 pub(all) struct ActorSize {
   w : Double
   h : Double
+}
+
+pub(all) struct Numbering {
+  index : Array[Double]
+  shown : Array[Bool]
+  visible : Bool
 }
 
 pub(all) struct SeqActor {
