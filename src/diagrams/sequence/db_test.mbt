@@ -548,3 +548,24 @@ test "drops the indentation of accessible description lines" {
     ),
   )
 }
+
+///|
+test "reads links and properties nested thousands deep as JSON.parse does" {
+  let depth = 3000
+  let deep = "[".repeat(depth) + "]".repeat(depth)
+  let db = @sequence.SeqDb::new()
+  @sequence.parse_sequence(
+    "sequenceDiagram\n  participant A\n  links A: {\"deep\": \{deep}, \"home\": \"https://example.com\"}\n  properties A: {\"deep\": \{deep}, \"class\": \"x\"}",
+    db,
+  )
+  let actor = db.actors.get("A").unwrap()
+  let keys = (fields : Map[String, Json]) => {
+    let out = []
+    for key, _ in fields {
+      out.push(key)
+    }
+    out.join(",")
+  }
+  inspect(keys(actor.links), content="deep,home")
+  inspect(keys(actor.properties), content="deep,class")
+}
