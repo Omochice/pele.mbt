@@ -3,7 +3,9 @@
 priv enum Reply {
   /// A drawing, whose SVG is rewritten for typst under the theme, when there is one, as it is written.
   Drawn(@types.RenderResult, Map[String, String]?)
-  /// A failure, as the JSON object that reports it.
+  /// A diagram pele rejects.
+  Refused(@errors.Failure)
+  /// A failure from the options, as the JSON object that reports it.
   Failed(Json)
 }
 
@@ -27,7 +29,7 @@ fn reply(source : String, options : String) -> Reply {
     )
     Drawn(result, decode_theme(options))
   } catch {
-    @errors.PeleError(failure) => Failed(pele_failure(failure))
+    @errors.PeleError(failure) => Refused(failure)
     @util.JsonError(message, _) =>
       Failed(foreign_failure("SyntaxError", message))
     error => Failed(foreign_failure("TypeError", error.to_string()))
@@ -51,6 +53,11 @@ fn encode(
 ) -> (Int32, FixedArray[Byte]) {
   let (result, theme) = match reply {
     Drawn(result, theme) => (result, theme)
+    Refused(failure) =>
+      return (
+        1,
+        @utf8.encode(pele_failure(failure).stringify()).to_fixedarray(),
+      )
     Failed(json) => return (1, @utf8.encode(json.stringify()).to_fixedarray())
   }
   let write_svg = (out : &Logger) => {
