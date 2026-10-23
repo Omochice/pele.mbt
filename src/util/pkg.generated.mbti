@@ -2,7 +2,11 @@
 package "Omochice/pele/util"
 
 // Values
+pub const BACKTRACK_STACK_SLOTS : Int64 = 16777184
+
 pub const JS_STRING_MAX_DEPTH : Int32 = 2800
+
+pub fn backtrack_stack_overflows(Int64) -> Bool
 
 pub fn code_at(String, Int32) -> Int32
 

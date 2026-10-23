@@ -43,6 +43,8 @@ pub fn break_label(@text.Label, @text.TextMeasurer, Double) -> @text.Label
 
 pub fn cap_width(@types.RenderOptions, Double, Double, around? : Double) -> Double
 
+pub fn check_quoted_steps(Int32, untried_alternative~ : Bool) -> Unit raise @errors.PeleError
+
 pub let directive : TokenType
 
 pub fn fit_label(String?, @text.TextMeasurer, Double, Double, base? : Int32) -> @text.Label
@@ -74,6 +76,8 @@ pub fn[Db : OutlineDb] parse_outline(String, Db, Bool) -> Unit raise @errors.Pel
 pub fn pattern(String, (String, Int32) -> Int32, first? : String, hidden? : Bool) -> TokenType
 
 pub fn plain_label(String?, @text.TextMeasurer, Double, Double, base? : Int32) -> @text.Label
+
+pub fn quoted_span(String, Int32) -> (Int32, Int32)
 
 pub let resumable_acc_descr : TokenType
 
