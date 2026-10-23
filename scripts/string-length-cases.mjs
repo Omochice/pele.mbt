@@ -204,4 +204,8 @@ export const CASES = [
   ['timeline', 'one section of many &', `timeline\nsection ${'&'.repeat(54000000)}\n  p : e\n`, RAISED],
   ['venn', 'one text labelled by many &', `venn-beta\nset A\n  text T["${'&'.repeat(110000000)}"]\n`, RAISED],
   ['venn', 'one set labelled by many &', `venn-beta\nset A["${'&'.repeat(110000000)}"]\n`, RAISED],
+  ['xychart', 'one category of many &', `xychart\nx-axis ["${'&'.repeat(110000000)}"]\nbar [1]\n`, RAISED],
+  ['xychart', 'one category drawn past what a doubling StringBuilder holds', `xychart\nx-axis ["${'&'.repeat(60000000)}"]\nbar [1]\n`, RAISED],
+  // A series' title is written in its data-id, its legend item's data-id and its legend label.
+  ['xychart', 'one series titled by many &', `xychart\nbar "${'&'.repeat(54000000)}" [1]\n`, RAISED],
 ];
