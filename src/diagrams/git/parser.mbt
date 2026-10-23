@@ -7,6 +7,7 @@ pub(all) enum CommitTypeName {
 }
 
 ///|
+/// A commit statement as written.
 pub(all) struct CommitAst {
   id : String?
   message : String?
@@ -15,12 +16,14 @@ pub(all) struct CommitAst {
 }
 
 ///|
+/// A branch statement as written.
 pub(all) struct BranchAst {
   name : String
   order : Double?
 }
 
 ///|
+/// A merge statement as written.
 pub(all) struct MergeAst {
   branch : String
   id : String?
@@ -29,11 +32,13 @@ pub(all) struct MergeAst {
 }
 
 ///|
+/// A checkout statement as written, whether spelled checkout or switch.
 pub(all) struct CheckoutAst {
   branch : String
 }
 
 ///|
+/// A cherry-pick statement as written.
 pub(all) struct CherryPickingAst {
   id : String?
   tags : Array[String]
@@ -41,6 +46,7 @@ pub(all) struct CherryPickingAst {
 }
 
 ///|
+/// A statement of a git graph.
 pub(all) enum StatementAst {
   Commit(CommitAst)
   Branch(BranchAst)

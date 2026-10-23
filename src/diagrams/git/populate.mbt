@@ -1,4 +1,5 @@
 ///|
+/// A commit statement as the database receives it.
 pub(all) struct CommitDb {
   msg : String
   id : String?
@@ -7,12 +8,14 @@ pub(all) struct CommitDb {
 }
 
 ///|
+/// A branch statement as the database receives it.
 pub(all) struct BranchDb {
   name : String
   order : Double
 }
 
 ///|
+/// A merge statement as the database receives it.
 pub(all) struct MergeDb {
   branch : String
   /// Empty when the merge was not given an id.
@@ -22,6 +25,7 @@ pub(all) struct MergeDb {
 }
 
 ///|
+/// A cherry-pick statement as the database receives it.
 pub(all) struct CherryPickDb {
   id : String?
   target_id : String

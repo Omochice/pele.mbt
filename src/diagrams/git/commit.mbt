@@ -22,6 +22,7 @@ pub fn CommitType::index(self : CommitType) -> Int32 {
 }
 
 ///|
+/// A commit of the graph.
 pub(all) struct GitCommit {
   id : String
   message : String
