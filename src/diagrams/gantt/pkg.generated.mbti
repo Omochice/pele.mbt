@@ -28,6 +28,49 @@ pub fn tokenize(String) -> Tokens
 // Errors
 
 // Types and methods
+pub struct GanttDb {
+  mut title : String?
+  mut acc_title : String?
+  mut acc_descr : String?
+  mut date_format : String
+  mut axis_format : String
+  mut tick_interval : String?
+  mut today_marker : String
+  includes : Array[String]
+  excludes : Array[String]
+  mut inclusive_end_dates : Bool
+  mut top_axis : Bool
+  display_mode : String
+  mut weekday : String?
+  mut weekend : String
+  sections : Array[String]
+  links : Map[String, String]
+  tasks : Array[GanttTask]
+  // private fields
+}
+pub fn GanttDb::from_source(String, warn? : (String) -> Unit) -> Self raise @errors.PeleError
+pub fn GanttDb::get_tasks(Self, Double) -> Array[GanttTask] raise @errors.PeleError
+pub fn GanttDb::new(warn? : (String) -> Unit) -> Self
+
+pub struct GanttTask {
+  id : String
+  task : String
+  section : String
+  start_time : @date.JsDate?
+  end_time : @date.JsDate?
+  render_end_time : @date.JsDate?
+  manual_end_time : Bool
+  processed : Bool
+  active : Bool
+  done : Bool
+  crit : Bool
+  milestone : Bool
+  vert : Bool
+  order : Int32
+  classes : Array[String]
+  prev_task_id : String?
+}
+
 pub(all) enum Tok {
   End
   Error
