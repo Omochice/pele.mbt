@@ -62,9 +62,9 @@ fn[T] reverse(list : Array[T], from : Int32) -> Unit {
 ///|
 /// What the elements of one rule add to the drawing.
 priv struct Ink {
-  track : StringBuilder
-  arrows : StringBuilder
-  nodes : StringBuilder
+  track : @svg.Markup
+  arrows : @svg.Markup
+  nodes : @svg.Markup
 }
 
 ///|
@@ -103,9 +103,14 @@ priv struct Look {
 }
 
 ///|
-fn line(ink : Ink, x1 : Double, y : Double, x2 : Double) -> Unit {
+fn line(
+  ink : Ink,
+  x1 : Double,
+  y : Double,
+  x2 : Double,
+) -> Unit raise @errors.PeleError {
   if x2 > x1 {
-    ink.track.write_string("M\{@svg.num(x1)},\{@svg.num(y)}H\{@svg.num(x2)}")
+    ink.track.write("M\{@svg.num(x1)},\{@svg.num(y)}H\{@svg.num(x2)}")
   }
 }
 
@@ -148,7 +153,7 @@ fn place(
   baseline : Double,
   m : Metrics,
   look : Look,
-) -> Unit {
+) -> Unit raise @errors.PeleError {
   let arc = m.arc
   let t = turns(arc)
   let boxes : Array[Box] = [root]
@@ -190,15 +195,15 @@ fn place(
               maximum(m.sep, 2 * arc) +
               next.up
             let mid = y + offset + kid.down + maximum(m.sep, 2 * arc) / 2
-            ink.track.write_string(
+            ink.track.write(
               "M\{@svg.num(start + kid.width)},\{@svg.num(ky)}H\{@svg.num(right - 2 * arc)}V\{@svg.num(mid)}H\{@svg.num(x + arc)}V\{@svg.num(y + next_offset)}H\{@svg.num(start)}",
             )
-            ink.arrows.write_string(
+            ink.arrows.write(
               "M\{@svg.num(start - ARROW)},\{@svg.num(y + next_offset - ARROW / 2)}l\{ARROW},\{ARROW / 2}l\{-ARROW},\{ARROW / 2}z",
             )
             offset = next_offset
           } else {
-            ink.track.write_string(
+            ink.track.write(
               "M\{@svg.num(start + kid.width)},\{@svg.num(ky)}H\{@svg.num(right - arc)}V\{@svg.num(y)}H\{@svg.num(right)}",
             )
           }
@@ -224,7 +229,7 @@ fn place(
             line(ink, kx + kid.width, y, right)
           } else {
             let wide = kx > rail_in + arc
-            ink.track.write_string(
+            ink.track.write(
               (if last {
                 "M\{@svg.num(x)},\{@svg.num(y)}\{t.east_to_south}V\{@svg.num(ky - arc)}"
               } else {
@@ -254,7 +259,7 @@ fn place(
         let kx = x + 2 * arc
         line(ink, x, y, kx)
         line(ink, kx + kid.width, y, right)
-        ink.track.write_string(
+        ink.track.write(
           "M\{@svg.num(x)},\{@svg.num(y)}\{t.east_to_north}V\{@svg.num(y - box.reach + arc)}\{t.north_to_east}H\{@svg.num(right - 2 * arc)}" +
           "\{t.east_to_south}V\{@svg.num(y - arc)}\{t.south_to_east}",
         )
@@ -269,15 +274,15 @@ fn place(
         let middle = x + box.width / 2
         line(ink, x, y, kx)
         line(ink, kx + kid.width, y, right)
-        ink.track.write_string(
+        ink.track.write(
           "M\{@svg.num(x + arc)},\{@svg.num(y)}\{t.loop_down}V\{@svg.num(loop_y - arc)}\{t.south_to_east}H\{@svg.num(right - arc)}" +
           "\{t.east_to_north}V\{@svg.num(y + arc)}\{t.loop_up}",
         )
-        ink.arrows.write_string(
+        ink.arrows.write(
           "M\{@svg.num(middle - ARROW / 2)},\{@svg.num(loop_y)}l\{ARROW},\{-ARROW / 2}v\{ARROW}z",
         )
         if box.text != "" {
-          ink.nodes.write_string(
+          ink.nodes.write(
             "<text class=\"pele-edge-label pele-count\" x=\"\{@svg.num(middle)}\" y=\"\{@svg.num(loop_y + COUNT_SIZE + 3)}\" font-size=\"\{COUNT_SIZE}\" fill=\"var(--_m)\">\{@svg.esc(box.text)}</text>",
           )
         }
@@ -285,7 +290,7 @@ fn place(
         at.push(kx)
         at.push(y)
       }
-      _ => ink.nodes.write_string(leaf_svg(box, x, y, m, look))
+      _ => ink.nodes.write(leaf_svg(box, x, y, m, look))
     }
   }
 }
@@ -296,7 +301,7 @@ fn draw(
   config : @types.Config,
   options : @types.RenderOptions,
   tight : Bool,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   let base = options.font_size.unwrap_or(16)
   let font_size = option(config, "fontSize", 0, 200)
   let size = if font_size != 0 { font_size } else { (base * 0.875).round() }
@@ -359,7 +364,7 @@ fn draw(
   )
   let title_height = if title.height > 0 { title.height + 16 } else { 0 }
   let head_height = (head_size * 1.5).round()
-  let rules = StringBuilder()
+  let rules = @svg.Markup::new()
   let mut width = title.width
   let mut top = pad + title_height
   let mut bottom = pad + title.height
@@ -379,9 +384,9 @@ fn draw(
     let left = start + LEAD
     let end = left + box.width + LEAD
     let ink : Ink = {
-      track: StringBuilder(),
-      arrows: StringBuilder(),
-      nodes: StringBuilder(),
+      track: @svg.Markup::new(),
+      arrows: @svg.Markup::new(),
+      nodes: @svg.Markup::new(),
     }
     line(ink, start, baseline, left)
     line(ink, left + box.width, baseline, end)
@@ -392,20 +397,25 @@ fn draw(
     } else {
       ""
     }
-    let arrows = ink.arrows.to_string()
-    rules.write_string(
+    rules.write(
       "<g class=\"pele-rule\" data-id=\"\{@svg.esc_text(rule.name)}\">" +
-      "<text class=\"pele-rule-name\" x=\"\{@svg.num(pad)}\" y=\"\{@svg.num(top + head_height / 2 + head_size * 0.35)}\" font-size=\"\{@svg.num(head_size)}\" font-weight=\"var(--_hw)\" text-anchor=\"start\">\{@svg.esc(name)}</text>" +
-      "<path class=\"pele-edge pele-track\" d=\"\{ink.track.to_string()}\" fill=\"none\" stroke=\"var(--_l)\"\{look.stroke}/>" +
-      (if arrows != "" {
-        "<path class=\"pele-marker\" d=\"\{arrows}\" fill=\"var(--_l)\"/>"
-      } else {
-        ""
-      }) +
-      markers +
-      ink.nodes.to_string() +
-      "</g>",
+      "<text class=\"pele-rule-name\" x=\"\{@svg.num(pad)}\" y=\"\{@svg.num(top + head_height / 2 + head_size * 0.35)}\" font-size=\"\{@svg.num(head_size)}\" font-weight=\"var(--_hw)\" text-anchor=\"start\">\{@svg.esc(name)}</text>",
     )
+    rules.write_group(
+      "<path class=\"pele-edge pele-track\" d=\"",
+      ink.track,
+      "\" fill=\"none\" stroke=\"var(--_l)\"\{look.stroke}/>",
+    )
+    if !ink.arrows.is_empty() {
+      rules.write_group(
+        "<path class=\"pele-marker\" d=\"",
+        ink.arrows,
+        "\" fill=\"var(--_l)\"/>",
+      )
+    }
+    rules.write(markers)
+    rules.write_markup(ink.nodes)
+    rules.write("</g>")
     width = maximum(
       maximum(width, end + 2 * radius - pad),
       m.measurer.width(name, head_size, @text.STYLE_BOLD),
@@ -415,19 +425,24 @@ fn draw(
   }
   let total_width = (width + 2 * pad).ceil()
   let total_height = (bottom + pad).ceil()
-  let content = @svg.label_svg(
+  let content = @svg.Markup::new()
+  content.write(
+    @svg.label_svg(
       title,
       total_width / 2,
       pad + title.height / 2,
       " class=\"pele-title\" font-weight=\"var(--_tw)\"",
-    ) +
-    (if rules.is_empty() {
-      ""
-    } else {
-      "<g class=\"pele-rules\" transform=\"translate(0.5,0.5)\" font-size=\"\{@svg.num(size)}\" text-anchor=\"middle\">\{rules.to_string()}</g>"
-    })
+    ),
+  )
+  if !rules.is_empty() {
+    content.write_group(
+      "<g class=\"pele-rules\" transform=\"translate(0.5,0.5)\" font-size=\"\{@svg.num(size)}\" text-anchor=\"middle\">",
+      rules,
+      "</g>",
+    )
+  }
   {
-    svg: @svg.svg_document(
+    svg: @svg.markup_document(
       "railroad",
       total_width,
       total_height,
@@ -448,6 +463,6 @@ fn render_railroad(
   model : RailroadModel,
   config : @types.Config,
   options : @types.RenderOptions,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   @common.tighten(options, tight => draw(model, config, options, tight))
 }
