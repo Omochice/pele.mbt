@@ -156,6 +156,7 @@ The port reproduces this: `src/svg/markup.mbt` tracks a drawing's length as it i
 The port stops below V8's longest string.
 It runs as wasm32 with one linear memory of at most 4 GiB, and holds a drawing's pieces, the single string made of them, and the UTF-8 bytes of the response at once, a fit diagram several times over, so it stops at 400000000 code units of SVG (`HOLD_LIMIT` in `src/svg/markup.mbt`).
 An SVG larger than that, which pele draws and a wasm32 plugin cannot hold, fails with the `limit` error "Diagram output is too large for the wasm port: it would hold more than 400000000 code units, the most the port can hold at once.", tagged with the diagram's type.
+pele checks its output limit against such a drawing as against any other, so the port does as well, from the length it keeps of a drawing it does not hold: under the default output limit, or any output limit below the drawing's length, the drawing fails with pele's "Diagram output is longer than the limit of N characters.", and only one the output limit allows fails with the port's error; the flowchart case "edges pele draws past the port but under V8, under the default output limit" checks it.
 This ceiling is the one intentional, platform-imposed difference from pele; every SVG at or under it is drawn byte for byte as pele draws it.
 
 ### Which diagrams can reach it
@@ -178,7 +179,7 @@ Some diagrams reach the ceiling only past a cap that looks as if it bounded them
 Laying out a Venn diagram takes pele time that grows faster than the number of sets, so the Venn input puts many texts in one set instead.
 
 The event model, Ishikawa, and journey diagrams are drawn down for a narrow host after they are drawn across, so each also has an input whose drawing down pele draws between 2^28 code units and the hold limit.
-A diagram drawn more than once to fit a narrow host, through `tighten`, `fit_width` or `turn_to_fit` in `src/diagrams/common/`, measures a drawing past the hold limit as pele does, because `markup_document` leaves that document empty rather than failing, and `src/core/core.mbt` refuses only the drawing the diagram answers with.
+A diagram drawn more than once to fit a narrow host, through `tighten`, `fit_width` or `turn_to_fit` in `src/diagrams/common/`, measures a drawing past the hold limit as pele does, because `markup_document` leaves that document as a stand-in that keeps only its length rather than failing, and `src/core/core.mbt` refuses only the drawing the diagram answers with.
 The journey case "long tasks, drawn down within the port after across past it" and the journey and Ishikawa cases "drawn down past V8 after across past the port" check that the drawing down is drawn, or fails as nested too deeply, where pele's is, after a drawing across past the hold limit.
 
 The info diagram draws only its title and pele's version, so no part of it repeats; it reaches the ceiling only through a single title or accessible description, and its cases check both where pele draws them and where pele fails.
