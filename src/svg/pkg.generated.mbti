@@ -88,6 +88,7 @@ pub fn title_label(String?, @text.TextMeasurer, Double, Double) -> @text.Label
 pub struct Crossings {
   // private fields
 }
+pub fn Crossings::at(Self, Double) -> Array[Double]?
 pub fn Crossings::new() -> Self
 
 pub(all) struct EdgePath {

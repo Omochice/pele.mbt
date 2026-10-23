@@ -23,6 +23,14 @@ pub fn mark_crossings(crossings : Crossings, route : Array[Double]) -> Unit {
 }
 
 ///|
+/// The x of every point marked on the row of `y`, which is rounded as the rows are.
+pub fn Crossings::at(self : Crossings, y : Double) -> Array[Double]? {
+  ignore(self)
+  ignore(y)
+  None
+}
+
+///|
 /// Picks where a cluster title `width` wide sits along the top edge so that edges entering there do not cross it.
 /// Returns the x of its center: at the left, in the middle or at the right, whichever is clear first, and otherwise the one with the most room.
 pub fn cluster_title_x(

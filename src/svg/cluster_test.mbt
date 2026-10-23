@@ -53,3 +53,20 @@ test "mark_crossings files points on either side of zero under the same row" {
   inspect(@svg.cluster_title_x(cluster(), 40, crossings, 16), content="100")
   inspect(@svg.title_crossed(cluster(), 40, 170, crossings), content="true")
 }
+
+///|
+test "Crossings::at gives the x of the points marked on the row of y, in the order they were marked" {
+  let crossings = @svg.Crossings::new()
+  @svg.mark_crossings(crossings, [30, -0.3, 0, 170, 0.4, 1, 80, 9.6, 0])
+  @svg.mark_crossings(crossings, [5, 0.2, 0])
+  let row = (y : Double) => {
+    match crossings.at(y) {
+      Some(xs) => xs.map(x => x.to_string()).join(" ")
+      None => "none"
+    }
+  }
+  inspect(row(0), content="30 170 5")
+  inspect(row(0.4), content="30 170 5")
+  inspect(row(10), content="80")
+  inspect(row(5), content="none")
+}
