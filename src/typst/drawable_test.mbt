@@ -32,3 +32,46 @@ test "the drawable svg resolves, mixes and hoists in one walk as the three rewri
     ),
   )
 }
+
+///|
+/// What is written to it: its length, and the code units at its start and end.
+priv struct Tally {
+  mut length : Int32
+  head : StringBuilder
+  mut tail : String
+}
+
+///|
+impl Logger for Tally with fn write_view(self, view) {
+  let text = view.to_owned()
+  if self.length < 64 {
+    self.head.write_string(@util.slice(text, 0, end=64 - self.length))
+  }
+  self.length += text.length()
+  self.tail = @util.slice(self.tail + @util.slice(text, -64), -64)
+}
+
+///|
+impl Logger for Tally with fn write_string(self, text) {
+  Logger::write_view(self, text.view())
+}
+
+///|
+impl Logger for Tally with fn write_char(self, c) {
+  Logger::write_string(self, c.to_string())
+}
+
+///|
+#skip("slow: rewrites a style of 270 million code units")
+test "a style of tens of millions of entities is rewritten as the three rewrites would rewrite it" {
+  let fill = "&amp;".repeat(54000000)
+  let svg = "<svg style=\"--_r:var(--pele-radius,4)\"><rect style=\"rx:var(--_r);fill:\{fill}\"/></svg>"
+  let out : Tally = { length: 0, head: StringBuilder(), tail: "", }
+  @typst.write_drawable(svg, {}, out)
+  inspect(
+    "\{out.length} \{out.head.to_string()} … \{out.tail}",
+    content=(
+      #|270000039 <svg><rect rx="4" style="fill:&amp;&amp;&amp;&amp;&amp;&amp;&amp … &amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;"/></svg>
+    ),
+  )
+}
