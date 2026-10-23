@@ -3,6 +3,7 @@ package "Omochice/pele/diagrams/usecase"
 
 import {
   "Omochice/pele/errors",
+  "Omochice/pele/types",
 }
 
 // Values
@@ -28,9 +29,13 @@ pub fn parse_ordered_json(String, () -> (Int32, Int32)) -> Array[(String, JsonVa
 
 pub fn parse_usecase(String, title? : String) -> UsecaseModel raise @errors.PeleError
 
+pub fn render_usecase(UsecaseModel, Map[String, Json], @types.RenderOptions) -> @types.Rendered
+
 pub fn token_name(Int32) -> String
 
 pub fn tokenize(String) -> Tokens raise @errors.PeleError
+
+pub let usecase : @types.Diagram
 
 // Errors
 
