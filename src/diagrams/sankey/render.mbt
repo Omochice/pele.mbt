@@ -61,25 +61,10 @@ pub fn render_sankey(
   options : @types.RenderOptions,
 ) -> @types.Rendered raise @errors.PeleError {
   let conf = section(config)
-  // `fit_width` cannot carry an error out of its draw function, and a cycle fails the first draw.
-  let mut failure : @errors.PeleError? = None
-  let rendered = @common.fit_width(
-    options,
-    number_option(conf, "width", 600, 1, 10000),
-    160,
-    (chart_width, _) => {
-      draw(db, conf, options, chart_width) catch {
-        error => {
-          failure = Some(error)
-          { svg: "", width: 0, height: 0, links: [], }
-        }
-      }
-    },
-  )
-  match failure {
-    Some(error) => raise error
-    None => rendered
-  }
+  @common.fit_width(options, number_option(conf, "width", 600, 1, 10000), 160, (
+    chart_width,
+    _,
+  ) => draw(db, conf, options, chart_width))
 }
 
 ///|
