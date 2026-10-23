@@ -24,16 +24,24 @@ fn is_unsafe_key(key : String) -> Bool {
 }
 
 ///|
+/// Objects still to merge wait on a stack of their own, so nesting is limited by memory and not by the call stack.
+/// Merging them later rather than at once gives the same config, because no two of them share an object.
 fn merge(target : @types.Config, source : @types.Config) -> @types.Config {
-  for key, value in source {
-    if is_unsafe_key(key) {
-      continue
-    }
-    match (value, is_record(target.get(key))) {
-      (Object(incoming), Some(current)) => merge(current, incoming) |> ignore
-      (Object(incoming), None) =>
-        target[key] = Json::object(merge(Map([]), incoming))
-      _ => target[key] = value
+  let pending = [(target, source)]
+  while pending.pop() is Some((into, from)) {
+    for key, value in from {
+      if is_unsafe_key(key) {
+        continue
+      }
+      match (value, is_record(into.get(key))) {
+        (Object(incoming), Some(current)) => pending.push((current, incoming))
+        (Object(incoming), None) => {
+          let copy = Map([])
+          into[key] = Json::object(copy)
+          pending.push((copy, incoming))
+        }
+        _ => into[key] = value
+      }
     }
   }
   target
