@@ -127,7 +127,7 @@ pub fn render_git(
   model : GitModel,
   config : @types.Config,
   options : @types.RenderOptions,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   if !(model.direction is LR) {
     return draw(model, config, options, model.direction)
   }
@@ -142,7 +142,7 @@ fn draw(
   config : @types.Config,
   options : @types.RenderOptions,
   direction : GitDirection,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   let size = options.font_size.unwrap_or(16)
   let small = (size * 0.75).round()
   let measurer = options.text_measurer()
@@ -339,7 +339,7 @@ fn draw(
 
   let inf = @double.infinity
   let bounds : Bounds = { min_x: inf, min_y: inf, max_x: -inf, max_y: -inf, }
-  let branches = StringBuilder()
+  let branches = @svg.Markup::new()
   if show_branches {
     for i in 0..<lane_count {
       let name = names[i]
@@ -367,20 +367,20 @@ fn draw(
         px(end + TAIL, c),
         py(end + TAIL, c),
       )
-      branches.write_string(
+      branches.write(
         "<g class=\"pele-branch\" data-id=\"\{@svg.esc_text(model.lanes[i])}\">" +
         "<path class=\"pele-lane\" d=\"M\{point(-LABEL_GAP, c)}L\{point(end + TAIL, c)}\" stroke=\"\{color}\" stroke-dasharray=\"2 4\"/>",
       )
       if !name.lines.is_empty() {
         bounds.grow(cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2)
-        branches.write_string(
+        branches.write(
           "<rect x=\"\{@svg.num(cx - w / 2)}\" y=\"\{@svg.num(cy - h / 2)}\" width=\"\{@svg.num(w)}\" height=\"\{@svg.num(h)}\" fill=\"\{color}\"\{@svg.ROUNDED}/>" +
           @svg.label_svg(
             name, cx, cy, " class=\"pele-label\" fill=\"var(--_bg)\"",
           ),
         )
       }
-      branches.write_string("</g>")
+      branches.write("</g>")
     }
   }
   // Positions of the commits on each lane, to tell whether a connector may run along it.
@@ -408,8 +408,8 @@ fn draw(
     low < list.length() && list[low] < to
   }
 
-  let curves = StringBuilder()
-  let lines = StringBuilder()
+  let curves = @svg.Markup::new()
+  let lines = @svg.Markup::new()
   for view in views {
     let commit = view.commit
     let c2 = cross[view.lane]
@@ -422,7 +422,7 @@ fn draw(
       let c1 = cross[parent.lane]
       let m1 = parent.m
       if parent.lane == view.lane {
-        lines.write_string(
+        lines.write(
           "<path class=\"pele-edge\" d=\"M\{point(m1, c1)}L\{point(m2, c2)}\" stroke=\"\{@svg.series_color(view.lane)}\"/>",
         )
         continue
@@ -484,12 +484,12 @@ fn draw(
         },
       )
       let dash = if picked { " stroke-dasharray=\"4 3\"" } else { "" }
-      curves.write_string(
+      curves.write(
         "<path class=\"pele-edge\{class_suffix}\" d=\"\{d.to_string()}\" stroke=\"\{color}\"\{dash}/>",
       )
     }
   }
-  let commits = StringBuilder()
+  let commits = @svg.Markup::new()
   for view in views {
     let commit = view.commit
     let x = px(view.m, cross[view.lane])
@@ -499,11 +499,11 @@ fn draw(
     // Merges and cherry-picks carry a message Mermaid makes up; only a written one is worth showing.
     let written = commit.commit_type.index() < CommitType::Merge.index() &&
       commit.message != ""
-    let body = StringBuilder()
+    let body = @svg.Markup::new()
     if written {
-      body.write_string("<title>\{@svg.esc_text(commit.message)}</title>")
+      body.write("<title>\{@svg.esc_text(commit.message)}</title>")
     }
-    body.write_string(symbol(commit_type, x, y, @svg.series_color(view.lane)))
+    body.write(symbol(commit_type, x, y, @svg.series_color(view.lane)))
     if view.label is Some(label) && !label.lines.is_empty() {
       let w = label.width
       let h = label.height
@@ -531,7 +531,7 @@ fn draw(
             ay + reach
           },
         )
-        body.write_string(
+        body.write(
           "<g class=\"pele-commit-label\" transform=\"rotate(\{if flip { 45 } else { -45 }} \{@svg.num(ax)} \{@svg.num(ay)})\">" +
           back(ax - w / 2, ay) +
           @svg.label_svg(label, ax - w / 2, ay, "") +
@@ -541,7 +541,7 @@ fn draw(
         let cx = if vertical { x - DOT - 6 - w / 2 } else { x }
         let cy = if vertical { y } else { y + DOT + 6 + h / 2 }
         bounds.grow(cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2)
-        body.write_string(
+        body.write(
           "<g class=\"pele-commit-label\">\{back(cx, cy)}\{@svg.label_svg(label, cx, cy, "")}</g>",
         )
       }
@@ -558,7 +558,7 @@ fn draw(
       let cy = if vertical { y } else { y - offset - h / 2 }
       offset += if vertical { w + 4 } else { h + 3 }
       bounds.grow(left, cy - h / 2, left + w, cy + h / 2)
-      body.write_string(
+      body.write(
         "<g class=\"pele-tag\">" +
         "<path d=\"M\{@svg.num(left)},\{@svg.num(cy)}L\{@svg.num(left + NOTCH)},\{@svg.num(cy - h / 2)}H\{@svg.num(left + w)}V\{@svg.num(cy + h / 2)}H\{@svg.num(left + NOTCH)}Z\" fill=\"var(--_s)\" stroke=\"var(--_b)\" stroke-linejoin=\"round\"/>" +
         "<circle cx=\"\{@svg.num(left + NOTCH)}\" cy=\"\{@svg.num(cy)}\" r=\"1.5\" fill=\"var(--_b)\"/>" +
@@ -577,8 +577,10 @@ fn draw(
     } else {
       ""
     }
-    commits.write_string(
-      "<g class=\"pele-commit pele-commit-\{class_name(commit_type)}\{merge}\" data-id=\"\{@svg.esc_text(commit.id)}\">\{body.to_string()}</g>",
+    commits.write_group(
+      "<g class=\"pele-commit pele-commit-\{class_name(commit_type)}\{merge}\" data-id=\"\{@svg.esc_text(commit.id)}\">",
+      body,
+      "</g>",
     )
   }
   if bounds.min_x > bounds.max_x {
@@ -598,34 +600,42 @@ fn draw(
   let height = (bounds.max_y - bounds.min_y + title_height + 2 * pad).ceil()
   let dx = pad - bounds.min_x + (inner - (bounds.max_x - bounds.min_x)) / 2
   let dy = pad + title_height - bounds.min_y
-  let branch_group = branches.to_string()
-  let edge_group = curves.to_string() + lines.to_string()
-  let commit_group = commits.to_string()
-  let content = @svg.label_svg(
+  let content = @svg.Markup::new()
+  content.write(
+    @svg.label_svg(
       title,
       width / 2,
       pad + title.height / 2,
       " class=\"pele-title\" font-weight=\"var(--_tw)\"",
-    ) +
-    "<g transform=\"translate(\{@svg.num(dx)},\{@svg.num(dy)})\">" +
-    (if branch_group != "" {
-      "<g class=\"pele-branches\" fill=\"none\" font-size=\"\{medium}\">\{branch_group}</g>"
-    } else {
-      ""
-    }) +
-    (if edge_group != "" {
-      "<g class=\"pele-edges\" fill=\"none\" stroke-width=\"2\" stroke-linecap=\"round\">\{edge_group}</g>"
-    } else {
-      ""
-    }) +
-    (if commit_group != "" {
-      "<g class=\"pele-commits\" font-size=\"\{small}\" fill=\"var(--_m)\">\{commit_group}</g>"
-    } else {
-      ""
-    }) +
-    "</g>"
+    ),
+  )
+  content.write("<g transform=\"translate(\{@svg.num(dx)},\{@svg.num(dy)})\">")
+  if !branches.is_empty() {
+    content.write_group(
+      "<g class=\"pele-branches\" fill=\"none\" font-size=\"\{medium}\">",
+      branches,
+      "</g>",
+    )
+  }
+  if !curves.is_empty() || !lines.is_empty() {
+    let edges = @svg.Markup::new()
+    edges.write_markup(curves)
+    edges.write_markup(lines)
+    content.write_group(
+      "<g class=\"pele-edges\" fill=\"none\" stroke-width=\"2\" stroke-linecap=\"round\">",
+      edges, "</g>",
+    )
+  }
+  if !commits.is_empty() {
+    content.write_group(
+      "<g class=\"pele-commits\" font-size=\"\{small}\" fill=\"var(--_m)\">",
+      commits,
+      "</g>",
+    )
+  }
+  content.write("</g>")
   {
-    svg: @svg.svg_document(
+    svg: @svg.markup_document(
       "gitGraph",
       width,
       height,
