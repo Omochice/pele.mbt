@@ -103,3 +103,32 @@ test "an anchor label fails as nested too deeply where pele's pattern runs out o
     content="limit: Diagram is nested too deeply. wardley wardley",
   )
 }
+
+///|
+#skip("slow: draws a component name of eight million characters")
+test "a component name fails as nested too deeply where pele's pattern runs out of V8's backtracking stack" {
+  inspect(
+    backtrack_outcome(
+      "wardley-beta\ncomponent \{"a".repeat(8388590)} [0.5, 0.5]\n",
+    ),
+    content="rendered",
+  )
+  inspect(
+    backtrack_outcome(
+      "wardley-beta\ncomponent \{"a".repeat(8388591)} [0.5, 0.5]\n",
+    ),
+    content="limit: Diagram is nested too deeply. wardley wardley",
+  )
+  inspect(
+    backtrack_outcome(
+      "wardley-beta\ncomponent a\{" a".repeat(3355435)} [0.5, 0.5]\n",
+    ),
+    content="rendered",
+  )
+  inspect(
+    backtrack_outcome(
+      "wardley-beta\ncomponent a\{" a".repeat(3355436)} [0.5, 0.5]\n",
+    ),
+    content="limit: Diagram is nested too deeply. wardley wardley",
+  )
+}

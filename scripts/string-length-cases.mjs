@@ -264,6 +264,12 @@ export const CASES = [
   // for each part after its first, however many digits each has.
   lazy('railroad', 'an ABNF value just short of V8\'s backtracking stack', () => `railroad-abnf-beta\nr = %x1${'.1'.repeat(3355435)} ;\n`, RAISED),
   lazy('railroad', 'an ABNF value at V8\'s backtracking stack', () => `railroad-abnf-beta\nr = %x1${'.1'.repeat(3355436)} ;\n`, RAISED),
+  // A Wardley name, `[A-Za-z](?:[A-Za-z0-9_()&]|-(?!>))*(?:[ \t]+[A-Za-z(](?:[A-Za-z0-9_()&]|-(?!>))*)*`,
+  // takes two slots for each character after a word's first and five for each further word.
+  lazy('wardley', 'a component name just short of V8\'s backtracking stack', () => `wardley-beta\ncomponent ${'a'.repeat(8388590)} [0.5, 0.5]\n`, RAISED),
+  lazy('wardley', 'a component name at V8\'s backtracking stack', () => `wardley-beta\ncomponent ${'a'.repeat(8388591)} [0.5, 0.5]\n`, RAISED),
+  lazy('wardley', 'a component name of many words just short of V8\'s backtracking stack', () => `wardley-beta\ncomponent a${' a'.repeat(3355435)} [0.5, 0.5]\n`, RAISED),
+  lazy('wardley', 'a component name of many words at V8\'s backtracking stack', () => `wardley-beta\ncomponent a${' a'.repeat(3355436)} [0.5, 0.5]\n`, RAISED),
   lazy('architecture', 'a title past V8', () => `architecture-beta\ntitle ${'"'.repeat(90000000)}\nservice s(server)[x]\n`, RAISED),
   lazy('railroad', 'a title past V8', () => `railroad-peg-beta\ntitle ${'"'.repeat(90000000)}\nr <- "a" ;\n`, RAISED),
 ];
