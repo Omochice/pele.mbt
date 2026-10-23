@@ -1,6 +1,10 @@
 ///|
-fn svg(source : String, max_width? : Double) -> String {
-  let options = { ..@types.RenderOptions::default(), max_width, }
+fn svg(
+  source : String,
+  max_width? : Double,
+  icons? : @types.IconResolver,
+) -> String {
+  let options = { ..@types.RenderOptions::default(), max_width, icons, }
   let result = @core.render([@mindmap.mindmap], source, options) catch {
     @errors.PeleError(failure) => return failure.message
   }
@@ -320,5 +324,42 @@ test "stays across when down is not narrower" {
   inspect(
     svg("mindmap\n  root", max_width=50),
     content="96x64 <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-mindmap\" viewBox=\"0 0 96 64\" width=\"96\" height=\"64\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"mindmap\"><g transform=\"translate(47.78,32)\"><g class=\"pele-node pele-shape-stadium pele-root\" data-id=\"root\" transform=\"translate(0,0)\"><rect x=\"-39.78\" y=\"-24\" width=\"79.57\" height=\"48\" rx=\"24\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/><text class=\"pele-label\" x=\"0\" y=\"5.6\" text-anchor=\"middle\">root</text></g></g></svg>",
+  )
+}
+
+///|
+/// A host that has exactly the icons in `pairs`, by name.
+fn host(pairs : Array[(String, String)]) -> @types.IconResolver {
+  let icons = Map::from_array(pairs)
+  name => icons.get(name)
+}
+
+///|
+test "a node makes room for an icon the host has and draws it before its label" {
+  inspect(
+    svg(
+      "mindmap\n  root((fa:fa-car Root))\n    A[Square]\n    ::icon(star)\n    B\n    ::icon(missing)\n      C fa:fa-car text\n      ::icon(star)\n    D\n    ::icon(star)\n",
+      icons=host([
+        ("star", "<path id=\"star\"/>"),
+        ("fa:fa-car", "<path id=\"car\"/>"),
+      ]),
+    ),
+    content="488x98 <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-mindmap\" viewBox=\"0 0 488 98\" width=\"488\" height=\"98\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"mindmap\"><g transform=\"translate(274.41,50.5)\"><g class=\"pele-branch pele-section-0\"><g class=\"pele-edges\" fill=\"none\" stroke=\"var(--pele-series-1,#4c78a8)\" stroke-width=\"1.5\"><path class=\"pele-edge\" d=\"M39.5,0C65.5,0 65.5,0 91.5,0\"/></g><g class=\"pele-node pele-shape-rect\" data-id=\"A\" transform=\"translate(148.29,0)\"><rect x=\"-56.79\" y=\"-24\" width=\"113.58\" height=\"48\" fill=\"var(--pele-series-1,#4c78a8)\" fill-opacity=\"0.22\" stroke=\"var(--pele-series-1,#4c78a8)\" style=\"rx:var(--_r)\"/><svg class=\"pele-icon\" data-icon=\"star\" x=\"-38.79\" y=\"-10\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path id=\"star\"/></svg><text class=\"pele-label\" x=\"13\" y=\"5.6\" text-anchor=\"middle\">Square</text></g></g><g class=\"pele-branch pele-section-1\"><g class=\"pele-edges\" fill=\"none\" stroke=\"var(--pele-series-2,#f58518)\" stroke-width=\"1.5\"><path class=\"pele-edge\" d=\"M-39.5,0C-65.5,0 -65.5,-27.5 -91.5,-27.5\"/><path class=\"pele-edge\" d=\"M-126.17,-27.5C-144.17,-27.5 -144.17,-27.5 -162.17,-27.5\"/></g><g class=\"pele-node pele-shape-branch\" data-id=\"B\" transform=\"translate(-108.83,-27.5)\"><rect x=\"-17.34\" y=\"-15\" width=\"34.67\" height=\"30\" rx=\"15\" fill=\"var(--pele-series-2,#f58518)\" fill-opacity=\"0.22\" stroke=\"var(--pele-series-2,#f58518)\"/><text class=\"pele-label\" x=\"0\" y=\"5.6\" text-anchor=\"middle\">B</text></g><g class=\"pele-node pele-shape-text\" data-id=\"C fa:fa-car text\" transform=\"translate(-214.29,-27.5)\"><svg class=\"pele-icon\" data-icon=\"star\" x=\"-46.12\" y=\"-10\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path id=\"star\"/></svg><text class=\"pele-label\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"-20.12\" y=\"5.6\" text-anchor=\"start\">C </tspan><tspan x=\"15.88\" y=\"5.6\" text-anchor=\"start\"> text</tspan></text><svg class=\"pele-icon\" data-icon=\"fa:fa-car\" x=\"-4.12\" y=\"-8.8\" width=\"17.6\" height=\"17.6\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path id=\"car\"/></svg></g></g><g class=\"pele-branch pele-section-2\"><g class=\"pele-edges\" fill=\"none\" stroke=\"var(--pele-series-3,#54a24b)\" stroke-width=\"1.5\"><path class=\"pele-edge\" d=\"M-39.5,0C-65.5,0 -65.5,27.5 -91.5,27.5\"/></g><g class=\"pele-node pele-shape-text\" data-id=\"D\" transform=\"translate(-116.27,27.5)\"><svg class=\"pele-icon\" data-icon=\"star\" x=\"-18.78\" y=\"-10\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path id=\"star\"/></svg><text class=\"pele-label\" x=\"13\" y=\"5.6\" text-anchor=\"middle\">D</text></g></g><g class=\"pele-node pele-shape-circle pele-root\" data-id=\"root\" transform=\"translate(0,0)\"><circle r=\"39.5\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/><text class=\"pele-label\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"-9.12\" y=\"5.6\" text-anchor=\"start\"> Root</tspan></text><svg class=\"pele-icon\" data-icon=\"fa:fa-car\" x=\"-29.12\" y=\"-8.8\" width=\"17.6\" height=\"17.6\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path id=\"car\"/></svg></g></g></svg>",
+  )
+}
+
+///|
+test "an outline narrows its labels for icons and starts their lines after them" {
+  inspect(
+    svg(
+      "mindmap\n  root\n    A long branch label that wraps around a few times when narrow\n    ::icon(star)\n      Child with fa:fa-car icon and a long label that wraps\n      ::icon(star)\n    E\n    ::icon(blank)\n",
+      icons=host([
+        ("star", "<path id=\"star\"/>"),
+        ("fa:fa-car", "<path id=\"car\"/>"),
+        ("blank", ""),
+      ]),
+      max_width=300,
+    ),
+    content="283x264 <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-mindmap\" viewBox=\"0 0 283 264\" width=\"283\" height=\"264\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"mindmap\"><g transform=\"translate(8,8)\"><g class=\"pele-branch pele-section-0\"><g class=\"pele-edges\" fill=\"none\" stroke=\"var(--pele-series-1,#4c78a8)\" stroke-width=\"1.5\"><path class=\"pele-edge\" d=\"M20,48V99Q20,107 28,107H28\"/><path class=\"pele-edge\" d=\"M40,146V172Q40,180 48,180H56\"/></g><g class=\"pele-node pele-shape-branch\" data-id=\"A long branch label that wraps around a few times when narrow\" transform=\"translate(144.14,107)\"><rect x=\"-116.14\" y=\"-39\" width=\"232.29\" height=\"78\" rx=\"39\" fill=\"var(--pele-series-1,#4c78a8)\" fill-opacity=\"0.22\" stroke=\"var(--pele-series-1,#4c78a8)\"/><svg class=\"pele-icon\" data-icon=\"star\" x=\"-104.14\" y=\"-10\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path id=\"star\"/></svg><text class=\"pele-label\" x=\"5.9\" y=\"-18.4\" text-anchor=\"middle\">A long branch label that</text><text class=\"pele-label\" x=\"13\" y=\"5.6\" text-anchor=\"middle\">wraps around a few times</text><text class=\"pele-label\" x=\"-32.35\" y=\"29.6\" text-anchor=\"middle\">when narrow</text></g><g class=\"pele-node pele-shape-text\" data-id=\"Child with fa:fa-car icon and a long label that wraps\" transform=\"translate(161.03,180)\"><svg class=\"pele-icon\" data-icon=\"star\" x=\"-99.03\" y=\"-10\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path id=\"star\"/></svg><text class=\"pele-label\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"-73.03\" y=\"-6.4\" text-anchor=\"start\">Child with </tspan><tspan x=\"20.76\" y=\"-6.4\" text-anchor=\"start\"> icon and a</tspan></text><svg class=\"pele-icon\" data-icon=\"fa:fa-car\" x=\"0.76\" y=\"-20.8\" width=\"17.6\" height=\"17.6\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path id=\"car\"/></svg><text class=\"pele-label\" x=\"0.34\" y=\"17.6\" text-anchor=\"middle\">long label that wraps</text></g></g><g class=\"pele-branch pele-section-1\"><g class=\"pele-edges\" fill=\"none\" stroke=\"var(--pele-series-2,#f58518)\" stroke-width=\"1.5\"><path class=\"pele-edge\" d=\"M20,99V228Q20,236 28,236H28\"/></g><g class=\"pele-node pele-shape-text\" data-id=\"E\" transform=\"translate(39.34,236)\"><text class=\"pele-label\" x=\"0\" y=\"5.6\" text-anchor=\"middle\">E</text></g></g><g class=\"pele-node pele-shape-stadium pele-root\" data-id=\"root\" transform=\"translate(39.78,24)\"><rect x=\"-39.78\" y=\"-24\" width=\"79.57\" height=\"48\" rx=\"24\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/><text class=\"pele-label\" x=\"0\" y=\"5.6\" text-anchor=\"middle\">root</text></g></g></svg>",
   )
 }
