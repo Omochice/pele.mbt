@@ -4,5 +4,6 @@ import {
 }
 
 import {
+  "Omochice/pele/svg",
   "moonbitlang/core/string",
 } for "test"
