@@ -327,13 +327,12 @@ fn horizontal_journey(
   let total_width = (width + 2 * pad).ceil()
   let total_height = (@util.js_max(bottom, pad) + pad).ceil()
   let content = @svg.Markup::new()
-  content.write(
-    @svg.label_svg(
-      title,
-      pad + width / 2,
-      pad + title.height / 2,
-      " class=\"pele-title\" font-weight=\"var(--_tw)\"",
-    ),
+  @svg.write_label(
+    content,
+    title,
+    pad + width / 2,
+    pad + title.height / 2,
+    " class=\"pele-title\" font-weight=\"var(--_tw)\"",
   )
   content.write_markup(body)
   {
