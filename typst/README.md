@@ -77,6 +77,19 @@ The `measurer` option can also be written by hand, as a dictionary of `unitsPerE
 The section "Callback options" of the repository's `golden/README.md` gives its exact rules.
 It is a table rather than a function because a plugin cannot call back into typst, so kerning and ligatures are not part of it.
 
+## Icons
+
+pele asks a function for the drawing of each icon a diagram names, which typst cannot pass to a plugin, so `icons` gives the drawings as a dictionary instead.
+Each key is an icon name as the diagram writes it, such as `fa:fa-car` in a label, `logos:aws-s3` in an architecture service or `mermaid-treeview:folder` in a tree view.
+Each value is an SVG fragment drawn in a 24 by 24 box, whose strokes take the text color unless the fragment sets its own.
+
+```typ
+#mermaid(icons: ("fa:fa-car": "<path d=\"M3,15V11L6,6H18L21,11V15Z\"/>"), "graph TD\n  A[fa:fa-car Car]")
+```
+
+A name the dictionary lacks, or one whose value is not a string, takes no room in a label and keeps the diagram's own drawing elsewhere.
+An empty string draws nothing in place of an architecture or tree view icon's built-in drawing.
+
 ## Why the SVG is rewritten
 
 Compiling a document that embeds pele's SVG with typst 0.15.1 showed the following.
@@ -92,7 +105,7 @@ Without a theme, the plugin returns pele's output byte for byte.
 ## Limitations
 
 - typst does not evaluate `color-mix()`, so the halo pele draws behind the titles of nested clusters is left out.
-- Icons and math, which pele takes as functions, are not supported.
+- Math, which pele takes as a function, is not supported.
 
 ## Checking
 
