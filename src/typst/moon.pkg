@@ -1,1 +1,4 @@
-
+import {
+  "Omochice/pele/svg",
+  "Omochice/pele/util",
+}
