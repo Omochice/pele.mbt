@@ -172,6 +172,7 @@ fn is_line_break(c : Int32) -> Bool {
 /// Splits a use case diagram into the tokens of Mermaid's Chevrotain lexer: the first pattern in
 /// its list that matches wins, a keyword gives way to a longer identifier, and `json id@` and `<<`
 /// switch to modes that read a JSON object and a stereotype.
+/// Raises a syntax error, in Mermaid's words, at a quote that does not close on its line or a `<<` that ends one.
 pub fn tokenize(src : String) -> Tokens raise @errors.PeleError {
   let types : Array[Int32] = []
   let starts : Array[Int32] = []

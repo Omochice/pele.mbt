@@ -84,8 +84,8 @@ fn number_option(
 }
 
 ///|
-/// A plain label is shown as written: no tags, no markdown, no `\n` breaks. Its markup characters
-/// are handed to the label parser as character references, which it turns back into characters.
+/// A plain label is shown as written: no tags, no markdown, no `\n` breaks.
+/// Its markup characters are handed to the label parser as character references, which it turns back into characters.
 fn literal(text : String) -> String {
   let out = StringBuilder()
   for i in 0..<text.length() {
@@ -116,8 +116,8 @@ fn text(
 }
 
 ///|
-/// The point of a node's outline on one of its four sides (0 top, 1 right, 2 bottom, 3 left),
-/// `along` away from the middle of that side. Lines meet an actor at its figure, not at its label.
+/// The point of a node's outline on one of its four sides (0 top, 1 right, 2 bottom, 3 left), `along` away from the middle of that side.
+/// Lines meet an actor at its figure, not at its label.
 fn anchor(
   view : View,
   c : @layout.CNode,
@@ -172,8 +172,8 @@ priv struct End {
 }
 
 ///|
-/// The layout brings every edge that ends on one side of a node to the middle of that side. This
-/// spaces them along the side in the order they fan out, and puts each on the node's outline.
+/// The layout brings every edge that ends on one side of a node to the middle of that side.
+/// This spaces them along the side in the order they fan out, and puts each on the node's outline.
 fn attach_ends(
   cedges : Array[@layout.CEdge],
   cnodes : Array[@layout.CNode],
@@ -393,8 +393,8 @@ fn left_label(
 }
 
 ///|
-/// A boundary's title sits in the middle of its top edge. Where edges enter through that edge it
-/// moves into the stretch between them that is nearest the middle, or the widest if none has room.
+/// A boundary's title sits in the middle of its top edge.
+/// Where edges enter through that edge it moves into the stretch between them that is nearest the middle, or the widest if none has room.
 fn title_x(
   c : @layout.CNode,
   width : Double,
@@ -932,7 +932,8 @@ fn draw(
       Some({ stroke: Some(stroke), .. }) if stroke != "" => @svg.esc(stroke)
       _ => "var(--_l)"
     }
-    // Mermaid animates these dashes. A still picture keeps the dashes.
+    // Mermaid animates these dashes.
+    // A still picture keeps the dashes.
     let dashes = if edge.internal {
       " stroke-dasharray=\"2 3\""
     } else if edge.pattern == "dotted" {

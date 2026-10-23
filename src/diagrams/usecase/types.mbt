@@ -42,25 +42,32 @@ pub(all) struct SystemBoundary {
 }
 
 ///|
-/// The start and end markers of an association, in Mermaid's order of arrow types.
+/// An association with an arrowhead at its target, as `-->` draws it.
+/// The arrow types are numbered in Mermaid's order.
 pub const SOLID_ARROW : Int32 = 0
 
 ///|
+/// An association with an arrowhead at its source, as `<--` draws it.
 pub const BACK_ARROW : Int32 = 1
 
 ///|
+/// An association with no marker, as `--` draws it.
 pub const LINE_SOLID : Int32 = 2
 
 ///|
+/// An association with a circle at its target, as `--o` draws it.
 pub const CIRCLE_ARROW : Int32 = 3
 
 ///|
+/// An association with a cross at its target, as `--x` draws it.
 pub const CROSS_ARROW : Int32 = 4
 
 ///|
+/// An association with a circle at its source, as `o--` draws it.
 pub const CIRCLE_ARROW_REVERSED : Int32 = 5
 
 ///|
+/// An association with a cross at its source, as `x--` draws it.
 pub const CROSS_ARROW_REVERSED : Int32 = 6
 
 ///|

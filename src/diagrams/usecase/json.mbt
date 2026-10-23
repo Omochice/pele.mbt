@@ -27,9 +27,8 @@ priv struct Frame {
 }
 
 ///|
-/// Reads JSON as V8's `JSON.parse` does, keeping the order keys were written in, and fails where
-/// and as V8 fails. pele parses with `JSON.parse` and then walks the text again for the key order;
-/// one reader does both here.
+/// Reads JSON as V8's `JSON.parse` does, keeping the order keys were written in, and fails where and as V8 fails.
+/// pele parses with `JSON.parse` and then walks the text again for the key order; one reader does both here.
 priv struct Reader {
   text : String
   mut at : Int32
@@ -416,6 +415,7 @@ fn json_error(
 ///|
 /// Reads the body of a `json` node, which has to be an object.
 /// `origin` gives the line and column the text starts at in the diagram, for the error.
+/// Returns the members of the object; raises a syntax error with V8's message, located in the diagram, for text that is not JSON.
 pub fn parse_ordered_json(
   text : String,
   origin : () -> (Int32, Int32),

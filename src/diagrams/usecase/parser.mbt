@@ -1,7 +1,6 @@
-// Mermaid parses use case diagrams with a Chevrotain parser, which decides each choice by looking
-// at most three tokens ahead and reports the first token that fits nowhere. This parser makes the
-// same decisions from the same lookahead, so it accepts the same text and names the same token in
-// its errors. It collects drafts that are resolved into the model once the whole text is read.
+// Mermaid parses use case diagrams with a Chevrotain parser, which decides each choice by looking at most three tokens ahead and reports the first token that fits nowhere.
+// This parser makes the same decisions from the same lookahead, so it accepts the same text and names the same token in its errors.
+// It collects drafts that are resolved into the model once the whole text is read.
 
 ///|
 const LINE : Int32 = 1
@@ -330,9 +329,8 @@ fn Parser::property(self : Parser) -> DraftProperty raise @errors.PeleError {
 }
 
 ///|
-/// Whether another property follows. A comma or line breaks before the closing brace do not count,
-/// but Chevrotain looks only three tokens ahead, so a comma and two line breaks, or three line
-/// breaks, are taken for a separator and the brace after them is then an error.
+/// Whether another property follows.
+/// A comma or line breaks before the closing brace do not count, but Chevrotain looks only three tokens ahead, so a comma and two line breaks, or three line breaks, are taken for a separator and the brace after them is then an error.
 fn Parser::separator_ahead(self : Parser) -> Bool {
   let a = self.kind(self.p)
   let b = self.kind(self.p + 1)

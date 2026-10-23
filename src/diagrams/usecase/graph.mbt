@@ -155,9 +155,8 @@ fn class_list(names : Array[String]) -> String {
 }
 
 ///|
-/// Resolves a parsed use case diagram into what is drawn: every actor, use case, note, JSON table
-/// and boundary as a node with its class styles, and every relationship and note connector as an
-/// edge with its markers. Ports getData from Mermaid's use case DB.
+/// Resolves a parsed use case diagram into what is drawn: every actor, use case, note, JSON table and boundary as a node with its class styles, and every relationship and note connector as an edge with its markers.
+/// Ports getData from Mermaid's use case DB.
 pub fn build_usecase_graph(model : UsecaseModel) -> UsecaseGraph {
   let nodes = []
   let edges = []
