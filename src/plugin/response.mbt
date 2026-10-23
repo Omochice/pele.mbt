@@ -16,7 +16,11 @@ fn respond(source : String, options : String) -> (Int32, Json) {
       source,
       decode_options(options),
     )
-    (0, success(result))
+    let svg = match decode_theme(options) {
+      Some(theme) => @typst.hoist_radii(@typst.resolve_vars(result.svg, theme))
+      None => result.svg
+    }
+    (0, success({ ..result, svg, }))
   } catch {
     @errors.PeleError(failure) => (1, pele_failure(failure))
     @util.JsonError(message, _) => (1, foreign_failure("SyntaxError", message))

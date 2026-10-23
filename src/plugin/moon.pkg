@@ -35,6 +35,7 @@ import {
   "Omochice/pele/diagrams/xychart",
   "Omochice/pele/errors",
   "Omochice/pele/types",
+  "Omochice/pele/typst",
   "Omochice/pele/util",
   "moonbitlang/core/encoding/utf8",
 }

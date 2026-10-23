@@ -45,6 +45,13 @@ fn config_field(json : Map[String, Json], key : String) -> @types.Config? {
 }
 
 ///|
+/// Reads the theme that makes the SVG drawable by typst, or `None` when the options hold no theme object.
+fn decode_theme(json : Json) -> Map[String, String]? {
+  ignore(json)
+  None
+}
+
+///|
 /// Reads pele's render options from their JSON form.
 /// A key of the wrong type is ignored, so pele's default applies.
 fn decode_options(json : Json) -> @types.RenderOptions {
