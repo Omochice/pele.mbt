@@ -119,10 +119,6 @@ pub(all) struct WardleyAst {
 }
 
 ///|
-/// Mermaid's Wardley lexer, in its matching order.
-pub let wardley_tokens : Array[@common.TokenType] = []
-
-///|
 /// Reads the statements of a Wardley map.
 /// Raises a syntax `PeleError` where Mermaid's grammar rejects the text.
 pub fn parse_wardley(src : String) -> WardleyAst raise @errors.PeleError {
