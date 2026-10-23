@@ -87,24 +87,30 @@ fn Anchor::name(self : Anchor) -> String {
 ///|
 /// Writes a label with its left edge, center or right edge at `x`.
 /// A plain one-line label keeps its place when the text is wider or narrower than measured.
-fn aligned(
+fn write_aligned(
+  out : @svg.Markup,
   label : @text.Label,
   x : Double,
   y : Double,
   anchor : Anchor,
-) -> String {
+) -> Unit raise @errors.PeleError {
   if label.lines.length() == 1 &&
     label.lines[0].length() == 1 &&
     label.lines[0][0].icon is None &&
     label.lines[0][0].style == 0 {
-    return "<text x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y + label.size * 0.35)}\" text-anchor=\"\{anchor.name()}\">\{@svg.esc(label.lines[0][0].text)}</text>"
+    out.write(
+      "<text x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y + label.size * 0.35)}\" text-anchor=\"\{anchor.name()}\">",
+    )
+    @svg.write_esc(out, label.lines[0][0].text)
+    out.write("</text>")
+    return
   }
   let shift = match anchor {
     Start => label.width / 2
     End => -label.width / 2
     Middle => 0
   }
-  @svg.label_svg(label, x + shift, y, "")
+  @svg.write_label(out, label, x + shift, y, "")
 }
 
 ///|
@@ -511,7 +517,7 @@ pub fn render_xychart(
       axis.write("M\{@svg.num(left)},\{@svg.num(y)}h\{@svg.num(-left_tick)}")
     }
     if left_labels {
-      labels.write(aligned(mark.label, left - left_tick - 6, y, End))
+      write_aligned(labels, mark.label, left - left_tick - 6, y, End)
     }
   }
   for mark in bottom_marks {
@@ -522,13 +528,12 @@ pub fn render_xychart(
       )
     }
     if bottom_labels {
-      labels.write(
-        aligned(
-          mark.label,
-          at,
-          bottom + bottom_tick + 4 + mark.label.height / 2,
-          Middle,
-        ),
+      write_aligned(
+        labels,
+        mark.label,
+        at,
+        bottom + bottom_tick + 4 + mark.label.height / 2,
+        Middle,
       )
     }
   }
@@ -551,10 +556,11 @@ pub fn render_xychart(
   let mut bar = 0
   for index, plot in plots {
     let color = @svg.series_color(index)
-    let id = if plot.title != "" {
-      " data-id=\"\{@svg.esc_text(plot.title)}\""
-    } else {
-      ""
+    let id = @svg.Markup::new()
+    if plot.title != "" {
+      id.write(" data-id=\"")
+      @svg.write_esc_text(id, plot.title)
+      id.write("\"")
     }
     // A series declared before the categories can hold more values than there are categories.
     let n = if band {
@@ -615,11 +621,9 @@ pub fn render_xychart(
           "<text x=\"\{@svg.num(tx)}\" y=\"\{@svg.num(ty + tiny * 0.35)}\" text-anchor=\"\{anchor}\">\{label}</text>",
         )
       }
-      series.write_group(
-        "<g class=\"pele-series pele-bars\"\{id} fill=\"\{color}\">",
-        rects,
-        "</g>",
-      )
+      series.write("<g class=\"pele-series pele-bars\"")
+      series.write_markup(id)
+      series.write_group(" fill=\"\{color}\">", rects, "</g>")
       continue
     }
 
@@ -688,21 +692,22 @@ pub fn render_xychart(
       )
       if label.height > 0 {
         let half = label.width / 2
-        point_labels.write(
-          if horizontal {
-            aligned(label, cx + 10, cy, Start)
-          } else {
-            aligned(
-              label,
-              @util.js_max(@util.js_min(cx, right - half), left + half),
-              cy - 6 - label.height / 2,
-              Middle,
-            )
-          },
-        )
+        if horizontal {
+          write_aligned(point_labels, label, cx + 10, cy, Start)
+        } else {
+          write_aligned(
+            point_labels,
+            label,
+            @util.js_max(@util.js_min(cx, right - half), left + half),
+            cy - 6 - label.height / 2,
+            Middle,
+          )
+        }
       }
     }
-    lines.write("<g class=\"pele-series pele-line\"\{id} fill=\"\{color}\">")
+    lines.write("<g class=\"pele-series pele-line\"")
+    lines.write_markup(id)
+    lines.write(" fill=\"\{color}\">")
     if !d.is_empty() {
       lines.write_group(
         "<path d=\"",
@@ -715,18 +720,18 @@ pub fn render_xychart(
   }
   let titles = @svg.Markup::new()
   if left_title.height > 0 {
-    let rotated = @svg.label_svg(left_title, 0, 0, "")
     titles.write(
-      "<g transform=\"translate(\{@svg.num(pad + left_title.height / 2)},\{@svg.num(top + plot_height / 2)}) rotate(-90)\">\{rotated}</g>",
+      "<g transform=\"translate(\{@svg.num(pad + left_title.height / 2)},\{@svg.num(top + plot_height / 2)}) rotate(-90)\">",
     )
+    @svg.write_label(titles, left_title, 0, 0, "")
+    titles.write("</g>")
   }
-  titles.write(
-    @svg.label_svg(
-      bottom_title,
-      left + plot_width / 2,
-      height - pad - bottom_title.height / 2,
-      "",
-    ),
+  @svg.write_label(
+    titles,
+    bottom_title,
+    left + plot_width / 2,
+    height - pad - bottom_title.height / 2,
+    "",
   )
   let legend_out = @svg.Markup::new()
   let mut legend_height = 0.0
@@ -743,16 +748,24 @@ pub fn render_xychart(
     }
     let y = ly + row / 2
     let color = @svg.series_color(index)
+    legend_out.write("<g class=\"pele-legend-item\" data-id=\"")
+    @svg.write_esc_text(legend_out, plots[index].title)
     legend_out.write(
-      "<g class=\"pele-legend-item\" data-id=\"\{@svg.esc_text(plots[index].title)}\">" +
+      "\">" +
       (if plots[index].kind is Bar {
         "<rect x=\"\{@svg.num(lx)}\" y=\"\{@svg.num(y - SWATCH / 2)}\" width=\"\{SWATCH}\" height=\"\{SWATCH}\" rx=\"2\" fill=\"\{color}\"/>"
       } else {
         "<path d=\"M\{@svg.num(lx)},\{@svg.num(y)}h\{SWATCH}\" stroke=\"\{color}\" stroke-width=\"2\" stroke-linecap=\"round\"/>"
-      }) +
-      @svg.label_svg(label, lx + SWATCH + 8 + label.width / 2, y, "") +
-      "</g>",
+      }),
     )
+    @svg.write_label(
+      legend_out,
+      label,
+      lx + SWATCH + 8 + label.width / 2,
+      y,
+      "",
+    )
+    legend_out.write("</g>")
     ly += row
   }
   let content = @svg.Markup::new()
