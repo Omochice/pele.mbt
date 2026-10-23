@@ -124,3 +124,20 @@ pub(all) struct UsecaseModel {
   mut acc_title : String
   mut acc_descr : String
 }
+
+///|
+fn empty_model() -> UsecaseModel {
+  {
+    actors: Map([]),
+    use_cases: Map([]),
+    system_boundaries: Map([]),
+    relationships: [],
+    notes: Map([]),
+    json_nodes: Map([]),
+    class_defs: Map([]),
+    direction: "LR",
+    title: None,
+    acc_title: "",
+    acc_descr: "",
+  }
+}
