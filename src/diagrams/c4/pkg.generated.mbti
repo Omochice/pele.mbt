@@ -1,0 +1,20 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Omochice/pele/diagrams/c4"
+
+// Values
+pub fn token_name(Int32) -> String
+
+pub fn tokenize(String) -> C4Tokens
+
+// Errors
+
+// Types and methods
+pub(all) struct C4Tokens {
+  types : Array[Int32]
+  starts : Array[Int32]
+  ends : Array[Int32]
+}
+
+// Type aliases
+
+// Traits
