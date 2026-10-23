@@ -107,11 +107,13 @@ pub fn render(
     (name : String) => resolve(@text.decode_entities(name))
   })
   let rendered = tag_errors(found, () => {
-    @text.with_icons(icons, () => {
-      (parsed.render)(config, {
-        ..options,
-        responsive: Some(responsive),
-        icons,
+    @text.with_math(if diagram.math { options.math } else { None }, () => {
+      @text.with_icons(icons, () => {
+        (parsed.render)(config, {
+          ..options,
+          responsive: Some(responsive),
+          icons,
+        })
       })
     })
   })

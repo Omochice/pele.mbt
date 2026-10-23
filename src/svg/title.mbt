@@ -45,13 +45,14 @@ pub fn title_label(
   size : Double,
   max_width : Double,
 ) -> @text.Label {
-  // pele turns math off around the title; labels here never typeset math, so there is nothing to turn off.
-  @text.layout_label(
-    title,
-    false,
-    measurer,
-    size,
-    max_width,
-    base=@text.STYLE_BOLD,
-  )
+  @text.without_math(() => {
+    @text.layout_label(
+      title,
+      false,
+      measurer,
+      size,
+      max_width,
+      base=@text.STYLE_BOLD,
+    )
+  })
 }

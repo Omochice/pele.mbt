@@ -58,6 +58,24 @@ fn icons_field(json : Map[String, Json]) -> @types.IconResolver? {
 }
 
 ///|
+/// pele's `MathResolver` for a map from TeX, then font size as JavaScript writes it, to markup.
+/// The markup is handed on unchecked, as pele checks it itself.
+fn math_field(
+  json : Map[String, Json],
+  key : String,
+) -> ((String, Double) -> Json?)? {
+  guard json.get(key) is Some(Object(map)) else { return None }
+  Some((tex, size) => {
+    guard map.get(tex) is Some(Object(sizes)) &&
+      sizes.get(@util.js_string(Json::number(size)))
+      is Some(Object(_) as markup) else {
+      return None
+    }
+    Some(markup)
+  })
+}
+
+///|
 /// Reads the theme that makes the SVG drawable by typst, or `None` when the options hold no theme object.
 fn decode_theme(json : Json) -> Map[String, String]? {
   guard json is Object(fields) && fields.get("theme") is Some(Object(entries)) else {
@@ -99,6 +117,6 @@ fn decode_options(json : Json) -> @types.RenderOptions {
     now: number_field(fields, "now"),
     measurer: decode_measurer(fields.get("measurer")),
     icons: icons_field(fields),
-    math: None,
+    math: math_field(fields, "math"),
   }
 }
