@@ -1,1 +1,4 @@
-
+import {
+  "Omochice/pele/diagrams/common",
+  "Omochice/pele/util",
+}

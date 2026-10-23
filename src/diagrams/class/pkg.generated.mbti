@@ -14,6 +14,7 @@ pub struct ClassMember {
   parameters : String
   return_type : String
 }
+pub fn ClassMember::css_style(Self) -> String
 pub fn ClassMember::display_details(Self) -> DisplayDetails
 pub fn ClassMember::new(String, MemberType) -> Self
 
