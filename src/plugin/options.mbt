@@ -45,6 +45,19 @@ fn config_field(json : Map[String, Json], key : String) -> @types.Config? {
 }
 
 ///|
+/// Reads `icons` as a map from icon name to the SVG fragment drawn for it, as golden/README.md describes.
+/// Only an object installs a resolver; a name without a string fragment resolves to nothing.
+fn icons_field(json : Map[String, Json]) -> @types.IconResolver? {
+  guard json.get("icons") is Some(Object(map)) else { return None }
+  Some(name => {
+    match map.get(name) {
+      Some(String(fragment)) => Some(fragment)
+      _ => None
+    }
+  })
+}
+
+///|
 /// Reads the theme that makes the SVG drawable by typst, or `None` when the options hold no theme object.
 fn decode_theme(json : Json) -> Map[String, String]? {
   guard json is Object(fields) && fields.get("theme") is Some(Object(entries)) else {
@@ -85,6 +98,6 @@ fn decode_options(json : Json) -> @types.RenderOptions {
     config: config_field(fields, "config"),
     now: number_field(fields, "now"),
     measurer: decode_measurer(fields.get("measurer")),
-    icons: None,
+    icons: icons_field(fields),
   }
 }
