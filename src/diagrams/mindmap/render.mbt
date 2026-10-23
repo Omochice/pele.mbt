@@ -20,19 +20,18 @@ fn left_label(
   let attrs = " class=\"pele-label\""
   let out = @svg.Markup::new()
   if label.lines.length() < 2 {
-    out.write(@svg.label_svg(label, left + label.width / 2, cy, attrs, icons?))
+    @svg.write_label(out, label, left + label.width / 2, cy, attrs, icons?)
     return out
   }
   let top = cy - label.height / 2
   for k in 0..<label.lines.length() {
-    out.write(
-      @svg.label_svg(
-        @text.label_line(label, k),
-        left + label.widths[k] / 2,
-        top + @text.line_middle(label, k),
-        attrs,
-        icons?,
-      ),
+    @svg.write_label(
+      out,
+      @text.label_line(label, k),
+      left + label.widths[k] / 2,
+      top + @text.line_middle(label, k),
+      attrs,
+      icons?,
     )
   }
   out
@@ -212,20 +211,23 @@ fn draw(
       left_label(label, shift - label.width / 2, dy[i], options.icons)
     } else {
       let text = @svg.Markup::new()
-      text.write(
-        @svg.label_svg(
-          label,
-          shift,
-          dy[i],
-          " class=\"pele-label\"",
-          icons?=options.icons,
-        ),
+      @svg.write_label(
+        text,
+        label,
+        shift,
+        dy[i],
+        " class=\"pele-label\"",
+        icons?=options.icons,
       )
       text
     }
     let into = if i > 0 { body } else { out }
+    into.write(
+      "<g class=\"pele-node pele-shape-\{kind}\{if i > 0 { "" } else { " pele-root" }}\{@svg.class_names(node.class_.unwrap_or(""))}\" data-id=\"",
+    )
+    @svg.write_esc_text(into, node.node_id)
     into.write_group(
-      "<g class=\"pele-node pele-shape-\{kind}\{if i > 0 { "" } else { " pele-root" }}\{@svg.class_names(node.class_.unwrap_or(""))}\" data-id=\"\{@svg.esc_text(node.node_id)}\" transform=\"translate(\{@svg.num(cx)},\{@svg.num(top + h[i] / 2)})\">" +
+      "\" transform=\"translate(\{@svg.num(cx)},\{@svg.num(top + h[i] / 2)})\">" +
       inner,
       text,
       "</g>",
