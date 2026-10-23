@@ -764,15 +764,14 @@ fn draw(
       max_x = @util.js_max(max_x, x + w / 2)
       min_y = @util.js_min(min_y, y - label.height / 2)
       max_y = @util.js_max(max_y, y + label.height / 2)
-      labels_out.write(
-        @svg.edge_label_svg(
-          edge.lhs_id + "-" + edge.rhs_id,
-          label,
-          x,
-          y,
-          "",
-          icons?=options.icons,
-        ),
+      @svg.write_edge_label(
+        labels_out,
+        edge.lhs_id + "-" + edge.rhs_id,
+        label,
+        x,
+        y,
+        "",
+        icons?=options.icons,
       )
     }
   }
@@ -782,7 +781,10 @@ fn draw(
     let y = top(g)
     let w = right(g) - x
     let label = group_labels[g]
-    let head = StringBuilder()
+    clusters.write(
+      "<g class=\"pele-cluster\" data-id=\"\{@svg.esc_text(group.id)}\">" +
+      "<rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(w)}\" height=\"\{@svg.num(bottom(g) - y)}\" fill=\"var(--_a)\" fill-opacity=\"0.5\" stroke=\"var(--_b)\"\{@svg.ROUNDED}/>",
+    )
     if head_w[g] > 0 {
       // The title starts at the left, or after the edges that come down through that corner.
       let band = y + head_h[g] + 12
@@ -810,27 +812,21 @@ fn draw(
       let cy = y + 6 + head_h[g] / 2
       let mut text_x = start
       if group.icon is Some(icon) && icon != "" {
-        head.write_string(
+        clusters.write(
           icon_slot(icon, start, cy - badge / 2, badge, options.icons),
         )
         text_x += badge + 6
       }
-      head.write_string(
-        @svg.label_svg(
-          label,
-          text_x + label.width / 2,
-          cy,
-          " class=\"pele-cluster-label\" fill=\"var(--_m)\"",
-          icons?=options.icons,
-        ),
+      @svg.write_label(
+        clusters,
+        label,
+        text_x + label.width / 2,
+        cy,
+        " class=\"pele-cluster-label\" fill=\"var(--_m)\"",
+        icons?=options.icons,
       )
     }
-    clusters.write(
-      "<g class=\"pele-cluster\" data-id=\"\{@svg.esc_text(group.id)}\">" +
-      "<rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(w)}\" height=\"\{@svg.num(bottom(g) - y)}\" fill=\"var(--_a)\" fill-opacity=\"0.5\" stroke=\"var(--_b)\"\{@svg.ROUNDED}/>" +
-      head.to_string() +
-      "</g>",
-    )
+    clusters.write("</g>")
   }
   let nodes_out = @svg.Markup::new()
   let glyph = icon_size * 0.5
@@ -843,14 +839,20 @@ fn draw(
       )
       continue
     }
-    let inner = match (node.icon, node.icon_text) {
+    nodes_out.write(
+      "<g class=\"pele-node pele-service\" \{at}>" +
+      "<rect x=\"\{@svg.num(-half)}\" width=\"\{@svg.num(icon_size)}\" height=\"\{@svg.num(icon_size)}\" fill=\"var(--_s)\" stroke=\"var(--_b)\"\{@svg.ROUNDED}/>",
+    )
+    match (node.icon, node.icon_text) {
       (Some(icon), _) if icon != "" =>
-        icon_slot(
-          icon,
-          -glyph / 2,
-          (icon_size - glyph) / 2,
-          glyph,
-          options.icons,
+        nodes_out.write(
+          icon_slot(
+            icon,
+            -glyph / 2,
+            (icon_size - glyph) / 2,
+            glyph,
+            options.icons,
+          ),
         )
       (_, Some(icon_text)) if icon_text != "" => {
         let text = @text.layout_label(
@@ -869,7 +871,8 @@ fn draw(
           1,
           ((icon_size - 4) / line_height).floor().to_int(),
         )
-        @svg.label_svg(
+        @svg.write_label(
+          nodes_out,
           fit(text, icon_size - 8, lines, measurer),
           0,
           half,
@@ -877,21 +880,17 @@ fn draw(
           icons?=options.icons,
         )
       }
-      _ => ""
+      _ => ()
     }
-    nodes_out.write(
-      "<g class=\"pele-node pele-service\" \{at}>" +
-      "<rect x=\"\{@svg.num(-half)}\" width=\"\{@svg.num(icon_size)}\" height=\"\{@svg.num(icon_size)}\" fill=\"var(--_s)\" stroke=\"var(--_b)\"\{@svg.ROUNDED}/>" +
-      inner +
-      @svg.label_svg(
-        labels[i],
-        0,
-        icon_size + LABEL_GAP + labels[i].height / 2,
-        " class=\"pele-label\"",
-        icons?=options.icons,
-      ) +
-      "</g>",
+    @svg.write_label(
+      nodes_out,
+      labels[i],
+      0,
+      icon_size + LABEL_GAP + labels[i].height / 2,
+      " class=\"pele-label\"",
+      icons?=options.icons,
     )
+    nodes_out.write("</g>")
   }
   let title = @text.layout_label(
     model.title,
