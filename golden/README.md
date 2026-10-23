@@ -168,5 +168,12 @@ The other diagrams still build their SVG with a plain `StringBuilder`, which tra
 A diagram that draws host icons can be driven there, because the icon markup the host supplies is unbounded and a label may hold many icon spans; the icon-drawing ones not yet converted are the architecture, c4, cynefin, gantt, git, kanban, mindmap, sequence, treeview, and wardley diagrams, and pie draws host icons in its slice labels as well.
 Moving each to `Markup` is the same change the diagrams above have had; it is follow-up work.
 
+A single label can reach the ceiling on its own, however small the diagram, because each of its icon spans draws the host's drawing of the icon and each of its `$$…$$` spans draws the host's math markup.
+`write_label`, `write_edge_label` and `write_struck_title` in `src/svg/` write a label to `Markup` with each host drawing as a piece of its own, and `label_svg`, `edge_label_svg` and `struck_title` make their strings from them, aborting past V8's longest string since a string result has no error to carry.
+The flowchart writes its node labels, cluster titles and edge labels with them, and the swimlane its lane titles, so those fail with the `limit` error where pele does; the cases "host icons in one node label", "one node label longer than a doubling StringBuilder holds" and "host icons in one lane title" check it.
+A diagram title is laid out without math and drawn without host icons, so it is bounded by its source and cannot reach the ceiling.
+The class, state, ER, block, agentflow and use case diagrams still take their labels as strings from `label_svg`, so one label of thousands of host icons traps there although their markup fails as pele does, and the requirement diagram typesets math into labels taken the same way.
+Moving their call sites to the writers is follow-up work.
+
 A diagram cannot reach the ceiling on its own structure when its SVG is bounded by a small multiple of its source, which the `limit` option caps: a source long enough to draw an oversized SVG is itself rejected first, at a different point than pele's concatenation.
 The gantt chart caps its axis ticks, the packet diagram its SVG by the bit count, and the radar chart its graticule rings, so those paths do not amplify past the cap, though gantt and radar can still amplify through the host icons they draw.
