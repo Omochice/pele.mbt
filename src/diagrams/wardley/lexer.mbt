@@ -232,7 +232,9 @@ fn name_part_end(src : String, from : Int32) -> Int32 {
 
 ///|
 /// `(?!title\s|accTitle|accDescr)[A-Za-z](?:[A-Za-z0-9_()&]|-(?!>))*(?:[ \t]+[A-Za-z(](?:[A-Za-z0-9_()&]|-(?!>))*)*`
-fn name_end(src : String, p : Int32) -> Int32 {
+/// Of V8's backtracking stack, the match takes three slots, two for each character after a word's first and five for each further word.
+/// Giving up on a last word at blanks that start none takes two more, and on a character at an arrow one more.
+fn name_end(src : String, p : Int32) -> Int32 raise @errors.PeleError {
   if !is_ascii_letter(@util.code_at(src, p)) {
     return @common.NO_MATCH
   }
@@ -245,16 +247,29 @@ fn name_end(src : String, p : Int32) -> Int32 {
     return @common.NO_MATCH
   }
   let mut end = name_part_end(src, p + 1)
+  let mut slots = 3L + 2L * (end - p - 1).to_int64()
   while true {
     let mut word = end
     while @util.is_blank(@util.code_at(src, word)) {
       word += 1
     }
-    let c = @util.code_at(src, word)
-    if word == end || !(is_ascii_letter(c) || c == '('.to_int()) {
+    if word == end {
+      if @util.code_at(src, end) == '-'.to_int() {
+        slots += 1
+      }
       break
     }
-    end = name_part_end(src, word + 1)
+    let c = @util.code_at(src, word)
+    if !(is_ascii_letter(c) || c == '('.to_int()) {
+      slots += 2
+      break
+    }
+    let next = name_part_end(src, word + 1)
+    slots += 5L + 2L * (next - word - 1).to_int64()
+    end = next
+  }
+  if @util.backtrack_stack_overflows(slots) {
+    raise @errors.nested_too_deeply()
   }
   end
 }
@@ -383,7 +398,12 @@ pub let wardley_tokens : Array[@common.TokenType] = [
   @common.literal("KW_ANNOTATION", "annotation"),
   @common.literal("KW_ACCELERATOR", "accelerator"),
   @common.literal("KW_DEACCELERATOR", "deaccelerator"),
-  @common.pattern("NAME_WITH_SPACES", name_end, first=LETTERS),
+  {
+    name: "NAME_WITH_SPACES",
+    scanner: () => name_end,
+    first: Some(LETTERS),
+    hidden: false,
+  },
   { ..@common.whitespace, name: "WS", },
   @common.resumable_acc_descr,
   @common.acc_title,
