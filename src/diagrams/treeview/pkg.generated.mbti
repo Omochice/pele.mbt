@@ -31,7 +31,7 @@ pub fn read_treeview(String) -> TreeViewAst raise @errors.PeleError
 
 pub fn remap_error_lines(String, Map[Int32, Int32]) -> String
 
-pub fn render_treeview(TreeViewModel, Map[String, Json], @types.RenderOptions) -> @types.Rendered
+pub fn render_treeview(TreeViewModel, Map[String, Json], @types.RenderOptions) -> @types.Rendered raise @errors.PeleError
 
 pub fn tree_settings(Map[String, Json]) -> TreeSettings
 

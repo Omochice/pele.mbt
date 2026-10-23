@@ -90,7 +90,7 @@ pub fn render_treeview(
   model : TreeViewModel,
   config : @types.Config,
   options : @types.RenderOptions,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   @common.tighten(options, tight => draw(model, config, options, tight))
 }
 
@@ -101,7 +101,7 @@ fn draw(
   config : @types.Config,
   options : @types.RenderOptions,
   tight : Bool,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   let size = options.font_size.unwrap_or(16)
   let measurer = options.text_measurer()
   let pad = options.padding.unwrap_or(8)
@@ -278,7 +278,7 @@ fn draw(
   let top = pad + title_height
   let total_width = (width + 2 * inset).ceil()
   let total_height = (top + rows_height + pad).ceil()
-  let guides = StringBuilder()
+  let guides = @svg.Markup::new()
   for row in rows {
     let children = row.node.children
     if children.is_empty() {
@@ -288,26 +288,26 @@ fn draw(
     let tick = @util.js_max(gx, inset + row.x + step - padding_x)
     let last = top + row_of[children[children.length() - 1].id].cy
     let r = @util.js_min(ELBOW, tick - gx)
-    let d = StringBuilder()
-    d.write_string(
+    let d = @svg.Markup::new()
+    d.write(
       "M\{@svg.num(gx)},\{@svg.num(top + row.top + row.height - 2)}V\{@svg.num(last - r)}",
     )
     if r > 0 {
-      d.write_string(
+      d.write(
         "Q\{@svg.num(gx)},\{@svg.num(last)} \{@svg.num(gx + r)},\{@svg.num(last)}H\{@svg.num(tick)}",
       )
     }
     let mut i = 0
     while i < children.length() - 1 && tick > gx {
-      d.write_string(
+      d.write(
         "M\{@svg.num(gx)},\{@svg.num(top + row_of[children[i].id].cy)}H\{@svg.num(tick)}",
       )
       i += 1
     }
-    guides.write_string("<path d=\"\{d.to_string()}\"/>")
+    guides.write_group("<path d=\"", d, "\"/>")
   }
   let baseline = size * 0.35
-  let body = StringBuilder()
+  let body = @svg.Markup::new()
   for row in rows {
     let node = row.node
     let cy = top + row.cy
@@ -377,25 +377,29 @@ fn draw(
         )
       (None, None) => ()
     }
-    body.write_string(
+    body.write(
       "<g class=\"pele-node pele-tree-\{if directory { "dir" } else { "file" }}\{@svg.class_names(node.css_class.unwrap_or(""))}\" data-id=\"\{@svg.esc_text(node.name)}\">\{inner.to_string()}</g>",
     )
   }
-  let guide_group = if guides.is_empty() {
-    ""
-  } else {
-    "<g class=\"pele-tree-guides\" fill=\"none\" stroke=\"var(--_b)\" stroke-width=\"\{@svg.num(line_thickness)}\">\{guides.to_string()}</g>"
-  }
-  let content = @svg.label_svg(
+  let content = @svg.Markup::new()
+  content.write(
+    @svg.label_svg(
       title,
       total_width / 2,
       pad + title.height / 2,
       " class=\"pele-title\" font-weight=\"var(--_tw)\"",
-    ) +
-    guide_group +
-    body.to_string()
+    ),
+  )
+  if !guides.is_empty() {
+    content.write_group(
+      "<g class=\"pele-tree-guides\" fill=\"none\" stroke=\"var(--_b)\" stroke-width=\"\{@svg.num(line_thickness)}\">",
+      guides,
+      "</g>",
+    )
+  }
+  content.write_markup(body)
   {
-    svg: @svg.svg_document(
+    svg: @svg.markup_document(
       "treeView",
       total_width,
       total_height,
