@@ -135,13 +135,17 @@
           moonbit = with pkgs; [
             moonbit-bin.latest
           ];
+          typst = [
+            pkgs.typst
+          ];
           # keep-sorted end
           default = [
             treefmt.config.build.wrapper
           ]
           ++ actions
           ++ golden
-          ++ moonbit;
+          ++ moonbit
+          ++ typst;
         };
       in
       {
