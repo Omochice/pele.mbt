@@ -12,7 +12,7 @@ fn when(
 }
 
 ///|
-fn axis_format(specifier : String) -> String {
+fn axis_format(specifier : String) -> String raise @errors.PeleError {
   let date = @date.JsDate::from_local(
     2024,
     1,

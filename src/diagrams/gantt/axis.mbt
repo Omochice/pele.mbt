@@ -410,8 +410,46 @@ fn iso_thursday(date : @date.JsDate) -> @date.JsDate {
 
 ///|
 /// Formats a date with a d3 time format specifier such as `%Y-%m-%d`.
-pub fn time_format(specifier : String, date : @date.JsDate) -> String {
-  let out = StringBuilder()
+/// Raises pele's `limit` error where the text would be longer than V8 allows.
+pub fn time_format(
+  specifier : String,
+  date : @date.JsDate,
+) -> String raise @errors.PeleError {
+  let mut length = 0
+  let grow = (count : Int32) => {
+    if count > @svg.MAX_STRING_LENGTH - length {
+      raise @errors.nested_too_deeply()
+    }
+    length += count
+  }
+  let known : Map[String, String] = Map([])
+  each_part(specifier, date, known, (from, to) => grow(to - from), piece => {
+    grow(piece.length())
+  })
+  // Sized to the text, because a doubling builder past 2^28 code units asks wasm for a block of
+  // 1 GiB that it refuses, and a format of millions of `%c` makes a text past that.
+  let out = StringBuilder(size_hint=length * 2)
+  each_part(
+    specifier,
+    date,
+    known,
+    (from, to) => @util.write_range(out, specifier, from, to),
+    piece => out.write_string(piece),
+  )
+  out.to_string()
+}
+
+///|
+/// Hands the parts of `specifier` formatted for `date` in order to `literal`, as a range of the
+/// specifier written as it is, or to `formatted`, as a directive's text, which `known` keeps by
+/// directive and fill.
+fn each_part(
+  specifier : String,
+  date : @date.JsDate,
+  known : Map[String, String],
+  literal : (Int32, Int32) -> Unit raise @errors.PeleError,
+  formatted : (String) -> Unit raise @errors.PeleError,
+) -> Unit raise @errors.PeleError {
   let mut from = 0
   let n = specifier.length()
   let mut i = 0
@@ -420,7 +458,7 @@ pub fn time_format(specifier : String, date : @date.JsDate) -> String {
       i += 1
       continue
     }
-    @util.write_range(out, specifier, from, i)
+    literal(from, i)
     i += 1
     let mut c = @util.slice(specifier, i, end=i + 1)
     let fill = match c {
@@ -437,16 +475,31 @@ pub fn time_format(specifier : String, date : @date.JsDate) -> String {
       }
       None => if c == "e" { " " } else { "0" }
     }
-    out.write_string(directive(c, date, p))
+    // Every directive formats the same date, so each is worked out once however often it recurs.
+    let key = c + p
+    let text = match known.get(key) {
+      Some(text) => text
+      None => {
+        let text = directive(c, date, p)
+        known[key] = text
+        text
+      }
+    }
+    formatted(text)
     from = i + 1
     i += 1
   }
-  out.write_string(@util.slice(specifier, from))
-  out.to_string()
+  if from < n {
+    literal(from, n)
+  }
 }
 
 ///|
-fn directive(c : String, d : @date.JsDate, p : String) -> String {
+fn directive(
+  c : String,
+  d : @date.JsDate,
+  p : String,
+) -> String raise @errors.PeleError {
   match c {
     "a" => @util.slice(weekdays[d.day().to_int()], 0, end=3)
     "A" => weekdays[d.day().to_int()]

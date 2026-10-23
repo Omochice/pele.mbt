@@ -28,7 +28,7 @@ pub fn parse_strict(String, String, @date.JsDate) -> @date.JsDate?
 
 pub fn render_gantt(GanttDb, Map[String, Json], @types.RenderOptions) -> @types.Rendered raise @errors.PeleError
 
-pub fn time_format(String, @date.JsDate) -> String
+pub fn time_format(String, @date.JsDate) -> String raise @errors.PeleError
 
 pub fn tokenize(String) -> Tokens
 
