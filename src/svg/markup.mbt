@@ -218,16 +218,17 @@ pub fn markup_document(
   acc_descr : String?,
   content : Markup,
 ) -> String raise @errors.PeleError {
-  let start = document_start(
-    kind,
-    width,
-    height,
-    font_size,
-    options,
-    acc_title,
-    acc_descr,
-    content.used,
-  )
+  let start = document_tag(
+      kind,
+      width,
+      height,
+      font_size,
+      options,
+      acc_title,
+      acc_descr,
+      content.used,
+    ) +
+    document_head(options, acc_title, acc_descr)
   let end = "</svg>"
   if start.length() + end.length() > MAX_STRING_LENGTH - content.length {
     raise @errors.nested_too_deeply()

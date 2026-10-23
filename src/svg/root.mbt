@@ -23,9 +23,15 @@ fn add_aliases(used : Set[String], content : String) -> Unit {
 }
 
 ///|
-/// The root `svg` element up to its content, for content that uses the aliases in `used`: the
-/// start tag with its theme aliases and fonts, then the accessible name and description.
-fn document_start(
+/// The prefix of the ids of the accessible name and description.
+fn id_prefix(options : @types.RenderOptions) -> String {
+  esc(options.id_prefix.unwrap_or("pele"))
+}
+
+///|
+/// The root `svg` element's start tag, for content that uses the aliases in `used`, with its theme
+/// aliases and fonts, and pointing at the accessible name and description when there are any.
+fn document_tag(
   kind : String,
   width : Double,
   height : Double,
@@ -35,17 +41,12 @@ fn document_start(
   acc_descr : String?,
   used : Set[String],
 ) -> String {
-  let prefix = esc(options.id_prefix.unwrap_or("pele"))
-  let head = StringBuilder()
+  let prefix = id_prefix(options)
   let aria = StringBuilder()
   if acc_title is Some(title) && title != "" {
-    head.write_string(
-      "<title id=\"\{prefix}-title\">\{esc_text(title)}</title>",
-    )
     aria.write_string(" aria-labelledby=\"\{prefix}-title\"")
   }
   if acc_descr is Some(descr) && descr != "" {
-    head.write_string("<desc id=\"\{prefix}-desc\">\{esc_text(descr)}</desc>")
     aria.write_string(" aria-describedby=\"\{prefix}-desc\"")
   }
   let fit = if options.responsive is Some(false) {
@@ -66,7 +67,26 @@ fn document_start(
   let fonts = esc(
     font_style(font_size, options.font_family, options.font_family_mono),
   )
-  "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-\{kind}\" viewBox=\"0 0 \{width} \{height}\" width=\"\{width}\" height=\"\{height}\" style=\"\{fit}\{ROOT_STYLE}\{extra.to_string()}\{fonts}\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"\{kind}\"\{aria.to_string()}>" +
+  "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-\{kind}\" viewBox=\"0 0 \{width} \{height}\" width=\"\{width}\" height=\"\{height}\" style=\"\{fit}\{ROOT_STYLE}\{extra.to_string()}\{fonts}\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"\{kind}\"\{aria.to_string()}>"
+}
+
+///|
+/// The accessible name and description, which follow the root `svg` element's start tag.
+fn document_head(
+  options : @types.RenderOptions,
+  acc_title : String?,
+  acc_descr : String?,
+) -> String {
+  let prefix = id_prefix(options)
+  let head = StringBuilder()
+  if acc_title is Some(title) && title != "" {
+    head.write_string(
+      "<title id=\"\{prefix}-title\">\{esc_text(title)}</title>",
+    )
+  }
+  if acc_descr is Some(descr) && descr != "" {
+    head.write_string("<desc id=\"\{prefix}-desc\">\{esc_text(descr)}</desc>")
+  }
   head.to_string()
 }
 
@@ -85,9 +105,10 @@ pub fn svg_document(
 ) -> String {
   let used : Set[String] = Set([])
   add_aliases(used, content)
-  document_start(
+  document_tag(
     kind, width, height, font_size, options, acc_title, acc_descr, used,
   ) +
+  document_head(options, acc_title, acc_descr) +
   content +
   "</svg>"
 }
