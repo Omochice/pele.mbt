@@ -135,4 +135,5 @@ export const CASES = [
     `kanban\nc[Col]\n  k[${'$$x$$'.repeat(5400)}]\n`,
     { ...RAISED, math: { x: { 14: { svg: `<path d="${'M0 0'.repeat(25000)}"/>`, width: 0.001, height: 10 } } } },
   ],
+  ['agentflow', 'host icons in one agent label', `agentflow-beta TB\n  a["${Array(5400).fill('fa:fa-x').join(' ')}"]\n`, ICONS],
 ];
