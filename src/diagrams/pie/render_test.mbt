@@ -8,6 +8,33 @@ fn svg(source : String, max_width? : Double) -> String {
 }
 
 ///|
+/// "ok", or the code, message, type and Mermaid type of the error.
+fn outcome(source : String) -> String {
+  let options = @types.RenderOptions::default()
+  let _ = @core.render([@pie.pie], source, options) catch {
+    @errors.PeleError(failure) =>
+      return "\{failure.code.to_string()} \{failure.message} \{failure.kind.unwrap_or("-")} \{failure.mermaid_type.unwrap_or("-")}"
+  }
+  "ok"
+}
+
+///|
+test "a legend position nested deeper than String() goes in pele is a limit" {
+  let nested = (depth : Int32) => {
+    "%%{init: {\"pie\": {\"legendPosition\": " +
+    "[".repeat(depth) +
+    "\"left\"" +
+    "]".repeat(depth) +
+    "}}}%%\npie\n\"a\": 1"
+  }
+  inspect(outcome(nested(2800)), content="ok")
+  inspect(
+    outcome(nested(2801)),
+    content="limit Diagram is nested too deeply. pie pie",
+  )
+}
+
+///|
 test "a legend below the chart" {
   inspect(
     svg(
