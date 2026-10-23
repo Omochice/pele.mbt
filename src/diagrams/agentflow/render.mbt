@@ -109,7 +109,7 @@ pub fn render_agentflow(
   db : AgentflowDb,
   config : @types.Config,
   options : @types.RenderOptions,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   if @common.runs_across(db.direction) {
     @common.turn_to_fit(options, down => draw(db, config, options, down))
   } else {
@@ -124,7 +124,7 @@ fn draw(
   config : @types.Config,
   options : @types.RenderOptions,
   turned : Bool,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   let graph = agent_graph(db, config)
   let section = agentflow_section(config)
   let size = options.font_size.unwrap_or(16)
@@ -418,8 +418,8 @@ fn draw(
       @svg.mark_crossings(crossings, route)
     }
   }
-  let clusters = StringBuilder()
-  let nodes_out = StringBuilder()
+  let clusters = @svg.Markup::new()
+  let nodes_out = @svg.Markup::new()
   for i, view in views {
     let c = cnodes[i]
     let node = view.node
@@ -433,13 +433,13 @@ fn draw(
         crossings,
         GROUP_PAD,
       )
-      clusters.write_string(
+      clusters.write(
         "<g class=\"pele-cluster pele-flow\{classes}\" data-id=\"\{id}\">",
       )
-      clusters.write_string(
+      clusters.write(
         "<rect x=\"\{@svg.num(c.x - c.w / 2)}\" y=\"\{@svg.num(c.y - c.h / 2)}\" width=\"\{@svg.num(c.w)}\" height=\"\{@svg.num(c.h)}\"\{@svg.rounded(tint(container_slot, "0.06", view.style) + view.style.shape)}/>",
       )
-      clusters.write_string(
+      clusters.write(
         @svg.label_svg(
           view.label,
           title_x,
@@ -448,7 +448,7 @@ fn draw(
           icons?=options.icons,
         ),
       )
-      clusters.write_string("</g>")
+      clusters.write("</g>")
       continue
     }
     let w = view.w
@@ -508,12 +508,12 @@ fn draw(
       }
       body = @url.linked(body, link, node.id, links, options, attrs~)
     }
-    nodes_out.write_string(
+    nodes_out.write(
       "<g class=\"pele-node pele-shape-\{view.shape}\{kind}\{classes}\" data-id=\"\{id}\" transform=\"translate(\{@svg.num(c.x)},\{@svg.num(c.y)})\">\{body}</g>",
     )
   }
-  let edges_out = StringBuilder()
-  let labels_out = StringBuilder()
+  let edges_out = @svg.Markup::new()
+  let labels_out = @svg.Markup::new()
   let put = (
     edge : GraphEdge,
     label : @text.Label,
@@ -544,22 +544,22 @@ fn draw(
       Some(style) => style.line
       None => ""
     }
-    edges_out.write_string(
+    edges_out.write(
       "<g class=\"pele-edge pele-edge-\{kind}\{@flowchart.edge_classes(edge.classes)}\" data-id=\"\{@svg.esc_text(edge.id)}\"\{line}>",
     )
-    edges_out.write_string(
+    edges_out.write(
       "<path d=\"\{path.d}\"\{if dotted { " stroke-dasharray=\"3 4\"" } else { "" }}/>",
     )
-    edges_out.write_string(
+    edges_out.write(
       @svg.marker(end_type, path.ex, path.ey, path.edx, path.edy, color),
     )
-    edges_out.write_string("</g>")
+    edges_out.write("</g>")
     if label.width > 0 {
       let text = match style {
         Some(style) => style.text
         None => ""
       }
-      labels_out.write_string(
+      labels_out.write(
         @svg.edge_label_svg(edge.id, label, x, y, text, icons?=options.icons),
       )
     }
@@ -614,8 +614,8 @@ fn draw(
     let (x, y) = held_labels[i]
     put(h.edge, h.label, held_paths[i], x, y)
   }
-  let content = StringBuilder()
-  content.write_string(
+  let content = @svg.Markup::new()
+  content.write(
     @svg.label_svg(
       title,
       width / 2,
@@ -623,24 +623,24 @@ fn draw(
       " class=\"pele-title\" font-weight=\"var(--_tw)\"",
     ),
   )
-  let clusters_svg = clusters.to_string()
-  if clusters_svg != "" {
-    content.write_string("<g class=\"pele-clusters\">\{clusters_svg}</g>")
+  if !clusters.is_empty() {
+    content.write_group("<g class=\"pele-clusters\">", clusters, "</g>")
   }
-  let edges_svg = edges_out.to_string()
-  if edges_svg != "" {
-    content.write_string(
-      "<g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\">\{edges_svg}</g>",
+  if !edges_out.is_empty() {
+    content.write_group(
+      "<g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\">",
+      edges_out, "</g>",
     )
   }
-  let labels_svg = labels_out.to_string()
-  if labels_svg != "" {
-    content.write_string(
-      "<g class=\"pele-edge-labels\" font-size=\"\{edge_size}\">\{labels_svg}</g>",
+  if !labels_out.is_empty() {
+    content.write_group(
+      "<g class=\"pele-edge-labels\" font-size=\"\{edge_size}\">",
+      labels_out,
+      "</g>",
     )
   }
-  content.write_string("<g class=\"pele-nodes\">\{nodes_out.to_string()}</g>")
-  let svg = @svg.svg_document(
+  content.write_group("<g class=\"pele-nodes\">", nodes_out, "</g>")
+  let svg = @svg.markup_document(
     "agentflow",
     width,
     height,
@@ -648,7 +648,7 @@ fn draw(
     options,
     db.acc_title,
     db.acc_descr,
-    content.to_string(),
+    content,
   )
   { svg, width, height, links, }
 }

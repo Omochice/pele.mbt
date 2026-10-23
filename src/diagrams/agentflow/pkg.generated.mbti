@@ -18,7 +18,7 @@ pub fn parse_agentflow(String, AgentflowDb, raw? : Bool) -> Unit raise @errors.P
 
 pub fn parse_model(String, Map[String, Json], String?, Int32, @types.ParseLimits) -> AgentflowDb raise @errors.PeleError
 
-pub fn render_agentflow(AgentflowDb, Map[String, Json], @types.RenderOptions) -> @types.Rendered
+pub fn render_agentflow(AgentflowDb, Map[String, Json], @types.RenderOptions) -> @types.Rendered raise @errors.PeleError
 
 pub let token_names : Array[String]
 
