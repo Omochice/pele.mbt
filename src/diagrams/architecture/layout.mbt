@@ -1,8 +1,7 @@
-// Grid placement. Mermaid hands the edge sides to a force-directed solver as relative placement
-// constraints. Pele applies them directly: every service and junction takes a cell, an edge
-// `a:R -- L:b` puts b in the cell to the right of a, and a group is a solid rectangle of cells, so a
-// group never encloses a node that is not in it. Each container (the diagram, then every group) is
-// laid out on its own, innermost first, and a finished group is placed in its parent as one block.
+// Grid placement.
+// Mermaid hands the edge sides to a force-directed solver as relative placement constraints.
+// Pele applies them directly: every service and junction takes a cell, an edge `a:R -- L:b` puts b in the cell to the right of a, and a group is a solid rectangle of cells, so a group never encloses a node that is not in it.
+// Each container (the diagram, then every group) is laid out on its own, innermost first, and a finished group is placed in its parent as one block.
 
 ///|
 /// Cells of the nodes and groups, in the order they were passed in.
@@ -12,7 +11,8 @@ pub(all) struct Grid {
   row : Array[Int32]
   group_col : Array[Int32]
   group_row : Array[Int32]
-  /// The size of each group in cells. A group with nothing in it takes one cell.
+  /// The size of each group in cells.
+  /// A group with nothing in it takes one cell.
   group_cols : Array[Int32]
   group_rows : Array[Int32]
   group_parent : Array[Int32]
@@ -53,8 +53,8 @@ fn cell_key(cx : Int32, cy : Int32) -> Int64 {
 }
 
 ///|
-/// A link asks for one node to sit beside another. It belongs to the innermost container that
-/// holds both ends, and there it relates the two children of that container the ends are in.
+/// A link asks for one node to sit beside another.
+/// It belongs to the innermost container that holds both ends, and there it relates the two children of that container the ends are in.
 priv struct Links {
   node_a : Array[Int32]
   node_b : Array[Int32]
@@ -266,8 +266,8 @@ pub fn place_on_grid(
     -1
   }
 
-  // How far a block must slide along (sx, sy) to be clear. Each step jumps past what it hit, and
-  // the result is kept, because a later block starting from the same place cannot stop sooner.
+  // How far a block must slide along (sx, sy) to be clear.
+  // Each step jumps past what it hit, and the result is kept, because a later block starting from the same place cannot stop sooner.
   fn slide(
     rx : Int32,
     ry : Int32,

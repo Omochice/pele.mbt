@@ -456,9 +456,9 @@ fn draw(
     }
   }
 
-  // Room around each group, kept on the rows and columns at its edges. A group that shares an
-  // edge with a group inside it stands that much further out. Children come after their parents,
-  // so walking backwards settles every group before the one that holds it.
+  // Room around each group, kept on the rows and columns at its edges.
+  // A group that shares an edge with a group inside it stands that much further out.
+  // Children come after their parents, so walking backwards settles every group before the one that holds it.
   let group_labels : Array[@text.Label] = []
   let c0 = Array::make(g_count, 0)
   let c1 = Array::make(g_count, 0)
