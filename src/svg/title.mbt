@@ -17,8 +17,23 @@ pub fn with_title(
   height : Double,
   content : String,
 ) -> Titled {
-  ignore((title, measurer, size, pad))
-  { width, height, content, }
+  let label = title_label(title, measurer, size, 4000)
+  if label.height == 0 {
+    return { width, height, content, }
+  }
+  let shift = label.height + 12
+  let full = @util.js_max(width, (label.width + 2 * pad).ceil())
+  {
+    width: full,
+    height: (height + shift).ceil(),
+    content: label_svg(
+      label,
+      full / 2,
+      pad + label.height / 2,
+      " class=\"pele-title\" font-weight=\"var(--_tw)\"",
+    ) +
+    "<g transform=\"translate(\{num((full - width) / 2)},\{num(shift)})\">\{content}</g>",
+  }
 }
 
 ///|
