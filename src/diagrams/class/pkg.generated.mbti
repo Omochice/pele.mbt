@@ -7,6 +7,46 @@ pub fn tokenize(String) -> Tokens
 // Errors
 
 // Types and methods
+pub struct ClassDb {
+  mut direction : String
+  classes : Map[String, ClassNode]
+  relations : Array[ClassRelation]
+  notes : Map[String, ClassNote]
+  namespaces : Map[String, NamespaceNode]
+  interfaces : Array[ClassInterface]
+  style_classes : Map[String, StyleClass]
+  title : String?
+  mut acc_title : String?
+  mut acc_descr : String?
+}
+pub fn ClassDb::add_annotation(Self, String, String) -> Unit
+pub fn ClassDb::add_class(Self, String) -> Unit
+pub fn ClassDb::add_classes_to_namespace(Self, String, Array[String], Array[String]) -> Unit
+pub fn ClassDb::add_member(Self, String, String) -> Unit
+pub fn ClassDb::add_members(Self, String, Array[String]) -> Unit
+pub fn ClassDb::add_namespace(Self, String, label? : String) -> String
+pub fn ClassDb::add_note(Self, String, class_id? : String) -> String
+pub fn ClassDb::add_relation(Self, ClassRelation) -> Unit
+pub fn ClassDb::cleanup_label(Self, String) -> String
+pub fn ClassDb::define_class(Self, Array[String], Array[String]) -> Unit
+pub fn ClassDb::new(title? : String) -> Self
+pub fn ClassDb::pop_namespace(Self) -> Unit
+pub fn ClassDb::set_acc_description(Self, String) -> Unit
+pub fn ClassDb::set_acc_title(Self, String) -> Unit
+pub fn ClassDb::set_class_label(Self, String, String) -> Unit
+pub fn ClassDb::set_click_event(Self, String) -> Unit
+pub fn ClassDb::set_css_class(Self, String, String) -> Unit
+pub fn ClassDb::set_css_style(Self, String, Array[String]) -> Unit
+pub fn ClassDb::set_direction(Self, String) -> Unit
+pub fn ClassDb::set_link(Self, String, String, target? : String) -> Unit
+pub fn ClassDb::set_tooltip(Self, String, String?) -> Unit
+
+pub(all) struct ClassInterface {
+  id : String
+  label : String
+  class_id : String
+}
+
 pub struct ClassMember {
   id : String
   member_type : MemberType
@@ -19,6 +59,39 @@ pub fn ClassMember::css_style(Self) -> String
 pub fn ClassMember::display_details(Self) -> DisplayDetails
 pub fn ClassMember::new(String, MemberType) -> Self
 
+pub(all) struct ClassNode {
+  id : String
+  generic_type : String
+  mut label : String
+  mut css_classes : String
+  methods : Array[ClassMember]
+  members : Array[ClassMember]
+  annotations : Array[String]
+  styles : Array[String]
+  mut parent : String?
+  mut link : String?
+  mut link_target : String?
+  mut have_callback : Bool
+  mut tooltip : String?
+}
+
+pub(all) struct ClassNote {
+  id : String
+  class_id : String?
+  text : String
+  index : Int32
+  mut parent : String?
+}
+
+pub(all) struct ClassRelation {
+  mut id1 : String
+  mut id2 : String
+  mut relation_title1 : String
+  mut relation_title2 : String
+  title : String?
+  relation : RelationKind
+}
+
 pub(all) struct DisplayDetails {
   display_text : String
   css_style : String
@@ -27,6 +100,28 @@ pub(all) struct DisplayDetails {
 pub(all) enum MemberType {
   Method
   Attribute
+}
+
+pub(all) struct NamespaceNode {
+  id : String
+  mut label : String
+  classes : Map[String, ClassNode]
+  notes : Map[String, ClassNote]
+  children : Map[String, NamespaceNode]
+  mut parent : String?
+  mut explicit : Bool
+}
+
+pub(all) struct RelationKind {
+  type1 : Int32?
+  type2 : Int32?
+  line_type : Int32
+}
+
+pub(all) struct StyleClass {
+  id : String
+  styles : Array[String]
+  text_styles : Array[String]
 }
 
 pub(all) enum Tok {
