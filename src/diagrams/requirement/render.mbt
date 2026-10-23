@@ -135,9 +135,9 @@ fn write_start_text(
       } else {
         ""
       }
-      body.write(
-        "<tspan\{pos}\{@svg.span_style(span.style & shared.lnot())}>\{@svg.esc(span.text)}</tspan>",
-      )
+      body.write("<tspan\{pos}\{@svg.span_style(span.style & shared.lnot())}>")
+      @svg.write_esc(body, span.text)
+      body.write("</tspan>")
       first = false
     }
   }
@@ -504,8 +504,12 @@ fn draw(
     } else {
       "pele-element"
     }
+    nodes_out.write(
+      "<g class=\"pele-node \{kind_class}\{@svg.node_class_names(view.node.css_classes)}\"",
+    )
+    @svg.write_data_id(nodes_out, view.node.id)
     nodes_out.write_group(
-      "<g class=\"pele-node \{kind_class}\{@svg.node_class_names(view.node.css_classes)}\" data-id=\"\{@svg.esc_text(view.node.id)}\" transform=\"translate(\{n(cnodes[i].x + ox)},\{n(cnodes[i].y + oy)})\">",
+      " transform=\"translate(\{n(cnodes[i].x + ox)},\{n(cnodes[i].y + oy)})\">",
       body,
       "</g>",
     )
@@ -606,10 +610,17 @@ fn draw(
     } else {
       arrow_marker(path.ex, path.ey, path.edx, path.edy)
     }
-    edges_out.write(
-      "<g class=\"pele-edge pele-relationship-\{relationship}\" data-id=\"\{@svg.esc_text(edge.id)}\"><path d=\"\{path.d}\"\{dash}/>\{mark}</g>",
+    edges_out.write("<g class=\"pele-edge pele-relationship-\{relationship}\"")
+    @svg.write_data_id(edges_out, edge.id)
+    edges_out.write("><path d=\"\{path.d}\"\{dash}/>\{mark}</g>")
+    @svg.write_edge_label_with_id(
+      labels_out,
+      edge.id,
+      edge_label,
+      label_x,
+      label_y,
+      "",
     )
-    @svg.write_edge_label(labels_out, edge.id, edge_label, label_x, label_y, "")
   }
   let content = @svg.Markup::new()
   @svg.write_label(
