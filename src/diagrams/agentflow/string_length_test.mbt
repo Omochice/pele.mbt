@@ -47,3 +47,40 @@ test "an agent label drawing a host icon in each of thousands of spans fails as 
     content="limit: Diagram is nested too deeply. agentflow agentflow",
   )
 }
+
+///|
+/// The outcome of rendering `source` with no limit on the source, or the error it fails with.
+fn backtrack_outcome(source : String) -> String {
+  try {
+    @core.render([@agentflow.agentflow], source, {
+      ..@types.RenderOptions::default(),
+      limit: Some(1.0 / 0.0),
+    })
+    |> ignore
+    "rendered"
+  } catch {
+    @errors.PeleError(failure) =>
+      "\{failure.code.to_string()}: \{failure.message} \{failure.kind.unwrap_or("null")} \{failure.mermaid_type.unwrap_or("null")}"
+  }
+}
+
+///|
+#skip("slow: lexes eight million line breaks")
+test "line breaks after the keyword fail as nested too deeply where pele's pattern runs out of V8's backtracking stack" {
+  inspect(
+    backtrack_outcome("agentflow-beta\{"\n".repeat(8388590)}a\n"),
+    content="rendered",
+  )
+  inspect(
+    backtrack_outcome("agentflow-beta\{"\n".repeat(8388591)}a\n"),
+    content="limit: Diagram is nested too deeply. agentflow agentflow",
+  )
+  inspect(
+    backtrack_outcome("agentflow-beta\{"\n".repeat(8388589)} \na\n"),
+    content="rendered",
+  )
+  inspect(
+    backtrack_outcome("agentflow-beta\{"\n".repeat(8388590)} \na\n"),
+    content="limit: Diagram is nested too deeply. agentflow agentflow",
+  )
+}

@@ -270,6 +270,19 @@ export const CASES = [
   lazy('wardley', 'a component name at V8\'s backtracking stack', () => `wardley-beta\ncomponent ${'a'.repeat(8388591)} [0.5, 0.5]\n`, RAISED),
   lazy('wardley', 'a component name of many words just short of V8\'s backtracking stack', () => `wardley-beta\ncomponent a${' a'.repeat(3355435)} [0.5, 0.5]\n`, RAISED),
   lazy('wardley', 'a component name of many words at V8\'s backtracking stack', () => `wardley-beta\ncomponent a${' a'.repeat(3355436)} [0.5, 0.5]\n`, RAISED),
+  // A flowchart reads a run of line breaks with `(?:\r?\n)+`, and the line breaks after its keyword
+  // with `(?:\r?\n)*\s*\n`, taking two slots for each; the second takes two more when the blanks
+  // after the run hold another line break.
+  lazy('flowchart', 'line breaks just short of V8\'s backtracking stack', () => `graph TD\nA${'\n'.repeat(8388591)}B\n`, RAISED),
+  lazy('flowchart', 'line breaks at V8\'s backtracking stack', () => `graph TD\nA${'\n'.repeat(8388592)}B\n`, RAISED),
+  lazy('flowchart', 'line breaks after the keyword just short of V8\'s backtracking stack', () => `graph${'\n'.repeat(8388590)}A\n`, RAISED),
+  lazy('flowchart', 'line breaks after the keyword at V8\'s backtracking stack', () => `graph${'\n'.repeat(8388591)}A\n`, RAISED),
+  lazy('flowchart', 'line breaks and a blank line after the keyword just short of V8\'s backtracking stack', () => `graph${'\n'.repeat(8388589)} \nA\n`, RAISED),
+  lazy('flowchart', 'line breaks and a blank line after the keyword at V8\'s backtracking stack', () => `graph${'\n'.repeat(8388590)} \nA\n`, RAISED),
+  lazy('agentflow', 'line breaks after the keyword just short of V8\'s backtracking stack', () => `agentflow-beta${'\n'.repeat(8388590)}a\n`, RAISED),
+  lazy('agentflow', 'line breaks after the keyword at V8\'s backtracking stack', () => `agentflow-beta${'\n'.repeat(8388591)}a\n`, RAISED),
+  lazy('agentflow', 'line breaks and a blank line after the keyword just short of V8\'s backtracking stack', () => `agentflow-beta${'\n'.repeat(8388589)} \na\n`, RAISED),
+  lazy('agentflow', 'line breaks and a blank line after the keyword at V8\'s backtracking stack', () => `agentflow-beta${'\n'.repeat(8388590)} \na\n`, RAISED),
   lazy('architecture', 'a title past V8', () => `architecture-beta\ntitle ${'"'.repeat(90000000)}\nservice s(server)[x]\n`, RAISED),
   lazy('wardley', 'a title past V8', () => `wardley-beta\ntitle ${'"'.repeat(90000000)}\ncomponent A [0.2, 0.2]\n`, RAISED),
   lazy('railroad', 'a title past V8', () => `railroad-peg-beta\ntitle ${'"'.repeat(90000000)}\nr <- "a" ;\n`, RAISED),

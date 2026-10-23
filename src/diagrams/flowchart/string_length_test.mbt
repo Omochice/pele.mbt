@@ -93,3 +93,53 @@ test "a node label longer than a doubling StringBuilder holds is drawn" {
     ).svg
   inspect(svg.length(), content="300835316")
 }
+
+///|
+/// The outcome of rendering `source` with no limit on the source, or the error it fails with.
+fn backtrack_outcome(source : String) -> String {
+  try {
+    @core.render([@flowchart.flowchart], source, {
+      ..@types.RenderOptions::default(),
+      limit: Some(1.0 / 0.0),
+    })
+    |> ignore
+    "rendered"
+  } catch {
+    @errors.PeleError(failure) =>
+      "\{failure.code.to_string()}: \{failure.message} \{failure.kind.unwrap_or("null")} \{failure.mermaid_type.unwrap_or("null")}"
+  }
+}
+
+///|
+#skip("slow: lexes eight million line breaks")
+test "a run of line breaks fails as nested too deeply where pele's pattern runs out of V8's backtracking stack" {
+  inspect(
+    backtrack_outcome("graph TD\nA\{"\n".repeat(8388591)}B\n"),
+    content="rendered",
+  )
+  inspect(
+    backtrack_outcome("graph TD\nA\{"\n".repeat(8388592)}B\n"),
+    content="limit: Diagram is nested too deeply. flowchart flowchart-v2",
+  )
+}
+
+///|
+#skip("slow: lexes eight million line breaks")
+test "line breaks after the keyword fail as nested too deeply where pele's pattern runs out of V8's backtracking stack" {
+  inspect(
+    backtrack_outcome("graph\{"\n".repeat(8388590)}A\n"),
+    content="rendered",
+  )
+  inspect(
+    backtrack_outcome("graph\{"\n".repeat(8388591)}A\n"),
+    content="limit: Diagram is nested too deeply. flowchart flowchart-v2",
+  )
+  inspect(
+    backtrack_outcome("graph\{"\n".repeat(8388589)} \nA\n"),
+    content="rendered",
+  )
+  inspect(
+    backtrack_outcome("graph\{"\n".repeat(8388590)} \nA\n"),
+    content="limit: Diagram is nested too deeply. flowchart flowchart-v2",
+  )
+}
