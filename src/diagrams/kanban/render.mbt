@@ -200,11 +200,14 @@ pub fn render_kanban(
     own_width
   } else {
     @util.js_max(
-      @util.js_min(own_width, room),
-      @util.js_min(
-        ((room + COLUMN_GAP) / per_row).floor() - COLUMN_GAP,
-        own_width * 2,
+      @util.js_max(
+        @util.js_min(own_width, room),
+        @util.js_min(
+          ((room + COLUMN_GAP) / per_row).floor() - COLUMN_GAP,
+          own_width * 2,
+        ),
       ),
+      math_width.ceil(),
     )
   }
   let base_url = match conf.get("ticketBaseUrl") {
