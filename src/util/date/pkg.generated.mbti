@@ -1,0 +1,34 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Omochice/pele/util/date"
+
+// Values
+pub fn utc_time(Double, Double, Double, Double, Double, Double, Double) -> Double
+
+// Errors
+
+// Types and methods
+pub struct JsDate {
+  mut time : Double
+}
+pub fn JsDate::copy(Self) -> Self
+pub fn JsDate::date(Self) -> Double
+pub fn JsDate::day(Self) -> Double
+pub fn JsDate::from_local(Double, Double, day? : Double, hours? : Double, minutes? : Double, seconds? : Double, ms? : Double) -> Self
+pub fn JsDate::from_time(Double) -> Self
+pub fn JsDate::full_year(Self) -> Double
+pub fn JsDate::hours(Self) -> Double
+pub fn JsDate::milliseconds(Self) -> Double
+pub fn JsDate::minutes(Self) -> Double
+pub fn JsDate::month(Self) -> Double
+pub fn JsDate::seconds(Self) -> Double
+pub fn JsDate::set_date(Self, Double) -> Unit
+pub fn JsDate::set_full_year(Self, Double, month? : Double, date? : Double) -> Unit
+pub fn JsDate::set_hours(Self, Double, minutes? : Double, seconds? : Double, ms? : Double) -> Unit
+pub fn JsDate::set_month(Self, Double, date? : Double) -> Unit
+pub fn JsDate::set_time(Self, Double) -> Unit
+pub fn JsDate::timezone_offset(Self) -> Double
+pub fn JsDate::utc_seconds(Self) -> Double
+
+// Type aliases
+
+// Traits
