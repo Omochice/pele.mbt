@@ -409,6 +409,15 @@ export const CASES = [
   lazy('treemap', 'one leaf filled by many &', () => `treemap-beta\n"a": 1:::cc\nclassDef cc fill:${'&'.repeat(54000000)};\n`, RAISED),
   lazy('treemap', 'one section filled by many &', () => `treemap-beta\n"s":::cc\n  "a": 1\nclassDef cc fill:${'&'.repeat(54000000)};\n`, RAISED),
   lazy('treemap', 'one leaf colored by many &', () => `treemap-beta\n"a": 1:::cc\nclassDef cc color:${'&'.repeat(54000000)};\n`, RAISED),
+  // A block is labelled by its id unless it has a label, and an edge's id names both its ends.
+  lazy('block', 'one block named by many &, with a short label', () => `block-beta\n${'&'.repeat(54000000)}["x"]\n`, RAISED),
+  lazy('block', 'one block named past V8, with a short label', () => `block-beta\n${'&'.repeat(110000000)}["x"]\n`, RAISED),
+  lazy('block', 'one block named by many &', () => `block-beta\n${'&'.repeat(54000000)}\n`, RAISED),
+  lazy('block', 'an edge label from a block named by many &', () => `block-beta\n${'&'.repeat(54000000)}["x"] B\n${'&'.repeat(54000000)} -- "l" --> B\n`, RAISED),
+  lazy('block', 'one block colored by many &', () => `block-beta\nA\nstyle A color:${'&'.repeat(54000000)}\n`, RAISED),
+  lazy('block', 'one block colored past V8', () => `block-beta\nA\nstyle A color:${'&'.repeat(110000000)}\n`, RAISED),
+  lazy('block', 'one block filled by many &', () => `block-beta\nA\nstyle A fill:${'&'.repeat(54000000)}\n`, RAISED),
+  lazy('block', 'one block classed with a color of many &', () => `block-beta\nA\nclassDef c color:${'&'.repeat(54000000)};\nclass A c\n`, RAISED),
 ];
 
 // A case whose source is built only when the check reaches it, as a getter in the source's place,
