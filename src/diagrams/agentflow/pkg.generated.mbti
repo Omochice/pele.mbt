@@ -1,0 +1,21 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Omochice/pele/diagrams/agentflow"
+
+// Values
+pub let token_names : Array[String]
+
+pub fn tokenize(String) -> Tokens
+
+// Errors
+
+// Types and methods
+pub(all) struct Tokens {
+  types : Array[Int32]
+  texts : Array[String]
+  starts : Array[Int32]
+  locs : Array[Int32]
+}
+
+// Type aliases
+
+// Traits
