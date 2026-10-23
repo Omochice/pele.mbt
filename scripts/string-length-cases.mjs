@@ -65,4 +65,10 @@ export const CASES = [
     `C4Context\n${names('p', 2100).map((name) => `Person(${name}, "${'fa:fa-a '.repeat(1000)}")`).join('\n')}\n`,
     { ...RAISED, icons: { 'fa:fa-a': '<path d="M4,4H20"/>' } },
   ],
+  [
+    'cynefin',
+    'items drawing a host icon',
+    `cynefin-beta\ncomplex\n${names('i', 10700).map((name) => `  "fa:fa-big ${name}"`).join('\n')}\n`,
+    { ...RAISED, icons: { 'fa:fa-big': `<path d="M0,0${'H1'.repeat(25000)}"/>` } },
+  ],
 ];
