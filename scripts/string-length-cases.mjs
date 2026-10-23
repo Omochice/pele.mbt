@@ -292,6 +292,12 @@ export const CASES = [
   lazy('pie', 'a directive without a colon at V8\'s backtracking stack', () => `%%{wrap ${'!'.repeat(8388579)}}%%\npie\n"a": 1\n`, RAISED),
   lazy('pie', 'an unclosed directive before trailing line breaks just short of V8\'s backtracking stack', () => `pie\n"a": 1\n%%{init: ${'!'.repeat(8388574)}\n\n\n`, RAISED),
   lazy('pie', 'an unclosed directive before trailing line breaks at V8\'s backtracking stack', () => `pie\n"a": 1\n%%{init: ${'!'.repeat(8388575)}\n\n\n`, RAISED),
+  // Every diagram checks the host's font lists with a pattern that takes eleven slots for each font
+  // after the first, whatever its quotes and blanks, as it draws its root element.
+  ['pie', 'a font list just short of V8\'s backtracking stack', 'pie\n"a": 1\n', { ...RAISED, fontFamily: `a${',a'.repeat(1525197)}` }],
+  ['pie', 'a font list at V8\'s backtracking stack', 'pie\n"a": 1\n', { ...RAISED, fontFamily: `a${',a'.repeat(1525198)}` }],
+  ['pie', 'a monospace font list just short of V8\'s backtracking stack', 'pie\n"a": 1\n', { ...RAISED, fontFamilyMono: `"a"${", 'b c'".repeat(1525197)}` }],
+  ['pie', 'a monospace font list at V8\'s backtracking stack', 'pie\n"a": 1\n', { ...RAISED, fontFamilyMono: `"a"${", 'b c'".repeat(1525198)}` }],
   // A YAML plain scalar cannot start with `"`, so a front matter title of `"` starts with `x`.
   lazy('flowchart', 'a front matter title past V8', () => `---\ntitle: x${'"'.repeat(90000000)}\n---\ngraph TD\nA\n`, RAISED),
   lazy('swimlane', 'a front matter title past V8', () => `---\ntitle: x${'"'.repeat(90000000)}\n---\nswimlane-beta TB\nsubgraph L\nA\nend\n`, RAISED),
