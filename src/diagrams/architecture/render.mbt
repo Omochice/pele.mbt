@@ -930,13 +930,12 @@ fn draw(
     body.write_group("<g class=\"pele-nodes\">", nodes_out, "</g>")
   }
   let content = @svg.Markup::new()
-  content.write(
-    @svg.label_svg(
-      title,
-      width / 2,
-      pad + title.height / 2,
-      " class=\"pele-title\" font-weight=\"var(--_tw)\"",
-    ),
+  @svg.write_label(
+    content,
+    title,
+    width / 2,
+    pad + title.height / 2,
+    " class=\"pele-title\" font-weight=\"var(--_tw)\"",
   )
   if !body.is_empty() {
     content.write_group(
