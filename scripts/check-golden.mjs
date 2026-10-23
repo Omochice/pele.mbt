@@ -9,6 +9,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { isDeepStrictEqual, parseArgs } from 'node:util';
+import { loadPlugin } from './plugin-host.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const goldenDir = join(root, 'golden');
@@ -36,33 +37,12 @@ const profiles = Object.entries(manifest.profiles)
     optionBytes: Buffer.from(JSON.stringify(options)),
   }));
 
-if (!existsSync(wasmPath)) {
-  console.error(`missing ${wasmPath}; run \`moon build --target wasm --release\` first`);
+let call;
+try {
+  ({ call } = loadPlugin(wasmPath));
+} catch (error) {
+  console.error(error.message);
   process.exit(1);
-}
-const module = new WebAssembly.Module(readFileSync(wasmPath));
-const foreign = WebAssembly.Module.imports(module).filter((i) => i.module !== 'typst_env');
-if (foreign.length > 0) {
-  console.error('the plugin imports more than typst_env:', foreign);
-  process.exit(1);
-}
-
-// A fresh instance per call, because a trapped instance is left in an undefined state.
-function call(source, optionBytes) {
-  const args = Buffer.concat([source, optionBytes]);
-  let instance;
-  let result;
-  const memory = () => new Uint8Array(instance.exports.memory.buffer);
-  instance = new WebAssembly.Instance(module, {
-    typst_env: {
-      wasm_minimal_protocol_write_args_to_buffer: (ptr) => memory().set(args, ptr),
-      wasm_minimal_protocol_send_result_to_host: (ptr, len) => {
-        result = Buffer.from(memory().slice(ptr, ptr + len)).toString('utf8');
-      },
-    },
-  });
-  const code = instance.exports.render(source.length, optionBytes.length);
-  return { code, result };
 }
 
 function excerpt(text, at) {
