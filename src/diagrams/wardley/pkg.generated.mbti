@@ -4,12 +4,17 @@ package "Omochice/pele/diagrams/wardley"
 import {
   "Omochice/pele/diagrams/common",
   "Omochice/pele/errors",
+  "Omochice/pele/types",
 }
 
 // Values
 pub fn build_wardley(WardleyAst, String?) -> WardleyModel raise @errors.PeleError
 
 pub fn parse_wardley(String) -> WardleyAst raise @errors.PeleError
+
+pub fn render_wardley(WardleyModel, Map[String, Json], @types.RenderOptions) -> @types.Rendered
+
+pub let wardley : @types.Diagram
 
 pub let wardley_tokens : Array[@common.TokenType]
 
