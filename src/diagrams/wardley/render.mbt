@@ -134,6 +134,9 @@ fn start_label(
   for line in label.lines {
     let mut first = true
     for span in line {
+      if span.icon is Some(_) {
+        continue
+      }
       let style = @svg.span_style(span.style & shared.lnot())
       let at = if first {
         " x=\"\{@svg.num(x)}\" y=\"\{@svg.num(baseline)}\""
@@ -226,7 +229,7 @@ fn draw(
       cx + label.width / 2,
       cy + label.height / 2,
     )
-    @svg.label_svg(label, cx, cy, attrs)
+    @svg.label_svg(label, cx, cy, attrs, icons?=options.icons)
   }
   let starting = (label : @text.Label, x : Double, y : Double, attrs : String) => {
     bounds.grow(
