@@ -174,7 +174,7 @@ pub(all) struct FlowVariant {
   kind : String
   prepare : (FlowGraph) -> Unit
   layout : (Array[@layout.CNode], Array[@layout.CEdge], @layout.Dir, @layout.LayeredOptions, Bool) -> @layout.CompoundResult
-  draw_group : ((@layout.CNode, @text.Label, @svg.ResolvedStyle, String, String, @layout.Dir, ((String) -> String?)?) -> String)?
+  draw_group : ((@svg.Markup, @layout.CNode, @text.Label, @svg.ResolvedStyle, String, String, @layout.Dir, ((String) -> String?)?) -> Unit raise @errors.PeleError)?
 }
 
 pub(all) struct GraphEdge {

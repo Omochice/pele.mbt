@@ -49,6 +49,7 @@ fn prepare(graph : @flowchart.FlowGraph) -> Unit {
 ///|
 /// A lane: an outline the length of the diagram, with its title in a band at the start.
 fn draw_lane(
+  out : @svg.Markup,
   c : @layout.CNode,
   label : @text.Label,
   style : @svg.ResolvedStyle,
@@ -56,13 +57,15 @@ fn draw_lane(
   id : String,
   dir : @layout.Dir,
   icons : @types.IconResolver?,
-) -> String {
+) -> Unit raise @errors.PeleError {
   let left = c.x - c.w / 2
   let top = c.y - c.h / 2
   let sideways = dir is (LR | RL)
   let cx = if sideways { left + c.pad_top / 2 } else { c.x }
   let cy = if sideways { c.y } else { top + c.pad_top / 2 }
-  let text = @svg.label_svg(
+  let text = @svg.Markup::new()
+  @svg.write_label(
+    text,
     label,
     cx,
     cy,
@@ -71,16 +74,21 @@ fn draw_lane(
   )
   let band_w = if sideways { c.pad_top } else { c.w }
   let band_h = if sideways { c.h } else { c.pad_top }
-  let title = if sideways && text != "" {
-    "<g transform=\"rotate(-90 \{@svg.num(cx)} \{@svg.num(cy)})\">\{text}</g>"
+  out.write(
+    "<g class=\"pele-cluster pele-lane\{classes}\" data-id=\"\{id}\">" +
+    "<rect x=\"\{@svg.num(left)}\" y=\"\{@svg.num(top)}\" width=\"\{@svg.num(c.w)}\" height=\"\{@svg.num(c.h)}\" fill=\"none\" stroke=\"var(--_b)\"/>" +
+    "<rect x=\"\{@svg.num(left)}\" y=\"\{@svg.num(top)}\" width=\"\{@svg.num(band_w)}\" height=\"\{@svg.num(band_h)}\" fill=\"var(--_a)\" stroke=\"var(--_b)\"\{style.shape}/>",
+  )
+  if sideways && !text.is_empty() {
+    out.write_group(
+      "<g transform=\"rotate(-90 \{@svg.num(cx)} \{@svg.num(cy)})\">",
+      text,
+      "</g>",
+    )
   } else {
-    text
+    out.write_markup(text)
   }
-  "<g class=\"pele-cluster pele-lane\{classes}\" data-id=\"\{id}\">" +
-  "<rect x=\"\{@svg.num(left)}\" y=\"\{@svg.num(top)}\" width=\"\{@svg.num(c.w)}\" height=\"\{@svg.num(c.h)}\" fill=\"none\" stroke=\"var(--_b)\"/>" +
-  "<rect x=\"\{@svg.num(left)}\" y=\"\{@svg.num(top)}\" width=\"\{@svg.num(band_w)}\" height=\"\{@svg.num(band_h)}\" fill=\"var(--_a)\" stroke=\"var(--_b)\"\{style.shape}/>" +
-  title +
-  "</g>"
+  out.write("</g>")
 }
 
 ///|
