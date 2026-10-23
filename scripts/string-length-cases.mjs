@@ -93,4 +93,6 @@ export const CASES = [
   ['eventmodeling', 'time frames sharing long data', `eventmodeling\n${names('', 999).map((_, i) => `tf ${i + 1} evt E [[D]]`).join('\n')}\ndata D {\n  f: '${'&'.repeat(94000)}'\n}\n`, RAISED],
   // Drawn down, after it is drawn across, because the host is narrow.
   ['eventmodeling', 'time frames sharing long data, drawn down', `eventmodeling\n${names('', 549).map((_, i) => `tf ${i + 1} evt E [[D]]`).join('\n')}\ndata D {\n  f: '${'&'.repeat(94000)}'\n}\n`, { ...RAISED, maxWidth: 300 }],
+  ['ishikawa', 'long causes', `ishikawa-beta\nProblem\n${names('C', 1090).map((name) => `${name}${'&'.repeat(50000)}`).join('\n')}\n`, RAISED],
+  ['ishikawa', 'long causes, drawn down', `ishikawa-beta\nProblem\n${names('C', 545).map((name) => `${name}${'&'.repeat(50000)}`).join('\n')}\n`, { ...RAISED, maxWidth: 300 }],
 ];
