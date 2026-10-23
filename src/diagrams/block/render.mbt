@@ -980,15 +980,17 @@ fn draw(
       @svg.write_style(nodes, v.style.shape)
       nodes.write("/>")
     } else {
-      @svg.write_shape_styled(
+      let slots = v.style.slots()
+      @svg.write_styled(
         nodes,
-        v.shape,
-        v.bw,
-        v.bh,
-        SHAPE_ATTRS,
-        v.style.shape,
-        LINE_ATTRS,
-        v.style.line,
+        @svg.draw_shape(
+          v.shape,
+          v.bw,
+          v.bh,
+          SHAPE_ATTRS + slots.shape,
+          LINE_ATTRS + slots.line,
+        ),
+        v.style,
       )
     }
     @svg.write_label_styled(

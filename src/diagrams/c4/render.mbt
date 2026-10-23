@@ -255,7 +255,11 @@ fn draw(
     let write_marker = (x : Double, y : Double, dx : Double, dy : Double) => {
       match style.stroke {
         Some(stroke) if stroke != "" =>
-          @svg.write_marker_esc(edges_out, "arrow_point", x, y, dx, dy, stroke)
+          @svg.write_styled(
+            edges_out,
+            @svg.marker("arrow_point", x, y, dx, dy, @svg.STROKE_CSS),
+            style,
+          )
         _ =>
           edges_out.write(@svg.marker("arrow_point", x, y, dx, dy, "var(--_l)"))
       }
@@ -550,15 +554,17 @@ fn draw(
       let mut y = dy - node.text_h / 2
       let fill = if external { "--_bg" } else { "--_s" }
       let body = @svg.Markup::new()
-      @svg.write_shape_styled(
+      let slots = style.slots()
+      @svg.write_styled(
         body,
-        form,
-        w,
-        h,
-        " fill=\"var(\{fill})\"\{stroke}",
-        style.shape,
-        stroke,
-        style.line,
+        @svg.draw_shape(
+          form,
+          w,
+          h,
+          " fill=\"var(\{fill})\"\{stroke}" + slots.shape,
+          stroke + slots.line,
+        ),
+        style,
       )
       @svg.write_label_styled(
         body,

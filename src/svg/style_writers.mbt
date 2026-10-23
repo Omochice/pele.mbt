@@ -98,66 +98,82 @@ pub fn write_rounded_style(
 }
 
 ///|
-/// What stands in for the escaped CSS of a shape's fill and border while `draw_shape` draws it.
-/// No drawing holds a NUL, which XML forbids.
-const SHAPE_CSS : String = "\u{0}a\u{0}"
+/// Where the escaped CSS of a shape's fill and border goes in markup put together as a string and
+/// written with `write_styled`.
+/// Each stand-in begins with a NUL, which escaping drops and XML forbids, so no escaped text and
+/// no markup the port makes holds one.
+pub const SHAPE_CSS : String = "\u{0}s"
 
 ///|
-/// What stands in for the escaped CSS of a shape's inner strokes while `draw_shape` draws it.
-const LINE_CSS : String = "\u{0}l\u{0}"
+/// Where the escaped CSS of a shape's inner lines goes, as `SHAPE_CSS` stands for its shape's.
+pub const LINE_CSS : String = "\u{0}l"
 
 ///|
-fn stand_in(css : String, mark : String) -> String {
+/// Where the escaped CSS of a text goes, as `SHAPE_CSS` stands for its shape's.
+pub const TEXT_CSS : String = "\u{0}t"
+
+///|
+/// Where the escaped stroke color goes, as `SHAPE_CSS` stands for the shape's CSS.
+pub const STROKE_CSS : String = "\u{0}k"
+
+///|
+fn slot_attribute(css : String, slot : String) -> String {
   if css == "" {
     ""
   } else {
-    " style=\"" + mark + "\""
+    " style=\"" + slot + "\""
   }
 }
 
 ///|
-/// Writes the outline `draw_shape` draws when `a` and `line` are each followed by the `style`
-/// attribute `resolve_style` makes of `a_css` and `line_css`, escaping the CSS a piece at a time.
-/// The shape is drawn around stand-ins for the CSS, which a drawing only looks past, as `rounded`
-/// does to find where the `style` attribute starts.
-/// Raises pele's `limit` error when the markup would be longer than V8 allows.
-pub fn write_shape_styled(
-  out : Markup,
-  shape : String,
-  w : Double,
-  h : Double,
-  a : String,
-  a_css : String,
-  line : String,
-  line_css : String,
-) -> Unit raise @errors.PeleError {
-  let drawn = draw_shape(
-    shape,
-    w,
-    h,
-    a + stand_in(a_css, SHAPE_CSS),
-    line + stand_in(line_css, LINE_CSS),
-  )
-  let mut from = 0
-  let mut i = 0
-  while i < drawn.length() {
-    if drawn.unsafe_get(i).to_int() != 0 {
-      i += 1
-      continue
-    }
-    out.write(@util.slice(drawn, from, end=i))
-    write_esc(
-      out,
-      if drawn.unsafe_get(i + 1) == 'a' {
-        a_css
-      } else {
-        line_css
-      },
-    )
-    i += SHAPE_CSS.length()
-    from = i
+/// The attributes `resolve_style` makes of the same declarations, with each escaped CSS left as its
+/// stand-in, for markup put together as a string and written with `write_styled`.
+/// A drawing only looks past a stand-in, as `rounded` does to find where the `style` attribute
+/// starts, so the markup is drawn as it is around the escaped CSS.
+/// The stroke is left as the declarations give it, unescaped, for telling whether there is one.
+pub fn RawStyle::slots(self : RawStyle) -> ResolvedStyle {
+  {
+    shape: slot_attribute(self.shape, SHAPE_CSS),
+    line: slot_attribute(self.line, LINE_CSS),
+    text: slot_attribute(self.text, TEXT_CSS),
+    stroke: self.stroke,
+    bold: self.bold,
+    italic: self.italic,
+    font_size: self.font_size,
   }
-  out.write(@util.slice(drawn, from))
+}
+
+///|
+/// The text the stand-in in `template` at `at` stands for, unescaped.
+fn slot_value(template : String, at : Int32, css : RawStyle) -> String {
+  match @util.code_at(template, at + 1) {
+    's' => css.shape
+    'l' => css.line
+    't' => css.text
+    'k' => css.stroke.unwrap_or("")
+    _ => abort("not a style stand-in")
+  }
+}
+
+///|
+/// Writes `template` to `out` with each stand-in replaced by the CSS of `css` it stands for, escaped
+/// a piece at a time, since a style value of tens of millions of `&` escapes to more than a
+/// doubling StringBuilder holds.
+/// Raises pele's `limit` error when the markup would be longer than V8 allows.
+pub fn write_styled(
+  out : Markup,
+  template : String,
+  css : RawStyle,
+) -> Unit raise @errors.PeleError {
+  let mut from = 0
+  let mut at = @util.index_of(template, "\u{0}")
+  while at >= 0 {
+    out.write(@util.slice(template, from, end=at))
+    write_esc(out, slot_value(template, at, css))
+    from = at + 2
+    at = @util.index_of(template, "\u{0}", from~)
+  }
+  out.write(@util.slice(template, from))
 }
 
 ///|
@@ -211,31 +227,4 @@ pub fn style_contains(css : String, needle : String) -> Bool {
     }
   }
   feed("\"")
-}
-
-///|
-/// Writes the marker `marker` draws in the color `esc` makes of `color`, escaping it a piece at a
-/// time, since a color from the source can be tens of millions of `&` long.
-/// Raises pele's `limit` error when the markup would be longer than V8 allows.
-pub fn write_marker_esc(
-  out : Markup,
-  type_ : String,
-  x : Double,
-  y : Double,
-  dx : Double,
-  dy : Double,
-  color : String,
-) -> Unit raise @errors.PeleError {
-  let drawn = marker(type_, x, y, dx, dy, SHAPE_CSS)
-  let mut from = 0
-  while from < drawn.length() {
-    let at = @util.index_of(drawn, SHAPE_CSS, from~)
-    if at < 0 {
-      break
-    }
-    out.write(@util.slice(drawn, from, end=at))
-    write_esc(out, color)
-    from = at + SHAPE_CSS.length()
-  }
-  out.write(@util.slice(drawn, from))
 }

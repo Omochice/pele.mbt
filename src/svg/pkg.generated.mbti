@@ -17,6 +17,8 @@ pub const HOLD_LIMIT : Int32 = 400000000
 
 pub const LEAD : Double = 6
 
+pub const LINE_CSS : String = "\x00l"
+
 pub const MAX_STRING_LENGTH : Int32 = 536870888
 
 pub const PAD_X : Double = 18
@@ -28,6 +30,12 @@ pub const RADIUS : String = "var(--pele-radius,4px)"
 pub const ROOT_STYLE : String = "--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg)"
 
 pub const ROUNDED : String = " style=\"rx:var(--_r)\""
+
+pub const SHAPE_CSS : String = "\x00s"
+
+pub const STROKE_CSS : String = "\x00k"
+
+pub const TEXT_CSS : String = "\x00t"
 
 pub fn class_names(String) -> String
 
@@ -123,17 +131,15 @@ pub fn write_label_styled(Markup, @text.Label, Double, Double, String, String, i
 
 pub fn write_label_with_id(Markup, @text.Label, Double, Double, String, String, String, String, icons? : (String) -> String?) -> Unit raise @errors.PeleError
 
-pub fn write_marker_esc(Markup, String, Double, Double, Double, Double, String) -> Unit raise @errors.PeleError
-
 pub fn write_rounded_style(Markup, String) -> Unit raise @errors.PeleError
-
-pub fn write_shape_styled(Markup, String, Double, Double, String, String, String, String) -> Unit raise @errors.PeleError
 
 pub fn write_struck_title(Markup, @text.Label, Double, Double, String, String, Array[@layout.CNode], Int32, icons? : (String) -> String?) -> Unit raise @errors.PeleError
 
 pub fn write_struck_title_with_id(Markup, @text.Label, Double, Double, String, String, Array[@layout.CNode], Int32, icons? : (String) -> String?) -> Unit raise @errors.PeleError
 
 pub fn write_style(Markup, String) -> Unit raise @errors.PeleError
+
+pub fn write_styled(Markup, String, RawStyle) -> Unit raise @errors.PeleError
 
 // Errors
 
@@ -176,6 +182,7 @@ pub(all) struct RawStyle {
   italic : Bool
   font_size : Double?
 }
+pub fn RawStyle::slots(Self) -> ResolvedStyle
 
 pub(all) struct ResolvedStyle {
   shape : String
