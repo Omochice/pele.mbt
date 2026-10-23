@@ -5,7 +5,7 @@ pub fn render_packet(
   model : PacketModel,
   config : @types.Config,
   options : @types.RenderOptions,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   @common.turn_to_fit(options, down => draw(model, config, options, down))
 }
 
@@ -85,7 +85,7 @@ fn draw(
   config : @types.Config,
   options : @types.RenderOptions,
   down : Bool,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   let size = options.font_size.unwrap_or(16)
   let label_size = (size * 0.875).round()
   let bit_size = (size * 0.625).round()
@@ -206,8 +206,8 @@ fn draw(
     }
   }
   let left = pad + @util.js_max(0, (title.width - width) / 2)
-  let fields = StringBuilder()
-  let bits = StringBuilder()
+  let fields = @svg.Markup::new()
+  let bits = @svg.Markup::new()
   for index, row in rows {
     let y = pad + tops[index] + numbers
     let height = row_heights[index]
@@ -218,11 +218,11 @@ fn draw(
         (if descending { bits_per_row - first - count } else { first }) *
         bit_width
       let w = count * bit_width - gap
-      fields.write_string(
+      fields.write(
         "<g class=\"pele-node\" data-id=\"\{block.start}-\{block.end}\"><rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(w)}\" height=\"\{@svg.num(height)}\" fill=\"var(--_s)\" stroke=\"var(--_b)\"\{@svg.ROUNDED}/>",
       )
       if down {
-        fields.write_string(
+        fields.write(
           @svg.label_svg(labels[index][position], x + w / 2, y + height / 2, ""),
         )
       } else if fit(block.label, w - 6) is Some(text) && text.size <= height {
@@ -231,22 +231,22 @@ fn draw(
         } else {
           " font-size=\"\{@svg.num(text.size)}\""
         }
-        fields.write_string(
+        fields.write(
           "<text x=\"\{@svg.num(x + w / 2)}\" y=\"\{@svg.num(y + height / 2 + text.size * 0.35)}\"\{font_size}>\{@svg.esc(text.text)}</text>",
         )
       }
-      fields.write_string("</g>")
+      fields.write("</g>")
       if !show_bits {
         continue
       }
       let leading = if descending { block.end } else { block.start }
       let trailing = if descending { block.start } else { block.end }
       if count == 1 {
-        bits.write_string(
+        bits.write(
           "<text x=\"\{@svg.num(x + w / 2)}\" y=\"\{@svg.num(y - 4)}\" text-anchor=\"middle\">\{leading}</text>",
         )
       } else {
-        bits.write_string(
+        bits.write(
           "<text x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y - 4)}\">\{leading}</text><text x=\"\{@svg.num(x + w)}\" y=\"\{@svg.num(y - 4)}\" text-anchor=\"end\">\{trailing}</text>",
         )
       }
@@ -254,19 +254,23 @@ fn draw(
   }
   let total_width = (@util.js_max(width, title.width) + 2 * pad).ceil()
   let total_height = (rows_height + title_height + 2 * pad).ceil()
-  let content = StringBuilder()
-  if fields.to_string() != "" {
-    content.write_string(
-      "<g class=\"pele-packet-fields\" font-size=\"\{@svg.num(label_size)}\" text-anchor=\"middle\">\{fields.to_string()}</g>",
+  let content = @svg.Markup::new()
+  if !fields.is_empty() {
+    content.write_group(
+      "<g class=\"pele-packet-fields\" font-size=\"\{@svg.num(label_size)}\" text-anchor=\"middle\">",
+      fields,
+      "</g>",
     )
   }
-  if bits.to_string() != "" {
-    content.write_string(
-      "<g class=\"pele-packet-bits\" font-size=\"\{@svg.num(bit_size)}\" fill=\"var(--_m)\">\{bits.to_string()}</g>",
+  if !bits.is_empty() {
+    content.write_group(
+      "<g class=\"pele-packet-bits\" font-size=\"\{@svg.num(bit_size)}\" fill=\"var(--_m)\">",
+      bits,
+      "</g>",
     )
   }
   // Mermaid puts a packet's title under it.
-  content.write_string(
+  content.write(
     @svg.label_svg(
       title,
       total_width / 2,
@@ -275,7 +279,7 @@ fn draw(
     ),
   )
   {
-    svg: @svg.svg_document(
+    svg: @svg.markup_document(
       "packet",
       total_width,
       total_height,
@@ -283,7 +287,7 @@ fn draw(
       options,
       model.acc_title,
       model.acc_descr,
-      content.to_string(),
+      content,
     ),
     width: total_width,
     height: total_height,

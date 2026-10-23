@@ -15,7 +15,7 @@ pub fn packet_option(Map[String, Json], String, Double, Double, Double) -> Doubl
 
 pub fn parse_packet(String) -> PacketAst raise @errors.PeleError
 
-pub fn render_packet(PacketModel, Map[String, Json], @types.RenderOptions) -> @types.Rendered
+pub fn render_packet(PacketModel, Map[String, Json], @types.RenderOptions) -> @types.Rendered raise @errors.PeleError
 
 // Errors
 
