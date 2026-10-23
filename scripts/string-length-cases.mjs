@@ -88,4 +88,6 @@ export const CASES = [
   ['git', 'commit ids written as entities', `gitGraph\n${names('c', 100).map((name) => `commit id: "${name}${'&'.repeat(540000)}"`).join('\n')}\n`, RAISED],
   ['treeview', 'entries drawing a host icon', `treeView-beta\n${names('f', 10700).map((name) => `  ${name} icon(x:a)`).join('\n')}\n`, { ...RAISED, icons: { 'x:a': `<path d="M${'1'.repeat(50000)}"/>` } }],
   ['wardley', 'anchors drawing a host icon', `wardley-beta\n${names('', 10700).map((name) => `anchor "fa:fa-a ${name}" [0.5, 0.5]`).join('\n')}\n`, { ...RAISED, icons: { 'fa:fa-a': `<path d="M${'1'.repeat(50000)}"/>` } }],
+  // Only slices of at least one percent are drawn, but every entry has a legend item.
+  ['pie', 'legend items', `pie\n${names('', 2700000).map((name) => `"${name}":1`).join('\n')}\n`, RAISED],
 ];
