@@ -2,6 +2,8 @@
 package "Omochice/pele/diagrams/sequence"
 
 // Values
+pub fn is_css_color(String) -> Bool
+
 pub fn tokenize(String) -> Tokens
 
 // Errors
