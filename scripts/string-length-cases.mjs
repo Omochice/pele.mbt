@@ -138,4 +138,6 @@ export const CASES = [
   ['agentflow', 'host icons in one agent label', `agentflow-beta TB\n  a["${Array(5400).fill('fa:fa-x').join(' ')}"]\n`, ICONS],
   ['state', 'host icons in one state label', `stateDiagram-v2\nA : ${Array(5400).fill('fa:fa-x').join(' ')}\n`, ICONS],
   ['class', 'host icons in one class label', `classDiagram\nclass A["${Array(5400).fill('fa:fa-x').join(' ')}"]\n`, ICONS],
+  ['er', 'host icons in one entity name', `erDiagram\nA["${Array(5400).fill('fa:fa-x').join(' ')}"] {\n}\n`, ICONS],
+  ['er', 'host icons in one attribute comment', `erDiagram\nA {\n  string name "${Array(5400).fill('fa:fa-x').join(' ')}"\n}\n`, ICONS],
 ];
