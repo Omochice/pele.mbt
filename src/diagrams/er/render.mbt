@@ -101,42 +101,45 @@ priv struct Loop {
 }
 
 ///|
-/// Writes a measured label starting at `x`, with the baseline of its first line at `y`.
+/// Writes a measured label to `out` starting at `x`, with the baseline of its first line at `y`.
 /// Icon spans are drawn in place by `icons`, and the text after one is positioned anew.
-fn text_left(
+fn write_text_left(
+  out : @svg.Markup,
   label : @text.Label,
   x : Double,
   y : Double,
   attrs : String,
   icons : @types.IconResolver?,
-) -> String {
+) -> Unit raise @errors.PeleError {
   let lines = label.lines
   if lines.length() == 0 {
-    return ""
+    return
   }
   if lines.length() == 1 &&
     lines[0].length() == 1 &&
     lines[0][0].icon is None &&
     lines[0][0].math is None &&
     lines[0][0].style == 0 {
-    return "<text\{attrs} x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\">\{@svg.esc(lines[0][0].text)}</text>"
+    out.write(
+      "<text\{attrs} x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\">\{@svg.esc(lines[0][0].text)}</text>",
+    )
+    return
   }
   let shared = @svg.shared_style(label)
   let shift = label.size * 0.35
   let top = y - shift - label.line_height / 2
-  let body = StringBuilder()
-  let extra = StringBuilder()
+  let body = @svg.Markup::new()
+  let extra = @svg.Markup::new()
   for i, line in lines {
     let middle = top + @text.line_middle(label, i)
     if @text.has_math(line) {
-      extra.write_string(
-        @svg.label_svg(
-          @text.label_line(label, i),
-          x + label.widths[i] / 2,
-          middle,
-          attrs,
-          icons?,
-        ),
+      @svg.write_label(
+        extra,
+        @text.label_line(label, i),
+        x + label.widths[i] / 2,
+        middle,
+        attrs,
+        icons?,
       )
       continue
     }
@@ -147,7 +150,7 @@ fn text_left(
     for span in line {
       if span.icon is Some(name) {
         let side = label.size * 1.1
-        extra.write_string(
+        extra.write(
           @common.icon_svg(name, sx, line_y - shift - side / 2, side, icons?),
         )
       } else if span.text != "" {
@@ -156,7 +159,7 @@ fn text_left(
         } else {
           ""
         }
-        body.write_string(
+        body.write(
           "<tspan\{pos}\{@svg.span_style(span.style & shared.lnot())}>\{@svg.esc(span.text)}</tspan>",
         )
         placed = true
@@ -164,7 +167,12 @@ fn text_left(
       sx += span.width
     }
   }
-  "<text\{@svg.text_style(attrs, shared)} xml:space=\"preserve\">\{body.to_string()}</text>\{extra.to_string()}"
+  out.write_group(
+    "<text\{@svg.text_style(attrs, shared)} xml:space=\"preserve\">",
+    body,
+    "</text>",
+  )
+  out.write_markup(extra)
 }
 
 ///|
@@ -551,16 +559,17 @@ fn draw(
       )
       clusters.write(
         "<g class=\"pele-cluster\{classes}\" data-id=\"\{@svg.esc_text(node.id)}\">" +
-        "<rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(c.w)}\" height=\"\{@svg.num(c.h)}\" fill=\"var(--_a)\" fill-opacity=\"0.5\" stroke=\"var(--_b)\"\{@svg.rounded(view.style.shape)}/>" +
-        @svg.label_svg(
-          view.label,
-          title_x,
-          y + 8 + view.label.height / 2,
-          " class=\"pele-cluster-label\" fill=\"var(--_m)\"\{view.style.text}",
-          icons?=options.icons,
-        ) +
-        "</g>",
+        "<rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(c.w)}\" height=\"\{@svg.num(c.h)}\" fill=\"var(--_a)\" fill-opacity=\"0.5\" stroke=\"var(--_b)\"\{@svg.rounded(view.style.shape)}/>",
       )
+      @svg.write_label(
+        clusters,
+        view.label,
+        title_x,
+        y + 8 + view.label.height / 2,
+        " class=\"pele-cluster-label\" fill=\"var(--_m)\"\{view.style.text}",
+        icons?=options.icons,
+      )
+      clusters.write("</g>")
       continue
     }
     let w = view.w
@@ -569,7 +578,9 @@ fn draw(
     let y0 = -h / 2
     let text = view.style.text
     let shape = "x=\"\{@svg.num(x0)}\" y=\"\{@svg.num(y0)}\" width=\"\{@svg.num(w)}\" height=\"\{@svg.num(h)}\""
-    let mut name = @svg.label_svg(
+    let label = @svg.Markup::new()
+    @svg.write_label(
+      label,
       view.label,
       0,
       if view.rows.length() > 0 {
@@ -587,8 +598,9 @@ fn draw(
         node.label
       },
     )
+    let name = @svg.Markup::new()
     if (classes + " ").contains(" internal-link ") &&
-      name != "" &&
+      !label.is_empty() &&
       options.links != Some(false) {
       // The name ends up in an href, so it gets the same check as a URL.
       let target = @svg.esc(display)
@@ -598,71 +610,79 @@ fn draw(
       } else {
         ""
       }
-      name = "<a class=\"internal-link\"\{href} data-href=\"\{target}\">\{name}</a>"
+      name.write_group(
+        "<a class=\"internal-link\"\{href} data-href=\"\{target}\">",
+        label,
+        "</a>",
+      )
       links.push({ id: node.label, href: display, internal: true, })
+    } else {
+      name.write_markup(label)
     }
-    let body = if view.rows.length() == 0 {
-      "<rect \{shape}\{@svg.rounded(BOX_ATTRS + view.style.shape)}/>" + name
+    nodes_out.write(
+      "<g class=\"pele-node pele-entity\{classes}\" data-id=\"\{@svg.esc_text(node.label)}\" transform=\"translate(\{@svg.num(c.x)},\{@svg.num(c.y)})\">",
+    )
+    if view.rows.length() == 0 {
+      nodes_out.write(
+        "<rect \{shape}\{@svg.rounded(BOX_ATTRS + view.style.shape)}/>",
+      )
+      nodes_out.write_markup(name)
     } else {
       let row_line = (view.row_size * 1.5).round()
       let line_color = match view.style.stroke {
         Some(stroke) if stroke != "" => @svg.esc(stroke)
         _ => "var(--_b)"
       }
-      let stripes = StringBuilder()
-      let cells = StringBuilder()
+      let stripes = @svg.Markup::new()
+      let cells = @svg.Markup::new()
       let mut y = y0 + view.head_h
       for r, row in view.rows {
         if r % 2 == 0 {
           let span = "x=\"\{@svg.num(x0)}\" width=\"\{@svg.num(w)}\""
           if r == view.rows.length() - 1 {
             // The last row follows the box's rounded bottom corners: a rounded rect, squared off on top.
-            stripes.write_string(
+            stripes.write(
               "<rect \{span} y=\"\{@svg.num(y)}\" height=\"\{@svg.num(row.h)}\"\{@svg.ROUNDED}/>" +
               "<rect \{span} y=\"\{@svg.num(y)}\" height=\"\{@svg.num(row.h / 2)}\"/>",
             )
           } else {
-            stripes.write_string(
+            stripes.write(
               "<rect \{span} y=\"\{@svg.num(y)}\" height=\"\{@svg.num(row.h)}\"/>",
             )
           }
         }
         let baseline = y + ROW_PAD / 2 + row_line / 2 + view.row_size * 0.35
-        cells.write_string(
-          text_left(
-            row.cells[0],
-            x0 + view.cols[0],
-            baseline,
-            " class=\"pele-er-type\" fill=\"var(--_m)\"\{text}",
-            options.icons,
-          ),
+        write_text_left(
+          cells,
+          row.cells[0],
+          x0 + view.cols[0],
+          baseline,
+          " class=\"pele-er-type\" fill=\"var(--_m)\"\{text}",
+          options.icons,
         )
-        cells.write_string(
-          text_left(
-            row.cells[1],
-            x0 + view.cols[1],
-            baseline,
-            " class=\"pele-er-name\"\{text}",
-            options.icons,
-          ),
+        write_text_left(
+          cells,
+          row.cells[1],
+          x0 + view.cols[1],
+          baseline,
+          " class=\"pele-er-name\"\{text}",
+          options.icons,
         )
-        cells.write_string(
-          text_left(
-            row.cells[2],
-            x0 + view.cols[2],
-            baseline,
-            " class=\"pele-er-keys\" font-size=\"\{view.key_size}\" fill=\"var(--_m)\"\{text}",
-            options.icons,
-          ),
+        write_text_left(
+          cells,
+          row.cells[2],
+          x0 + view.cols[2],
+          baseline,
+          " class=\"pele-er-keys\" font-size=\"\{view.key_size}\" fill=\"var(--_m)\"\{text}",
+          options.icons,
         )
-        cells.write_string(
-          text_left(
-            row.cells[3],
-            x0 + view.cols[3],
-            baseline,
-            " class=\"pele-er-comment\" fill=\"var(--_m)\"\{text}",
-            options.icons,
-          ),
+        write_text_left(
+          cells,
+          row.cells[3],
+          x0 + view.cols[3],
+          baseline,
+          " class=\"pele-er-comment\" fill=\"var(--_m)\"\{text}",
+          options.icons,
         )
         y += row.h
       }
@@ -674,16 +694,26 @@ fn draw(
       } else {
         ""
       }
-      "<rect \{shape}\{@svg.rounded(BOX_ATTRS + view.style.shape)}/>" +
-      "<g class=\"pele-er-stripes\" fill=\"var(--_bg)\"\{tint}>\{stripes.to_string()}</g>" +
-      "<path class=\"pele-er-divider\" d=\"M\{@svg.num(x0)},\{divider_y}H\{@svg.num(x0 + w)}\" stroke=\"\{line_color}\"/>" +
-      "<rect \{shape} fill=\"none\" stroke=\"var(--_b)\"\{@svg.rounded(view.style.line)}/>" +
-      name +
-      "<g class=\"pele-er-attributes\" font-size=\"\{view.row_size}\">\{cells.to_string()}</g>"
+      nodes_out.write(
+        "<rect \{shape}\{@svg.rounded(BOX_ATTRS + view.style.shape)}/>",
+      )
+      nodes_out.write_group(
+        "<g class=\"pele-er-stripes\" fill=\"var(--_bg)\"\{tint}>",
+        stripes,
+        "</g>",
+      )
+      nodes_out.write(
+        "<path class=\"pele-er-divider\" d=\"M\{@svg.num(x0)},\{divider_y}H\{@svg.num(x0 + w)}\" stroke=\"\{line_color}\"/>" +
+        "<rect \{shape} fill=\"none\" stroke=\"var(--_b)\"\{@svg.rounded(view.style.line)}/>",
+      )
+      nodes_out.write_markup(name)
+      nodes_out.write_group(
+        "<g class=\"pele-er-attributes\" font-size=\"\{view.row_size}\">",
+        cells,
+        "</g>",
+      )
     }
-    nodes_out.write(
-      "<g class=\"pele-node pele-entity\{classes}\" data-id=\"\{@svg.esc_text(node.label)}\" transform=\"translate(\{@svg.num(c.x)},\{@svg.num(c.y)})\">\{body}</g>",
-    )
+    nodes_out.write("</g>")
   }
 
   // Self-relationships share the side they loop out of, squeezed together if it is too short for them.
@@ -787,15 +817,14 @@ fn draw(
       "</g>",
     )
     if label.width > 0 {
-      labels_out.write(
-        @svg.edge_label_svg(
-          edge.id,
-          label,
-          ce.label_x,
-          ce.label_y,
-          "",
-          icons?=options.icons,
-        ),
+      @svg.write_edge_label(
+        labels_out,
+        edge.id,
+        label,
+        ce.label_x,
+        ce.label_y,
+        "",
+        icons?=options.icons,
       )
     }
   }
