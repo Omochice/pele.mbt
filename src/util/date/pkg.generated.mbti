@@ -2,6 +2,8 @@
 package "Omochice/pele/util/date"
 
 // Values
+pub fn parse_date(String) -> Double
+
 pub fn utc_time(Double, Double, Double, Double, Double, Double, Double) -> Double
 
 // Errors
