@@ -20,6 +20,8 @@ pub const LINE_SOLID : Int32 = 2
 
 pub const SOLID_ARROW : Int32 = 0
 
+pub fn build_usecase_graph(UsecaseModel) -> UsecaseGraph
+
 pub fn parse_ordered_json(String, () -> (Int32, Int32)) -> Array[(String, JsonValue)] raise @errors.PeleError
 
 pub fn parse_usecase(String, title? : String) -> UsecaseModel raise @errors.PeleError
@@ -47,6 +49,12 @@ pub(all) struct Actor {
 pub(all) struct ClassDef {
   id : String
   styles : Array[String]
+}
+
+pub(all) struct JsonRow {
+  key : String
+  accessible_key : String
+  value : String
 }
 
 pub(all) enum JsonValue {
@@ -100,6 +108,51 @@ pub(all) struct UseCase {
   parent_id : String?
   classes : Array[String]
   styles : Array[String]
+}
+
+pub(all) struct UsecaseGraph {
+  nodes : Array[UsecaseGraphNode]
+  edges : Array[UsecaseGraphEdge]
+}
+
+pub(all) struct UsecaseGraphEdge {
+  id : String
+  start : String
+  end : String
+  relationship_type : String
+  pattern : String
+  arrow_type_start : String
+  arrow_type_end : String
+  label : String?
+  label_type : String?
+  classes : String
+  style : Array[String]
+  css_compiled_styles : Array[String]
+  animate : Bool
+  animation : String?
+  minlen : Int32
+  explicit_id : Bool
+  internal : Bool
+}
+
+pub(all) struct UsecaseGraphNode {
+  id : String
+  label : String
+  label_type : String
+  shape : String
+  is_group : Bool
+  padding : Double
+  css_classes : String
+  css_styles : Array[String]
+  css_compiled_styles : Array[String]
+  actor_type : String?
+  business : Bool?
+  icon : String?
+  stereotype : String?
+  parent_id : String?
+  note_target : String?
+  json_rows : Array[JsonRow]?
+  boundary_type : String?
 }
 
 pub(all) struct UsecaseJsonNode {
