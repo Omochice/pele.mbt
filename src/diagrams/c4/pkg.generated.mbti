@@ -10,7 +10,13 @@ pub const HEAD : Double = 26
 
 pub const LANE : Double = 20
 
+pub fn crosses(Array[Double], Double, Double, Double, Double) -> Bool
+
+pub fn cyl_ry(Double) -> Double
+
 pub fn parse_c4(String, C4Db) -> Unit raise @errors.PeleError
+
+pub fn queue_rx(Double) -> Double
 
 pub fn route(Box, Box, Double, Array[Box]?, Lanes, Double, Double) -> Route
 

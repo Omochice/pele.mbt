@@ -1,5 +1,6 @@
 import {
   "Omochice/pele/errors",
+  "Omochice/pele/svg",
   "Omochice/pele/util",
   "moonbitlang/core/double",
 }
