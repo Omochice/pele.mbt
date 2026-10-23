@@ -163,7 +163,7 @@ pub fn TokenReader::text(Self, index? : Int32) -> String
 
 pub(all) struct TokenType {
   name : String
-  scanner : () -> (String, Int32) -> Int32
+  scanner : () -> (String, Int32) -> Int32 raise @errors.PeleError
   first : String?
   hidden : Bool
 }
@@ -176,7 +176,7 @@ pub(all) struct Tokens {
 }
 
 // Type aliases
-pub type Scanner = (String, Int32) -> Int32
+pub type Scanner = (String, Int32) -> Int32 raise @errors.PeleError
 
 // Traits
 pub(open) trait OutlineDb {

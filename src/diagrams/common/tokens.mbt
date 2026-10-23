@@ -5,7 +5,8 @@
 
 ///|
 /// Matches a token at an index: returns where the match ends, `NO_MATCH`, or `NO_CLOSER`.
-pub type Scanner = (String, Int32) -> Int32
+/// Raises where pele's pattern for the token throws instead of answering.
+pub type Scanner = (String, Int32) -> Int32 raise @errors.PeleError
 
 ///|
 /// The token does not match here.
@@ -87,11 +88,11 @@ pub fn keyword(word : String) -> TokenType {
 /// Builds a token type from a scanner that needs no memory between calls.
 pub fn pattern(
   name : String,
-  scan : Scanner,
+  scan : (String, Int32) -> Int32,
   first? : String,
   hidden~ : Bool = false,
 ) -> TokenType {
-  { name, scanner: stateless(scan), first, hidden, }
+  { name, scanner: stateless((src, p) => scan(src, p)), first, hidden, }
 }
 
 ///|

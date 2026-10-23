@@ -238,17 +238,20 @@ const NEWLINE : Int32 = 23
 
 ///|
 fn word(text : String) -> @common.TokenType {
-  @common.pattern(
-    text,
-    unless_longer_name((src, p) => {
-      if @util.starts_with_at(src, text, p) {
-        p + text.length()
-      } else {
-        @common.NO_MATCH
-      }
-    }),
-    first=@util.slice(text, 0, end=1),
-  )
+  {
+    name: text,
+    scanner: () => {
+      unless_longer_name((src, p) => {
+        if @util.starts_with_at(src, text, p) {
+          p + text.length()
+        } else {
+          @common.NO_MATCH
+        }
+      })
+    },
+    first: Some(@util.slice(text, 0, end=1)),
+    hidden: false,
+  }
 }
 
 ///|
