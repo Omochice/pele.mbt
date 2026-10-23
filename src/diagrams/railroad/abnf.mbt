@@ -118,35 +118,44 @@ fn hex_run(src : String, from : Int32) -> Int32 {
 
 ///|
 /// `%[xXdDbB][0-9A-Fa-f]+(?:-[0-9A-Fa-f]+|\.[0-9A-Fa-f]+)*`
-let abnf_numval : @common.TokenType = @common.pattern(
-  "ABNF_NUMVAL",
-  (src, p) => {
-    if @util.code_at(src, p) != '%'.to_int() {
-      return @common.NO_MATCH
-    }
-    let base = @util.code_at(src, p + 1)
-    if !"xXdDbB".contains_code_unit(base.to_uint16()) {
-      return @common.NO_MATCH
-    }
-    let mut end = hex_run(src, p + 2)
-    if end == p + 2 {
-      return @common.NO_MATCH
-    }
-    while true {
-      let c = @util.code_at(src, end)
-      if c != '-'.to_int() && c != '.'.to_int() {
-        break
+/// Each part after the first takes five slots of V8's backtracking stack, and the match four more.
+let abnf_numval : @common.TokenType = {
+  name: "ABNF_NUMVAL",
+  scanner: () => {
+    (src, p) => {
+      if @util.code_at(src, p) != '%'.to_int() {
+        return @common.NO_MATCH
       }
-      let next = hex_run(src, end + 1)
-      if next == end + 1 {
-        break
+      let base = @util.code_at(src, p + 1)
+      if !"xXdDbB".contains_code_unit(base.to_uint16()) {
+        return @common.NO_MATCH
       }
-      end = next
+      let mut end = hex_run(src, p + 2)
+      if end == p + 2 {
+        return @common.NO_MATCH
+      }
+      let mut parts = 0L
+      while true {
+        let c = @util.code_at(src, end)
+        if c != '-'.to_int() && c != '.'.to_int() {
+          break
+        }
+        let next = hex_run(src, end + 1)
+        if next == end + 1 {
+          break
+        }
+        end = next
+        parts += 1
+      }
+      if @util.backtrack_stack_overflows(5L * parts + 4) {
+        raise @errors.nested_too_deeply()
+      }
+      end
     }
-    end
   },
-  first="%",
-)
+  first: Some("%"),
+  hidden: false,
+}
 
 ///|
 fn digit_run(src : String, from : Int32) -> Int32 {
