@@ -335,6 +335,7 @@ fn draw(
           inset + row.x,
           cy - icon_size / 2,
           icon_size,
+          icons?=options.icons,
           drawing="<path d=\"\{outline}\" stroke=\"var(--_m)\" stroke-width=\"1.5\"/>",
         ),
       )
