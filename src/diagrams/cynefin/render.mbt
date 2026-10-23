@@ -294,23 +294,21 @@ fn render_cynefin(
   fn draw_block(b : Block) -> @svg.Markup raise @errors.PeleError {
     let out = @svg.Markup::new()
     let mut y = b.cy - b.h / 2
-    out.write(
-      @svg.label_svg(
-        b.title,
-        b.cx,
-        y + b.title.height / 2,
-        " class=\"pele-label\" font-weight=\"var(--_hw)\"",
-      ),
+    @svg.write_label(
+      out,
+      b.title,
+      b.cx,
+      y + b.title.height / 2,
+      " class=\"pele-label\" font-weight=\"var(--_hw)\"",
     )
     y += b.title.height
     for s in b.subtitles {
-      out.write(
-        @svg.label_svg(
-          s,
-          b.cx,
-          y + s.height / 2,
-          " class=\"pele-cynefin-subtitle\" font-size=\"\{small}\" font-style=\"italic\" fill=\"var(--_m)\"",
-        ),
+      @svg.write_label(
+        out,
+        s,
+        b.cx,
+        y + s.height / 2,
+        " class=\"pele-cynefin-subtitle\" font-size=\"\{small}\" font-style=\"italic\" fill=\"var(--_m)\"",
       )
       y += s.height
     }
@@ -331,16 +329,17 @@ fn render_cynefin(
       let muted = if item.overflow { " fill=\"var(--_m)\"" } else { "" }
       out.write(
         "<g class=\"pele-node\{overflow_class}\"\{data_id}>" +
-        "<rect x=\"\{num(b.cx - item.w / 2)}\" y=\"\{num(y)}\" width=\"\{num(item.w)}\" height=\"\{num(item.h)}\" fill=\"var(--_bg)\" stroke=\"var(--_b)\"\{dashes}\{@svg.ROUNDED}/>" +
-        @svg.label_svg(
-          item.label,
-          b.cx,
-          y + item.h / 2,
-          " class=\"pele-label\" font-size=\"\{item_size}\"\{muted}",
-          icons?=options.icons,
-        ) +
-        "</g>",
+        "<rect x=\"\{num(b.cx - item.w / 2)}\" y=\"\{num(y)}\" width=\"\{num(item.w)}\" height=\"\{num(item.h)}\" fill=\"var(--_bg)\" stroke=\"var(--_b)\"\{dashes}\{@svg.ROUNDED}/>",
       )
+      @svg.write_label(
+        out,
+        item.label,
+        b.cx,
+        y + item.h / 2,
+        " class=\"pele-label\" font-size=\"\{item_size}\"\{muted}",
+        icons?=options.icons,
+      )
+      out.write("</g>")
       y += item.h
     }
     out
@@ -485,39 +484,36 @@ fn render_cynefin(
     let trim = @svg.marker_trim("arrow_point")
     let ex = end_x - ux * trim
     let ey = end_y - uy * trim
-    let text = match transition.label {
-      Some(words) => {
-        let label = @text.layout_label(
-          Some(words),
-          false,
-          measurer,
-          small,
-          ITEM_MAX_WIDTH,
-        )
-        let (lx, ly) = point((t0 + t1) / 2)
-        let away = nx.abs() * label.width / 2 + ny.abs() * label.height / 2 + 6
-        let half = label.width / 2 + 4
-        let tx = @util.js_min(
-          @util.js_max(lx + nx * away, x0 + half),
-          @util.js_max(right - half, x0 + half),
-        )
-        @svg.label_svg(
-          label,
-          tx,
-          ly + ny * away,
-          " class=\"pele-edge-label\" font-size=\"\{small}\"",
-          icons?=options.icons,
-        )
-      }
-      None => ""
-    }
     edges.write(
       "<g class=\"pele-edge\" data-id=\"\{transition.from}-\{transition.to}\">" +
       "<path d=\"M\{num(sx)},\{num(sy)}Q\{num(qx)},\{num(qy)} \{num(ex)},\{num(ey)}\" fill=\"none\" stroke=\"var(--_l)\"/>" +
-      head +
-      text +
-      "</g>",
+      head,
     )
+    if transition.label is Some(words) {
+      let label = @text.layout_label(
+        Some(words),
+        false,
+        measurer,
+        small,
+        ITEM_MAX_WIDTH,
+      )
+      let (lx, ly) = point((t0 + t1) / 2)
+      let away = nx.abs() * label.width / 2 + ny.abs() * label.height / 2 + 6
+      let half = label.width / 2 + 4
+      let tx = @util.js_min(
+        @util.js_max(lx + nx * away, x0 + half),
+        @util.js_max(right - half, x0 + half),
+      )
+      @svg.write_label(
+        edges,
+        label,
+        tx,
+        ly + ny * away,
+        " class=\"pele-edge-label\" font-size=\"\{small}\"",
+        icons?=options.icons,
+      )
+    }
+    edges.write("</g>")
   }
   let total_width = @util.js_max(width, title.width) + 2.0 * pad
   let total_width = total_width.ceil()
