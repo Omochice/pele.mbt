@@ -41,28 +41,51 @@ pub fn relative_radius(
 }
 
 ///|
-/// A closed Catmull-Rom spline through the points, as cubic Bezier segments.
-pub fn closed_round_curve(points : Array[Point], tension : Double) -> String {
+/// Writes a closed Catmull-Rom spline through the points, as cubic Bezier segments, one segment at a time.
+fn write_closed_round_curve(
+  points : Array[Point],
+  tension : Double,
+  write : (String) -> Unit raise?,
+) -> Unit raise? {
   let n = points.length()
-  let d = StringBuilder()
-  d.write_string("M\{@svg.num(points[0].x)},\{@svg.num(points[0].y)}")
+  write("M\{@svg.num(points[0].x)},\{@svg.num(points[0].y)}")
   for i in 0..<n {
     let p0 = points[(i - 1 + n) % n]
     let p1 = points[i]
     let p2 = points[(i + 1) % n]
     let p3 = points[(i + 2) % n]
-    d.write_string(
+    write(
       " C\{@svg.num(p1.x + (p2.x - p0.x) * tension)},\{@svg.num(p1.y + (p2.y - p0.y) * tension)}" +
       " \{@svg.num(p2.x - (p3.x - p1.x) * tension)},\{@svg.num(p2.y - (p3.y - p1.y) * tension)} \{@svg.num(p2.x)},\{@svg.num(p2.y)}",
     )
   }
-  d.write_string(" Z")
+  write(" Z")
+}
+
+///|
+/// A closed Catmull-Rom spline through the points, as cubic Bezier segments.
+pub fn closed_round_curve(points : Array[Point], tension : Double) -> String {
+  let d = StringBuilder()
+  write_closed_round_curve(points, tension, segment => d.write_string(segment))
   d.to_string()
 }
 
 ///|
+/// Writes the points of a polygon one at a time.
+fn write_polygon(
+  points : Array[Point],
+  write : (String) -> Unit raise?,
+) -> Unit raise? {
+  for i, p in points {
+    write("\{if i > 0 { " " } else { "" }}\{@svg.num(p.x)},\{@svg.num(p.y)}")
+  }
+}
+
+///|
 fn polygon(points : Array[Point]) -> String {
-  points.map(p => "\{@svg.num(p.x)},\{@svg.num(p.y)}").join(" ")
+  let out = StringBuilder()
+  write_polygon(points, point => out.write_string(point))
+  out.to_string()
 }
 
 ///|
