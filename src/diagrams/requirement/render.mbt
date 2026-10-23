@@ -101,26 +101,26 @@ fn restyle(
 }
 
 ///|
-/// Writes a measured label with its lines starting at `x`, the first line's box starting at `top`.
-fn start_text(
+/// Writes a measured label to `out` with its lines starting at `x`, the first line's box starting at `top`.
+fn write_start_text(
+  out : @svg.Markup,
   label : @text.Label,
   x : Double,
   top : Double,
   attrs : String,
-) -> String {
+) -> Unit raise @errors.PeleError {
   let shared = @svg.shared_style(label)
-  let body = StringBuilder()
-  let math = StringBuilder()
+  let body = @svg.Markup::new()
+  let math = @svg.Markup::new()
   for i, line in label.lines {
     let middle = top + @text.line_middle(label, i)
     if @text.has_math(line) {
-      math.write_string(
-        @svg.label_svg(
-          @text.label_line(label, i),
-          x + label.widths[i] / 2,
-          middle,
-          attrs,
-        ),
+      @svg.write_label(
+        math,
+        @text.label_line(label, i),
+        x + label.widths[i] / 2,
+        middle,
+        attrs,
       )
       continue
     }
@@ -135,19 +135,20 @@ fn start_text(
       } else {
         ""
       }
-      body.write_string(
+      body.write(
         "<tspan\{pos}\{@svg.span_style(span.style & shared.lnot())}>\{@svg.esc(span.text)}</tspan>",
       )
       first = false
     }
   }
-  let body = body.to_string()
-  (if body == "" {
-    ""
-  } else {
-    "<text\{@svg.text_style(attrs, shared)} text-anchor=\"start\" xml:space=\"preserve\">\{body}</text>"
-  }) +
-  math.to_string()
+  if !body.is_empty() {
+    out.write_group(
+      "<text\{@svg.text_style(attrs, shared)} text-anchor=\"start\" xml:space=\"preserve\">",
+      body,
+      "</text>",
+    )
+  }
+  out.write_markup(math)
 }
 
 ///|
@@ -450,54 +451,52 @@ fn draw(
     let { w, h, style, .. } = view
     let left = -w / 2
     let top = -h / 2
-    let body = StringBuilder()
-    body.write_string(
+    let body = @svg.Markup::new()
+    body.write(
       "<rect x=\"\{n(left)}\" y=\"\{n(top)}\" width=\"\{n(w)}\" height=\"\{n(h)}\" fill=\"var(--_s)\" stroke=\"var(--_b)\"\{@svg.rounded(style.shape)}/>",
     )
-    body.write_string(
-      @svg.label_svg(
-        view.kind,
-        0,
-        top + PAD_Y + view.kind.height / 2,
-        " class=\"pele-stereotype\" font-size=\"\{view.kind.size}\" fill=\"var(--_m)\"\{style.text}",
-      ),
+    @svg.write_label(
+      body,
+      view.kind,
+      0,
+      top + PAD_Y + view.kind.height / 2,
+      " class=\"pele-stereotype\" font-size=\"\{view.kind.size}\" fill=\"var(--_m)\"\{style.text}",
     )
-    body.write_string(
-      @svg.label_svg(
-        view.name,
-        0,
-        top + PAD_Y + view.kind.height + view.name.height / 2,
-        " class=\"pele-label\" font-size=\"\{view.name.size}\" font-weight=\"var(--_hw)\"\{style.text}",
-      ),
+    @svg.write_label(
+      body,
+      view.name,
+      0,
+      top + PAD_Y + view.kind.height + view.name.height / 2,
+      " class=\"pele-label\" font-size=\"\{view.name.size}\" font-weight=\"var(--_hw)\"\{style.text}",
     )
     if view.rows.length() > 0 {
       let divider = top + view.head_height
-      body.write_string(
+      body.write(
         "<path class=\"pele-divider\" d=\"M\{n(left)},\{n(divider)}H\{n(-left)}\" stroke=\"var(--_b)\"\{style.line}/>",
       )
       let mut y = divider + PAD_Y
-      let rows = StringBuilder()
+      let rows = @svg.Markup::new()
       for row in view.rows {
-        rows.write_string(
-          start_text(
-            row.key,
-            left + PAD_X,
-            y,
-            " class=\"pele-field\" fill=\"var(--_m)\"\{style.text}",
-          ),
+        write_start_text(
+          rows,
+          row.key,
+          left + PAD_X,
+          y,
+          " class=\"pele-field\" fill=\"var(--_m)\"\{style.text}",
         )
-        rows.write_string(
-          start_text(
-            row.value,
-            left + PAD_X + view.key_width + COLUMN_GAP,
-            y,
-            " class=\"pele-value\"\{style.text}",
-          ),
+        write_start_text(
+          rows,
+          row.value,
+          left + PAD_X + view.key_width + COLUMN_GAP,
+          y,
+          " class=\"pele-value\"\{style.text}",
         )
         y += row.height + ROW_GAP
       }
-      body.write_string(
-        "<g class=\"pele-fields\" font-size=\"\{view.rows[0].key.size}\">\{rows.to_string()}</g>",
+      body.write_group(
+        "<g class=\"pele-fields\" font-size=\"\{view.rows[0].key.size}\">",
+        rows,
+        "</g>",
       )
     }
     let kind_class = if view.node.requirement is Some(_) {
@@ -505,8 +504,10 @@ fn draw(
     } else {
       "pele-element"
     }
-    nodes_out.write(
-      "<g class=\"pele-node \{kind_class}\{@svg.node_class_names(view.node.css_classes)}\" data-id=\"\{@svg.esc_text(view.node.id)}\" transform=\"translate(\{n(cnodes[i].x + ox)},\{n(cnodes[i].y + oy)})\">\{body.to_string()}</g>",
+    nodes_out.write_group(
+      "<g class=\"pele-node \{kind_class}\{@svg.node_class_names(view.node.css_classes)}\" data-id=\"\{@svg.esc_text(view.node.id)}\" transform=\"translate(\{n(cnodes[i].x + ox)},\{n(cnodes[i].y + oy)})\">",
+      body,
+      "</g>",
     )
   }
   let edges_out = @svg.Markup::new()
@@ -608,9 +609,7 @@ fn draw(
     edges_out.write(
       "<g class=\"pele-edge pele-relationship-\{relationship}\" data-id=\"\{@svg.esc_text(edge.id)}\"><path d=\"\{path.d}\"\{dash}/>\{mark}</g>",
     )
-    labels_out.write(
-      @svg.edge_label_svg(edge.id, edge_label, label_x, label_y, ""),
-    )
+    @svg.write_edge_label(labels_out, edge.id, edge_label, label_x, label_y, "")
   }
   let content = @svg.Markup::new()
   content.write(
