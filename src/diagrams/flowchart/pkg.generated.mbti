@@ -3,6 +3,9 @@ package "Omochice/pele/diagrams/flowchart"
 
 import {
   "Omochice/pele/errors",
+  "Omochice/pele/layout",
+  "Omochice/pele/svg",
+  "Omochice/pele/text",
   "Omochice/pele/types",
 }
 
@@ -53,7 +56,7 @@ pub fn parse_flowchart(String, FlowDb) -> Unit raise @errors.PeleError
 
 pub fn parse_model(String, Map[String, Json], String?, @types.ParseLimits) -> FlowDb raise @errors.PeleError
 
-pub fn render_flowchart(FlowDb, Map[String, Json], @types.RenderOptions) -> @types.Rendered
+pub fn render_flowchart(FlowDb, Map[String, Json], @types.RenderOptions, variant? : FlowVariant) -> @types.Rendered
 
 pub let token_names : Array[String]
 
@@ -165,6 +168,13 @@ pub(all) struct FlowSubgraph {
 pub(all) struct FlowText {
   text : String
   kind : LabelType
+}
+
+pub(all) struct FlowVariant {
+  kind : String
+  prepare : (FlowGraph) -> Unit
+  layout : (Array[@layout.CNode], Array[@layout.CEdge], @layout.Dir, @layout.LayeredOptions, Bool) -> @layout.CompoundResult
+  draw_group : ((@layout.CNode, @text.Label, @svg.ResolvedStyle, String, String, @layout.Dir) -> String)?
 }
 
 pub(all) struct GraphEdge {

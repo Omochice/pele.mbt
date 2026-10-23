@@ -44,14 +44,43 @@ priv struct NodeView {
 }
 
 ///|
-/// Draws a flowchart, turned to run down when a narrow host needs it and drawn tightly when it does not fit.
+/// A diagram type that is a flowchart with a different layout, which may draw its top-level groups itself.
+pub(all) struct FlowVariant {
+  /// The diagram type, which also names the config section read before the `flowchart` one.
+  kind : String
+  /// Changes the graph before it is measured and laid out.
+  prepare : (FlowGraph) -> Unit
+  /// Lays out the graph; the last argument asks for a tight layout.
+  layout : (
+    Array[@layout.CNode],
+    Array[@layout.CEdge],
+    @layout.Dir,
+    @layout.LayeredOptions,
+    Bool,
+  ) -> @layout.CompoundResult
+  /// Draws a top-level group from its laid out box, title, style, classes, escaped id and the diagram's direction.
+  draw_group : ((
+    @layout.CNode,
+    @text.Label,
+    @svg.ResolvedStyle,
+    String,
+    String,
+    @layout.Dir,
+  ) -> String)?
+}
+
+///|
+/// Draws a flowchart, or a `variant` of one, turned to run down when a narrow host needs it and drawn tightly when it does not fit.
 pub fn render_flowchart(
   db : FlowDb,
   config : @types.Config,
   options : @types.RenderOptions,
+  variant? : FlowVariant,
 ) -> @types.Rendered {
   let fitted = (down : Bool) => {
-    @common.tighten(options, tight => draw(db, config, options, down, tight))
+    @common.tighten(options, tight => {
+      draw(db, config, options, variant, down, tight)
+    })
   }
   if @common.runs_across(db.direction) {
     @common.turn_to_fit(options, fitted)
@@ -86,20 +115,39 @@ fn draw(
   db : FlowDb,
   config : @types.Config,
   options : @types.RenderOptions,
+  variant : FlowVariant?,
   turned : Bool,
   tight : Bool,
 ) -> @types.Rendered {
   let group_pad = if tight { 12.0 } else { GROUP_PAD }
-  let flow = flow_section(config)
+  let flow = match variant {
+    Some(variant) =>
+      match config.get(variant.kind) {
+        Some(Object(own)) => own
+        _ => flow_section(config)
+      }
+    None => flow_section(config)
+  }
   let curve = match flow.get("curve") {
     Some(String(name)) => Some(name)
     _ => None
   }
   let graph = build_flow_graph(db, default_curve?=curve)
+  if variant is Some(variant) {
+    (variant.prepare)(graph)
+  }
+  let tight_variant = variant is Some(_) && tight
   let size = options.font_size.unwrap_or(16)
   let edge_size = (size * 0.875).round()
   let measurer = @text.metrics_measurer
-  let wrap_width = number_option(flow, "wrappingWidth", 200)
+  let wrap_width = @util.js_min(
+    number_option(flow, "wrappingWidth", 200),
+    if tight_variant {
+      100
+    } else {
+      @double.infinity
+    },
+  )
   let pad = options.padding.unwrap_or(8)
   let index : Map[String, Int32] = Map([])
   let views : Array[NodeView] = []
@@ -125,7 +173,11 @@ fn draw(
         markdown,
         measurer,
         font_size,
-        4000,
+        if tight_variant {
+          @util.js_max(80, @common.title_room(options) / 2)
+        } else {
+          4000
+        },
         base=text_style,
       )
       let c = @layout.cnode(0, 0)
@@ -270,7 +322,11 @@ fn draw(
     straight=curve is Some("linear"),
     head_room=@svg.marker_trim("arrow_point"),
   )
-  let layout = @layout.compound_layout(cnodes, cedges, root_dir, layout_options)
+  let layout = match variant {
+    Some(variant) =>
+      (variant.layout)(cnodes, cedges, root_dir, layout_options, tight)
+    None => @layout.compound_layout(cnodes, cedges, root_dir, layout_options)
+  }
   let title = @svg.title_label(
     db.title,
     measurer,
@@ -303,6 +359,14 @@ fn draw(
     let node = view.node
     let classes = @svg.node_class_names(node.css_classes)
     let id = @svg.esc_text(node.id)
+    if c.is_group &&
+      c.parent < 0 &&
+      variant is Some({ draw_group: Some(draw_group), .. }) {
+      clusters.write_string(
+        draw_group(c, view.label, view.style, classes, id, root_dir),
+      )
+      continue
+    }
     if c.is_group {
       let title_x = @svg.cluster_title_x(
         c,
@@ -540,7 +604,10 @@ fn draw(
   }
   content.write_string("<g class=\"pele-nodes\">\{nodes_out.to_string()}</g>")
   let svg = @svg.svg_document(
-    "flowchart",
+    match variant {
+      Some(variant) => variant.kind
+      None => "flowchart"
+    },
     width,
     height,
     size,
