@@ -132,7 +132,7 @@ fn evaluate_mixes(value : String) -> String {
 /// typst does not evaluate `color-mix()`, so whatever is painted with one is not drawn.
 /// A mix is left as written when CSS rejects it, when it mixes in another space, or when one of its colors is not a hex code, `rgb()`, `rgba()`, a named color, `transparent` or such a mix.
 pub fn mix_colors(svg : String) -> String {
-  map_tags(svg, attributes => {
+  rewrite_tags(svg, attributes => {
     attributes.map(attribute => {
       if css_attributes.contains(attribute.name) {
         { ..attribute, value: evaluate_mixes(attribute.value), }

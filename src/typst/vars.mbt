@@ -52,7 +52,7 @@ priv struct Resolver {
 /// pele defines its aliases once, on the root element, so the first definition of a name is the one every reference sees.
 fn definitions(svg : String) -> Map[String, String] {
   let found : Map[String, String] = Map([])
-  for tag in tags(svg) {
+  each_tag(svg, tag => {
     for attribute in tag.attributes {
       guard attribute.name == "style" else { continue }
       for declaration in attribute.value.split(";") {
@@ -64,7 +64,7 @@ fn definitions(svg : String) -> Map[String, String] {
         }
       }
     }
-  }
+  })
   found
 }
 
@@ -166,7 +166,7 @@ pub fn resolve_vars(svg : String, theme : Map[String, String]) -> String {
     }
   }
   let resolver = { definitions: definitions(svg), theme: usable, }
-  map_tags(svg, attributes => {
+  rewrite_tags(svg, attributes => {
     attributes.filter_map(attribute => {
       if !css_attributes.contains(attribute.name) {
         return Some(attribute)

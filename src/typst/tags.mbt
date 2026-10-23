@@ -74,42 +74,62 @@ fn read_tag(svg : String, start : Int32) -> Tag? {
 }
 
 ///|
-/// The start tags of pele's SVG in document order.
+/// Visits the start tags of pele's SVG in document order.
 /// pele quotes every attribute value with double quotes and escapes `<` everywhere else, so a `<` before a letter always starts a tag.
-fn tags(svg : String) -> Array[Tag] {
-  let found = []
+/// The tags are visited one at a time rather than collected, because an SVG near V8's longest string has millions of them.
+fn each_tag(svg : String, visit : (Tag) -> Unit) -> Unit {
   let mut at = @util.index_of(svg, "<")
   while at >= 0 {
     let next = if at + 1 < svg.length() &&
       is_letter(@util.code_at(svg, at + 1)) &&
       read_tag(svg, at) is Some(tag) {
-      found.push(tag)
+      visit(tag)
       tag.end
     } else {
       at + 1
     }
     at = @util.index_of(svg, "<", from=next)
   }
-  found
 }
 
 ///|
-/// Rewrites the attributes of every start tag, keeping everything else as written.
+fn write_range(out : &Logger, text : String, from : Int32, to : Int32) -> Unit {
+  if from < to {
+    out.write_view(text.view(start_offset=from, end_offset=to))
+  }
+}
+
+///|
+/// Writes `svg` to `out` with the attributes of every start tag rewritten, keeping everything else as written.
 fn map_tags(
+  svg : String,
+  rewrite : (Array[Attribute]) -> Array[Attribute],
+  out : &Logger,
+) -> Unit {
+  let mut copied = 0
+  each_tag(svg, tag => {
+    write_range(out, svg, copied, tag.start)
+    out.write_string("<")
+    out.write_string(tag.name)
+    for attribute in rewrite(tag.attributes) {
+      out.write_string(" ")
+      out.write_string(attribute.name)
+      out.write_string("=\"")
+      out.write_string(attribute.value)
+      out.write_string("\"")
+    }
+    copied = tag.end
+  })
+  write_range(out, svg, copied, svg.length())
+}
+
+///|
+/// `svg` with the attributes of every start tag rewritten, keeping everything else as written.
+fn rewrite_tags(
   svg : String,
   rewrite : (Array[Attribute]) -> Array[Attribute],
 ) -> String {
   let out = StringBuilder()
-  let mut copied = 0
-  for tag in tags(svg) {
-    @util.write_range(out, svg, copied, tag.start)
-    out.write_string("<")
-    out.write_string(tag.name)
-    for attribute in rewrite(tag.attributes) {
-      out.write_string(" \{attribute.name}=\"\{attribute.value}\"")
-    }
-    copied = tag.end
-  }
-  @util.write_range(out, svg, copied, svg.length())
+  map_tags(svg, rewrite, out)
   out.to_string()
 }
