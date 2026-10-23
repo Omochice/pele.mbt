@@ -476,6 +476,8 @@ export const CASES = [
   lazy('usecase', 'one use case label of many &, past V8', () => `usecase-beta\nU("${'&'.repeat(110000000)}")\n`, RAISED),
   // A syntax error quotes its whole line, which pele finds after lexing every `<<` of it as a token.
   lazy('class', 'a generic of 140M <, quoted whole in its syntax error', () => `classDiagram\nclass A~${'<'.repeat(140000000)}~\n`, RAISED),
+  // Each tab of a quoted line is escaped in the JSON answer, which so holds twice as many bytes as the line.
+  lazy('railroad', 'a special sequence of 140M tabs, quoted whole in its syntax error', () => `railroad-ebnf-beta\nr = ? ${'\t'.repeat(140000000)} ? ;\n`, RAISED),
   // A node's id and label are joined from the texts of their tokens, of which one may be 2^28 code units long.
   lazy('flowchart', 'a node id of 270M a, written twice', () => `graph TD\n${'a'.repeat(270000000)}\n`, RAISED),
   lazy('flowchart', 'a node label of 270M a', () => `graph TD\nA[${'a'.repeat(270000000)}]\n`, RAISED),

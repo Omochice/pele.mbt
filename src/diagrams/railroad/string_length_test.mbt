@@ -191,3 +191,27 @@ test "a special sequence with a code and over a hundred million entities fails a
     content="limit: Diagram is nested too deeply. railroad railroadEbnf",
   )
 }
+
+///|
+#skip("slow: quotes a line of 140 million characters")
+test "a special sequence of 140 million tabs fails with its whole line quoted" {
+  let tabs = "\t".repeat(140000000)
+  let failure = try {
+    @core.render(
+      [@railroad.railroad],
+      "railroad-ebnf-beta\nr = ? \{tabs} ? ;\n",
+      { ..@types.RenderOptions::default(), limit: Some(1.0 / 0.0), },
+    )
+    |> ignore
+    "rendered"
+  } catch {
+    @errors.PeleError(failure) => {
+      assert_eq(
+        failure.message,
+        "Parse error on line 2:\nr = ? \{tabs} ? ;\n----^\nExpecting a terminal, a name, or an opening bracket but found `?`.",
+      )
+      "\{failure.code.to_string()}: \{failure.message.length()} \{failure.kind.unwrap_or("null")} \{failure.mermaid_type.unwrap_or("null")}"
+    }
+  }
+  inspect(failure, content="syntax: 140000106 railroad railroadEbnf")
+}
