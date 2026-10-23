@@ -89,7 +89,7 @@ fn draw(
   options : @types.RenderOptions,
   radius : Double,
   tight : Bool,
-) -> @types.Rendered {
+) -> @types.Rendered raise @errors.PeleError {
   let size = options.font_size.unwrap_or(16)
   let small = (size * 0.875).round()
   let measurer = options.text_measurer()
@@ -192,9 +192,9 @@ fn draw(
     } else {
       height / 2
     })
-  let slices = StringBuilder()
-  let labels = StringBuilder()
-  let outside = StringBuilder()
+  let slices = @svg.Markup::new()
+  let labels = @svg.Markup::new()
+  let outside = @svg.Markup::new()
   let mut angle = 0.0
   let rim = radius + OUTSIDE / 2
   let placed_outside : Array[Placed] = []
@@ -212,7 +212,7 @@ fn draw(
       continue
     }
     let end = angle + share * @math.PI * 2
-    slices.write_string(
+    slices.write(
       "<path class=\"pele-slice\" data-id=\"\{@svg.esc_text(entry.0)}\" d=\"\{slice(angle, end, radius, inner)}\" fill=\"\{@svg.series_color(index)}\"/>",
     )
     let mid = (angle + end) / 2
@@ -229,19 +229,19 @@ fn draw(
       let x = @math.sin(at) * rim
       let y = -@math.cos(at) * rim
       placed_outside.push({ x, y, width: text_width, })
-      outside.write_string(
+      outside.write(
         "<text x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y + small * 0.35)}\">\{text}</text>",
       )
     } else {
       let r = radius * text_position
-      labels.write_string(
+      labels.write(
         "<text x=\"\{@svg.num(@math.sin(mid) * r)}\" y=\"\{@svg.num(-@math.cos(mid) * r + small * 0.35)}\">\{text}</text>",
       )
     }
     angle = end
   }
   if slices.is_empty() {
-    slices.write_string(
+    slices.write(
       "<circle class=\"pele-slice\" r=\"\{radius}\" fill=\"none\" stroke=\"var(--_b)\"/>",
     )
   }
@@ -261,10 +261,10 @@ fn draw(
       },
     )
   }
-  let legend_out = StringBuilder()
+  let legend_out = @svg.Markup::new()
   for index, label in legend {
     let y = ly + index.to_double() * ROW + ROW / 2
-    legend_out.write_string(
+    legend_out.write(
       "<g class=\"pele-legend-item\" data-id=\"\{@svg.esc_text(entries[index].0)}\">" +
       "<rect x=\"\{@svg.num(lx)}\" y=\"\{@svg.num(y - SWATCH / 2)}\" width=\"\{SWATCH}\" height=\"\{SWATCH}\" rx=\"2\" fill=\"\{@svg.series_color(index)}\"/>" +
       @svg.label_svg(label, lx + SWATCH + 8 + label.width / 2, y, "") +
@@ -274,8 +274,8 @@ fn draw(
   let total_width = (width + 2 * pad).ceil()
   let total_height = (height + title_height + 2 * pad).ceil()
   let translate = "translate(\{@svg.num(cx)},\{@svg.num(cy)})"
-  let content = StringBuilder()
-  content.write_string(
+  let content = @svg.Markup::new()
+  content.write(
     @svg.label_svg(
       title,
       total_width / 2,
@@ -283,26 +283,34 @@ fn draw(
       " class=\"pele-title\" font-weight=\"var(--_tw)\"",
     ),
   )
-  content.write_string(
-    "<g class=\"pele-slices\" transform=\"\{translate}\" stroke=\"var(--_bg)\" stroke-width=\"1\" stroke-linejoin=\"round\">\{slices.to_string()}</g>",
+  content.write_group(
+    "<g class=\"pele-slices\" transform=\"\{translate}\" stroke=\"var(--_bg)\" stroke-width=\"1\" stroke-linejoin=\"round\">",
+    slices,
+    "</g>",
   )
   if !labels.is_empty() {
-    content.write_string(
-      "<g class=\"pele-slice-labels\" transform=\"\{translate}\" font-size=\"\{small}\" text-anchor=\"middle\" fill=\"var(--_bg)\">\{labels.to_string()}</g>",
+    content.write_group(
+      "<g class=\"pele-slice-labels\" transform=\"\{translate}\" font-size=\"\{small}\" text-anchor=\"middle\" fill=\"var(--_bg)\">",
+      labels,
+      "</g>",
     )
   }
   if !outside.is_empty() {
-    content.write_string(
-      "<g class=\"pele-slice-labels\" transform=\"\{translate}\" font-size=\"\{small}\" text-anchor=\"middle\">\{outside.to_string()}</g>",
+    content.write_group(
+      "<g class=\"pele-slice-labels\" transform=\"\{translate}\" font-size=\"\{small}\" text-anchor=\"middle\">",
+      outside,
+      "</g>",
     )
   }
   if !legend_out.is_empty() {
-    content.write_string(
-      "<g class=\"pele-legend\" font-size=\"\{small}\">\{legend_out.to_string()}</g>",
+    content.write_group(
+      "<g class=\"pele-legend\" font-size=\"\{small}\">",
+      legend_out,
+      "</g>",
     )
   }
   {
-    svg: @svg.svg_document(
+    svg: @svg.markup_document(
       "pie",
       total_width,
       total_height,
@@ -310,7 +318,7 @@ fn draw(
       options,
       model.acc_title,
       model.acc_descr,
-      content.to_string(),
+      content,
     ),
     width: total_width,
     height: total_height,
