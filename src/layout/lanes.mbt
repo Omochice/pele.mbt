@@ -145,7 +145,8 @@ fn Lanes::new(
   let n = nodes.length()
   let sideways = dir is (LR | RL)
   let flipped = dir is (BT | RL)
-  // Lanes in the order they were written. The graph lists groups last-declared first.
+  // Lanes in the order they were written.
+  // The graph lists groups last-declared first.
   let lanes : Array[Int32] = []
   for i = n - 1; i >= 0; i = i - 1 {
     if nodes[i].parent < 0 && nodes[i].is_group {
