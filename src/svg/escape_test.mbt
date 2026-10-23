@@ -82,3 +82,10 @@ test "a label escaped past V8's longest string fails as nested too deeply" {
     content="limit: Diagram is nested too deeply.",
   )
 }
+
+///|
+test "a data-id is written as an escaped attribute" {
+  let out = @svg.Markup::new()
+  @svg.write_data_id(out, "a&amp;<b>")
+  inspect(out.to_string(), content=" data-id=\"a&amp;&lt;b&gt;\"")
+}

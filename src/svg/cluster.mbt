@@ -119,6 +119,64 @@ pub fn write_struck_title(
   index : Int32,
   icons? : @types.IconResolver,
 ) -> Unit raise @errors.PeleError {
+  // pele writes the id unescaped here, unlike on edge labels.
+  write_struck_title_parts(
+    out,
+    label,
+    x,
+    y,
+    attrs,
+    out => out.write(" data-id=\"\{id}\""),
+    nodes,
+    index,
+    icons?,
+  )
+}
+
+///|
+/// Writes a title that an edge runs through to `out` as `write_struck_title` does, with the id
+/// written as `esc_text` escapes `id`, a piece at a time.
+/// The diagrams that escape their ids before drawing such a title name a cluster by its source
+/// text, which escapes to more than a doubling StringBuilder holds.
+/// Raises pele's `limit` error when the markup would be longer than V8 allows.
+pub fn write_struck_title_with_id(
+  out : Markup,
+  label : @text.Label,
+  x : Double,
+  y : Double,
+  attrs : String,
+  id : String,
+  nodes : Array[@layout.CNode],
+  index : Int32,
+  icons? : @types.IconResolver,
+) -> Unit raise @errors.PeleError {
+  write_struck_title_parts(
+    out,
+    label,
+    x,
+    y,
+    attrs,
+    out => write_data_id(out, id),
+    nodes,
+    index,
+    icons?,
+  )
+}
+
+///|
+/// Writes a title that an edge runs through to `out` as `struck_title` draws it, with `write_id`
+/// writing its ` data-id` attribute.
+fn write_struck_title_parts(
+  out : Markup,
+  label : @text.Label,
+  x : Double,
+  y : Double,
+  attrs : String,
+  write_id : (Markup) -> Unit raise @errors.PeleError,
+  nodes : Array[@layout.CNode],
+  index : Int32,
+  icons? : @types.IconResolver,
+) -> Unit raise @errors.PeleError {
   let mut depth = 1
   let mut p = nodes[index].parent
   while p >= 0 && depth < 8 {
@@ -131,8 +189,9 @@ pub fn write_struck_title(
     behind *= 0.5
   }
   let fill = "color-mix(in srgb,var(--_a) \{num(100 * (1 - behind))}%,var(--_bg))"
-  // pele writes the id unescaped here, unlike on edge labels.
-  out.write("<g class=\"pele-cluster-title\" data-id=\"\{id}\">")
+  out.write("<g class=\"pele-cluster-title\"")
+  write_id(out)
+  out.write(">")
   write_label(
     out,
     label,

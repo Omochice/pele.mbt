@@ -863,7 +863,7 @@ fn draw(
       let struck = c.is_group &&
         @svg.title_crossed(c, view.label.width, title_x, crossings)
       if struck {
-        @svg.write_struck_title_chunked(
+        @svg.write_struck_title_with_id(
           struck_titles,
           view.label,
           title_x + ox,
@@ -995,7 +995,7 @@ fn draw(
       "</g>",
     )
     if label.width > 0 {
-      @svg.write_edge_label_chunked(
+      @svg.write_edge_label_with_id(
         labels_out,
         edge.id,
         label,

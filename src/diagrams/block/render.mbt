@@ -1046,7 +1046,7 @@ fn draw(
     )
     edges.write("</g>")
     if route.label.width > 0 {
-      @svg.write_edge_label_chunked(
+      @svg.write_edge_label_with_id(
         labels,
         edge.id,
         route.label,

@@ -107,9 +107,11 @@ pub fn with_title(String?, @text.TextMeasurer, Double, Double, Double, Double, S
 
 pub fn with_title_markup(String?, @text.TextMeasurer, Double, Double, Double, Double, Markup) -> TitledMarkup raise @errors.PeleError
 
+pub fn write_data_id(Markup, String) -> Unit raise @errors.PeleError
+
 pub fn write_edge_label(Markup, String, @text.Label, Double, Double, String, icons? : (String) -> String?) -> Unit raise @errors.PeleError
 
-pub fn write_edge_label_chunked(Markup, String, @text.Label, Double, Double, String, icons? : (String) -> String?) -> Unit raise @errors.PeleError
+pub fn write_edge_label_with_id(Markup, String, @text.Label, Double, Double, String, icons? : (String) -> String?) -> Unit raise @errors.PeleError
 
 pub fn write_esc(Markup, String) -> Unit raise @errors.PeleError
 
@@ -129,7 +131,7 @@ pub fn write_shape_styled(Markup, String, Double, Double, String, String, String
 
 pub fn write_struck_title(Markup, @text.Label, Double, Double, String, String, Array[@layout.CNode], Int32, icons? : (String) -> String?) -> Unit raise @errors.PeleError
 
-pub fn write_struck_title_chunked(Markup, @text.Label, Double, Double, String, String, Array[@layout.CNode], Int32, icons? : (String) -> String?) -> Unit raise @errors.PeleError
+pub fn write_struck_title_with_id(Markup, @text.Label, Double, Double, String, String, Array[@layout.CNode], Int32, icons? : (String) -> String?) -> Unit raise @errors.PeleError
 
 pub fn write_style(Markup, String) -> Unit raise @errors.PeleError
 
