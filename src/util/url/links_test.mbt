@@ -127,3 +127,41 @@ test "the rel attribute defaults to noopener and can be left out" {
   )
   inspect(@url.rel_attr({ ..options, link_rel: Some(""), }), content="")
 }
+
+///|
+test "a link start is written as link_start makes it, recording the same link" {
+  let options = [
+    @types.RenderOptions::default(),
+    { ..@types.RenderOptions::default(), links: Some(false), },
+    { ..@types.RenderOptions::default(), link_rel: Some(""), },
+  ]
+  for option in options {
+    for url in ["https://x/?a=1&b=<2>", "javascript:x", "a&\"b", ""] {
+      let want_links = []
+      let want = @url.link_start(
+        url,
+        "id",
+        want_links,
+        option,
+        attrs=" target=\"_blank\"",
+      )
+      let got_links = []
+      let out = @svg.Markup::new()
+      let written = @url.write_link_start(
+        out,
+        url,
+        "id",
+        got_links,
+        option,
+        attrs=" target=\"_blank\"",
+      )
+      assert_eq(written, want is Some(_))
+      assert_eq(out.to_string(), want.unwrap_or(""))
+      assert_eq(got_links.length(), want_links.length())
+      for i, link in got_links {
+        assert_eq(link.href, want_links[i].href)
+        assert_eq(link.id, want_links[i].id)
+      }
+    }
+  }
+}

@@ -40,3 +40,25 @@ test "the style attributes write what the string ones write under the escaped st
     assert_eq(written(out => @svg.write_style(out, css.text)), style.text)
   }
 }
+
+///|
+test "styles split as raw CSS write the attributes resolve_style makes" {
+  let samples : Array[Array[String]] = [
+    [],
+    ["fill:red", "stroke:blue !important", "color:green"],
+    ["fill:a&b\"c", "stroke-width:2", "font-weight:bold", "font-style:italic"],
+    ["font-size:12px", "url(x)", "fill:<x>", "opacity:0.5"],
+    ["FILL : red", "stroke:"],
+  ]
+  for declarations in samples {
+    let want = @svg.resolve_style(declarations)
+    let got = @svg.resolve_raw_style(declarations)
+    assert_eq(written(out => @svg.write_style(out, got.shape)), want.shape)
+    assert_eq(written(out => @svg.write_style(out, got.line)), want.line)
+    assert_eq(written(out => @svg.write_style(out, got.text)), want.text)
+    assert_eq(got.stroke, want.stroke)
+    assert_eq(got.bold, want.bold)
+    assert_eq(got.italic, want.italic)
+    assert_eq(got.font_size, want.font_size)
+  }
+}

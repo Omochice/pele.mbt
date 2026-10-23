@@ -55,3 +55,27 @@ test "icon_svg matches pele over names, positions and sizes" {
   assert_eq(outputs.length(), 225)
   assert_eq(fnv1a(outputs.join("\n")), "772371a2")
 }
+
+///|
+test "an icon is written as icon_svg makes it" {
+  let icons = (name : String) => {
+    if name == "fa:fa-x" {
+      Some("<path d=\"M0 0\"/>")
+    } else {
+      None
+    }
+  }
+  for name in ["fa:fa-x", "a&b<c>\"d\u{1}", "#38;", ""] {
+    for drawing in ["", "<circle/>"] {
+      let out = @svg.Markup::new()
+      @common.write_icon(out, name, 1.5, -2, 28, icons~, drawing~)
+      assert_eq(
+        out.to_string(),
+        @common.icon_svg(name, 1.5, -2, 28, icons~, drawing~),
+      )
+      let bare = @svg.Markup::new()
+      @common.write_icon(bare, name, 1.5, -2, 28, drawing~)
+      assert_eq(bare.to_string(), @common.icon_svg(name, 1.5, -2, 28, drawing~))
+    }
+  }
+}
