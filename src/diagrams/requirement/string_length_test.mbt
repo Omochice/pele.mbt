@@ -74,3 +74,53 @@ test "a front matter title outgrowing V8's longest string fails as nested too de
     content="limit: Diagram is nested too deeply. requirement requirement",
   )
 }
+
+///|
+/// The outcome of rendering `source` with no source or output limit: the SVG's length, or the error.
+fn drawn_or_failed(source : String) -> String {
+  try {
+    let rendered = @core.render([@requirement.requirement], source, {
+      ..@types.RenderOptions::default(),
+      limit: Some(1.0 / 0.0),
+      output_limit: Some(1.0 / 0.0),
+    })
+    rendered.svg.length().to_string()
+  } catch {
+    @errors.PeleError(failure) =>
+      "\{failure.code.to_string()}: \{failure.message} \{failure.kind.unwrap_or("null")} \{failure.mermaid_type.unwrap_or("null")}"
+  }
+}
+
+///|
+#skip("slow: draws over 270 million code units")
+test "a field escaped past what a doubling StringBuilder holds is drawn as pele draws it" {
+  inspect(
+    drawn_or_failed(
+      "requirementDiagram\nrequirement r {\n  text: \"\{"&".repeat(54000000)}\"\n}\n",
+    ),
+    content="270001647",
+  )
+}
+
+///|
+#skip("slow: escapes over 536 million code units before it fails")
+test "a requirement name escaped twice past V8's longest string fails as nested too deeply" {
+  inspect(
+    drawn_or_failed(
+      "requirementDiagram\nrequirement \"\{"&".repeat(54000000)}\" {\n}\n",
+    ),
+    content="limit: Diagram is nested too deeply. requirement requirement",
+  )
+}
+
+///|
+#skip("slow: escapes over 536 million code units before it fails")
+test "a relationship of a requirement named past V8's longest string fails as nested too deeply" {
+  let name = "&".repeat(54000000)
+  inspect(
+    drawn_or_failed(
+      "requirementDiagram\nrequirement \"\{name}\" {\n}\nelement e {\n}\n\"\{name}\" - satisfies -> e\n",
+    ),
+    content="limit: Diagram is nested too deeply. requirement requirement",
+  )
+}

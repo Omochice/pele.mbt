@@ -448,6 +448,11 @@ export const CASES = [
   // A text holding a `#35;` code is shown with every `&` escaped and the whole decoded back.
   lazy('railroad', 'one special sequence with a code and many &', () => `railroad-ebnf-beta\nr = ? #35;${'&'.repeat(54000000)} ? ;\n`, RAISED),
   lazy('railroad', 'one special sequence with a code past V8', () => `railroad-ebnf-beta\nr = ? #35;${'&'.repeat(110000000)} ? ;\n`, RAISED),
+  lazy('requirement', 'one field of many &', () => `requirementDiagram\nrequirement r {\n  text: "${'&'.repeat(54000000)}"\n}\n`, RAISED),
+  // A requirement's name is written in its data-id and as its label.
+  lazy('requirement', 'one requirement named by many &', () => `requirementDiagram\nrequirement "${'&'.repeat(54000000)}" {\n}\n`, RAISED),
+  // A relationship's id holds the names of its ends.
+  lazy('requirement', 'one relationship of a requirement named by many &', () => `requirementDiagram\nrequirement "${'&'.repeat(54000000)}" {\n}\nelement e {\n}\n"${'&'.repeat(54000000)}" - satisfies -> e\n`, RAISED),
 ];
 
 // A case whose source is built only when the check reaches it, as a getter in the source's place,
