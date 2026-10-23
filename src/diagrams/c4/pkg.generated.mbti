@@ -9,6 +9,87 @@ pub fn tokenize(String) -> C4Tokens
 // Errors
 
 // Types and methods
+pub(all) enum C4Attr {
+  Text(String)
+  Named(C4Named)
+}
+
+pub struct C4Db {
+  mut c4_type : String?
+  mut title : String?
+  mut acc_descr : String?
+  shapes : Array[C4Element]
+  boundaries : Array[C4Element]
+  rels : Array[C4Rel]
+  mut shape_in_row : Double
+  mut boundary_in_row : Double
+}
+pub fn C4Db::add_component(Self, String, Array[C4Attr]) -> Unit
+pub fn C4Db::add_container(Self, String, Array[C4Attr]) -> Unit
+pub fn C4Db::add_container_boundary(Self, Array[C4Attr]) -> Unit
+pub fn C4Db::add_deployment_node(Self, String, Array[C4Attr]) -> Unit
+pub fn C4Db::add_person_or_system(Self, String, Array[C4Attr]) -> Unit
+pub fn C4Db::add_person_or_system_boundary(Self, Array[C4Attr], fallback? : String) -> Unit
+pub fn C4Db::add_rel(Self, String, Array[C4Attr]) -> Unit
+pub fn C4Db::get_c4_shape(Self, String) -> C4Element?
+pub fn C4Db::new(title? : String) -> Self
+pub fn C4Db::pop_boundary_parse_stack(Self) -> Unit
+pub fn C4Db::set_acc_description(Self, String) -> Unit
+pub fn C4Db::set_c4_type(Self, String) -> Unit
+pub fn C4Db::set_title(Self, String) -> Unit
+pub fn C4Db::update_el_style(Self, Array[C4Attr]) -> Unit
+pub fn C4Db::update_layout_config(Self, Array[C4Attr]) -> Unit
+pub fn C4Db::update_rel_style(Self, Array[C4Attr]) -> Unit
+
+pub(all) struct C4Element {
+  mut alias_ : String
+  mut label : String
+  mut alias_attr : C4Named?
+  mut label_attr : C4Named?
+  mut parent : C4Element?
+  mut type_ : String?
+  mut descr : String?
+  mut techn : String?
+  mut sprite : String?
+  mut tags : String?
+  mut link : String?
+  mut bg_color : String?
+  mut font_color : String?
+  mut border_color : String?
+  mut shadowing : String?
+  mut shape : String?
+  mut legend_text : String?
+  mut legend_sprite : String?
+  mut extra : Map[String, String]?
+  mut kind : String
+  mut node_type : String?
+}
+
+pub(all) struct C4Named {
+  key : String
+  value : String
+}
+
+pub(all) struct C4Rel {
+  mut type_ : String
+  mut from : String
+  mut to : String
+  mut label : String
+  mut from_attr : C4Named?
+  mut to_attr : C4Named?
+  mut label_attr : C4Named?
+  mut techn : String?
+  mut descr : String?
+  mut sprite : String?
+  mut tags : String?
+  mut link : String?
+  mut text_color : String?
+  mut line_color : String?
+  mut offset_x : Double?
+  mut offset_y : Double?
+  mut extra : Map[String, String]?
+}
+
 pub(all) struct C4Tokens {
   types : Array[Int32]
   starts : Array[Int32]
