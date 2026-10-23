@@ -241,50 +241,70 @@ fn draw(
       base=@text.STYLE_BOLD,
     )
   }
-  let header = (
+  fn header(
+    out : @svg.Markup,
     group : Group,
     label : @text.Label,
     x : Double,
     y : Double,
     w : Double,
     h : Double,
-  ) => {
-    box(x, y, w, h, " fill=\"\{@svg.series_color(group.section)}\"") +
-    @svg.label_svg(
+  ) -> Unit raise @errors.PeleError {
+    out.write(box(x, y, w, h, " fill=\"\{@svg.series_color(group.section)}\""))
+    @svg.write_label(
+      out,
       label,
       x + w / 2,
       y + h / 2,
       " font-weight=\"var(--_hw)\"" + ON_COLOR,
     )
   }
-  let period = (i : Int32, color : String, x : Double, y : Double, h : Double) => {
-    box(x, y, col_w, h, " fill=\"\{color}\"") +
-    @svg.label_svg(period_labels[i], x + col_w / 2, y + h / 2, ON_COLOR)
+  fn period(
+    out : @svg.Markup,
+    i : Int32,
+    color : String,
+    x : Double,
+    y : Double,
+    h : Double,
+  ) -> Unit raise @errors.PeleError {
+    out.write(box(x, y, col_w, h, " fill=\"\{color}\""))
+    @svg.write_label(out, period_labels[i], x + col_w / 2, y + h / 2, ON_COLOR)
   }
-  let event = (
+  fn event(
+    out : @svg.Markup,
     label : @text.Label,
     color : String,
     x : Double,
     y : Double,
     h : Double,
-  ) => {
-    "<g class=\"pele-node pele-event\">" +
-    box(x, y, event_w, h, " fill=\"\{color}\" fill-opacity=\"0.16\"") +
-    @svg.label_svg(label, x + event_w / 2, y + h / 2, " font-size=\"\{small}\"") +
-    "</g>"
+  ) -> Unit raise @errors.PeleError {
+    out.write(
+      "<g class=\"pele-node pele-event\">" +
+      box(x, y, event_w, h, " fill=\"\{color}\" fill-opacity=\"0.16\""),
+    )
+    @svg.write_label(
+      out,
+      label,
+      x + event_w / 2,
+      y + h / 2,
+      " font-size=\"\{small}\"",
+    )
+    out.write("</g>")
   }
   let dot = (x : Double, y : Double, color : String) => {
     "<circle class=\"pele-dot\" cx=\"\{@svg.num(x)}\" cy=\"\{@svg.num(y)}\" r=\"4\" fill=\"\{color}\" stroke=\"var(--_bg)\" stroke-width=\"2\"/>"
   }
-  let open = (group : Group) => {
+  fn open(out : @svg.Markup, group : Group) -> Unit raise @errors.PeleError {
     if group.section >= 0 {
-      "<g class=\"pele-cluster pele-section\" data-id=\"\{@svg.esc_text(@util.trim(model.sections[group.section]))}\">"
-    } else {
-      ""
+      out.write("<g class=\"pele-cluster pele-section\" data-id=\"")
+      @svg.write_esc_text(out, @util.trim(model.sections[group.section]))
+      out.write("\">")
     }
   }
-  let open_period = (i : Int32) => {
-    "<g class=\"pele-node pele-period\" data-id=\"\{@svg.esc_text(@util.trim(periods[i].text))}\">"
+  fn open_period(out : @svg.Markup, i : Int32) -> Unit raise @errors.PeleError {
+    out.write("<g class=\"pele-node pele-period\" data-id=\"")
+    @svg.write_esc_text(out, @util.trim(periods[i].text))
+    out.write("\">")
   }
 
   let mut body = @svg.Markup::new()
@@ -295,11 +315,11 @@ fn draw(
     let events_x = spine_x + SPINE
     let mut y = top
     for group in groups {
-      body.write(open(group))
+      open(body, group)
       if group.section >= 0 {
         let label = section_label(group, body_w)
         let h = chip_height(label)
-        body.write(header(group, label, left, y, body_w, h))
+        header(body, group, label, left, y, body_w, h)
         y += h + SECTION_GAP + 4
       }
       for i in group.periods {
@@ -325,7 +345,7 @@ fn draw(
           d.write(
             "M\{@svg.num(spine_x)},\{@svg.num(last)}H\{@svg.num(events_x)}",
           )
-          cards.write(event(label, color, events_x, ey, eh))
+          event(cards, label, color, events_x, ey, eh)
           ey += eh + EVENT_GAP
         }
         if !cards.is_empty() {
@@ -333,7 +353,8 @@ fn draw(
             "M\{@svg.num(axis_x)},\{@svg.num(cy)}H\{@svg.num(spine_x)}V\{@svg.num(last)}",
           )
         }
-        body.write(open_period(i) + period(i, color, left, cy - h / 2, h))
+        open_period(body, i)
+        period(body, i, color, left, cy - h / 2, h)
         body.write_group("<path class=\"pele-edge\" d=\"", d, "\"\{LINE}/>")
         body.write(dot(axis_x, cy, color))
         body.write_markup(cards)
@@ -388,17 +409,16 @@ fn draw(
     for g, group in groups {
       let span = @cmp.maximum(group.periods.length(), 1)
       let gx = left + slot.to_double() * pitch
-      body.write(open(group))
+      open(body, group)
       if section_labels[g] is Some(label) {
-        body.write(
-          header(
-            group,
-            label,
-            gx,
-            top,
-            span.to_double() * pitch - GAP,
-            header_h,
-          ),
+        header(
+          body,
+          group,
+          label,
+          gx,
+          top,
+          span.to_double() * pitch - GAP,
+          header_h,
         )
       }
       for k, i in group.periods {
@@ -418,11 +438,12 @@ fn draw(
               "M\{@svg.num(cx)},\{@svg.num(ey - EVENT_GAP)}V\{@svg.num(ey)}",
             )
           }
-          cards.write(event(event_label, color, x, ey, eh))
+          event(cards, event_label, color, x, ey, eh)
           ey += eh + EVENT_GAP
         }
         bottom = @util.js_max(bottom, ey - EVENT_GAP)
-        body.write(open_period(i) + period(i, color, x, periods_y, chip_h))
+        open_period(body, i)
+        period(body, i, color, x, periods_y, chip_h)
         body.write_group("<path class=\"pele-edge\" d=\"", d, "\"\{LINE}/>")
         body.write(dot(cx, axis_y, color))
         body.write_markup(cards)
