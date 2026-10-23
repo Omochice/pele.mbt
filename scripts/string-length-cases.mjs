@@ -178,4 +178,7 @@ export const CASES = [
   // pele fails this while parsing, as it does a commit id of the same length; the port fails as
   // the slice's and the legend item's data-ids and the label pass V8's longest string.
   ['pie', 'one entry named by many &', `pie\n"${'&'.repeat(54000000)}": 1\n`, RAISED],
+  ['eventmodeling', 'one frame with data of many &', `eventmodeling\ntf 01 evt E "${'&'.repeat(110000000)}"\n`, RAISED],
+  ['eventmodeling', 'one frame with data drawn past what a doubling StringBuilder holds', `eventmodeling\ntf 01 evt E "${'&'.repeat(60000000)}"\n`, RAISED],
+  ['eventmodeling', 'one note of many &', `eventmodeling\ntf 01 evt E\nnote 01 {\n${'&'.repeat(110000000)}\n}\n`, RAISED],
 ];
