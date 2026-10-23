@@ -14,11 +14,19 @@ pub fn icon_markup(String) -> String
 
 pub fn layout_label(String?, Bool, TextMeasurer, Double, Double, base? : Int32) -> Label
 
+pub fn math_active() -> Bool
+
 pub let metrics_measurer : TextMeasurer
 
 pub fn table_measurer((Int32) -> AdvanceTable, Double) -> TextMeasurer
 
+pub fn typeset(String, Double) -> MathMarkup?
+
 pub fn[T] with_icons(((String) -> String?)?, () -> T raise?) -> T raise?
+
+pub fn[T] with_math(((String, Double) -> Json?)?, () -> T raise?) -> T raise?
+
+pub fn[T] without_math(() -> T raise?) -> T raise?
 
 // Errors
 
@@ -36,6 +44,17 @@ pub(all) struct Label {
   height : Double
   size : Double
   line_height : Double
+}
+
+pub(all) enum MathBody {
+  Svg(String)
+  Html(String)
+}
+
+pub(all) struct MathMarkup {
+  body : MathBody
+  width : Double
+  height : Double
 }
 
 pub(all) struct Span {
