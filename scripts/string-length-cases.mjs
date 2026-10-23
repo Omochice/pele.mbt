@@ -286,6 +286,7 @@ export const CASES = [
   // A YAML plain scalar cannot start with `"`, so a front matter title of `"` starts with `x`.
   lazy('flowchart', 'a front matter title past V8', () => `---\ntitle: x${'"'.repeat(90000000)}\n---\ngraph TD\nA\n`, RAISED),
   lazy('swimlane', 'a front matter title past V8', () => `---\ntitle: x${'"'.repeat(90000000)}\n---\nswimlane-beta TB\nsubgraph L\nA\nend\n`, RAISED),
+  lazy('agentflow', 'a front matter title past V8', () => `---\ntitle: x${'"'.repeat(90000000)}\n---\nagentflow-beta TB\n  a\n`, RAISED),
   lazy('architecture', 'a title past V8', () => `architecture-beta\ntitle ${'"'.repeat(90000000)}\nservice s(server)[x]\n`, RAISED),
   lazy('wardley', 'a title past V8', () => `wardley-beta\ntitle ${'"'.repeat(90000000)}\ncomponent A [0.2, 0.2]\n`, RAISED),
   lazy('railroad', 'a title past V8', () => `railroad-peg-beta\ntitle ${'"'.repeat(90000000)}\nr <- "a" ;\n`, RAISED),
