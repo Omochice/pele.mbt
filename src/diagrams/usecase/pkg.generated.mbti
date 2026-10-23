@@ -6,6 +6,8 @@ import {
 }
 
 // Values
+pub fn parse_ordered_json(String, () -> (Int32, Int32)) -> Array[(String, JsonValue)] raise @errors.PeleError
+
 pub fn token_name(Int32) -> String
 
 pub fn tokenize(String) -> Tokens raise @errors.PeleError
@@ -13,6 +15,15 @@ pub fn tokenize(String) -> Tokens raise @errors.PeleError
 // Errors
 
 // Types and methods
+pub(all) enum JsonValue {
+  JsonNull
+  JsonBool(Bool)
+  JsonNumber(Double)
+  JsonString(String)
+  JsonArray(Array[JsonValue])
+  JsonObject(Array[(String, JsonValue)])
+}
+
 pub(all) struct Tokens {
   types : Array[Int32]
   starts : Array[Int32]
