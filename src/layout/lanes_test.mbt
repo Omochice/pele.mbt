@@ -323,3 +323,199 @@ test "routes a handoff by where the label of a relation to a lane is" {
     assert_true((handoff[p] - edges[5].label_y).abs() > 100)
   }
 }
+
+///|
+/// A graph from pele's lane layout tests: leaves first and lanes after them, as the flowchart graph lists them, with groups inside some lanes.
+priv struct LaneSample {
+  nodes : Array[@layout.CNode]
+  edges : Array[@layout.CEdge]
+  lanes : Array[Int32]
+  leaves : Array[Int32]
+  lane_of : Map[Int32, Int32]
+  inner : Array[Int32]
+  inner_lane : Array[Int32]
+  dir : @layout.Dir
+}
+
+///|
+fn random_lanes(seed : Int32) -> LaneSample {
+  let rnd = random(seed)
+  let int = (n : Int32) => (rnd() * n.to_double()).floor().to_int()
+  let nodes : Array[@layout.CNode] = []
+  let leaves : Array[Int32] = []
+  let lane_of : Map[Int32, Int32] = Map([])
+  let lanes : Array[Int32] = []
+  let leaf_count = 1 + int(30)
+  let lane_count = 1 + int(5)
+  let inner : Array[Int32] = []
+  let inner_lane : Array[Int32] = []
+  for i in 0..<leaf_count {
+    let w = 30 + int(120)
+    let h = 24 + int(60)
+    nodes.push(@layout.cnode(w.to_double(), h.to_double()))
+    leaves.push(i)
+  }
+  for _ in 0..<lane_count {
+    lanes.push(nodes.length())
+    nodes.push(lane_group())
+  }
+  // The bound is drawn again on every pass, as pele draws it, so that the same random numbers go to the same choices.
+  for k = 0; k < int(4); k = k + 1 {
+    let lane = lanes[int(lane_count)]
+    inner.push(nodes.length())
+    inner_lane.push(lane)
+    nodes.push(lane_group(parent=lane))
+  }
+  for i in leaves {
+    if inner.length() > 0 && rnd() < 0.25 {
+      let g = int(inner.length())
+      nodes[i].parent = inner[g]
+      lane_of[i] = inner_lane[g]
+    } else {
+      lane_of[i] = lanes[int(lane_count)]
+      nodes[i].parent = lane_of[i]
+    }
+  }
+  let edges : Array[@layout.CEdge] = []
+  let count = int(leaf_count * 2)
+  for _ in 0..<count {
+    let labelled = rnd() < 0.3
+    let src = int(leaf_count)
+    let dst = int(leaf_count)
+    let label_w = if labelled { (20 + int(80)).to_double() } else { 0 }
+    edges.push(edge(src, dst, label_w~, label_h=if labelled { 18 } else { 0 }))
+  }
+  if rnd() < 0.3 {
+    edges.push(edge(lanes[0], leaves[0]))
+  }
+  let dir = dirs[int(4)]
+  { nodes, edges, lanes, leaves, lane_of, inner, inner_lane, dir, }
+}
+
+///|
+fn within(
+  inner : (Double, Double, Double, Double),
+  outer : (Double, Double, Double, Double),
+) -> Bool {
+  inner.0 >= outer.0 - 0.01 &&
+  inner.2 <= outer.2 + 0.01 &&
+  inner.1 >= outer.1 - 0.01 &&
+  inner.3 <= outer.3 + 0.01
+}
+
+///|
+fn apart(
+  a : (Double, Double, Double, Double),
+  b : (Double, Double, Double, Double),
+) -> Bool {
+  a.2 <= b.0 + 0.01 ||
+  b.2 <= a.0 + 0.01 ||
+  a.3 <= b.1 + 0.01 ||
+  b.3 <= a.1 + 0.01
+}
+
+///|
+fn check_random_lanes(lane_pad : Double) -> Unit raise {
+  for seed in 1..<=300 {
+    let { nodes, edges, lanes, leaves, lane_of, inner, inner_lane, dir, } = random_lanes(
+      seed,
+    )
+    let result = @layout.lane_layout(nodes, edges, dir, options(), lane_pad~)
+    let finite = (v : Double) => !v.is_nan() && !v.is_inf()
+    let place = "seed \{seed}"
+    assert_true(finite(result.width) && finite(result.height), msg=place)
+    for c in nodes {
+      assert_true(
+        finite(c.x) && finite(c.y) && finite(c.w) && finite(c.h),
+        msg=place,
+      )
+    }
+    for i in leaves {
+      assert_true(
+        within(box(nodes[i]), box(nodes[lane_of[i]])),
+        msg="\{place}: node \{i} in its lane",
+      )
+    }
+    for k, g in inner {
+      if !leaves.iter().any(i => nodes[i].parent == g) {
+        continue
+      }
+      assert_true(
+        within(box(nodes[g]), box(nodes[inner_lane[k]])),
+        msg="\{place}: group \{g} in its lane",
+      )
+      for i in leaves {
+        if nodes[i].parent == g {
+          assert_true(
+            within(box(nodes[i]), box(nodes[g])),
+            msg="\{place}: node \{i} in its group",
+          )
+        }
+      }
+    }
+    for a in 0..<leaves.length() {
+      for b in (a + 1)..<leaves.length() {
+        assert_true(
+          apart(box(nodes[leaves[a]]), box(nodes[leaves[b]])),
+          msg="\{place}: nodes \{a} and \{b} overlap",
+        )
+      }
+    }
+    let whole = (0.0, 0.0, result.width, result.height)
+    for a in 0..<lanes.length() {
+      assert_true(
+        within(box(nodes[lanes[a]]), whole),
+        msg="\{place}: lane inside",
+      )
+      for k in (a + 1)..<lanes.length() {
+        assert_true(
+          apart(box(nodes[lanes[a]]), box(nodes[lanes[k]])),
+          msg="\{place}: lanes overlap",
+        )
+      }
+    }
+    for e in edges {
+      if e.src == e.dst {
+        continue
+      }
+      assert_true(
+        e.route.length() >= 6 && e.route.length() % 3 == 0,
+        msg="\{place}: route",
+      )
+      for v in e.route {
+        assert_true(finite(v), msg="\{place}: route value")
+      }
+      for p = 0; p < e.route.length(); p = p + 3 {
+        assert_true(
+          e.route[p] >= -0.01 &&
+          e.route[p] <= result.width + 0.01 &&
+          e.route[p + 1] >= -0.01 &&
+          e.route[p + 1] <= result.height + 0.01,
+          msg="\{place}: route inside the lanes",
+        )
+      }
+      assert_true(finite(e.label_x) && finite(e.label_y), msg="\{place}: label")
+    }
+  }
+}
+
+///|
+test "keeps random graphs well formed with 24 pixels of lane padding" {
+  check_random_lanes(24)
+}
+
+///|
+test "keeps random graphs well formed with 12 pixels of lane padding" {
+  check_random_lanes(12)
+}
+
+///|
+test "gives the same result every time" {
+  let a = random_lanes(42)
+  let b = random_lanes(42)
+  ignore(@layout.lane_layout(a.nodes, a.edges, a.dir, options()))
+  ignore(@layout.lane_layout(b.nodes, b.edges, b.dir, options()))
+  let boxes = (s : LaneSample) => s.nodes.map(c => [c.x, c.y, c.w, c.h])
+  assert_eq(boxes(a), boxes(b))
+  assert_eq(a.edges.map(e => e.route), b.edges.map(e => e.route))
+}
