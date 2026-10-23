@@ -802,13 +802,12 @@ fn draw(
   let total_width = (right - left + 2 * pad).ceil()
   let total_height = (bounds.max_y - bounds.min_y + title_height + 2 * pad).ceil()
   let content = @svg.Markup::new()
-  content.write(
-    @svg.label_svg(
-      title,
-      tx + plot_w / 2,
-      pad + title.height / 2,
-      " class=\"pele-title\" font-weight=\"var(--_tw)\"",
-    ),
+  @svg.write_label(
+    content,
+    title,
+    tx + plot_w / 2,
+    pad + title.height / 2,
+    " class=\"pele-title\" font-weight=\"var(--_tw)\"",
   )
   content.write("<g transform=\"translate(\{@svg.num(tx)},\{@svg.num(ty)})\">")
   content.write_group(
