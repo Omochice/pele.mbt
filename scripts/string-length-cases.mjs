@@ -163,4 +163,7 @@ export const CASES = [
   ['mindmap', 'host icons in one node label', `mindmap\nroot["${Array(5400).fill('fa:fa-x').join(' ')}"]\n`, ICONS],
   // A node without a label is named by its text, which is written in its data-id and in its label.
   ['mindmap', 'one node named by many &', `mindmap\n${'&'.repeat(60000000)}\n`, RAISED],
+  ['sequence', 'host icons in one message label', `sequenceDiagram\nA->>B: ${Array(5400).fill('fa:fa-x').join(' ')}\n`, ICONS],
+  // A participant without an alias is labelled with its name, which its data-ids and lifeline repeat.
+  ['sequence', 'one participant named by many &', `sequenceDiagram\nparticipant ${'&'.repeat(54000000)}\n`, RAISED],
 ];
