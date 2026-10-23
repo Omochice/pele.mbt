@@ -1308,7 +1308,7 @@ fn draw(
     bottom += box_pad
   }
   let mut min_y = 0.0
-  let mut title_out = ""
+  let title_out = @svg.Markup::new()
   let room = @common.title_room(options)
   let plain_title = @svg.title_label(
     db.title,
@@ -1332,7 +1332,8 @@ fn draw(
     let cx = (min_x + max_x) / 2
     widen(cx - title.width / 2, cx + title.width / 2)
     min_y = -title.height - 12
-    title_out = @svg.label_svg(
+    @svg.write_label(
+      title_out,
       title,
       cx,
       min_y + title.height / 2,
@@ -1346,7 +1347,7 @@ fn draw(
   content.write(
     "<g transform=\"translate(\{n(pad - min_x)},\{n(pad - min_y)})\">",
   )
-  content.write(title_out)
+  content.write_markup(title_out)
   fn group(open : String, body : @svg.Markup) -> Unit raise @errors.PeleError {
     if !body.is_empty() {
       content.write_group(open, body, "</g>")
