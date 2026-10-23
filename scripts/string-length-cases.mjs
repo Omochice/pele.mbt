@@ -335,6 +335,7 @@ export const CASES = [
   lazy('quadrant', 'a title past V8', () => `quadrantChart\ntitle ${'"'.repeat(90000000)}\nP: [0.5, 0.5]\n`, RAISED),
   lazy('radar', 'a title past V8', () => `radar-beta\ntitle ${'"'.repeat(90000000)}\naxis a\n`, RAISED),
   lazy('railroad', 'a title past V8', () => `railroad-peg-beta\ntitle ${'"'.repeat(90000000)}\nr <- "a" ;\n`, RAISED),
+  lazy('venn', 'a title past V8', () => `venn-beta\ntitle ${'"'.repeat(90000000)}\nset A\n`, RAISED),
 ];
 
 // A case whose source is built only when the check reaches it, as a getter in the source's place,
