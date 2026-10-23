@@ -181,4 +181,7 @@ export const CASES = [
   ['eventmodeling', 'one frame with data of many &', `eventmodeling\ntf 01 evt E "${'&'.repeat(110000000)}"\n`, RAISED],
   ['eventmodeling', 'one frame with data drawn past what a doubling StringBuilder holds', `eventmodeling\ntf 01 evt E "${'&'.repeat(60000000)}"\n`, RAISED],
   ['eventmodeling', 'one note of many &', `eventmodeling\ntf 01 evt E\nnote 01 {\n${'&'.repeat(110000000)}\n}\n`, RAISED],
+  ['ishikawa', 'one cause of many &', `ishikawa-beta\nProblem\n  C\n    ${'&'.repeat(110000000)}\n`, RAISED],
+  // A category's text is written in its data-id and as its label.
+  ['ishikawa', 'one category of many &', `ishikawa-beta\nProblem\n  ${'&'.repeat(54000000)}\n`, RAISED],
 ];
