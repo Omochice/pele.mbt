@@ -50,11 +50,21 @@ pub fn keyword_space_end(src : String, q : Int32, word : String) -> Int32 {
 
 ///|
 /// `/(?:\r?\n)*\s*\n/y`: the run of whitespace at `q` up to its last newline.
-pub fn nodir_end(src : String, q : Int32) -> Int32 {
+/// Of V8's backtracking stack, the match takes two slots, two for each line break it repeats over, and two more when a later line break ends it.
+/// Raises the error pele reports once that fills the stack.
+pub fn nodir_end(src : String, q : Int32) -> Int32 raise @errors.PeleError {
   let w = skip_space(src, q)
   let mut k = w - 1
   while k >= q && code(src, k) != '\n' {
     k -= 1
+  }
+  let (repeated, steps) = newline_run(src, q)
+  let mut slots = 2L + 2L * steps
+  if k >= repeated {
+    slots += 2
+  }
+  if @util.backtrack_stack_overflows(slots) {
+    raise @errors.nested_too_deeply()
   }
   if k < q {
     -1
@@ -231,9 +241,10 @@ fn invisible_link_end(src : String, q : Int32) -> Int32 {
 }
 
 ///|
-/// `/(?:\r?\n)+/y`.
-fn newline_end(src : String, q : Int32) -> Int32 {
+/// The end of `(?:\r?\n)*` at `q`, and how many line breaks it repeats over.
+fn newline_run(src : String, q : Int32) -> (Int32, Int64) {
   let mut j = q
+  let mut steps = 0L
   while true {
     if code(src, j) == '\n' {
       j += 1
@@ -242,6 +253,18 @@ fn newline_end(src : String, q : Int32) -> Int32 {
     } else {
       break
     }
+    steps += 1
+  }
+  (j, steps)
+}
+
+///|
+/// `/(?:\r?\n)+/y`.
+/// Each line break takes two slots of V8's backtracking stack, and the error pele reports is raised once they fill it.
+fn newline_end(src : String, q : Int32) -> Int32 raise @errors.PeleError {
+  let (j, steps) = newline_run(src, q)
+  if @util.backtrack_stack_overflows(2L * steps) {
+    raise @errors.nested_too_deeply()
   }
   if j == q {
     -1

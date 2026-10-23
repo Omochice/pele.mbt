@@ -789,7 +789,7 @@ fn Lexer::md_string_state(self : Lexer, c : Int32) -> Bool {
 }
 
 ///|
-fn Lexer::dir_state(self : Lexer, c : Int32) -> Bool {
+fn Lexer::dir_state(self : Lexer, c : Int32) -> Bool raise @errors.PeleError {
   let src = self.src
   let p = self.p
   if c == '"' {
@@ -1044,7 +1044,7 @@ fn Lexer::edge_text_state(self : Lexer, c : Int32) -> Bool {
 }
 
 ///|
-fn Lexer::step(self : Lexer, c : Int32) -> Bool {
+fn Lexer::step(self : Lexer, c : Int32) -> Bool raise @errors.PeleError {
   let src = self.src
   let p = self.p
   match self.state {
@@ -1156,7 +1156,7 @@ fn Lexer::step(self : Lexer, c : Int32) -> Bool {
 
 ///|
 /// Splits an agentflow into tokens as Mermaid's generated lexer does, ending with an error token where it stops.
-pub fn tokenize(src : String) -> Tokens {
+pub fn tokenize(src : String) -> Tokens raise @errors.PeleError {
   let lexer : Lexer = {
     src,
     n: src.length(),
