@@ -1,0 +1,119 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Omochice/pele/diagrams/wardley"
+
+import {
+  "Omochice/pele/diagrams/common",
+  "Omochice/pele/errors",
+}
+
+// Values
+pub fn parse_wardley(String) -> WardleyAst raise @errors.PeleError
+
+pub let wardley_tokens : Array[@common.TokenType]
+
+// Errors
+
+// Types and methods
+pub(all) struct AnchorAst {
+  name : String
+  visibility : Double
+  evolution : Double
+}
+
+pub(all) struct AnnotationAst {
+  number : Double
+  x : Double
+  y : Double
+  text : String
+}
+
+pub(all) struct AnnotationsAst {
+  x : Double
+  y : Double
+}
+
+pub(all) struct ComponentAst {
+  name : String
+  visibility : Double
+  evolution : Double
+  label : LabelAst?
+  strategy : String?
+  inertia : Bool
+}
+
+pub(all) struct EvolveAst {
+  component : String
+  target : Double
+}
+
+pub(all) struct ForceAst {
+  name : String
+  x : Double
+  y : Double
+}
+
+pub(all) struct LabelAst {
+  neg_x : Bool
+  offset_x : Double
+  neg_y : Bool
+  offset_y : Double
+}
+
+pub(all) struct LinkAst {
+  from : String
+  from_port : String?
+  arrow : String?
+  to : String
+  to_port : String?
+  link_label : String?
+}
+
+pub(all) struct NoteAst {
+  text : String
+  visibility : Double
+  evolution : Double
+}
+
+pub(all) struct PipelineAst {
+  parent : String
+  components : Array[PipelineComponentAst]
+}
+
+pub(all) struct PipelineComponentAst {
+  name : String
+  evolution : Double
+  label : LabelAst?
+}
+
+pub(all) struct SizeAst {
+  width : Double
+  height : Double
+}
+
+pub(all) struct StageAst {
+  name : String
+  boundary : Double?
+  second_name : String?
+}
+
+pub(all) struct WardleyAst {
+  mut title : String?
+  mut acc_title : String?
+  mut acc_descr : String?
+  mut size : SizeAst?
+  mut evolution : Array[StageAst]?
+  anchors : Array[AnchorAst]
+  components : Array[ComponentAst]
+  links : Array[LinkAst]
+  evolves : Array[EvolveAst]
+  pipelines : Array[PipelineAst]
+  notes : Array[NoteAst]
+  annotations : Array[AnnotationsAst]
+  annotation : Array[AnnotationAst]
+  accelerators : Array[ForceAst]
+  deaccelerators : Array[ForceAst]
+}
+
+// Type aliases
+
+// Traits
