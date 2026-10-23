@@ -39,7 +39,7 @@ pub struct GanttDb {
   mut excludes : Array[String]
   mut inclusive_end_dates : Bool
   mut top_axis : Bool
-  display_mode : String
+  mut display_mode : String
   /// The day week-based ticks start on, when the chart names one.
   mut weekday : String?
   mut weekend : String

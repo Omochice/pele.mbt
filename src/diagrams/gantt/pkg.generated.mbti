@@ -3,6 +3,7 @@ package "Omochice/pele/diagrams/gantt"
 
 import {
   "Omochice/pele/errors",
+  "Omochice/pele/types",
   "Omochice/pele/util/date",
 }
 
@@ -15,6 +16,8 @@ pub fn clock(Double?) -> Double
 
 pub fn format_date(@date.JsDate, String) -> String?
 
+pub let gantt : @types.Diagram
+
 pub fn interval_ticks(String, String, Double, Double, Double) -> Array[Double]?
 
 pub fn parse_duration(String) -> (Double, String)
@@ -22,6 +25,8 @@ pub fn parse_duration(String) -> (Double, String)
 pub fn[B : GanttBuilder] parse_gantt(String, B) -> Unit raise @errors.PeleError
 
 pub fn parse_strict(String, String, @date.JsDate) -> @date.JsDate?
+
+pub fn render_gantt(GanttDb, Map[String, Json], @types.RenderOptions) -> @types.Rendered raise @errors.PeleError
 
 pub fn time_format(String, @date.JsDate) -> String
 
@@ -42,7 +47,7 @@ pub struct GanttDb {
   mut excludes : Array[String]
   mut inclusive_end_dates : Bool
   mut top_axis : Bool
-  display_mode : String
+  mut display_mode : String
   mut weekday : String?
   mut weekend : String
   sections : Array[String]
