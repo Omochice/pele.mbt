@@ -4,6 +4,10 @@ import { mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'nod
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+// Gantt floors axis ticks to local midnight, so the host's time zone would leak into the goldens.
+// UTC is pinned because the wasm plugin has no time zone of its own.
+process.env.TZ = 'UTC';
+
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const peleRoot = join(root, 'vendor/pele');
 const goldenDir = join(root, 'golden');
@@ -156,6 +160,7 @@ writeFileSync(
   json({
     pele: { version: pkg.version, commit: execFileSync('git', ['-C', peleRoot, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim() },
     node: process.version,
+    timeZone: process.env.TZ,
     profiles,
     diagrams: counts,
   })

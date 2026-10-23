@@ -43,6 +43,8 @@ The `narrow` profile is the default profile plus `maxWidth: 400`.
 The value 400 is below `directionBreakpoint` (640), so both width fitting and the automatic direction turn take effect.
 A comparison tool has to read the profiles from the manifest instead of hard-coding them.
 `now` is an exception: gantt charts read the current time by default, so it is fixed to 1767225600000 (2026-01-01T00:00:00Z).
+The generator also runs pele with `TZ=UTC`, recorded as `timeZone` in the manifest.
+Gantt reads a date-only value as UTC midnight but floors its axis ticks to local midnight, so without that pin the goldens would depend on the time zone of the machine that generated them.
 `maxWidth` (outside the narrow profile), `responsive`, `linkSchemes`, and `imageSchemes` are left unset because their defaults mean "undefined selects the built-in behavior" rather than a concrete value.
 `measurer`, `icons`, `math`, and `config` are unset as well.
 The default measurer falls back to pele's built-in metrics table when no canvas is available, and a port has to reproduce that table to match text widths.
