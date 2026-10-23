@@ -38,6 +38,636 @@
       "linkRel": "noopener",
       "now": 1767225600000,
       "maxWidth": 400
+    },
+    "icons": {
+      "fontFamily": "sans-serif",
+      "fontFamilyMono": "monospace",
+      "fontSize": 16,
+      "idPrefix": "pele",
+      "padding": 8,
+      "autoDirection": true,
+      "directionBreakpoint": 640,
+      "limit": 50000,
+      "outputLimit": 4000000,
+      "maxEdges": 5000,
+      "links": true,
+      "images": true,
+      "linkRel": "noopener",
+      "now": 1767225600000,
+      "icons": {
+        "bomb": "<path data-name=\"bomb\" d=\"M4,4H20V20H4Z\"/>",
+        "cloud": "<path data-name=\"cloud\" d=\"M4,4H20V20H4Z\"/>",
+        "database": "<path data-name=\"database\" d=\"M4,4H20V20H4Z\"/>",
+        "disk": "<path data-name=\"disk\" d=\"M4,4H20V20H4Z\"/>",
+        "fa fa-book": "<path data-name=\"fa fa-book\" d=\"M4,4H20V20H4Z\"/>",
+        "fa:fa-ban": "<path data-name=\"fa:fa-ban\" d=\"M4,4H20V20H4Z\"/>",
+        "fa:fa-camera-retro": "<path data-name=\"fa:fa-camera-retro\" d=\"M4,4H20V20H4Z\"/>",
+        "fa:fa-car": "<path data-name=\"fa:fa-car\" d=\"M4,4H20V20H4Z\"/>",
+        "fa:fa-spinner": "<path data-name=\"fa:fa-spinner\" d=\"M4,4H20V20H4Z\"/>",
+        "fa:fa-star": "<path data-name=\"fa:fa-star\" d=\"M4,4H20V20H4Z\"/>",
+        "fa:fa-twitter": "<path data-name=\"fa:fa-twitter\" d=\"M4,4H20V20H4Z\"/>",
+        "fa:user": "<path data-name=\"fa:user\" d=\"M4,4H20V20H4Z\"/>",
+        "fab:fa-truck-bold": "<path data-name=\"fab:fa-truck-bold\" d=\"M4,4H20V20H4Z\"/>",
+        "internet": "<path data-name=\"internet\" d=\"M4,4H20V20H4Z\"/>",
+        "logos:aws-aurora": "<path data-name=\"logos:aws-aurora\" d=\"M4,4H20V20H4Z\"/>",
+        "logos:aws-ec2": "<path data-name=\"logos:aws-ec2\" d=\"M4,4H20V20H4Z\"/>",
+        "logos:aws-glacier": "<path data-name=\"logos:aws-glacier\" d=\"M4,4H20V20H4Z\"/>",
+        "logos:aws-lambda": "<path data-name=\"logos:aws-lambda\" d=\"M4,4H20V20H4Z\"/>",
+        "logos:aws-s3": "<path data-name=\"logos:aws-s3\" d=\"M4,4H20V20H4Z\"/>",
+        "logos:react": "<path data-name=\"logos:react\" d=\"M4,4H20V20H4Z\"/>",
+        "material-icon-theme:docker": "<path data-name=\"material-icon-theme:docker\" d=\"M4,4H20V20H4Z\"/>",
+        "material-icon-theme:react-ts": "<path data-name=\"material-icon-theme:react-ts\" d=\"M4,4H20V20H4Z\"/>",
+        "material-icon-theme:typescript": "<path data-name=\"material-icon-theme:typescript\" d=\"M4,4H20V20H4Z\"/>",
+        "mdi mdi-skull-outline": "<path data-name=\"mdi mdi-skull-outline\" d=\"M4,4H20V20H4Z\"/>",
+        "mermaid-treeview:file": "<path data-name=\"mermaid-treeview:file\" d=\"M4,4H20V20H4Z\"/>",
+        "mermaid-treeview:folder": "<path data-name=\"mermaid-treeview:folder\" d=\"M4,4H20V20H4Z\"/>",
+        "not-registered:user": "<path data-name=\"not-registered:user\" d=\"M4,4H20V20H4Z\"/>",
+        "server": "<path data-name=\"server\" d=\"M4,4H20V20H4Z\"/>",
+        "star": "<path data-name=\"star\" d=\"M4,4H20V20H4Z\"/>",
+        "user": "<path data-name=\"user\" d=\"M4,4H20V20H4Z\"/>"
+      }
+    },
+    "math": {
+      "fontFamily": "sans-serif",
+      "fontFamilyMono": "monospace",
+      "fontSize": 16,
+      "idPrefix": "pele",
+      "padding": 8,
+      "autoDirection": true,
+      "directionBreakpoint": 640,
+      "limit": 50000,
+      "outputLimit": 4000000,
+      "maxEdges": 5000,
+      "links": true,
+      "images": true,
+      "linkRel": "noopener",
+      "now": 1767225600000,
+      "math": {
+        "\\alpha": {
+          "16": {
+            "svg": "<path data-tex=\"\\alpha\" d=\"M0,0H32\"/>",
+            "width": 32,
+            "height": 28
+          }
+        },
+        "\\frac{a}{b}": {
+          "16": {
+            "html": "<span data-tex=\"\\frac{a}{b}\">\\frac{a}{b}</span>",
+            "width": 52,
+            "height": 32
+          }
+        },
+        "\\int x": {
+          "14": {
+            "svg": "<path data-tex=\"\\int x\" d=\"M0,0H28\"/>",
+            "width": 28,
+            "height": 24.5
+          }
+        },
+        "\\lambda": {
+          "16": {
+            "html": "<span data-tex=\"\\lambda\">\\lambda</span>",
+            "width": 36,
+            "height": 32
+          }
+        },
+        "a": null,
+        "a \\neq b_1 < c * d": {
+          "16": {
+            "svg": "<path data-tex=\"a \\neq b_1 &lt; c * d\" d=\"M0,0H80\"/>",
+            "width": 80,
+            "height": 28
+          }
+        },
+        "a_1": {
+          "16": {
+            "html": "<span data-tex=\"a_1\">a_1</span>",
+            "width": 20,
+            "height": 32
+          }
+        },
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa": {
+          "16": {
+            "svg": "<path data-tex=\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\" d=\"M0,0H128\"/>",
+            "width": 128,
+            "height": 28
+          }
+        },
+        "b": {
+          "14": {
+            "html": "<span data-tex=\"b\">b</span>",
+            "width": 10.5,
+            "height": 21
+          },
+          "16": {
+            "html": "<span data-tex=\"b\">b</span>",
+            "width": 12,
+            "height": 24
+          }
+        },
+        "c": null,
+        "c<br/>d": {
+          "16": {
+            "html": "<span data-tex=\"c&lt;br/&gt;d\">c&lt;br/&gt;d</span>",
+            "width": 36,
+            "height": 32
+          }
+        },
+        "d": {
+          "14": {
+            "html": "<span data-tex=\"d\">d</span>",
+            "width": 10.5,
+            "height": 21
+          }
+        },
+        "e": {
+          "14": {
+            "html": "<span data-tex=\"e\">e</span>",
+            "width": 10.5,
+            "height": 21
+          },
+          "16": {
+            "html": "<span data-tex=\"e\">e</span>",
+            "width": 12,
+            "height": 24
+          }
+        },
+        "e^#": {
+          "14": {
+            "html": "<span data-tex=\"e^#\">e^#</span>",
+            "width": 17.5,
+            "height": 28
+          }
+        },
+        "t": null,
+        "x": {
+          "13": {
+            "html": "<span data-tex=\"x\">x</span>",
+            "width": 9.75,
+            "height": 19.5
+          },
+          "14": {
+            "html": "<span data-tex=\"x\">x</span>",
+            "width": 10.5,
+            "height": 21
+          },
+          "16": {
+            "html": "<span data-tex=\"x\">x</span>",
+            "width": 12,
+            "height": 24
+          }
+        },
+        "x^2": {
+          "14": {
+            "html": "<span data-tex=\"x^2\">x^2</span>",
+            "width": 17.5,
+            "height": 28
+          },
+          "16": {
+            "html": "<span data-tex=\"x^2\">x^2</span>",
+            "width": 20,
+            "height": 32
+          }
+        },
+        "y": {
+          "13": {
+            "html": "<span data-tex=\"y\">y</span>",
+            "width": 9.75,
+            "height": 19.5
+          },
+          "14": {
+            "html": "<span data-tex=\"y\">y</span>",
+            "width": 10.5,
+            "height": 21
+          }
+        }
+      }
+    },
+    "metrics": {
+      "fontFamily": "sans-serif",
+      "fontFamilyMono": "monospace",
+      "fontSize": 16,
+      "idPrefix": "pele",
+      "padding": 8,
+      "autoDirection": true,
+      "directionBreakpoint": 640,
+      "limit": 50000,
+      "outputLimit": 4000000,
+      "maxEdges": 5000,
+      "links": true,
+      "images": true,
+      "linkRel": "noopener",
+      "now": 1767225600000,
+      "measurer": {
+        "unitsPerEm": 2048,
+        "styles": {
+          "0": {
+            "advances": {
+              "0": 1229,
+              "1": 1229,
+              "2": 1229,
+              "3": 1229,
+              "4": 1229,
+              "5": 1229,
+              "6": 1229,
+              "7": 1229,
+              "8": 1229,
+              "9": 1229,
+              " ": 820,
+              "!": 1229,
+              "\"": 1229,
+              "#": 1229,
+              "$": 1229,
+              "%": 1229,
+              "&": 1229,
+              "'": 1229,
+              "(": 1229,
+              ")": 1229,
+              "*": 1229,
+              "+": 1229,
+              ",": 1229,
+              "-": 1229,
+              ".": 1229,
+              "/": 1229,
+              ":": 1229,
+              ";": 1229,
+              "<": 1229,
+              "=": 1229,
+              ">": 1229,
+              "?": 1229,
+              "@": 1229,
+              "A": 1229,
+              "B": 1229,
+              "C": 1229,
+              "D": 1229,
+              "E": 1229,
+              "F": 1229,
+              "G": 1229,
+              "H": 1229,
+              "I": 1229,
+              "J": 1229,
+              "K": 1229,
+              "L": 1229,
+              "M": 1229,
+              "N": 1229,
+              "O": 1229,
+              "P": 1229,
+              "Q": 1229,
+              "R": 1229,
+              "S": 1229,
+              "T": 1229,
+              "U": 1229,
+              "V": 1229,
+              "W": 1229,
+              "X": 1229,
+              "Y": 1229,
+              "Z": 1229,
+              "[": 1229,
+              "\\": 1229,
+              "]": 1229,
+              "^": 1229,
+              "_": 1229,
+              "`": 1229,
+              "a": 1229,
+              "b": 1229,
+              "c": 1229,
+              "d": 1229,
+              "e": 1229,
+              "f": 1229,
+              "g": 1229,
+              "h": 1229,
+              "i": 1229,
+              "j": 1229,
+              "k": 1229,
+              "l": 1229,
+              "m": 1229,
+              "n": 1229,
+              "o": 1229,
+              "p": 1229,
+              "q": 1229,
+              "r": 1229,
+              "s": 1229,
+              "t": 1229,
+              "u": 1229,
+              "v": 1229,
+              "w": 1229,
+              "x": 1229,
+              "y": 1229,
+              "z": 1229,
+              "{": 1229,
+              "|": 1229,
+              "}": 1229,
+              "~": 1229,
+              "…": 2048,
+              "中": 1800
+            },
+            "default": 1300,
+            "wide": 2048
+          },
+          "1": {
+            "advances": {
+              "0": 1352,
+              "1": 1352,
+              "2": 1352,
+              "3": 1352,
+              "4": 1352,
+              "5": 1352,
+              "6": 1352,
+              "7": 1352,
+              "8": 1352,
+              "9": 1352,
+              " ": 900,
+              "!": 1352,
+              "\"": 1352,
+              "#": 1352,
+              "$": 1352,
+              "%": 1352,
+              "&": 1352,
+              "'": 1352,
+              "(": 1352,
+              ")": 1352,
+              "*": 1352,
+              "+": 1352,
+              ",": 1352,
+              "-": 1352,
+              ".": 1352,
+              "/": 1352,
+              ":": 1352,
+              ";": 1352,
+              "<": 1352,
+              "=": 1352,
+              ">": 1352,
+              "?": 1352,
+              "@": 1352,
+              "A": 1352,
+              "B": 1352,
+              "C": 1352,
+              "D": 1352,
+              "E": 1352,
+              "F": 1352,
+              "G": 1352,
+              "H": 1352,
+              "I": 1352,
+              "J": 1352,
+              "K": 1352,
+              "L": 1352,
+              "M": 1352,
+              "N": 1352,
+              "O": 1352,
+              "P": 1352,
+              "Q": 1352,
+              "R": 1352,
+              "S": 1352,
+              "T": 1352,
+              "U": 1352,
+              "V": 1352,
+              "W": 1352,
+              "X": 1352,
+              "Y": 1352,
+              "Z": 1352,
+              "[": 1352,
+              "\\": 1352,
+              "]": 1352,
+              "^": 1352,
+              "_": 1352,
+              "`": 1352,
+              "a": 1352,
+              "b": 1352,
+              "c": 1352,
+              "d": 1352,
+              "e": 1352,
+              "f": 1352,
+              "g": 1352,
+              "h": 1352,
+              "i": 1352,
+              "j": 1352,
+              "k": 1352,
+              "l": 1352,
+              "m": 1352,
+              "n": 1352,
+              "o": 1352,
+              "p": 1352,
+              "q": 1352,
+              "r": 1352,
+              "s": 1352,
+              "t": 1352,
+              "u": 1352,
+              "v": 1352,
+              "w": 1352,
+              "x": 1352,
+              "y": 1352,
+              "z": 1352,
+              "{": 1352,
+              "|": 1352,
+              "}": 1352,
+              "~": 1352
+            },
+            "default": 1400,
+            "wide": 2200
+          },
+          "2": {
+            "advances": {
+              "0": 1180,
+              "1": 1180,
+              "2": 1180,
+              "3": 1180,
+              "4": 1180,
+              "5": 1180,
+              "6": 1180,
+              "7": 1180,
+              "8": 1180,
+              "9": 1180,
+              " ": 800,
+              "!": 1180,
+              "\"": 1180,
+              "#": 1180,
+              "$": 1180,
+              "%": 1180,
+              "&": 1180,
+              "'": 1180,
+              "(": 1180,
+              ")": 1180,
+              "*": 1180,
+              "+": 1180,
+              ",": 1180,
+              "-": 1180,
+              ".": 1180,
+              "/": 1180,
+              ":": 1180,
+              ";": 1180,
+              "<": 1180,
+              "=": 1180,
+              ">": 1180,
+              "?": 1180,
+              "@": 1180,
+              "A": 1180,
+              "B": 1180,
+              "C": 1180,
+              "D": 1180,
+              "E": 1180,
+              "F": 1180,
+              "G": 1180,
+              "H": 1180,
+              "I": 1180,
+              "J": 1180,
+              "K": 1180,
+              "L": 1180,
+              "M": 1180,
+              "N": 1180,
+              "O": 1180,
+              "P": 1180,
+              "Q": 1180,
+              "R": 1180,
+              "S": 1180,
+              "T": 1180,
+              "U": 1180,
+              "V": 1180,
+              "W": 1180,
+              "X": 1180,
+              "Y": 1180,
+              "Z": 1180,
+              "[": 1180,
+              "\\": 1180,
+              "]": 1180,
+              "^": 1180,
+              "_": 1180,
+              "`": 1180,
+              "a": 1180,
+              "b": 1180,
+              "c": 1180,
+              "d": 1180,
+              "e": 1180,
+              "f": 1180,
+              "g": 1180,
+              "h": 1180,
+              "i": 1180,
+              "j": 1180,
+              "k": 1180,
+              "l": 1180,
+              "m": 1180,
+              "n": 1180,
+              "o": 1180,
+              "p": 1180,
+              "q": 1180,
+              "r": 1180,
+              "s": 1180,
+              "t": 1180,
+              "u": 1180,
+              "v": 1180,
+              "w": 1180,
+              "x": 1180,
+              "y": 1180,
+              "z": 1180,
+              "{": 1180,
+              "|": 1180,
+              "}": 1180,
+              "~": 1180
+            },
+            "default": 1250
+          },
+          "4": {
+            "advances": {
+              "0": 1100,
+              "1": 1100,
+              "2": 1100,
+              "3": 1100,
+              "4": 1100,
+              "5": 1100,
+              "6": 1100,
+              "7": 1100,
+              "8": 1100,
+              "9": 1100,
+              " ": 1100,
+              "!": 1100,
+              "\"": 1100,
+              "#": 1100,
+              "$": 1100,
+              "%": 1100,
+              "&": 1100,
+              "'": 1100,
+              "(": 1100,
+              ")": 1100,
+              "*": 1100,
+              "+": 1100,
+              ",": 1100,
+              "-": 1100,
+              ".": 1100,
+              "/": 1100,
+              ":": 1100,
+              ";": 1100,
+              "<": 1100,
+              "=": 1100,
+              ">": 1100,
+              "?": 1100,
+              "@": 1100,
+              "A": 1100,
+              "B": 1100,
+              "C": 1100,
+              "D": 1100,
+              "E": 1100,
+              "F": 1100,
+              "G": 1100,
+              "H": 1100,
+              "I": 1100,
+              "J": 1100,
+              "K": 1100,
+              "L": 1100,
+              "M": 1100,
+              "N": 1100,
+              "O": 1100,
+              "P": 1100,
+              "Q": 1100,
+              "R": 1100,
+              "S": 1100,
+              "T": 1100,
+              "U": 1100,
+              "V": 1100,
+              "W": 1100,
+              "X": 1100,
+              "Y": 1100,
+              "Z": 1100,
+              "[": 1100,
+              "\\": 1100,
+              "]": 1100,
+              "^": 1100,
+              "_": 1100,
+              "`": 1100,
+              "a": 1100,
+              "b": 1100,
+              "c": 1100,
+              "d": 1100,
+              "e": 1100,
+              "f": 1100,
+              "g": 1100,
+              "h": 1100,
+              "i": 1100,
+              "j": 1100,
+              "k": 1100,
+              "l": 1100,
+              "m": 1100,
+              "n": 1100,
+              "o": 1100,
+              "p": 1100,
+              "q": 1100,
+              "r": 1100,
+              "s": 1100,
+              "t": 1100,
+              "u": 1100,
+              "v": 1100,
+              "w": 1100,
+              "x": 1100,
+              "y": 1100,
+              "z": 1100,
+              "{": 1100,
+              "|": 1100,
+              "}": 1100,
+              "~": 1100
+            },
+            "default": 1100,
+            "wide": 2200
+          }
+        }
+      }
     }
   },
   "diagrams": {
@@ -45,199 +675,298 @@
       "total": 173,
       "ok": 164,
       "error": 9,
-      "narrow": 3
+      "narrow": 3,
+      "icons": 0,
+      "math": 0,
+      "metrics": 52
     },
     "architecture": {
       "total": 27,
       "ok": 20,
       "error": 7,
-      "narrow": 2
+      "narrow": 2,
+      "icons": 14,
+      "math": 0,
+      "metrics": 14
     },
     "block": {
       "total": 85,
       "ok": 62,
       "error": 23,
-      "narrow": 8
+      "narrow": 8,
+      "icons": 0,
+      "math": 1,
+      "metrics": 49
     },
     "c4": {
       "total": 56,
       "ok": 30,
       "error": 26,
-      "narrow": 11
+      "narrow": 11,
+      "icons": 0,
+      "math": 0,
+      "metrics": 13
     },
     "class": {
       "total": 90,
       "ok": 81,
       "error": 9,
-      "narrow": 2
+      "narrow": 2,
+      "icons": 0,
+      "math": 2,
+      "metrics": 76
     },
     "cynefin": {
       "total": 19,
       "ok": 19,
       "error": 0,
-      "narrow": 0
+      "narrow": 0,
+      "icons": 0,
+      "math": 0,
+      "metrics": 17
     },
     "er": {
       "total": 144,
       "ok": 101,
       "error": 43,
-      "narrow": 2
+      "narrow": 2,
+      "icons": 0,
+      "math": 1,
+      "metrics": 100
     },
     "eventmodeling": {
       "total": 25,
       "ok": 21,
       "error": 4,
-      "narrow": 12
+      "narrow": 12,
+      "icons": 0,
+      "math": 0,
+      "metrics": 21
     },
     "flowchart": {
       "total": 462,
       "ok": 349,
       "error": 113,
-      "narrow": 13
+      "narrow": 13,
+      "icons": 5,
+      "math": 16,
+      "metrics": 238
     },
     "gantt": {
       "total": 34,
       "ok": 23,
       "error": 11,
-      "narrow": 12
+      "narrow": 12,
+      "icons": 0,
+      "math": 0,
+      "metrics": 18
     },
     "git": {
       "total": 114,
       "ok": 81,
       "error": 33,
-      "narrow": 25
+      "narrow": 25,
+      "icons": 0,
+      "math": 0,
+      "metrics": 80
     },
     "info": {
       "total": 8,
       "ok": 4,
       "error": 4,
-      "narrow": 0
+      "narrow": 0,
+      "icons": 0,
+      "math": 0,
+      "metrics": 4
     },
     "ishikawa": {
       "total": 6,
       "ok": 4,
       "error": 2,
-      "narrow": 1
+      "narrow": 1,
+      "icons": 0,
+      "math": 0,
+      "metrics": 4
     },
     "journey": {
       "total": 14,
       "ok": 4,
       "error": 10,
-      "narrow": 1
+      "narrow": 1,
+      "icons": 0,
+      "math": 0,
+      "metrics": 2
     },
     "kanban": {
       "total": 43,
       "ok": 35,
       "error": 8,
-      "narrow": 3
+      "narrow": 3,
+      "icons": 7,
+      "math": 2,
+      "metrics": 3
     },
     "mindmap": {
       "total": 48,
       "ok": 39,
       "error": 9,
-      "narrow": 4
+      "narrow": 4,
+      "icons": 5,
+      "math": 1,
+      "metrics": 39
     },
     "packet": {
       "total": 24,
       "ok": 11,
       "error": 13,
-      "narrow": 9
+      "narrow": 9,
+      "icons": 0,
+      "math": 0,
+      "metrics": 2
     },
     "pie": {
       "total": 31,
       "ok": 15,
       "error": 16,
-      "narrow": 2
+      "narrow": 2,
+      "icons": 0,
+      "math": 0,
+      "metrics": 14
     },
     "quadrant": {
       "total": 60,
       "ok": 34,
       "error": 26,
-      "narrow": 33
+      "narrow": 33,
+      "icons": 0,
+      "math": 0,
+      "metrics": 9
     },
     "radar": {
       "total": 23,
       "ok": 13,
       "error": 10,
-      "narrow": 12
+      "narrow": 12,
+      "icons": 0,
+      "math": 0,
+      "metrics": 12
     },
     "railroad": {
       "total": 96,
       "ok": 78,
       "error": 18,
-      "narrow": 1
+      "narrow": 1,
+      "icons": 0,
+      "math": 0,
+      "metrics": 78
     },
     "requirement": {
       "total": 16,
       "ok": 13,
       "error": 3,
-      "narrow": 1
+      "narrow": 1,
+      "icons": 0,
+      "math": 1,
+      "metrics": 12
     },
     "sankey": {
       "total": 19,
       "ok": 8,
       "error": 11,
-      "narrow": 8
+      "narrow": 8,
+      "icons": 0,
+      "math": 0,
+      "metrics": 1
     },
     "sequence": {
       "total": 202,
       "ok": 181,
       "error": 21,
-      "narrow": 19
+      "narrow": 19,
+      "icons": 0,
+      "math": 2,
+      "metrics": 174
     },
     "state": {
       "total": 121,
       "ok": 115,
       "error": 6,
-      "narrow": 1
+      "narrow": 1,
+      "icons": 0,
+      "math": 1,
+      "metrics": 98
     },
     "swimlane": {
       "total": 15,
       "ok": 15,
       "error": 0,
-      "narrow": 12
+      "narrow": 12,
+      "icons": 0,
+      "math": 2,
+      "metrics": 14
     },
     "timeline": {
       "total": 26,
       "ok": 25,
       "error": 1,
-      "narrow": 20
+      "narrow": 20,
+      "icons": 0,
+      "math": 0,
+      "metrics": 3
     },
     "treemap": {
       "total": 8,
       "ok": 8,
       "error": 0,
-      "narrow": 8
+      "narrow": 8,
+      "icons": 0,
+      "math": 0,
+      "metrics": 0
     },
     "treeview": {
       "total": 24,
       "ok": 24,
       "error": 0,
-      "narrow": 0
+      "narrow": 0,
+      "icons": 6,
+      "math": 0,
+      "metrics": 23
     },
     "usecase": {
       "total": 108,
       "ok": 72,
       "error": 36,
-      "narrow": 24
+      "narrow": 24,
+      "icons": 3,
+      "math": 2,
+      "metrics": 63
     },
     "venn": {
       "total": 25,
       "ok": 22,
       "error": 3,
-      "narrow": 0
+      "narrow": 0,
+      "icons": 0,
+      "math": 0,
+      "metrics": 6
     },
     "wardley": {
       "total": 39,
       "ok": 39,
       "error": 0,
-      "narrow": 39
+      "narrow": 39,
+      "icons": 0,
+      "math": 0,
+      "metrics": 11
     },
     "xychart": {
       "total": 74,
       "ok": 26,
       "error": 48,
-      "narrow": 26
+      "narrow": 26,
+      "icons": 0,
+      "math": 0,
+      "metrics": 26
     }
   }
 }

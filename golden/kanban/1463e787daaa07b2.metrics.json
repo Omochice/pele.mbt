@@ -1,0 +1,23 @@
+{
+  "type": "kanban",
+  "mermaidType": "kanban",
+  "width": 1276,
+  "height": 361,
+  "links": [
+    {
+      "id": "id4",
+      "href": "https://mermaidchart.atlassian.net/browse/MC-2038",
+      "internal": false
+    },
+    {
+      "id": "id2",
+      "href": "https://mermaidchart.atlassian.net/browse/MC-2036",
+      "internal": false
+    },
+    {
+      "id": "id3",
+      "href": "https://mermaidchart.atlassian.net/browse/MC-2037",
+      "internal": false
+    }
+  ]
+}
