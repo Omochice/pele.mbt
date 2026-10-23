@@ -65,8 +65,18 @@ pub fn locate(src : String, offset : Int32) -> (Int32, Int32, String) {
   let found_end = @util.index_of(src, "\n", from=offset)
   let line_end = if found_end == -1 { src.length() } else { found_end }
   let column = offset - line_start + 1
-  let text = @util.slice(src, line_start, end=line_end)
-  (line, column, text + "\n" + "-".repeat(column - 1) + "^")
+  let text = src.view(start_offset=line_start, end_offset=line_end)
+  // A line of a hundred million characters copied once for each piece added to it would be held
+  // several times over, so the snippet is built at its final size, which needs no copy at the end.
+  let dashes = if column > 1 { column - 1 } else { 0 }
+  let snippet = StringBuilder(size_hint=(text.length() + 1 + dashes + 1) * 2)
+  snippet.write_view(text)
+  snippet.write_char('\n')
+  for _ in 0..<dashes {
+    snippet.write_char('-')
+  }
+  snippet.write_char('^')
+  (line, column, snippet.to_string())
 }
 
 ///|
@@ -79,11 +89,18 @@ pub fn syntax_error(
   lexical~ : Bool = false,
 ) -> PeleError {
   let (line, column, snippet) = locate(src, offset)
-  let message = if lexical {
-    "Lexical error on line \{line}. Unrecognized text.\n\{snippet}"
+  let (head, tail) = if lexical {
+    ("Lexical error on line \{line}. Unrecognized text.\n", "")
   } else {
-    "Parse error on line \{line}:\n\{snippet}\n\{detail}"
+    ("Parse error on line \{line}:\n", "\n\{detail}")
   }
+  let message = StringBuilder(
+    size_hint=(head.length() + snippet.length() + tail.length()) * 2,
+  )
+  message.write_string(head)
+  message.write_string(snippet)
+  message.write_string(tail)
+  let message = message.to_string()
   pele_error(message, code=Syntax, kind~, line~, column~, snippet~)
 }
 
