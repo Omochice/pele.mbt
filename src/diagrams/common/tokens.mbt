@@ -239,9 +239,8 @@ pub fn quoted_span(src : String, p : Int32) -> (Int32, Int32) {
 }
 
 ///|
-/// Whether pele's pattern for a quoted string runs V8's backtracking stack out after repeating its group `steps` times.
+/// Raises the error pele reports where its pattern for a quoted string runs V8's backtracking stack out, after repeating its group `steps` times.
 /// Each repetition takes four slots, and a match that ends with an alternative of the pattern after it still untried takes four more.
-/// Raises the error pele reports for that.
 pub fn check_quoted_steps(
   steps : Int32,
   untried_alternative~ : Bool,
