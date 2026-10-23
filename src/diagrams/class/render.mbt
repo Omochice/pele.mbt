@@ -523,7 +523,8 @@ fn draw(
     ),
   )
 
-  // Every edge reaches the middle of a side. Where several share a side they are spread along it, in the order of where they come from.
+  // Every edge reaches the middle of a side.
+  // Where several share a side they are spread along it, in the order of where they come from.
   // An end with text runs straight for the length of the text, which sits beside it on the side the line then bends toward, away from the neighbors that bend the other way.
   // Neighbors are set apart far enough for the text between them.
   let sides : Map[Int32, Array[End]] = Map([])

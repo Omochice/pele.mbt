@@ -29,7 +29,8 @@ pub(all) struct GraphNode {
   /// Index of the namespace node this one is drawn in, or -1.
   mut parent : Int32
   class_node : ClassNode?
-  /// Position among the classes, in declaration order. Namespaces and notes have none.
+  /// Position among the classes, in declaration order.
+  /// Namespaces and notes have none.
   color_index : Int32?
 }
 
@@ -39,7 +40,8 @@ pub(all) struct GraphEdge {
   id : String
   start : String
   end : String
-  /// Indexes into the node list. Ids alone are ambiguous: a class may be named `note0` or `interface0`.
+  /// Indexes into the node list.
+  /// Ids alone are ambiguous: a class may be named `note0` or `interface0`.
   source : Int32
   target : Int32
   label : String?
@@ -180,7 +182,8 @@ pub fn build_class_graph(
     })
   }
 
-  // Mermaid leaves every lollipop interface outside the namespaces. Here it stays beside its class.
+  // Mermaid leaves every lollipop interface outside the namespaces.
+  // Here it stays beside its class.
   for item in model.interfaces {
     interface_at.set(item.id, nodes.length())
     nodes.push({
