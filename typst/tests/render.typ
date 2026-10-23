@@ -45,6 +45,16 @@
 #let readme-icons = render(icons: ("fa:fa-car": "<path d=\"M3,15V11L6,6H18L21,11V15Z\"/>"), "graph TD\n  A[fa:fa-car Car]")
 #assert(readme-icons.svg.contains("M3,15V11L6,6H18L21,11V15Z"), message: readme-icons.svg)
 
+// The halo behind a cluster title that edges run through is mixed into a color typst draws.
+#let namespaces = "classDiagram\n  namespace Company.Engineering.Backend {\n    class Developer\n  }\n  namespace Company.Engineering.Frontend {\n    class Designer\n  }\n  namespace Company.Engineering {\n    class TechLead\n  }\n  TechLead --> Developer : leads\n  TechLead --> Designer : leads"
+#let struck = render(namespaces, maxWidth: 400)
+#assert(not struck.svg.contains("color-mix("), message: struck.svg)
+#assert(struck.svg.contains("stroke=\"#e9e9e9\""), message: struck.svg)
+#let dark-struck = render(namespaces, maxWidth: 400, theme: (bg: rgb("#1e1e2e"), surface-alt: rgb("#45475a")))
+#assert(dark-struck.svg.contains("stroke=\"#404255\""), message: dark-struck.svg)
+#assert(render(namespaces, maxWidth: 400, theme: none).svg.contains("color-mix(in srgb,var(--_a) 87.5%,var(--_bg))"))
+#mermaid(namespaces, maxWidth: 400)
+
 // Without a theme the SVG is pele's own.
 #assert(render(flowchart, theme: none).svg.contains("fill=\"var(--_s)\""))
 
