@@ -8,6 +8,47 @@
   font-mono: "DejaVu Sans Mono",
 )
 
+/// The characters @font-measurer measures by default: printable ASCII, Latin-1 and common typographic punctuation.
+#let measured-chars = (
+  range(0x20, 0x7f).map(str.from-unicode).join()
+    + range(0xa0, 0x100).map(str.from-unicode).join()
+    + "‘’‚“”„–—…•‹›€′″"
+)
+
+/// Builds pele's `measurer` option from the advances typst sets the given fonts with, so that labels fit text drawn in them.
+/// It reads the fonts, so it is called where the context is known, such as inside `context`.
+///
+/// - font (str, array): The font labels are drawn in, as for `text`.
+/// - font-mono (str, array): The font code is drawn in, as for `text`.
+/// - chars (str): The characters whose advances are measured one by one.
+///   Any other character takes the mean advance of the lowercase Latin letters, or the advance of `日` where pele counts it as double width.
+/// -> dictionary
+#let font-measurer(font, font-mono: "DejaVu Sans Mono", chars: measured-chars) = {
+  let letters = range(0x61, 0x7b).map(str.from-unicode)
+  // pele's measurer is asked about one UTF-16 code unit at a time, so a character outside the basic plane can never be looked up.
+  let singles = chars.codepoints().filter(c => str.to-unicode(c) >= 0x20 and str.to-unicode(c) < 0x10000)
+  let styles = (:)
+  for style in range(8) {
+    // pele's style is a bit set of 1 for bold, 2 for italic and 4 for monospace.
+    let face = (
+      font: if style.bit-and(4) != 0 { font-mono } else { font },
+      weight: if style.bit-and(1) != 0 { "bold" } else { "regular" },
+      style: if style.bit-and(2) != 0 { "italic" } else { "normal" },
+    )
+    let advance(c) = measure(text(size: 1000pt, ..face, c)).width.pt()
+    let advances = (:)
+    for c in singles {
+      advances.insert(c, advance(c))
+    }
+    styles.insert(str(style), (
+      advances: advances,
+      default: letters.map(advance).sum() / letters.len(),
+      wide: advance("日"),
+    ))
+  }
+  (unitsPerEm: 1000, styles: styles)
+}
+
 #let _css(value) = {
   if type(value) == color {
     value.to-hex()
