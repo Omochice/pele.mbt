@@ -98,4 +98,6 @@ export const CASES = [
   ['journey', 'long tasks', `journey\nsection S\n${names('T', 930).map((name) => `  ${name}${'&'.repeat(50000)}: 5: Me`).join('\n')}\n`, RAISED],
   // Drawn down, after it is drawn across, because the host is narrow; the people make the drawing down the larger.
   ['journey', 'long people, drawn down', `journey\nsection S\n${names('T', 990).map((name) => `  ${name}: 5: ${names('P', 10).map((person) => `${person}${'&'.repeat(5000)}`).join(', ')}`).join('\n')}\n`, { ...RAISED, maxWidth: 300 }],
+  // A packet draws at most ten thousand rows, so only rows as wide as the config allows hold enough fields.
+  ['packet', 'one-bit fields in wide rows', `---\nconfig:\n  packet:\n    bitsPerRow: 4096\n---\npacket\n${names('', 2130000).map((name) => `${name}: "a"`).join('\n')}\n`, RAISED],
 ];
