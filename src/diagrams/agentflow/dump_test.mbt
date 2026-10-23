@@ -221,7 +221,7 @@ fn outcome(
       model.val = Some(
         @agentflow.parse_model(text, config, title, line_offset, limits),
       )
-      { render: (_, _) => { svg: "", width: 0, height: 0, links: [], }, }
+      { render: (_, _) => { svg: "<svg/>", width: 0, height: 0, links: [], }, }
     },
   }
   let options = {
