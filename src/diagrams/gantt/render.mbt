@@ -251,14 +251,16 @@ pub fn render_gantt(
   if !has_plot {
     let width = (@util.js_max(title.width, 1) + 2 * pad).ceil()
     let height = (@util.js_max(title.height, 1) + 2 * pad).ceil()
-    let content = @svg.label_svg(
+    let content = @svg.Markup::new()
+    @svg.write_label(
+      content,
       title,
       width / 2,
       pad + title.height / 2,
       title_attrs,
     )
     return {
-      svg: @svg.svg_document(
+      svg: @svg.markup_document(
         "gantt",
         width,
         height,
@@ -672,8 +674,12 @@ pub fn render_gantt(
       ""
     })
   let content = @svg.Markup::new()
-  content.write(
-    @svg.label_svg(title, width / 2, pad + title.height / 2, title_attrs),
+  @svg.write_label(
+    content,
+    title,
+    width / 2,
+    pad + title.height / 2,
+    title_attrs,
   )
   if !bands.is_empty() {
     content.write_group("<g class=\"pele-sections\">", bands, "</g>")
