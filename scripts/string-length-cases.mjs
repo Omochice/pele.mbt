@@ -140,4 +140,5 @@ export const CASES = [
   ['class', 'host icons in one class label', `classDiagram\nclass A["${Array(5400).fill('fa:fa-x').join(' ')}"]\n`, ICONS],
   ['er', 'host icons in one entity name', `erDiagram\nA["${Array(5400).fill('fa:fa-x').join(' ')}"] {\n}\n`, ICONS],
   ['er', 'host icons in one attribute comment', `erDiagram\nA {\n  string name "${Array(5400).fill('fa:fa-x').join(' ')}"\n}\n`, ICONS],
+  ['usecase', 'host icons in one use case label', `usecase-beta\nU("${Array(5400).fill('fa:fa-x').join(' ')}")\n`, ICONS],
 ];
