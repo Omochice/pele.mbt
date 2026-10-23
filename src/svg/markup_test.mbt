@@ -113,6 +113,75 @@ test "a document of markup is the document of its string" {
 }
 
 ///|
+test "escaped text in markup is the text esc escapes, across many pieces" {
+  let text = "a&b<c>\"d\u{1}e".repeat(30000)
+  let markup = @svg.Markup::new()
+  markup.write_esc(text)
+  assert_eq(markup.to_string(), @svg.esc(text))
+  inspect(markup.length(), content="720000")
+}
+
+///|
+test "escaped text in markup keeps the aliases it names across its pieces" {
+  let options = @types.RenderOptions::default()
+  for split in [("var(", "--_tw)"), ("var(--\u{1}_", "tw)")] {
+    let (before, after) = split
+    let text = "a".repeat(65536 - before.length()) + before + after
+    let markup = @svg.Markup::new()
+    markup.write_esc(text)
+    assert_eq(
+      @svg.markup_document("pie", 10, 20, 16, options, None, None, markup),
+      @svg.svg_document("pie", 10, 20, 16, options, None, None, @svg.esc(text)),
+    )
+  }
+}
+
+///|
+test "a document of markup writes its accessible text as the document of its string" {
+  let options = @types.RenderOptions::default()
+  let title = "&amp; <t>".repeat(20000)
+  let descr = "\"d\" & e\n".repeat(20000)
+  let markup = @svg.Markup::new()
+  markup.write("<g/>")
+  let document = @svg.markup_document(
+    "pie",
+    10,
+    20,
+    16,
+    options,
+    Some(title),
+    Some(descr),
+    markup,
+  )
+  assert_true(
+    document.has_suffix(
+      "<title id=\"pele-title\">\{@svg.esc_text(title)}</title><desc id=\"pele-desc\">\{@svg.esc_text(descr)}</desc><g/></svg>",
+    ),
+  )
+}
+
+///|
+test "a document whose accessible text and content pass the hold limit together fails with the port's limit" {
+  let descr = "&".repeat(20000000)
+  inspect(
+    failure(() => {
+      @svg.markup_document(
+        "pie",
+        10,
+        20,
+        16,
+        @types.RenderOptions::default(),
+        None,
+        Some(descr),
+        markup_of(@svg.HOLD_LIMIT - 50000000),
+      )
+      |> ignore
+    }),
+    content="limit: Diagram output is too large for the wasm port: it would hold more than 400000000 code units, the most the port can hold at once.",
+  )
+}
+
+///|
 test "a document fails when its start and end would make it longer than V8's longest string" {
   let content = markup_of(@svg.MAX_STRING_LENGTH - 10)
   inspect(

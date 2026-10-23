@@ -71,23 +71,36 @@ fn document_tag(
 }
 
 ///|
+/// Writes the accessible name and description, which follow the root `svg` element's start tag,
+/// escaping each a piece at a time so that either can be as long as the markup holding it.
+/// Raises pele's `limit` error when the markup would be longer than V8 allows.
+fn write_document_head(
+  out : Markup,
+  options : @types.RenderOptions,
+  acc_title : String?,
+  acc_descr : String?,
+) -> Unit raise @errors.PeleError {
+  let prefix = id_prefix(options)
+  if acc_title is Some(title) && title != "" {
+    out.write("<title id=\"\{prefix}-title\">")
+    out.write_esc(@text.decode_entities(title))
+    out.write("</title>")
+  }
+  if acc_descr is Some(descr) && descr != "" {
+    out.write("<desc id=\"\{prefix}-desc\">")
+    out.write_esc(@text.decode_entities(descr))
+    out.write("</desc>")
+  }
+}
+
+///|
 /// The accessible name and description, which follow the root `svg` element's start tag.
 fn document_head(
   options : @types.RenderOptions,
   acc_title : String?,
   acc_descr : String?,
 ) -> String {
-  let prefix = id_prefix(options)
-  let head = StringBuilder()
-  if acc_title is Some(title) && title != "" {
-    head.write_string(
-      "<title id=\"\{prefix}-title\">\{esc_text(title)}</title>",
-    )
-  }
-  if acc_descr is Some(descr) && descr != "" {
-    head.write_string("<desc id=\"\{prefix}-desc\">\{esc_text(descr)}</desc>")
-  }
-  head.to_string()
+  written(out => write_document_head(out, options, acc_title, acc_descr))
 }
 
 ///|
