@@ -58,9 +58,13 @@ pub struct BlockDb {
   edges : Array[Block]
   classes : Map[String, BlockClassDef]
   by_id : Map[String, Block]
+  // private fields
 }
+pub fn BlockDb::add_style_class(Self, String, style_attributes? : String) -> Unit
+pub fn BlockDb::add_style_to_node(Self, String, String) -> Unit
 pub fn BlockDb::generate_id(Self) -> String
 pub fn BlockDb::new(title? : String, warn? : (String) -> Unit) -> Self
+pub fn BlockDb::set_css_class(Self, String, String) -> Unit
 pub fn BlockDb::set_hierarchy(Self, Array[Statement]) -> Unit raise @errors.PeleError
 
 pub(all) enum Statement {
