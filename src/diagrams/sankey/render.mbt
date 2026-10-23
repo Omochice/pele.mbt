@@ -134,12 +134,12 @@ fn draw(
   let mut max_x = chart_width
   let mut min_y = 0.0
   let mut max_y = chart_height
-  let labels_out = StringBuilder()
-  let nodes_out = StringBuilder()
+  let labels_out = @svg.Markup::new()
+  let nodes_out = @svg.Markup::new()
   for i, node in nodes {
     let id = db.nodes[i].id
     let height = @cmp.maximum(node.height, 1.0)
-    nodes_out.write_string(
+    nodes_out.write(
       "<rect class=\"pele-sankey-node\" data-id=\"\{@svg.esc_text(id)}\" x=\"\{@svg.num(node.x)}\" y=\"\{@svg.num(node.y)}\" width=\"\{@svg.num(node_width)}\" height=\"\{@svg.num(height)}\" rx=\"\{@svg.num(@cmp.minimum(2.0, height / 2))}\" fill=\"\{@svg.series_color(i)}\"\{node_style(i)}/>",
     )
     let value = if show_values {
@@ -178,15 +178,15 @@ fn draw(
       } else {
         ""
       })
-    labels_out.write_string(
+    labels_out.write(
       "<g class=\"pele-label\" data-id=\"\{@svg.esc_text(id)}\">",
     )
     if outlined {
-      labels_out.write_string(
+      labels_out.write(
         "<text\{position} fill=\"none\" stroke=\"var(--_bg)\" stroke-width=\"3\" stroke-linejoin=\"round\">\{@svg.esc(id)}\{if value != "" { " " + @svg.esc(value) } else { "" }}</text>",
       )
     }
-    labels_out.write_string("<text\{position}>\{text}</text></g>")
+    labels_out.write("<text\{position}>\{text}</text></g>")
   }
 
   let fixed = if link_color == "gradient" ||
@@ -196,7 +196,7 @@ fn draw(
   } else {
     fill_css(link_color)
   }
-  let links_out = StringBuilder()
+  let links_out = @svg.Markup::new()
   for link in layout.links {
     // Without definitions there are no gradients, so a gradient link takes its source's colour.
     let end = if link_color == "target" { link.target } else { link.source }
@@ -211,7 +211,7 @@ fn draw(
     let bottom_target = @svg.num(link.target_y + half)
     let bottom_source = @svg.num(link.source_y + half)
     let style = if fixed != "" { fixed } else { node_style(end) }
-    links_out.write_string(
+    links_out.write(
       "<path class=\"pele-sankey-link\" data-id=\"\{from}-&gt;\{to}\" d=\"M\{@svg.num(x0)},\{top_source}C\{mid},\{top_source} \{mid},\{top_target} \{@svg.num(x1)},\{top_target}L\{@svg.num(x1)},\{bottom_target}C\{mid},\{bottom_target} \{mid},\{bottom_source} \{@svg.num(x0)},\{bottom_source}Z\" fill=\"\{@svg.series_color(end)}\"\{style}>" +
       "<title>\{from} → \{to}: \{@svg.esc_text(prefix)}\{rounded(link.value)}\{@svg.esc_text(suffix)}</title></path>",
     )
@@ -231,19 +231,28 @@ fn draw(
   let oy = pad + title_height - min_y
   let width = (inner + 2 * pad).ceil()
   let height = (max_y - min_y + title_height + 2 * pad).ceil()
-  let content = @svg.label_svg(
+  let content = @svg.Markup::new()
+  content.write(
+    @svg.label_svg(
       title,
       width / 2,
       pad + title.height / 2,
       " class=\"pele-title\" font-weight=\"var(--_tw)\"",
     ) +
-    "<g transform=\"translate(\{@svg.num(ox)},\{@svg.num(oy)})\">" +
-    "<g class=\"pele-sankey-links\" fill-opacity=\"0.4\">\{links_out.to_string()}</g>" +
-    "<g class=\"pele-sankey-nodes\">\{nodes_out.to_string()}</g>" +
-    "<g class=\"pele-labels\" font-size=\"\{small}\">\{labels_out.to_string()}</g>" +
-    "</g>"
+    "<g transform=\"translate(\{@svg.num(ox)},\{@svg.num(oy)})\">",
+  )
+  content.write_group(
+    "<g class=\"pele-sankey-links\" fill-opacity=\"0.4\">", links_out, "</g>",
+  )
+  content.write_group("<g class=\"pele-sankey-nodes\">", nodes_out, "</g>")
+  content.write_group(
+    "<g class=\"pele-labels\" font-size=\"\{small}\">",
+    labels_out,
+    "</g>",
+  )
+  content.write("</g>")
   {
-    svg: @svg.svg_document(
+    svg: @svg.markup_document(
       "sankey",
       width,
       height,
