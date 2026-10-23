@@ -230,11 +230,13 @@ fn arg(attrs : Array[C4Attr], at : Int32) -> C4Attr? {
 }
 
 ///|
+/// Records the header keyword, which decides whether relations are numbered.
 pub fn C4Db::set_c4_type(self : C4Db, type_ : String) -> Unit {
   self.c4_type = Some(type_)
 }
 
 ///|
+/// Sets the title; `accTitle` writes it too, as in Mermaid's grammar.
 pub fn C4Db::set_title(self : C4Db, title : String) -> Unit {
   self.title = Some(title)
 }

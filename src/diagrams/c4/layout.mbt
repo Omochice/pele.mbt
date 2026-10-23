@@ -24,10 +24,11 @@ const GROUP_PAD : Double = 28
 const GROUP_GAP : Double = 48
 
 ///|
-/// Where a boundary's heading starts, from its top-left corner.
+/// How far in from a boundary's left edge its heading starts, unless a line crossing it moves it.
 pub const HEAD_LEFT : Double = 16
 
 ///|
+/// How far below a boundary's top edge its heading starts.
 pub const HEAD_TOP : Double = 10
 
 ///|

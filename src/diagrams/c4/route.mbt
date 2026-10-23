@@ -14,7 +14,7 @@ pub(all) struct Box {
 /// How a relation is drawn: its path, its markers, and where its label goes.
 pub(all) struct Route {
   d : String
-  // Where the markers go: the tip, and the way it points.
+  /// Where the markers go: the tip, and the way it points.
   sx : Double
   sy : Double
   sdx : Double
@@ -23,19 +23,19 @@ pub(all) struct Route {
   ey : Double
   edx : Double
   edy : Double
-  // The stretch the label may sit on.
+  /// The stretch the label may sit on.
   x0 : Double
   y0 : Double
   x1 : Double
   y1 : Double
-  // The side of that stretch the label is pushed to, as a unit vector; zero centers it on the stretch.
+  /// The side of that stretch the label is pushed to, as a unit vector; zero centers it on the stretch.
   nx : Double
   ny : Double
-  // When set, the label stays over the line and moves that way by at most this much.
+  /// When set, the label stays over the line and moves that way by at most this much.
   lean : Double
-  // The widest the label should be.
+  /// The widest the label should be.
   room : Double
-  // The corners of the line, as x, y pairs.
+  /// The corners of the line, as x, y pairs.
   points : Array[Double]
 }
 
@@ -43,6 +43,7 @@ pub(all) struct Route {
 const LOOP : Double = 28
 
 ///|
+/// How far out from the shapes it passes a detour runs.
 pub const LANE : Double = 20
 
 ///|
@@ -347,7 +348,7 @@ pub struct Lanes {
   upright_frames : Array[Double]
   level_frames : Array[Double]
   taken : Map[Int32, Array[Double]]
-  // Routes that found no lane of their own: a line left straight behind a shape, or a lane that runs along another.
+  /// Routes that found no lane of their own: a line left straight behind a shape, or a lane that runs along another.
   mut squeezed : Int32
 }
 
