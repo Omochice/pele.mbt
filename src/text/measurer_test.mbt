@@ -23,10 +23,7 @@ test "bold text is measured from the bold Arial table" {
 
 ///|
 test "text of more font units than an Int32 counts is measured as pele measures it" {
-  inspect(
-    width("&".repeat(3000000), 16, @text.STYLE_BOLD),
-    content="34656000",
-  )
+  inspect(width("&".repeat(3000000), 16, @text.STYLE_BOLD), content="34656000")
 }
 
 ///|
