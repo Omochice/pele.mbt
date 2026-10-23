@@ -3,6 +3,10 @@
 pub type Config = Map[String, Json]
 
 ///|
+/// The SVG fragment the host draws for an icon name, or `None` when it has no such icon.
+pub type IconResolver = (String) -> String?
+
+///|
 /// The subset of pele's `RenderOptions` that the port takes.
 /// `None` selects pele's default.
 pub(all) struct RenderOptions {
@@ -26,6 +30,7 @@ pub(all) struct RenderOptions {
   config : Config?
   now : Double?
   measurer : @text.TextMeasurer?
+  icons : IconResolver?
 }
 
 ///|
@@ -52,6 +57,7 @@ pub fn RenderOptions::default() -> RenderOptions {
     config: None,
     now: None,
     measurer: None,
+    icons: None,
   }
 }
 

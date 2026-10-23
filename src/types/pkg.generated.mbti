@@ -53,6 +53,7 @@ pub(all) struct RenderOptions {
   config : Map[String, Json]?
   now : Double?
   measurer : @text.TextMeasurer?
+  icons : ((String) -> String?)?
 }
 pub fn RenderOptions::default() -> Self
 pub fn RenderOptions::text_measurer(Self) -> @text.TextMeasurer
@@ -75,5 +76,7 @@ pub(all) struct Rendered {
 
 // Type aliases
 pub type Config = Map[String, Json]
+
+pub type IconResolver = (String) -> String?
 
 // Traits
