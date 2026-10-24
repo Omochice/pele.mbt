@@ -47,7 +47,7 @@ test "title_label wraps a title wider than the room for it" {
 }
 
 ///|
-test "with_title_markup puts the title above the content and widens the picture for it" {
+test "with_title puts the title above the content and widens the picture for it" {
   // The expected documents were taken from pele v1.8.0's withTitle.
   let check = (
     title : String?,
@@ -57,7 +57,7 @@ test "with_title_markup puts the title above the content and widens the picture 
     height : Double,
     expected : String,
   ) => {
-    let titled = @svg.with_title_markup(
+    let titled = @svg.with_title(
       title,
       @text.metrics_measurer,
       size,
@@ -113,8 +113,8 @@ test "title_label is empty without a title" {
 }
 
 ///|
-test "with_title_markup puts the title above the content and centers both" {
-  let titled = @svg.with_title_markup(
+test "with_title puts the title above the content and centers both" {
+  let titled = @svg.with_title(
     Some("Sales"),
     @text.metrics_measurer,
     16,
@@ -133,8 +133,8 @@ test "with_title_markup puts the title above the content and centers both" {
 }
 
 ///|
-test "with_title_markup widens the diagram for a title wider than its content" {
-  let titled = @svg.with_title_markup(
+test "with_title widens the diagram for a title wider than its content" {
+  let titled = @svg.with_title(
     Some("A very long title that is wider than the content"),
     @text.metrics_measurer,
     16,
@@ -153,9 +153,9 @@ test "with_title_markup widens the diagram for a title wider than its content" {
 }
 
 ///|
-test "with_title_markup leaves the content alone without a title" {
+test "with_title leaves the content alone without a title" {
   for title in [None, Some("")] {
-    let titled = @svg.with_title_markup(
+    let titled = @svg.with_title(
       title,
       @text.metrics_measurer,
       16,

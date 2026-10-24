@@ -1190,7 +1190,7 @@ fn draw(
   content.write_markup(nodes_out)
   content.write_markup(notes_out)
   content.write("</g>")
-  let titled = @svg.with_title_markup(
+  let titled = @svg.with_title(
     db.title,
     measurer,
     size,

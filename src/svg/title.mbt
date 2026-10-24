@@ -1,6 +1,6 @@
 ///|
 /// Markup with a title put above it.
-pub(all) struct TitledMarkup {
+pub(all) struct Titled {
   width : Double
   height : Double
   content : Markup
@@ -9,7 +9,7 @@ pub(all) struct TitledMarkup {
 ///|
 /// Puts a diagram title above markup that was laid out without one.
 /// Raises pele's `limit` error when the markup would be longer than V8 allows.
-pub fn with_title_markup(
+pub fn with_title(
   title : String?,
   measurer : @text.TextMeasurer,
   size : Double,
@@ -17,7 +17,7 @@ pub fn with_title_markup(
   width : Double,
   height : Double,
   content : Markup,
-) -> TitledMarkup raise @errors.PeleError {
+) -> Titled raise @errors.PeleError {
   let label = title_label(title, measurer, size, 4000)
   if label.height == 0 {
     return { width, height, content, }

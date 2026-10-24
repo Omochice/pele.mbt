@@ -1058,7 +1058,7 @@ fn draw(
     )
   }
   content.write_group("<g class=\"pele-nodes\">", nodes_out, "</g>")
-  let titled = @svg.with_title_markup(
+  let titled = @svg.with_title(
     db.title,
     measurer,
     size,

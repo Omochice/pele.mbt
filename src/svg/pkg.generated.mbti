@@ -103,7 +103,7 @@ pub fn title_label(String?, @text.TextMeasurer, Double, Double) -> @text.Label
 
 pub fn too_large_to_hold() -> @errors.PeleError
 
-pub fn with_title_markup(String?, @text.TextMeasurer, Double, Double, Double, Double, Markup) -> TitledMarkup raise @errors.PeleError
+pub fn with_title(String?, @text.TextMeasurer, Double, Double, Double, Double, Markup) -> Titled raise @errors.PeleError
 
 pub fn write_edge_label(Markup, String, @text.Label, Double, Double, String, icons? : (String) -> String?) -> Unit raise @errors.PeleError
 
@@ -190,7 +190,7 @@ pub fn SideReach::add(Self, Int32, Int32, String) -> Unit
 pub fn SideReach::new() -> Self
 pub fn SideReach::of(Self, Int32, Int32) -> Double
 
-pub(all) struct TitledMarkup {
+pub(all) struct Titled {
   width : Double
   height : Double
   content : Markup
