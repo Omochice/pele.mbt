@@ -57,7 +57,7 @@ fn outcome_of(source : String, options : @types.RenderOptions) -> String {
 }
 
 ///|
-#skip("slow: escapes 54 million characters several times before it fails")
+/// pele's pattern for a quoted string runs out of V8's backtracking stack long before the label is drawn, so pele and the port fail while lexing.
 test "an entry named by tens of millions of entities fails as nested too deeply" {
   inspect(
     outcome_of("pie\n\"\{"&".repeat(54000000)}\": 1\n", {

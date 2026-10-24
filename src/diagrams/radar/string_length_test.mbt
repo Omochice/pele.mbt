@@ -29,7 +29,7 @@ fn outcome_of(source : String, options : @types.RenderOptions) -> String {
 }
 
 ///|
-#skip("slow: escapes 110 million characters before it fails")
+/// pele's pattern for a quoted string runs out of V8's backtracking stack long before the label is drawn, so pele and the port fail while lexing.
 test "an axis labelled by over a hundred million entities fails as nested too deeply" {
   inspect(
     outcome_of("radar-beta\naxis a[\"\{"&".repeat(110000000)}\"]\n", {
@@ -41,7 +41,7 @@ test "an axis labelled by over a hundred million entities fails as nested too de
 }
 
 ///|
-#skip("slow: escapes 110 million characters before it fails")
+/// pele's pattern for a quoted string runs out of V8's backtracking stack long before the label is drawn, so pele and the port fail while lexing.
 test "a curve labelled by over a hundred million entities fails as nested too deeply" {
   inspect(
     outcome_of(

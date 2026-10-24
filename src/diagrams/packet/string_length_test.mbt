@@ -18,7 +18,7 @@ test "fields outgrowing V8's longest string fail as nested too deeply" {
 }
 
 ///|
-#skip("slow: escapes 62 million characters before it fails")
+/// pele's pattern for a quoted string runs out of V8's backtracking stack long before the label is drawn, so pele and the port fail while lexing.
 test "a field of tens of millions of entities drawn down fails as nested too deeply" {
   let failure = try {
     @core.render(
