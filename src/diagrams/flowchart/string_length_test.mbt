@@ -244,3 +244,34 @@ test "a subgraph id escaped past what a doubling StringBuilder holds is drawn as
     content="270001272",
   )
 }
+
+
+///|
+fn unlimited() -> @types.RenderOptions {
+  {
+    ..@types.RenderOptions::default(),
+    limit: Some(1.0 / 0.0),
+    output_limit: Some(1.0 / 0.0),
+  }
+}
+
+///|
+#skip("slow: reads a node id of 270 million characters")
+test "a node id of 2^28 or more letters, written twice, fails as nested too deeply" {
+  inspect(
+    failure_of("graph TD\n\{"a".repeat(270000000)}\n", unlimited()),
+    content="limit: Diagram is nested too deeply. flowchart flowchart-v2",
+  )
+}
+
+///|
+#skip("slow: draws a node label of 270 million characters")
+test "a node label of 2^28 or more letters is drawn" {
+  let svg = @core.render(
+      [@flowchart.flowchart],
+      "graph TD\nA[\{"a".repeat(270000000)}]\n",
+      unlimited(),
+    ).svg
+  inspect(svg.length(), content="270001025")
+}
+

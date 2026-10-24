@@ -466,6 +466,9 @@ export const CASES = [
   lazy('swimlane', 'one lane id of many &', () => `swimlane-beta TB\nsubgraph "${'&'.repeat(54000000)}" [x]\nA\nend\n`, RAISED),
   // Without a title a lane's id is its title as well.
   lazy('swimlane', 'one lane named by many &', () => `swimlane-beta TB\nsubgraph "${'&'.repeat(54000000)}"\nA\nend\n`, RAISED),
+  // A node's id and label are joined from the texts of their tokens, of which one may be 2^28 code units long.
+  lazy('flowchart', 'a node id of 270M a, written twice', () => `graph TD\n${'a'.repeat(270000000)}\n`, RAISED),
+  lazy('flowchart', 'a node label of 270M a', () => `graph TD\nA[${'a'.repeat(270000000)}]\n`, RAISED),
 ];
 
 // A case whose source is built only when the check reaches it, as a getter in the source's place,
