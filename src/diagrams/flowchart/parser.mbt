@@ -169,10 +169,22 @@ fn Parser::separator(self : Parser) -> Unit raise @errors.PeleError {
 ///|
 /// The texts of the current token and of the tokens after it that `belongs` accepts, joined.
 fn Parser::joined(self : Parser, belongs : (Int32) -> Bool) -> String {
-  let out = StringBuilder()
-  out.write_string(self.take())
+  let first = self.take()
+  if !belongs(self.kind()) {
+    return first
+  }
+  // The texts are joined at their final size, because a run holding a token of hundreds of
+  // millions of characters would need a doubling builder's block past what wasm allocates.
+  let parts = [first]
+  let mut length = first.length()
   while belongs(self.kind()) {
-    out.write_string(self.take())
+    let part = self.take()
+    length += part.length()
+    parts.push(part)
+  }
+  let out = StringBuilder(size_hint=length * 2)
+  for part in parts {
+    out.write_string(part)
   }
   out.to_string()
 }
