@@ -14,3 +14,7 @@ They are accepted as constraints rather than reproduced, because each would need
 - pele's arrays of one element per character, `split('')` in `generics.ts`, `Array.from` in `literal-label.ts` and the spread in `sequence/db.ts`, fail past 2^27 elements, and the port is not shown to fail where they do, since no case reaches them.
 - `moon test` runs the allocator unmended, as [the allocator bug](allocator-bug.md) describes, so its tests of 2^28 code units or more are skipped and `scripts/check-string-length.mjs` checks the same inputs instead.
 - A journey task or a timeline event of about 270 million characters, and a timeline event or a quadrant label of a hundred million, run pele itself out of node's heap, so there is no outcome of pele's to compare the port with.
+
+The port also differs from pele on an init directive nested deeply enough, where pele's recursive merge runs V8 out of stack and keeps only the keys it merged before that.
+The depth where that happens varies with the platform and the process: about 4,468 objects on arm64 macOS with node 24, and deeper on x86_64 Linux.
+The port does not cut the merge off on purpose and applies every key of such a directive, so the two agree below the depth where pele stops and differ past it.
