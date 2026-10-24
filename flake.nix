@@ -82,6 +82,8 @@
             };
           in
           {
+            # .git is a file in a linked worktree, so the default .git/config would make treefmt format the main checkout instead.
+            projectRootFile = "flake.nix";
             settings.global.excludes = [ ];
             # moon fmt formats each package a file it is given belongs to, so its output matches moon fmt run by hand.
             settings.formatter.moon-fmt = {
