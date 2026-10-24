@@ -4,7 +4,7 @@
 //
 // Usage: node scripts/check-stress.mjs [--typst [--jobs <n>]] [--stack-sizes <kb>,<kb>...] [filter ...]
 // Build the plugin first with `moon build --target wasm --release`.
-// PELE_ROOT points at a pele checkout with tests/ and dist/ when vendor/pele is not initialized.
+// Run it inside `nix develop`, which sets PELE_ROOT to the built pele whose tests/ and dist/ it reads.
 // A filter keeps the tests whose "<file> > <name>" contains it.
 //
 // The inputs are not stored: they are rebuilt from pele's tests on every run, because they add up

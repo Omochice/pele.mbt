@@ -4,7 +4,7 @@
 //
 // Usage: node scripts/fuzz.mjs [--seed n] [--count n] [--variations n] [--jobs n] [--out file.json] [--no-shrink] [diagram ...]
 // Build the plugin first with `moon build --target wasm --release`.
-// PELE_ROOT points at a built pele checkout when vendor/pele is not initialized.
+// Run it inside `nix develop`, which sets PELE_ROOT to the built pele whose dist/ and tests/ it reads.
 //
 // `count` sources are drawn per diagram, and each is rendered under every profile of
 // golden/manifest.json and under `variations` random option sets, so a run makes
@@ -39,7 +39,7 @@ const { render, detectType } = await import(join(peleRoot, 'dist/pele.js'));
 // its thread stack to V8's buffer, so this gives the workers the main thread's limit.
 const WORKER_STACK_MB = (984 + 192) / 1024;
 
-// Port of random and mutator in vendor/pele/tests/support/corpus.ts, kept to the same draws so that
+// Port of random and mutator in pele's tests/support/corpus.ts, kept to the same draws so that
 // a seed yields the sequence pele's tests would.
 function random(seed) {
   let state = seed >>> 0;

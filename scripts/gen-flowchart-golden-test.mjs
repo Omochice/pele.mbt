@@ -2,7 +2,8 @@
 // A failure is written as its code, type and message, which must match the golden's; a success as a hash of the model's dump, which src/diagrams/flowchart/dump_test.mbt writes in the same form as `dump` below.
 // Sources that pele detects as another diagram type are left out.
 //
-// Usage: [PELE_ROOT=<dir>] node scripts/gen-flowchart-golden-test.mjs [--dumps <dir>]
+// Usage: node scripts/gen-flowchart-golden-test.mjs [--dumps <dir>]
+// Run it inside `nix develop`, which sets PELE_ROOT to the built pele whose dist/ it reads.
 // With --dumps, each success's full dump is also written to <dir>/<id>.txt for comparing by eye.
 
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';

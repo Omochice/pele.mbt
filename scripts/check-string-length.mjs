@@ -8,7 +8,7 @@
 //
 // Usage: node scripts/check-string-length.mjs [diagram ...]
 // Build the plugin first with `moon build --target wasm --release`.
-// PELE_ROOT points at a pele checkout with dist/ when vendor/pele is not initialized.
+// Run it inside `nix develop`, which sets PELE_ROOT to the built pele whose dist/ it reads.
 // Each input makes pele and the plugin produce hundreds of millions of characters, so a case takes
 // half a minute or more, and the plugin may grow its memory to 4 GiB.
 // Node's default heap holds every case but some of the journey, quadrant, railroad, timeline,

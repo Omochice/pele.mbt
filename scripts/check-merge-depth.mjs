@@ -4,7 +4,7 @@
 //
 // Usage: node scripts/check-merge-depth.mjs [--measure [--runs <n>]]
 // Build the plugin first with `moon build --target wasm --release`.
-// PELE_ROOT points at a pele checkout with dist/ when vendor/pele is not initialized.
+// Run it inside `nix develop`, which sets PELE_ROOT to the built pele whose dist/ it reads.
 // With --measure, the plugin is left out and the deepest nesting pele merges is found by bisection,
 // with every probe rendered <n> times (1 by default).
 //

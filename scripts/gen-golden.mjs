@@ -1,9 +1,8 @@
 import { createHash } from 'node:crypto';
-import { execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { peleRoot } from './pele-root.mjs';
+import { peleCommit, peleRoot } from './pele-root.mjs';
 import { peleOptions } from './plugin-options.mjs';
 
 // Gantt floors axis ticks to local midnight, so the host's time zone would leak into the goldens.
@@ -13,6 +12,8 @@ process.env.TZ = 'UTC';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const goldenDir = join(root, 'golden');
 const { detectType, render } = await import(join(peleRoot, 'dist/pele.js'));
+// Read before any golden is rewritten, so a missing commit stops the run before it leaves goldens without a manifest to match.
+const pele = { version: JSON.parse(readFileSync(join(peleRoot, 'package.json'), 'utf8')).version, commit: peleCommit() };
 
 // Unset options are those whose default is "undefined means X":
 // maxWidth (no width negotiation), responsive (derived from the diagram's useMaxWidth config),
@@ -87,7 +88,7 @@ function* stringLiterals(src, accept) {
   }
 }
 
-// Port of loadCorpus in vendor/pele/tests/support/corpus.ts, with paths anchored to the pele root.
+// Port of loadCorpus in pele's tests/support/corpus.ts, with paths anchored to the pele root.
 function loadCorpus(diagram, keyword) {
   const seeds = new Set();
   const dir = join(peleRoot, 'tests/compat', diagram);
@@ -302,11 +303,10 @@ for (const [diagram, sources] of corpora) {
   counts[diagram] = count;
 }
 
-const pkg = JSON.parse(readFileSync(join(peleRoot, 'package.json'), 'utf8'));
 writeFileSync(
   join(goldenDir, 'manifest.json'),
   json({
-    pele: { version: pkg.version, commit: execFileSync('git', ['-C', peleRoot, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim() },
+    pele,
     node: process.version,
     timeZone: process.env.TZ,
     profiles,
