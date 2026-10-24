@@ -97,35 +97,47 @@ fn Parser::alpha_num(self : Parser) -> String raise @errors.PeleError {
 }
 
 ///|
+/// The texts joined, without a copy when there is only one.
+/// A doubling builder would need a block past what wasm allocates for a text of hundreds of
+/// millions of characters, which `join` sizes before it copies.
+fn joined(parts : Array[String]) -> String {
+  if parts.length() == 1 {
+    parts[0]
+  } else {
+    parts.join("")
+  }
+}
+
+///|
 /// A class name: words joined by dots, or a backtick name, with the generic type after it when `generic`.
 fn Parser::name(
   self : Parser,
   generic : Bool,
 ) -> String raise @errors.PeleError {
-  let out = StringBuilder()
+  let out : Array[String] = []
   while true {
     if self.kind() is BquoteStr {
-      out.write_string(self.take())
+      out.push(self.take())
       break
     }
     if !is_alpha_num(self.kind()) {
       self.fail(NAME_TOKENS)
     }
-    out.write_string(self.take())
+    out.push(self.take())
     let next = self.kind()
     if next is Dot {
-      out.write_char('.')
+      out.push(".")
       self.i += 1
     } else if !is_alpha_num(next) && !(next is BquoteStr) {
       break
     }
   }
   if generic && self.kind() is GenericType {
-    out.write_char('~')
-    out.write_string(self.take())
-    out.write_char('~')
+    out.push("~")
+    out.push(self.take())
+    out.push("~")
   }
-  out.to_string()
+  joined(out)
 }
 
 ///|
@@ -320,12 +332,11 @@ fn Parser::styles(self : Parser) -> Array[String] raise @errors.PeleError {
         "'ALPHA', 'NUM', 'COLON', 'UNIT', 'SPACE', 'BRKT', 'STYLE', 'PCT', 'LABEL'",
       )
     }
-    let s = StringBuilder()
-    s.write_string(self.take())
+    let s = [self.take()]
     while is_style_part(self.kind()) {
-      s.write_string(self.take())
+      s.push(self.take())
     }
-    out.push(s.to_string())
+    out.push(joined(s))
     if !(self.kind() is Comma) {
       break
     }
