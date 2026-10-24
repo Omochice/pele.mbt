@@ -170,6 +170,10 @@ let golden_cases : Array[(String, String, String)] = [
     "error unsupported-diagram null null\nNo diagram type detected for the given text.",
   ),
   (
+    "2008ea60afd784b7", "flowchart LR\n  B[\"fa:fa-star <b>\u{e000}</b> $$y$$\"]",
+    "ok 3d4c9352",
+  ),
+  (
     "201fca257eae9de1", "graph TD\nA-->B\nclick A href \"click.html\" \"tooltip\" _blank",
     "ok 3204dc2f",
   ),
@@ -228,6 +232,10 @@ let golden_cases : Array[(String, String, String)] = [
     "306e952eea6e380b", "flowchart LR\n    id1{This is the text in the box}\n", "ok 7d16842d",
   ),
   ("30e40d14fabfa9e9", "flowchart LR\n    A ~~~ B\n", "ok 4f5e2790"),
+  (
+    "31bd4576087076f3", "flowchart LR\n  A[\"$$a$$ and $$b$$<br/>$$c<br/>d$$\"]",
+    "ok 2486567f",
+  ),
   (
     "31f1a80773cb7a54", "flowchart LR\nsubgraph S\nend\nsubgraph S\n  subgraph T\n    y\n  end\nend",
     "ok 709d43d4",
@@ -354,6 +362,10 @@ let golden_cases : Array[(String, String, String)] = [
     "ok eff7036d",
   ),
   (
+    "4afd02fbfed786f3", "flowchart LR\n  A[\"Total $$x$$ items<br/>last line\"]",
+    "ok 03253299",
+  ),
+  (
     "4b7f53d8caa034dd", "flowchart LR\n    subgraph subgraph1\n        direction TB\n        top1[top] --> bottom1[bottom]\n    end\n    subgraph subgraph2\n        direction TB\n        top2[top] --> bottom2[bottom]\n    end\n    %% ^ These subgraphs are identical, except for the links to them:\n\n    %% Link *to* subgraph1: subgraph1 direction is maintained\n    outside --> subgraph1\n    %% Link *within* subgraph2:\n    %% subgraph2 inherits the direction of the top-level graph (LR)\n    outside ---> top2\n",
     "ok f20ba703",
   ),
@@ -367,6 +379,9 @@ let golden_cases : Array[(String, String, String)] = [
   ),
   (
     "4bffa574ed64f995", "keeps distinct and anonymous subgraphs separate", "error unsupported-diagram null null\nNo diagram type detected for the given text.",
+  ),
+  (
+    "4c89d34e313d1763", "flowchart LR\n  subgraph S[\"$$x$$\"]\n    A\n  end", "ok d234d17d",
   ),
   (
     "4c997830637dc23a", "flowchart TB\n    subgraph A\n      direction BT\n      a --> b\n      direction RL\n    end",
@@ -426,6 +441,10 @@ let golden_cases : Array[(String, String, String)] = [
     "5634157e33d56a43", "graph TD;a.${keyword}.node;", "error syntax flowchart flowchart-v2\nParse error on line 1:\ngraph TD;a.${keyword}.node;\n---------------------^\nExpecting 'SEMI', 'NEWLINE', 'EOF', got 'NODE_STRING'",
   ),
   (
+    "57032d8e067bcfed", "flowchart LR\n  A[\"<span title=$$a$$>hello</span> $$b$$ $$c$$\"]",
+    "ok 0e988934",
+  ),
+  (
     "570c651b6c866d48", "should handle nested subgraphs 3", "error unsupported-diagram null null\nNo diagram type detected for the given text.",
   ),
   ("583da5e48ac9e2ca", "flowchart LR\n   a --> b & c--> d\n", "ok c23b0b76"),
@@ -451,6 +470,10 @@ let golden_cases : Array[(String, String, String)] = [
   (
     "61d770ff28203e04", "graph TD\nA-->B\nsubgraph myTitle\na & b --> c & e\n end;",
     "ok 0cd82123",
+  ),
+  (
+    "6212b684766f86a7", "flowchart TD\n  X --> A\n  subgraph S[\"$$x$$\"]\n    A\n  end",
+    "ok 1c7a6700",
   ),
   ("6257b7ecca0d9cb2", "flowchart TB\n      D@{shape: rounded}", "ok de0509f9"),
   (
@@ -487,6 +510,7 @@ let golden_cases : Array[(String, String, String)] = [
     "6897cf10b879aea9", "flowchart LR\n  subgraph TOP\n    direction TB\n    subgraph B1\n        direction RL\n        i1 -->f1\n    end\n    subgraph B2\n        direction BT\n        i2 -->f2\n    end\n  end\n  A --> TOP --> B\n  B1 --> B2\n",
     "ok 6c6b1353",
   ),
+  ("68ce99c9a734a79f", "flowchart LR\n  A[\"$$x^2$$\"]", "ok dadf1062"),
   ("691bf7e679dc4f99", "graph TD;A(?)-->|?|C;", "ok 7169c3e6"),
   (
     "69944f1eb501b8a4", "graph TD;style S background:#aaa;\nstyle T background:#bbb,border:1px solid red;",
@@ -547,6 +571,10 @@ let golden_cases : Array[(String, String, String)] = [
     "ok 21e0155d",
   ),
   ("70c02898eb60518f", "graph TD;i_d;", "ok 2236211d"),
+  (
+    "70ea5609eed21757", "flowchart LR\n  A[\"`**bold** $$a_1$$ and $$b$$ *c*`\"]",
+    "ok e6c00c98",
+  ),
   (
     "716a3006689e1b26", "graph TD;A-- text including graph space and v --xB;", "ok c82f3b71",
   ),
@@ -671,6 +699,10 @@ let golden_cases : Array[(String, String, String)] = [
   (
     "8990734d50768b72", "flattens a subgraph redeclared inside its own body instead of creating a cycle",
     "error unsupported-diagram null null\nNo diagram type detected for the given text.",
+  ),
+  (
+    "8995101beb69ec83", "flowchart LR\n  A[\"$$a \\neq b_1 < c * d$$\"] -->|\"$$e^#35;$$\"| B",
+    "ok 9f8c246f",
   ),
   (
     "89a471241f408285", "flowchart TD\n    A@{ shape: lean-l, label: \"Output/Input\" }\n",
@@ -858,6 +890,10 @@ let golden_cases : Array[(String, String, String)] = [
     "ok ecbaac52",
   ),
   (
+    "a3b60337500ed099", "flowchart TD\n  A[\"some words before $$aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa$$ and after it\"]",
+    "ok 38fe0d70",
+  ),
+  (
     "a3ca13bb62859c6d", "graph TD;A_${keyword}_node-->B[|borders:lt|This node has a ${keyword} as text];",
     "error syntax flowchart flowchart-v2\nParse error on line 1:\ngraph TD;A_${keyword}_node-->B[|borders:lt|This node has a ${keyword} as text];\n---------------------^\nExpecting 'SEMI', 'NEWLINE', 'EOF', got 'NODE_STRING'",
   ),
@@ -912,6 +948,10 @@ let golden_cases : Array[(String, String, String)] = [
     "ok 62233a65",
   ),
   (
+    "b01f02ab14124341", "flowchart LR\n  A[\"$$x^2$$ and text\"] -->|\"$$y$$\"| B",
+    "ok 3bac9dfe",
+  ),
+  (
     "b03ea11e4f024eb7", "flowchart LR\n  A e1@--> B\n  classDef animate stroke-dasharray: 9,5,stroke-dashoffset: 900,animation: dash 25s linear infinite;\n  class e1 animate\n",
     "ok 7c32c4e0",
   ),
@@ -963,6 +1003,7 @@ let golden_cases : Array[(String, String, String)] = [
   (
     "b95d27cb19491286", "graph TD;A--x|text including CAPS space|B;", "ok 84c4964f",
   ),
+  ("b965dcc4fac29ad0", "flowchart LR\n  A[\"$$\\frac{a}{b}$$\"]", "ok 44c81b71"),
   (
     "b9675066f5fb1cb7", "flowchart TB\n    c1-->a2\n    subgraph one\n    a1-->a2\n    end\n    subgraph two\n    b1-->b2\n    end\n    subgraph three\n    c1-->c2\n    end\n",
     "ok cc34b267",
@@ -1063,6 +1104,7 @@ let golden_cases : Array[(String, String, String)] = [
   (
     "cc54977455c3cfce", "graph TD;\nA -- Label -${'-'.repeat(length)}- B;", "error syntax flowchart flowchart-v2\nParse error on line 3:\n\n^\nExpecting 'LINK', 'EDGE_TEXT', got '$end'",
   ),
+  ("cd50519272d0ff40", "flowchart LR\n  A[\"$$x$$\"]", "ok 16b2c98e"),
   ("cdb3d51ca2fb0a9c", "graph TD;A--xB;", "ok 40c5b5ca"),
   ("ce7122ea1692d249", "graph TD;\n%% Comment\n A-->B;", "ok 77288554"),
   (
@@ -1083,6 +1125,10 @@ let golden_cases : Array[(String, String, String)] = [
   (
     "d07ea77a340c5a13", "graph LR\n      ${unsafeProp} --> A;\n      subgraph ${unsafeProp}\n        C --> D;\n      end;",
     "error syntax flowchart flowchart-v2\nParse error on line 3:\n      subgraph ${unsafeProp}\n----------------^\nExpecting 'SEMI', 'NEWLINE', 'EOF', 'SQS', got 'DIAMOND_START'",
+  ),
+  (
+    "d0f99f3baafc15c7", "flowchart LR\n  A[\"$$x$$\"] --> B[\"$$x$$\"] --> C[\"$$x$$\"]",
+    "ok eb871c55",
   ),
   ("d1e6f730207227c9", "graph TD;A-->C(some URL);", "ok b6162fdd"),
   ("d1fc29a356418241", "graph TD;A-->C(some CAPS);", "ok dc178715"),
@@ -1145,6 +1191,10 @@ let golden_cases : Array[(String, String, String)] = [
   ("dc3e64be3158f78d", "graph LR;${nodes}", "ok bd6fabdf"),
   ("dc959fde8f9e95e0", "graph TD;a(A <br> end);", "ok e7ad5ad7"),
   (
+    "dccb172ea8a546c6", "flowchart LR\n  A[\"Hide $$x$$\"]\n  style A opacity:0,letter-spacing:6px,word-spacing:4px",
+    "ok cb745e51",
+  ),
+  (
     "dcf721a3f4beee64", "flowchart LR\n    id1{{This is the text in the box}}\n",
     "ok 40a57809",
   ),
@@ -1199,6 +1249,7 @@ let golden_cases : Array[(String, String, String)] = [
   (
     "e8a3ee2a3c27caf3", "flow db subgraph colour slots", "error unsupported-diagram null null\nNo diagram type detected for the given text.",
   ),
+  ("e8d8313ed891aaa6", "flowchart LR\n  A[\"$$x$$ fa:fa-car\"]", "ok e4667129"),
   (
     "e9a324d32c2b164a", "graph TD;A-->B;subgraph myTitle;c-->d;end;", "ok 839c3011",
   ),
@@ -1266,6 +1317,10 @@ let golden_cases : Array[(String, String, String)] = [
   (
     "f76e6573d220a56a", "flowchart LR\n    A:::someclass --> B\n    classDef someclass fill:#f96\n",
     "ok 6d58af94",
+  ),
+  (
+    "f947c901f47e1fc9", "flowchart LR\n  A[\"$$x$$\"]\n  classDef red color:#c00\n  class A red",
+    "ok 742755fd",
   ),
   (
     "fa55ad110446f034", "flowchart LR\nsubgraph S\n  x\nend\nsubgraph S\n  y\nend\nS@{ view: collapsed }",
