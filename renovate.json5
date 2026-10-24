@@ -27,7 +27,7 @@
     {
       description: "The workspace's own modules resolve to the local members, not to the registry",
       matchDatasources: ["custom.mooncakes"],
-      matchPackageNames: ["Omochice/**"],
+      matchPackageNames: ["omochice/**"],
       enabled: false,
     },
     {
