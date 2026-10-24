@@ -163,7 +163,7 @@ test "break_label keeps icon spans whole and joins no text to them" {
 }
 
 ///|
-test "left_label_svg centers a line holding an icon and leaves its square empty" {
+test "write_left_label centers a line holding an icon and leaves its square empty" {
   let m = @text.metrics_measurer
   let icons = (name : String) => {
     if name == "fa:fa-car" {
@@ -179,7 +179,9 @@ test "left_label_svg centers a line holding an icon and leaves its square empty"
       40,
     )
     inspect(
-      @common.left_label_svg(label, 0, 0, " class=\"x\""),
+      left_written(out => {
+        @common.write_left_label(out, label, 0, 0, " class=\"x\"")
+      }),
       content="<text class=\"x\" x=\"0\" y=\"17.6\" text-anchor=\"start\" xml:space=\"preserve\">abcd</text><text class=\"x\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"0\" y=\"41.6\" text-anchor=\"start\">ef </tspan></text><svg class=\"pele-icon\" data-icon=\"fa:fa-car\" x=\"17.79\" y=\"27.2\" width=\"17.6\" height=\"17.6\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></svg><text class=\"x\" x=\"0\" y=\"65.6\" text-anchor=\"start\" xml:space=\"preserve\"> ghijk</text><text class=\"x\" x=\"0\" y=\"89.6\" text-anchor=\"start\" xml:space=\"preserve\">l</text>",
     )
   })
@@ -217,54 +219,66 @@ test "break_label matches pele on labels of every string of up to four pieces" {
 }
 
 ///|
-test "left_label_svg anchors every line at its start and keeps its spaces" {
+test "write_left_label anchors every line at its start and keeps its spaces" {
   let m = @text.metrics_measurer
   inspect(
-    @common.left_label_svg(
-      @text.layout_label(
-        Some("<b>bold</b> and <i>it</i><br>line 2 & <more>"),
-        false,
-        m,
-        16,
-        400,
-      ),
-      4,
-      10,
-      " class=\"lbl\"",
-    ),
+    left_written(out => {
+      @common.write_left_label(
+        out,
+        @text.layout_label(
+          Some("<b>bold</b> and <i>it</i><br>line 2 & <more>"),
+          false,
+          m,
+          16,
+          400,
+        ),
+        4,
+        10,
+        " class=\"lbl\"",
+      )
+    }),
     content="<text class=\"lbl\" x=\"4\" y=\"27.6\" text-anchor=\"start\" xml:space=\"preserve\"><tspan font-weight=\"var(--_w)\">bold</tspan> and <tspan font-style=\"italic\">it</tspan></text><text class=\"lbl\" x=\"4\" y=\"51.6\" text-anchor=\"start\" xml:space=\"preserve\">line 2 &amp; </text>",
   )
   inspect(
-    @common.left_label_svg(
-      @text.layout_label(Some("<b>all bold</b>"), false, m, 16, 400),
-      0,
-      0,
-      "",
-    ),
+    left_written(out => {
+      @common.write_left_label(
+        out,
+        @text.layout_label(Some("<b>all bold</b>"), false, m, 16, 400),
+        0,
+        0,
+        "",
+      )
+    }),
     content="<text font-weight=\"var(--_w)\" x=\"0\" y=\"17.6\" text-anchor=\"start\" xml:space=\"preserve\">all bold</text>",
   )
   inspect(
-    @common.left_label_svg(
-      @text.layout_label(Some("a<br><br>b"), false, m, 12, 400),
-      1.25,
-      0.5,
-      "",
-    ),
+    left_written(out => {
+      @common.write_left_label(
+        out,
+        @text.layout_label(Some("a<br><br>b"), false, m, 12, 400),
+        1.25,
+        0.5,
+        "",
+      )
+    }),
     content="<text x=\"1.25\" y=\"13.7\" text-anchor=\"start\" xml:space=\"preserve\">a</text><text x=\"1.25\" y=\"49.7\" text-anchor=\"start\" xml:space=\"preserve\">b</text>",
   )
   inspect(
-    @common.left_label_svg(
-      @common.literal_label("  keep  spaces", m, 16, 1000),
-      0,
-      0,
-      "",
-    ),
+    left_written(out => {
+      @common.write_left_label(
+        out,
+        @common.literal_label("  keep  spaces", m, 16, 1000),
+        0,
+        0,
+        "",
+      )
+    }),
     content="<text x=\"0\" y=\"17.6\" text-anchor=\"start\" xml:space=\"preserve\">  keep  spaces</text>",
   )
 }
 
 ///|
-test "left_label_svg matches pele on labels of every string of up to four pieces" {
+test "write_left_label matches pele on labels of every string of up to four pieces" {
   let pieces = ["<b>", "</b>", "<i>", "a&b", " ", "<br>", "\u{1}", "x"]
   let expected = ["6a00f6a5", "c0addd87", "12e724b4", "ae235f44", "f411a7e3"]
   let m = @text.metrics_measurer
@@ -276,15 +290,22 @@ test "left_label_svg matches pele on labels of every string of up to four pieces
         attrs in [
           "", " class=\"t\"", " font-weight=\"bold\"", " font-style=\"italic\"",
         ] {
-        outputs.push(@common.left_label_svg(label, 10.5, 3, attrs))
+        outputs.push(
+          left_written(out => {
+            @common.write_left_label(out, label, 10.5, 3, attrs)
+          }),
+        )
       }
       outputs.push(
-        @common.left_label_svg(
-          @common.literal_label(raw, m, 14, 30, style=2),
-          0,
-          0,
-          "",
-        ),
+        left_written(out => {
+          @common.write_left_label(
+            out,
+            @common.literal_label(raw, m, 14, 30, style=2),
+            0,
+            0,
+            "",
+          )
+        }),
       )
     }
     assert_eq(fnv1a(outputs.join("\n")), hash, msg="length \{length}")

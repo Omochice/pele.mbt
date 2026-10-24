@@ -1,19 +1,6 @@
 ///|
-/// An edge label centered on (`x`, `y`) on a patch of the background, so the line does not run through the text.
-/// `attrs` are added to the text element.
-pub fn edge_label_svg(
-  id : String,
-  label : @text.Label,
-  x : Double,
-  y : Double,
-  attrs : String,
-  icons? : @types.IconResolver,
-) -> String {
-  written(out => write_edge_label(out, id, label, x, y, attrs, icons?))
-}
-
-///|
-/// Writes an edge label to `out` as `edge_label_svg` draws it.
+/// Writes an edge label centered on (`x`, `y`) to `out`, on a patch of the background so the line
+/// does not run through the text, with `attrs` added to the text element.
 /// Raises pele's `limit` error when the markup would be longer than V8 allows.
 pub fn write_edge_label(
   out : Markup,
@@ -64,7 +51,7 @@ pub fn write_edge_label_with_id(
 }
 
 ///|
-/// Writes an edge label to `out` as `edge_label_svg` draws it, with `write_id` writing its
+/// Writes an edge label to `out` as `write_edge_label` draws it, with `write_id` writing its
 /// ` data-id` attribute and the label written as `write_label_styled` writes it.
 fn write_edge_label_parts(
   out : Markup,

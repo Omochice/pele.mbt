@@ -103,25 +103,8 @@ fn figure(kind : String, cx : Double, top : Double) -> String {
 }
 
 ///|
-/// Draws a participant whose bounding box has its top center at (`cx`, `top`), with `icons` drawing the icons in its label.
-/// Aborts where the drawing would be longer than V8 allows, which `write_actor` reports instead.
-pub fn draw_actor(
-  kind : String,
-  cx : Double,
-  top : Double,
-  size : ActorSize,
-  label : @text.Label,
-  icons? : @types.IconResolver,
-) -> String {
-  let out = @svg.Markup::new()
-  write_actor(out, kind, cx, top, size, label, icons?) catch {
-    _ => abort("participant markup longer than V8's longest string")
-  }
-  out.to_string()
-}
-
-///|
-/// Writes a participant to `out` as `draw_actor` draws it, with its label written piece by piece.
+/// Writes a participant whose bounding box has its top center at (`cx`, `top`) to `out`, with its
+/// label written piece by piece and `icons` drawing the icons in it.
 /// Raises pele's `limit` error when the markup would be longer than V8 allows.
 pub fn write_actor(
   out : @svg.Markup,

@@ -9,13 +9,15 @@ fn struck(index : Int32) -> String {
     14,
     200,
   )
-  @svg.struck_title(
-    label, 12.5, -3, " class=\"pele-cluster-label\"", "g<1>", nodes, index,
-  )
+  written(out => {
+    @svg.write_struck_title(
+      out, label, 12.5, -3, " class=\"pele-cluster-label\"", "g<1>", nodes, index,
+    )
+  })
 }
 
 ///|
-test "struck_title outlines the title in the color of the cluster behind it" {
+test "write_struck_title outlines the title in the color of the cluster behind it" {
   inspect(
     struck(0),
     content="<g class=\"pele-cluster-title\" data-id=\"g&lt;1&gt;\"><text fill=\"none\" stroke=\"color-mix(in srgb,var(--_a) 50%,var(--_bg))\" stroke-width=\"5\" stroke-linejoin=\"round\" x=\"12.5\" y=\"1.9\" text-anchor=\"middle\">Group &amp; co</text><text class=\"pele-cluster-label\" x=\"12.5\" y=\"1.9\" text-anchor=\"middle\">Group &amp; co</text></g>",
@@ -23,7 +25,7 @@ test "struck_title outlines the title in the color of the cluster behind it" {
 }
 
 ///|
-test "struck_title tints the outline once more for each cluster it is in, up to eight" {
+test "write_struck_title tints the outline once more for each cluster it is in, up to eight" {
   let tint = fn(index) {
     let svg = struck(index)
     let from = svg.find("var(--_a) ").unwrap() + 10

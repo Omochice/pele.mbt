@@ -45,8 +45,6 @@ pub fn document_length(String) -> Int32
 
 pub fn draw_shape(String, Double, Double, String, String) -> String
 
-pub fn edge_label_svg(String, @text.Label, Double, Double, String, icons? : (String) -> String?) -> String
-
 pub fn end_side(Array[Double], Int32, @layout.CNode) -> Int32
 
 pub fn esc(String) -> String
@@ -58,8 +56,6 @@ pub fn font_style(Double, String?, String?) -> String raise @errors.PeleError
 pub fn inset_route(Array[Double], Int32, @layout.CNode, shape~ : String, w~ : Double, h~ : Double) -> Unit
 
 pub fn is_held_document(String) -> Bool
-
-pub fn label_svg(@text.Label, Double, Double, String, icons? : (String) -> String?) -> String
 
 pub fn loop_path(@layout.CNode, Double, Double, Int32, Bool, Double, Double, @layout.CEdge) -> EdgePath
 
@@ -97,11 +93,7 @@ pub fn shared_style(@text.Label) -> Int32
 
 pub fn span_style(Int32) -> String
 
-pub fn struck_title(@text.Label, Double, Double, String, String, Array[@layout.CNode], Int32, icons? : (String) -> String?) -> String
-
 pub fn style_contains(String, String) -> Bool
-
-pub fn svg_document(String, Double, Double, Double, @types.RenderOptions, String?, String?, String) -> String raise @errors.PeleError
 
 pub fn text_style(String, Int32) -> String
 
@@ -110,8 +102,6 @@ pub fn title_crossed(@layout.CNode, Double, Double, Crossings) -> Bool
 pub fn title_label(String?, @text.TextMeasurer, Double, Double) -> @text.Label
 
 pub fn too_large_to_hold() -> @errors.PeleError
-
-pub fn with_title(String?, @text.TextMeasurer, Double, Double, Double, Double, String) -> Titled
 
 pub fn with_title_markup(String?, @text.TextMeasurer, Double, Double, Double, Double, Markup) -> TitledMarkup raise @errors.PeleError
 
@@ -156,7 +146,6 @@ pub(all) struct EdgePath {
 
 type Markup
 pub fn Markup::is_empty(Self) -> Bool
-pub fn Markup::is_held(Self) -> Bool
 pub fn Markup::length(Self) -> Int32
 pub fn Markup::new() -> Self
 pub fn Markup::to_string(Self) -> String
@@ -200,12 +189,6 @@ pub struct SideReach {
 pub fn SideReach::add(Self, Int32, Int32, String) -> Unit
 pub fn SideReach::new() -> Self
 pub fn SideReach::of(Self, Int32, Int32) -> Double
-
-pub(all) struct Titled {
-  width : Double
-  height : Double
-  content : String
-}
 
 pub(all) struct TitledMarkup {
   width : Double

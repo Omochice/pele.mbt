@@ -53,12 +53,6 @@ pub fn Markup::new() -> Markup {
 }
 
 ///|
-/// Whether the markup still holds its pieces, which it does up to `HOLD_LIMIT`.
-pub fn Markup::is_held(self : Markup) -> Bool {
-  self.held
-}
-
-///|
 /// The length of the markup in UTF-16 code units.
 pub fn Markup::length(self : Markup) -> Int32 {
   self.length
@@ -229,7 +223,8 @@ pub fn document_length(document : String) -> Int32 {
 }
 
 ///|
-/// Wraps diagram content in the root `svg` element as `svg_document` does.
+/// Wraps diagram content in the root `svg` element, with its accessible name and description,
+/// its theme aliases, and its fonts.
 /// Raises pele's `limit` error, before concatenating, when the document would be longer than V8
 /// allows.
 /// A document longer than the port can hold is left as a stand-in that only gives its length, for

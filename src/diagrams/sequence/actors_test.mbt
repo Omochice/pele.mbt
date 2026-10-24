@@ -24,7 +24,9 @@ test "sizes and draws each participant kind" {
       lines.push(
         "\{kind_name} \{kind} \{@sequence.is_figure(kind)} \{shown} \{size.w}x\{size.h} \{tight.w}x\{tight.h}",
       )
-      lines.push(@sequence.draw_actor(kind, 100.5, 10, size, label))
+      let drawing = @svg.Markup::new()
+      @sequence.write_actor(drawing, kind, 100.5, 10, size, label)
+      lines.push(drawing.to_string())
     }
   }
   inspect(

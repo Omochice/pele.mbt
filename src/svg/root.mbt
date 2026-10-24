@@ -92,37 +92,3 @@ fn write_document_head(
     out.write("</desc>")
   }
 }
-
-///|
-/// The accessible name and description, which follow the root `svg` element's start tag.
-fn document_head(
-  options : @types.RenderOptions,
-  acc_title : String?,
-  acc_descr : String?,
-) -> String {
-  written(out => write_document_head(out, options, acc_title, acc_descr))
-}
-
-///|
-/// Wraps diagram content in the root `svg` element, with its accessible name and description,
-/// its theme aliases, and its fonts.
-/// Raises the limit error where pele's pattern for a font list runs out of V8's backtracking stack.
-pub fn svg_document(
-  kind : String,
-  width : Double,
-  height : Double,
-  font_size : Double,
-  options : @types.RenderOptions,
-  acc_title : String?,
-  acc_descr : String?,
-  content : String,
-) -> String raise @errors.PeleError {
-  let used : Set[String] = Set([])
-  add_aliases(used, content)
-  document_tag(
-    kind, width, height, font_size, options, acc_title, acc_descr, used,
-  ) +
-  document_head(options, acc_title, acc_descr) +
-  content +
-  "</svg>"
-}

@@ -88,27 +88,12 @@ pub fn title_crossed(
 }
 
 ///|
-/// A title that an edge runs through, to be drawn over the edges: the text, on an outline in the color of the cluster behind it, so that only the line is seen to stop short of the letters.
-/// `nodes` and `index` find how many clusters deep the title is, each of which tints the background.
-/// `id` names the cluster in its data-id, escaped as `esc_text` escapes it.
-pub fn struck_title(
-  label : @text.Label,
-  x : Double,
-  y : Double,
-  attrs : String,
-  id : String,
-  nodes : Array[@layout.CNode],
-  index : Int32,
-  icons? : @types.IconResolver,
-) -> String {
-  written(out => {
-    write_struck_title(out, label, x, y, attrs, id, nodes, index, icons?)
-  })
-}
-
-///|
-/// Writes a title that an edge runs through to `out` as `struck_title` draws it, with the id
-/// written as `esc_text` escapes `id`, a piece at a time.
+/// Writes a title that an edge runs through to `out`, to be drawn over the edges: the text, on an
+/// outline in the color of the cluster behind it, so that only the line is seen to stop short of
+/// the letters.
+/// `nodes` and `index` find how many clusters deep the title is, each of which tints the
+/// background.
+/// `id` names the cluster in its data-id, escaped as `esc_text` escapes it, a piece at a time.
 /// The diagrams name a cluster by its source text, which escapes to more than a doubling
 /// StringBuilder holds.
 /// Raises pele's `limit` error when the markup would be longer than V8 allows.

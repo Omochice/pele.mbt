@@ -53,7 +53,9 @@ test "the styled writers write what the string ones write under the escaped styl
           written(out => {
             @svg.write_label_styled(out, label, 3, 4, a, css.text, icons~)
           }),
-          @svg.label_svg(label, 3, 4, a + style.text, icons~),
+          written(out => {
+            @svg.write_label(out, label, 3, 4, a + style.text, icons~)
+          }),
         )
         assert_eq(
           written(out => {
@@ -69,13 +71,16 @@ test "the styled writers write what the string ones write under the escaped styl
               icons~,
             )
           }),
-          @svg.label_svg(
-            label,
-            3,
-            4,
-            a + " data-id=\"\{@svg.esc_text("x&amp;<y>")}\"" + style.text,
-            icons~,
-          ),
+          written(out => {
+            @svg.write_label(
+              out,
+              label,
+              3,
+              4,
+              a + " data-id=\"\{@svg.esc_text("x&amp;<y>")}\"" + style.text,
+              icons~,
+            )
+          }),
         )
       }
     }

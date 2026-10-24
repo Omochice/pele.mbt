@@ -72,7 +72,7 @@ fn label(text : String, size : Double, base : Int32) -> @text.Label {
 ///|
 test "a plain single-span label is one text element" {
   inspect(
-    @svg.label_svg(label("ash", 14, 0), 311.284, 155, ""),
+    written(out => @svg.write_label(out, label("ash", 14, 0), 311.284, 155, "")),
     content="<text x=\"311.28\" y=\"159.9\" text-anchor=\"middle\">ash</text>",
   )
 }
@@ -80,16 +80,21 @@ test "a plain single-span label is one text element" {
 ///|
 test "emphasis shared by every span is written on the text element" {
   inspect(
-    @svg.label_svg(
-      label("a neat chart", 16, @text.STYLE_BOLD),
-      165.5,
-      20,
-      " class=\"pele-title\" font-weight=\"var(--_tw)\"",
-    ),
+    written(out => {
+      @svg.write_label(
+        out,
+        label("a neat chart", 16, @text.STYLE_BOLD),
+        165.5,
+        20,
+        " class=\"pele-title\" font-weight=\"var(--_tw)\"",
+      )
+    }),
     content="<text class=\"pele-title\" font-weight=\"var(--_tw)\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"165.5\" y=\"25.6\">a neat chart</tspan></text>",
   )
   inspect(
-    @svg.label_svg(label("<b>x</b><br><b>y</b>", 14, 0), 50, 50, ""),
+    written(out => {
+      @svg.write_label(out, label("<b>x</b><br><b>y</b>", 14, 0), 50, 50, "")
+    }),
     content="<text font-weight=\"var(--_w)\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"50\" y=\"44.4\">x</tspan><tspan x=\"50\" y=\"65.4\">y</tspan></text>",
   )
 }
@@ -97,14 +102,21 @@ test "emphasis shared by every span is written on the text element" {
 ///|
 test "lines and spans become tspans" {
   inspect(
-    @svg.label_svg(label("a<br>b", 14, 0), 303.89, 135, ""),
+    written(out => {
+      @svg.write_label(out, label("a<br>b", 14, 0), 303.89, 135, "")
+    }),
     content="<text text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"303.89\" y=\"129.4\">a</tspan><tspan x=\"303.89\" y=\"150.4\">b</tspan></text>",
   )
   inspect(
-    @svg.label_svg(label("a <b>bold</b> <i>it</i>", 14, 0), 50, 50, ""),
+    written(out => {
+      @svg.write_label(out, label("a <b>bold</b> <i>it</i>", 14, 0), 50, 50, "")
+    }),
     content="<text text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"50\" y=\"54.9\">a </tspan><tspan font-weight=\"var(--_w)\">bold</tspan><tspan> </tspan><tspan font-style=\"italic\">it</tspan></text>",
   )
-  inspect(@svg.label_svg(label("", 14, 0), 50, 50, ""), content="")
+  inspect(
+    written(out => @svg.write_label(out, label("", 14, 0), 50, 50, "")),
+    content="",
+  )
 }
 
 ///|
@@ -128,23 +140,29 @@ fn icon_label(text : String, max_width : Double) -> @text.Label {
 ///|
 test "an icon span is a square drawn by the resolver after the text" {
   inspect(
-    @svg.label_svg(
-      icon_label("fa:fa-car Cars", 4000),
-      0,
-      0,
-      " class=\"x\"",
-      icons=car_icons,
-    ),
+    written(out => {
+      @svg.write_label(
+        out,
+        icon_label("fa:fa-car Cars", 4000),
+        0,
+        0,
+        " class=\"x\"",
+        icons=car_icons,
+      )
+    }),
     content="<text class=\"x\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"-9.11\" y=\"5.6\" text-anchor=\"start\"> Cars</tspan></text><svg class=\"pele-icon\" data-icon=\"fa:fa-car\" x=\"-29.11\" y=\"-8.8\" width=\"17.6\" height=\"17.6\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path/></svg>",
   )
   inspect(
-    @svg.label_svg(
-      icon_label("fa:fa-car", 4000),
-      0,
-      0,
-      " class=\"x\"",
-      icons=car_icons,
-    ),
+    written(out => {
+      @svg.write_label(
+        out,
+        icon_label("fa:fa-car", 4000),
+        0,
+        0,
+        " class=\"x\"",
+        icons=car_icons,
+      )
+    }),
     content="<text class=\"x\" text-anchor=\"middle\" xml:space=\"preserve\"></text><svg class=\"pele-icon\" data-icon=\"fa:fa-car\" x=\"-10\" y=\"-8.8\" width=\"17.6\" height=\"17.6\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path/></svg>",
   )
 }
@@ -152,13 +170,16 @@ test "an icon span is a square drawn by the resolver after the text" {
 ///|
 test "only lines holding an icon place their spans one by one" {
   inspect(
-    @svg.label_svg(
-      icon_label("Go fa:fa-car fast and far away", 60),
-      0,
-      0,
-      " class=\"x\"",
-      icons=car_icons,
-    ),
+    written(out => {
+      @svg.write_label(
+        out,
+        icon_label("Go fa:fa-car fast and far away", 60),
+        0,
+        0,
+        " class=\"x\"",
+        icons=car_icons,
+      )
+    }),
     content="<text class=\"x\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"-22.9\" y=\"-30.4\" text-anchor=\"start\">Go </tspan><tspan x=\"0\" y=\"-6.4\">fast and</tspan><tspan x=\"0\" y=\"17.6\">far</tspan><tspan x=\"0\" y=\"41.6\">away</tspan></text><svg class=\"pele-icon\" data-icon=\"fa:fa-car\" x=\"2.9\" y=\"-44.8\" width=\"17.6\" height=\"17.6\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path/></svg>",
   )
 }
@@ -166,7 +187,9 @@ test "only lines holding an icon place their spans one by one" {
 ///|
 test "an icon span drawn without a resolver is an empty square" {
   inspect(
-    @svg.label_svg(icon_label("fa:fa-car", 4000), 0, 0, ""),
+    written(out => {
+      @svg.write_label(out, icon_label("fa:fa-car", 4000), 0, 0, "")
+    }),
     content="<text text-anchor=\"middle\" xml:space=\"preserve\"></text><svg class=\"pele-icon\" data-icon=\"fa:fa-car\" x=\"-10\" y=\"-8.8\" width=\"17.6\" height=\"17.6\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></svg>",
   )
 }

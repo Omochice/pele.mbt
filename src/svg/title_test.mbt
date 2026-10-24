@@ -47,7 +47,7 @@ test "title_label wraps a title wider than the room for it" {
 }
 
 ///|
-test "with_title puts the title above the content and widens the picture for it" {
+test "with_title_markup puts the title above the content and widens the picture for it" {
   // The expected documents were taken from pele v1.8.0's withTitle.
   let check = (
     title : String?,
@@ -57,11 +57,17 @@ test "with_title puts the title above the content and widens the picture for it"
     height : Double,
     expected : String,
   ) => {
-    let titled = @svg.with_title(
-      title, @text.metrics_measurer, size, pad, width, height, "<g/>",
+    let titled = @svg.with_title_markup(
+      title,
+      @text.metrics_measurer,
+      size,
+      pad,
+      width,
+      height,
+      markup_holding("<g/>"),
     )
     assert_eq(
-      "\{titled.width} x \{titled.height} \{titled.content}",
+      "\{titled.width} x \{titled.height} \{titled.content.to_string()}",
       expected,
       msg=title.unwrap_or("-"),
     )
@@ -107,18 +113,18 @@ test "title_label is empty without a title" {
 }
 
 ///|
-test "with_title puts the title above the content and centers both" {
-  let titled = @svg.with_title(
+test "with_title_markup puts the title above the content and centers both" {
+  let titled = @svg.with_title_markup(
     Some("Sales"),
     @text.metrics_measurer,
     16,
     8,
     200,
     100,
-    "<g/>",
+    markup_holding("<g/>"),
   )
   inspect(
-    "\{titled.width} x \{titled.height}\n\{titled.content}",
+    "\{titled.width} x \{titled.height}\n\{titled.content.to_string()}",
     content=(
       #|200 x 136
       #|<text class="pele-title" font-weight="var(--_tw)" text-anchor="middle" xml:space="preserve"><tspan x="100" y="25.6">Sales</tspan></text><g transform="translate(0,36)"><g/></g>
@@ -127,18 +133,18 @@ test "with_title puts the title above the content and centers both" {
 }
 
 ///|
-test "with_title widens the diagram for a title wider than its content" {
-  let titled = @svg.with_title(
+test "with_title_markup widens the diagram for a title wider than its content" {
+  let titled = @svg.with_title_markup(
     Some("A very long title that is wider than the content"),
     @text.metrics_measurer,
     16,
     8,
     50.5,
     40.25,
-    "<g/>",
+    markup_holding("<g/>"),
   )
   inspect(
-    "\{titled.width} x \{titled.height}\n\{titled.content}",
+    "\{titled.width} x \{titled.height}\n\{titled.content.to_string()}",
     content=(
       #|363 x 77
       #|<text class="pele-title" font-weight="var(--_tw)" text-anchor="middle" xml:space="preserve"><tspan x="181.5" y="25.6">A very long title that is wider than the content</tspan></text><g transform="translate(156.25,36)"><g/></g>
@@ -147,14 +153,30 @@ test "with_title widens the diagram for a title wider than its content" {
 }
 
 ///|
-test "with_title leaves the content alone without a title" {
+test "with_title_markup leaves the content alone without a title" {
   for title in [None, Some("")] {
-    let titled = @svg.with_title(
-      title, @text.metrics_measurer, 16, 8, 50, 40, "<g/>",
+    let titled = @svg.with_title_markup(
+      title,
+      @text.metrics_measurer,
+      16,
+      8,
+      50,
+      40,
+      markup_holding("<g/>"),
     )
     inspect(
-      "\{titled.width} x \{titled.height} \{titled.content}",
+      "\{titled.width} x \{titled.height} \{titled.content.to_string()}",
       content="50 x 40 <g/>",
     )
   }
+}
+
+///|
+/// Markup holding `text`.
+fn markup_holding(text : String) -> @svg.Markup {
+  let out = @svg.Markup::new()
+  out.write(text) catch {
+    _ => abort("unreachable")
+  }
+  out
 }

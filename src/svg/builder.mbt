@@ -124,33 +124,9 @@ pub fn text_style(attrs : String, shared : Int32) -> String {
 }
 
 ///|
-/// The markup `write` writes, as a string.
-/// Aborts where the markup would be longer than V8 allows, because a caller that takes a string
-/// has no error to report it with.
-fn written(write : (Markup) -> Unit raise @errors.PeleError) -> String {
-  let out = Markup::new()
-  write(out) catch {
-    _ => abort("label markup longer than V8's longest string")
-  }
-  out.to_string()
-}
-
-///|
-/// Writes a measured label as SVG text centered on (`cx`, `cy`).
+/// Writes a measured label to `out` as SVG text centered on (`cx`, `cy`), keeping each host drawing
+/// a piece of its own rather than copying it, so a label can be as long as the markup holding it.
 /// `icons` draws inside the square of each icon span, which is otherwise left empty.
-pub fn label_svg(
-  label : @text.Label,
-  cx : Double,
-  cy : Double,
-  attrs : String,
-  icons? : @types.IconResolver,
-) -> String {
-  written(out => write_label(out, label, cx, cy, attrs, icons?))
-}
-
-///|
-/// Writes a measured label to `out` as `label_svg` draws it, keeping each host drawing a piece of
-/// its own rather than copying it, so a label can be as long as the markup holding it.
 /// Raises pele's `limit` error when the markup would be longer than V8 allows.
 pub fn write_label(
   out : Markup,

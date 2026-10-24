@@ -121,8 +121,6 @@ pub fn actor_kind(String) -> String
 
 pub fn actor_size(String, @text.Label, Double, Double, padding_x? : Double) -> ActorSize
 
-pub fn draw_actor(String, Double, Double, ActorSize, @text.Label, icons? : (String) -> String?) -> String
-
 pub fn is_css_color(String) -> Bool
 
 pub fn is_figure(String) -> Bool

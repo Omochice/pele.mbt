@@ -57,8 +57,6 @@ pub fn icon_svg(String, Double, Double, Double, icons? : (String) -> String?, dr
 
 pub fn keyword(String) -> TokenType
 
-pub fn left_label_svg(@text.Label, Double, Double, String) -> String
-
 pub fn line_end(String, Int32) -> Int32
 
 pub fn literal(String, String) -> TokenType

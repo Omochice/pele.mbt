@@ -16,7 +16,7 @@ fn math_label_svg(raw : String, size : Double, attrs : String) -> String {
       size,
       4000,
     )
-    @svg.label_svg(label, 10, 20, attrs)
+    written(out => @svg.write_label(out, label, 10, 20, attrs))
   })
 }
 

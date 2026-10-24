@@ -200,25 +200,10 @@ pub fn break_label(
 }
 
 ///|
-/// Writes `label` with every line starting at `x`, the first line's top at `top`.
-/// A line is anchored at its start and keeps its spaces, so that where it begins does not depend on how its text was measured.
-/// Aborts where the label would be longer than V8 allows, which `write_left_label` reports instead.
-pub fn left_label_svg(
-  label : @text.Label,
-  x : Double,
-  top : Double,
-  attrs : String,
-) -> String {
-  let out = @svg.Markup::new()
-  write_left_label(out, label, x, top, attrs) catch {
-    _ => abort("label markup longer than V8's longest string")
-  }
-  out.to_string()
-}
-
-///|
-/// Writes `label` to `out` as `left_label_svg` draws it, a piece at a time, so a label can be as
-/// long as the markup holding it.
+/// Writes `label` to `out` with every line starting at `x`, the first line's top at `top`, a piece
+/// at a time, so a label can be as long as the markup holding it.
+/// A line is anchored at its start and keeps its spaces, so that where it begins does not depend on
+/// how its text was measured.
 /// Raises pele's `limit` error when the markup would be longer than V8 allows.
 pub fn write_left_label(
   out : @svg.Markup,

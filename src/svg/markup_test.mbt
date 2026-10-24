@@ -120,14 +120,16 @@ test "markup fails when other markup appended to it would make it longer than V8
 }
 
 ///|
-test "a document of markup is the document of its string" {
+test "a document of markup puts the root element and the accessible name around it" {
   let options = @types.RenderOptions::default()
   let content = "<text font-weight=\"var(--_tw)\" style=\"rx:var(--_r)\">a</text>"
   let markup = @svg.Markup::new()
   markup.write(content)
-  assert_eq(
+  inspect(
     @svg.markup_document("pie", 10, 20, 16, options, Some("t"), None, markup),
-    @svg.svg_document("pie", 10, 20, 16, options, Some("t"), None, content),
+    content=(
+      #|<svg xmlns="http://www.w3.org/2000/svg" class="pele pele-pie" viewBox="0 0 10 20" width="10" height="20" style="max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_tw:var(--pele-title-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)" fill="var(--_fg)" role="graphics-document document" aria-roledescription="pie" aria-labelledby="pele-title"><title id="pele-title">t</title><text font-weight="var(--_tw)" style="rx:var(--_r)">a</text></svg>
+    ),
   )
 }
 
@@ -148,9 +150,11 @@ test "escaped text in markup keeps the aliases it names across its pieces" {
     let text = "a".repeat(65536 - before.length()) + before + after
     let markup = @svg.Markup::new()
     markup.write_esc(text)
+    let whole = @svg.Markup::new()
+    whole.write(@svg.esc(text))
     assert_eq(
       @svg.markup_document("pie", 10, 20, 16, options, None, None, markup),
-      @svg.svg_document("pie", 10, 20, 16, options, None, None, @svg.esc(text)),
+      @svg.markup_document("pie", 10, 20, 16, options, None, None, whole),
     )
   }
 }
