@@ -2,18 +2,16 @@ import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
-function fail(message) {
-  console.error(message);
+if (!process.env.PELE_ROOT) {
+  console.error(
+    'PELE_ROOT is not set. Run this inside `nix develop`, which builds the pinned pele and sets PELE_ROOT, ' +
+      'or set PELE_ROOT to a built checkout of the pele commit pinned in flake.lock.'
+  );
   process.exit(1);
 }
 
 /** The built pele checkout whose dist/, tests/ and package.json the scripts read, named by PELE_ROOT. */
-export const peleRoot = process.env.PELE_ROOT
-  ? resolve(process.env.PELE_ROOT)
-  : fail(
-      'PELE_ROOT is not set. Run this inside `nix develop`, which builds the pinned pele and sets PELE_ROOT, ' +
-        'or set PELE_ROOT to a built checkout of the pele commit pinned in flake.lock.'
-    );
+export const peleRoot = resolve(process.env.PELE_ROOT);
 
 /**
  * The commit of the pele that peleRoot holds.
@@ -25,5 +23,6 @@ export function peleCommit() {
   if (existsSync(join(peleRoot, '.git'))) {
     return execFileSync('git', ['-C', peleRoot, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
   }
-  return fail(`PELE_COMMIT is not set and ${peleRoot} is not a git checkout, so the pele commit cannot be recorded. Set PELE_COMMIT to it.`);
+  console.error(`PELE_COMMIT is not set and ${peleRoot} is not a git checkout, so the pele commit cannot be recorded. Set PELE_COMMIT to it.`);
+  process.exit(1);
 }

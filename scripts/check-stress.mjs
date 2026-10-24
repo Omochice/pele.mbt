@@ -320,7 +320,6 @@ if (!typst) {
 let dependent = 0;
 for (const size of stackSizes) {
   const json = execFileSync(process.execPath, [`--stack-size=${size}`, self, '--pele-outcomes', ...filters], {
-    env: { ...process.env, PELE_ROOT: peleRoot },
     maxBuffer: 1 << 26,
   });
   for (const [i, kind] of JSON.parse(json).entries()) {
