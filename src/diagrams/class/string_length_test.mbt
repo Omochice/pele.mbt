@@ -289,3 +289,21 @@ test "a generic of 140 million < fails with its whole line quoted" {
   }
   inspect(failure, content="syntax: 140000118 class classDiagram")
 }
+
+///|
+#skip("slow: reads a class name of 270 million characters")
+test "a class named by 2^28 or more letters, written twice, fails as nested too deeply" {
+  inspect(
+    outcome("classDiagram\nclass \{"a".repeat(270000000)}\n"),
+    content="limit: Diagram is nested too deeply. class classDiagram",
+  )
+}
+
+///|
+#skip("slow: draws a member of 270 million characters")
+test "a member of 2^28 or more letters is drawn" {
+  inspect(
+    outcome("classDiagram\nclass A {\n  \{"a".repeat(270000000)}\n}\n"),
+    content="270001354",
+  )
+}
