@@ -80,7 +80,6 @@ node scripts/fuzz.mjs [--seed n] [--count n] [--variations n] [--jobs n] [--out 
 
 The defaults are seed 1, 1000 sources per diagram, one random option set, and one worker fewer than the available parallelism.
 A run makes `count * (profiles + variations)` comparisons per diagram, and a seed gives the same cases and the same report whatever `--jobs` is.
-Workers are given the V8 stack of node's main thread, because pele reports a stack overflow as "nested too deeply" and the goldens come from the main thread.
 
 ## pele's stress tests
 

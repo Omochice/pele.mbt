@@ -34,11 +34,6 @@ const goldenDir = join(root, 'golden');
 const wasmPath = join(root, '_build/wasm/release/build/Omochice/pele-typst/plugin/plugin.wasm');
 const { render, detectType } = await import(join(peleRoot, 'dist/pele.js'));
 
-// pele reports a stack overflow as "nested too deeply", so its outcome depends on the stack it runs on.
-// The goldens come from node's main thread, whose V8 stack is 984 KiB, and a worker loses 192 KiB of
-// its thread stack to V8's buffer, so this gives the workers the main thread's limit.
-const WORKER_STACK_MB = (984 + 192) / 1024;
-
 // Port of random and mutator in pele's tests/support/corpus.ts, kept to the same draws so that
 // a seed yields the sequence pele's tests would.
 function random(seed) {
@@ -378,7 +373,7 @@ function casesFor(diagram, index, seed, count, variations, profiles) {
 }
 
 function startWorkers(jobs) {
-  return Array.from({ length: jobs }, () => new Worker(self, { workerData: { worker: true }, resourceLimits: { stackSizeMb: WORKER_STACK_MB } }));
+  return Array.from({ length: jobs }, () => new Worker(self, { workerData: { worker: true } }));
 }
 
 // Hands each task to the next idle worker and resolves with the answers in task order.
