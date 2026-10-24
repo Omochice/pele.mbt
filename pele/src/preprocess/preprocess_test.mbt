@@ -121,7 +121,7 @@ fn outline(value : Json) -> Json {
 }
 
 ///|
-test "an init directive nested deeper than pele's merge reaches applies only the keys before it" {
+test "an init directive nested thousands of objects deep is merged to the end" {
   let config = (n : Int32) => {
     outline(
       Json::object(
@@ -131,12 +131,15 @@ test "an init directive nested deeper than pele's merge reaches applies only the
       ),
     ).stringify()
   }
-  inspect(config(4467), content="{\"before\":1,\"x\":{\"a\":4466},\"after\":2}")
-  inspect(config(4468), content="{\"before\":1}")
+  inspect(config(6000), content="{\"before\":1,\"x\":{\"a\":5999},\"after\":2}")
+  inspect(
+    config(12000),
+    content="{\"before\":1,\"x\":{\"a\":11999},\"after\":2}",
+  )
 }
 
 ///|
-test "a merge past pele's reach keeps what it merged into existing objects" {
+test "an init directive nested thousands of objects deep is merged to the end into existing objects" {
   let config = (n : Int32) => {
     outline(
       Json::object(
@@ -149,10 +152,13 @@ test "a merge past pele's reach keeps what it merged into existing objects" {
     ).stringify()
   }
   inspect(
-    config(4466),
-    content="{\"x\":{\"k\":2,\"a\":4466,\"z\":3},\"after\":4,\"later\":5}",
+    config(6000),
+    content="{\"x\":{\"k\":2,\"a\":6000,\"z\":3},\"after\":4,\"later\":5}",
   )
-  inspect(config(4467), content="{\"x\":{\"k\":2},\"later\":5}")
+  inspect(
+    config(12000),
+    content="{\"x\":{\"k\":2,\"a\":12000,\"z\":3},\"after\":4,\"later\":5}",
+  )
 }
 
 ///|
@@ -166,8 +172,7 @@ test "an init directive is merged in JavaScript's key order, array indexes first
       ),
     ).stringify()
   }
-  inspect(config(4467), content="{\"0\":{\"a\":4466},\"before\":1}")
-  inspect(config(4468), content="{}")
+  inspect(config(6000), content="{\"0\":{\"a\":5999},\"before\":1}")
 }
 
 ///|
