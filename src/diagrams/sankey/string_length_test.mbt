@@ -128,3 +128,21 @@ test "a link color of over a hundred million entities fails as nested too deeply
     content="limit: Diagram is nested too deeply. sankey sankey",
   )
 }
+
+///|
+#skip("slow, and moon test runs wasm's allocator unmended, which can give a block of 512 MiB or more a smaller one; check-string-length checks it through the mended plugin")
+test "a node named by 2^28 or more letters, written several times, fails as nested too deeply" {
+  let failure = try {
+    @core.render([@sankey.sankey], "sankey\n\n\{"a".repeat(270000000)},B,1\n", {
+      ..@types.RenderOptions::default(),
+      limit: Some(1.0 / 0.0),
+      output_limit: Some(1.0 / 0.0),
+    })
+    |> ignore
+    "rendered"
+  } catch {
+    @errors.PeleError(failure) =>
+      "\{failure.code.to_string()}: \{failure.message} \{failure.kind.unwrap_or("null")} \{failure.mermaid_type.unwrap_or("null")}"
+  }
+  inspect(failure, content="limit: Diagram is nested too deeply. sankey sankey")
+}
