@@ -22,11 +22,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-
       - uses: $/.github/actions/setup-nix
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-
       - run: nix flake check
 
   moon:
@@ -38,15 +36,11 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-
       - uses: $/.github/actions/setup-nix
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-
       - run: nix develop --command moon check --target wasm --deny-warn
-
       - run: nix develop --command moon test --target wasm
-
       - run: nix develop --command moon build --target wasm --release
 
   golden:
@@ -58,13 +52,10 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-
       - uses: $/.github/actions/setup-nix
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-
       - run: nix develop --command moon build --target wasm --release
-
       - run: nix develop --command node scripts/check-golden.mjs
 
   stress:
@@ -76,13 +67,10 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-
       - uses: $/.github/actions/setup-nix
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-
       - run: nix develop --command moon build --target wasm --release
-
       - run: nix develop --command node scripts/check-stress.mjs
 
   fuzz:
@@ -94,13 +82,10 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-
       - uses: $/.github/actions/setup-nix
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-
       - run: nix develop --command moon build --target wasm --release
-
       - run: nix develop --command node scripts/fuzz.mjs --count 500
 
   typst:
@@ -112,13 +97,10 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-
       - uses: $/.github/actions/setup-nix
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-
       - run: nix develop --command node scripts/build-typst.mjs
-
       - run: nix develop --command node scripts/check-typst.mjs
 
   generated:
@@ -130,19 +112,14 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-
       - uses: $/.github/actions/setup-nix
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Regenerate the goldens from the pinned pele
         run: nix develop --command node scripts/gen-golden.mjs
-
       - name: Regenerate the flowchart golden cases from the goldens
         run: nix develop --command node scripts/gen-flowchart-golden-test.mjs
-
       - run: nix develop --command moon fmt
-
       - name: Fail when a generated file differs from the committed one
         run: |
           git status --short
