@@ -12,7 +12,6 @@ process.env.TZ = 'UTC';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const goldenDir = join(root, 'golden');
 const { detectType, render } = await import(join(peleRoot, 'dist/pele.js'));
-// Read before any golden is rewritten, so a missing commit stops the run before it leaves goldens without a manifest to match.
 const pele = { version: JSON.parse(readFileSync(join(peleRoot, 'package.json'), 'utf8')).version, commit: peleCommit() };
 
 // Unset options are those whose default is "undefined means X":
