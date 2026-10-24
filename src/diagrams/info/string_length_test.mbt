@@ -54,6 +54,9 @@ test "an accessible description outgrowing V8's longest string fails as nested t
 #skip("slow: draws a title of 270 million characters")
 test "a title of 2^28 or more plain letters is drawn" {
   let title = "a".repeat(270000000)
-  let svg = @core.render([@info.info], "info\ntitle \{title}\n", options()).svg
+  let svg = @core.render([@info.info], "info\ntitle \{title}\n", {
+      ..options(),
+      output_limit: Some(1.0 / 0.0),
+    }).svg
   inspect(svg.length(), content="270000966")
 }
