@@ -49,3 +49,11 @@ test "an accessible description outgrowing V8's longest string fails as nested t
     content="limit: Diagram is nested too deeply. info info",
   )
 }
+
+///|
+#skip("slow: draws a title of 270 million characters")
+test "a title of 2^28 or more plain letters is drawn" {
+  let title = "a".repeat(270000000)
+  let svg = @core.render([@info.info], "info\ntitle \{title}\n", options()).svg
+  inspect(svg.length(), content="270000966")
+}

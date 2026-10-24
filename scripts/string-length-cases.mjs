@@ -478,6 +478,9 @@ export const CASES = [
   lazy('class', 'a generic of 140M <, quoted whole in its syntax error', () => `classDiagram\nclass A~${'<'.repeat(140000000)}~\n`, RAISED),
   // Each tab of a quoted line is escaped in the JSON answer, which so holds twice as many bytes as the line.
   lazy('railroad', 'a special sequence of 140M tabs, quoted whole in its syntax error', () => `railroad-ebnf-beta\nr = ? ${'\t'.repeat(140000000)} ? ;\n`, RAISED),
+  // A source of 2^28 code units or more is held with every copy made of it, so a title that long
+  // is drawn only when it is copied once out of its line rather than at each step that trims it.
+  lazy('info', 'a title of 270M a', () => `info\ntitle ${'a'.repeat(270000000)}\n`, RAISED),
   // A node's id and label are joined from the texts of their tokens, of which one may be 2^28 code units long.
   lazy('flowchart', 'a node id of 270M a, written twice', () => `graph TD\n${'a'.repeat(270000000)}\n`, RAISED),
   lazy('flowchart', 'a node label of 270M a', () => `graph TD\nA[${'a'.repeat(270000000)}]\n`, RAISED),
