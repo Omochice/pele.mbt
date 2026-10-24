@@ -161,18 +161,16 @@ fn parse_attribute(input : String) -> ClassMember {
 ///|
 /// The text the member is shown with, and the style of its classifier.
 pub fn ClassMember::display_details(self : ClassMember) -> DisplayDetails {
-  let text = StringBuilder()
-  text.write_string(self.visibility)
-  text.write_string(@common.parse_generic_types(self.id))
+  // The parts are joined at their final size, because a member of hundreds of millions of
+  // characters would need a doubling builder's block past what wasm allocates.
+  let text = [self.visibility, @common.parse_generic_types(self.id)]
   if self.member_type is Method {
-    text.write_string(
-      "(\{@common.parse_generic_types(@util.trim(self.parameters))})",
-    )
+    text.push("(\{@common.parse_generic_types(@util.trim(self.parameters))})")
     if self.return_type != "" {
-      text.write_string(" : " + @common.parse_generic_types(self.return_type))
+      text.push(" : " + @common.parse_generic_types(self.return_type))
     }
   }
-  { display_text: @util.trim(text.to_string()), css_style: self.css_style(), }
+  { display_text: @util.trim(text.join("")), css_style: self.css_style(), }
 }
 
 ///|
