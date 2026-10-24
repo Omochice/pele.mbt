@@ -16,8 +16,25 @@ pub fn prepare_text_for_parsing(text : String) -> String {
   while end > start && is_blank(@util.code_at(text, end - 1)) {
     end -= 1
   }
-  let out = StringBuilder()
+  // The text is measured before it is copied, and trimmed only when it has to be, because a
+  // source of hundreds of millions of characters copied into a doubling builder, or copied again
+  // whole, would need more than wasm allocates.
+  let mut length = 0
   let mut in_break = false
+  for i in start..<end {
+    let c = @util.code_at(text, i)
+    if c == 10 || c == 13 {
+      if !in_break {
+        length += 1
+      }
+      in_break = true
+    } else {
+      in_break = false
+      length += 1
+    }
+  }
+  let out = StringBuilder(size_hint=length * 2)
+  in_break = false
   for i in start..<end {
     let c = @util.code_at(text, i)
     if c == 10 || c == 13 {
@@ -30,7 +47,14 @@ pub fn prepare_text_for_parsing(text : String) -> String {
       @util.write_range(out, text, i, i + 1)
     }
   }
-  @util.trim(out.to_string())
+  let out = out.to_string()
+  if out.length() > 0 &&
+    !@util.is_space(@util.code_at(out, 0)) &&
+    !@util.is_space(@util.code_at(out, out.length() - 1)) {
+    out
+  } else {
+    @util.trim(out)
+  }
 }
 
 ///|
