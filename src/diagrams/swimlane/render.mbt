@@ -75,7 +75,7 @@ fn draw_lane(
   let band_w = if sideways { c.pad_top } else { c.w }
   let band_h = if sideways { c.h } else { c.pad_top }
   out.write("<g class=\"pele-cluster pele-lane\{classes}\"")
-  @svg.write_data_id(out, id)
+  out.write_data_id(id)
   out.write(
     "><rect x=\"\{@svg.num(left)}\" y=\"\{@svg.num(top)}\" width=\"\{@svg.num(c.w)}\" height=\"\{@svg.num(c.h)}\" fill=\"none\" stroke=\"var(--_b)\"/>" +
     "<rect x=\"\{@svg.num(left)}\" y=\"\{@svg.num(top)}\" width=\"\{@svg.num(band_w)}\" height=\"\{@svg.num(band_h)}\" fill=\"var(--_a)\" stroke=\"var(--_b)\"\{style.shape}/>",

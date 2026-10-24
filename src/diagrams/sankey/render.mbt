@@ -140,7 +140,7 @@ fn draw(
     let id = db.nodes[i].id
     let height = @cmp.maximum(node.height, 1.0)
     nodes_out.write("<rect class=\"pele-sankey-node\" data-id=\"")
-    @svg.write_esc_text(nodes_out, id)
+    nodes_out.write_esc_text(id)
     nodes_out.write(
       "\" x=\"\{@svg.num(node.x)}\" y=\"\{@svg.num(node.y)}\" width=\"\{@svg.num(node_width)}\" height=\"\{@svg.num(height)}\" rx=\"\{@svg.num(@cmp.minimum(2.0, height / 2))}\" fill=\"\{@svg.series_color(i)}\"",
     )
@@ -179,26 +179,26 @@ fn draw(
     max_y = @cmp.maximum(max_y, y + small * 0.75)
     let position = " x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y + small * 0.35)}\" text-anchor=\"\{if after { "start" } else { "end" }}\""
     labels_out.write("<g class=\"pele-label\" data-id=\"")
-    @svg.write_esc_text(labels_out, id)
+    labels_out.write_esc_text(id)
     labels_out.write("\">")
     if outlined {
       labels_out.write(
         "<text\{position} fill=\"none\" stroke=\"var(--_bg)\" stroke-width=\"3\" stroke-linejoin=\"round\">",
       )
-      @svg.write_esc(labels_out, id)
+      labels_out.write_esc(id)
       if value != "" {
         labels_out.write(" ")
-        @svg.write_esc(labels_out, value)
+        labels_out.write_esc(value)
       }
       labels_out.write("</text>")
     }
     labels_out.write("<text\{position}>")
-    @svg.write_esc(labels_out, id)
+    labels_out.write_esc(id)
     if value != "" {
       labels_out.write(
         " <tspan class=\"pele-sankey-value\" fill=\"var(--_m)\">",
       )
-      @svg.write_esc(labels_out, value)
+      labels_out.write_esc(value)
       labels_out.write("</tspan>")
     }
     labels_out.write("</text></g>")
@@ -227,21 +227,21 @@ fn draw(
     let bottom_source = @svg.num(link.source_y + half)
     let style = if fixed != "" { fixed } else { node_style(end) }
     links_out.write("<path class=\"pele-sankey-link\" data-id=\"")
-    @svg.write_esc_text(links_out, from)
+    links_out.write_esc_text(from)
     links_out.write("-&gt;")
-    @svg.write_esc_text(links_out, to)
+    links_out.write_esc_text(to)
     links_out.write(
       "\" d=\"M\{@svg.num(x0)},\{top_source}C\{mid},\{top_source} \{mid},\{top_target} \{@svg.num(x1)},\{top_target}L\{@svg.num(x1)},\{bottom_target}C\{mid},\{bottom_target} \{mid},\{bottom_source} \{@svg.num(x0)},\{bottom_source}Z\" fill=\"\{@svg.series_color(end)}\"",
     )
     @svg.write_style(links_out, style)
     links_out.write("><title>")
-    @svg.write_esc_text(links_out, from)
+    links_out.write_esc_text(from)
     links_out.write(" → ")
-    @svg.write_esc_text(links_out, to)
+    links_out.write_esc_text(to)
     links_out.write(": ")
-    @svg.write_esc_text(links_out, prefix)
+    links_out.write_esc_text(prefix)
     links_out.write(rounded(link.value))
-    @svg.write_esc_text(links_out, suffix)
+    links_out.write_esc_text(suffix)
     links_out.write("</title></path>")
   }
 

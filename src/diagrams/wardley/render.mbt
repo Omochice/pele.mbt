@@ -145,7 +145,7 @@ fn write_start_label(
         ""
       }
       body.write("<tspan\{at}\{style}>")
-      @svg.write_esc(body, span.text)
+      body.write_esc(span.text)
       body.write("</tspan>")
       first = false
     }
@@ -364,7 +364,7 @@ fn draw(
       ""
     }
     pipelines.write("<g class=\"pele-wardley-pipeline\" data-id=\"")
-    @svg.write_esc_text(pipelines, pipeline.node_id)
+    pipelines.write_esc_text(pipeline.node_id)
     pipelines.write(
       "\">" +
       "<rect x=\"\{@svg.num(left - PIPELINE_PAD)}\" y=\"\{@svg.num(top)}\" width=\"\{@svg.num(right - left + 2 * PIPELINE_PAD)}\" height=\"\{@svg.num(4 * R)}\" fill=\"var(--_s)\" stroke=\"var(--_b)\"\{@svg.ROUNDED}/>" +
@@ -492,9 +492,9 @@ fn draw(
       ""
     }
     links.write("<g class=\"pele-edge\{dashed_class}\" data-id=\"")
-    @svg.write_esc_text(links, link.source)
+    links.write_esc_text(link.source)
     links.write("-")
-    @svg.write_esc_text(links, link.target)
+    links.write_esc_text(link.target)
     links.write_group(
       "\">" +
       "<path d=\"M\{@svg.num(x1)},\{@svg.num(y1)}L\{@svg.num(x2)},\{@svg.num(y2)}\" stroke=\"\{LINE}\"\{dashed_stroke}/>" +
@@ -531,7 +531,7 @@ fn draw(
     }
     bounds.grow(tx - R, ty - R, tx + R, ty + R)
     trends.write("<g class=\"pele-wardley-trend\" data-id=\"")
-    @svg.write_esc_text(trends, trend.node_id)
+    trends.write_esc_text(trend.node_id)
     trends.write(
       "\">\{arrow}" +
       "<circle cx=\"\{@svg.num(tx)}\" cy=\"\{@svg.num(ty)}\" r=\"\{R}\" fill=\"var(--_bg)\" stroke=\"\{ACCENT}\"/></g>",
@@ -655,7 +655,7 @@ fn draw(
       "component"
     }
     nodes.write("<g class=\"pele-node pele-wardley-\{kind}\" data-id=\"")
-    @svg.write_esc_text(nodes, node.id)
+    nodes.write_esc_text(node.id)
     nodes.write_group("\">\{shape.to_string()}", caption, "</g>")
   }
   let annotations = @svg.Markup::new()
@@ -765,7 +765,7 @@ fn draw(
     bounds.grow(x, y - half - 8, x + FORCE_WIDTH, y + half + 8)
     let kind = if forward { "accelerator" } else { "deaccelerator" }
     forces.write("<g class=\"pele-wardley-\{kind}\" data-id=\"")
-    @svg.write_esc_text(forces, name)
+    forces.write_esc_text(name)
     forces.write("\"><path d=\"\{d}\" fill=\"var(--_s)\" stroke=\"\{LINE}\"/>")
     centered(
       forces,

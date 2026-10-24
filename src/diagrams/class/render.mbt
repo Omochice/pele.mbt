@@ -875,7 +875,7 @@ fn draw(
         )
       }
       clusters.write("<g class=\"pele-cluster pele-namespace\" data-id=\"")
-      @svg.write_esc_text(clusters, node.id)
+      clusters.write_esc_text(node.id)
       clusters.write(
         "\"><rect x=\"\{num(x - w / 2)}\" y=\"\{num(y - h / 2)}\" width=\"\{num(w)}\" height=\"\{num(h)}\" fill=\"var(--_a)\" fill-opacity=\"0.5\" stroke=\"var(--_b)\"\{@svg.ROUNDED}/>",
       )
@@ -909,7 +909,7 @@ fn draw(
       let r = w / 2
       let t = -h / 2
       nodes_out.write("<g class=\"pele-node pele-note\" data-id=\"")
-      @svg.write_esc_text(nodes_out, node.id)
+      nodes_out.write_esc_text(node.id)
       nodes_out.write(
         "\"\{at}><path d=\"M\{num(-r)},\{num(t)}H\{num(r - FOLD)}L\{num(r)},\{num(t + FOLD)}V\{num(-t)}H\{num(-r)}Z\" fill=\"var(--_a)\" stroke=\"var(--_b)\" stroke-linejoin=\"round\"/>" +
         "<path d=\"M\{num(r - FOLD)},\{num(t)}V\{num(t + FOLD)}H\{num(r)}\" fill=\"none\" stroke=\"var(--_b)\" stroke-linejoin=\"round\"/>",
@@ -925,7 +925,7 @@ fn draw(
       nodes_out.write("</g>")
     } else {
       nodes_out.write("<g class=\"pele-node pele-interface\" data-id=\"")
-      @svg.write_esc_text(nodes_out, node.id)
+      nodes_out.write_esc_text(node.id)
       nodes_out.write("\"\{at}>")
       @svg.write_label(
         nodes_out,
@@ -987,7 +987,7 @@ fn draw(
       " pele-relation"
     }
     edges_out.write("<g class=\"pele-edge\{kind}\" data-id=\"")
-    @svg.write_esc_text(edges_out, edge.id)
+    edges_out.write_esc_text(edge.id)
     edges_out.write(
       "\"><path d=\"\{path.d}\"\{attrs}/>" +
       class_marker(start_type, path.sx, path.sy, path.sdx, path.sdy, LINE_COLOR) +
@@ -1022,7 +1022,7 @@ fn draw(
         cards_out.write(
           "<text class=\"pele-cardinality\" x=\"\{num(item.x + ox)}\" y=\"\{num(item.y + oy + tiny * 0.35)}\" text-anchor=\"middle\">",
         )
-        @svg.write_esc(cards_out, item.text)
+        cards_out.write_esc(item.text)
         cards_out.write("</text>")
       }
     }
@@ -1121,7 +1121,7 @@ fn write_class(
     )
     if style.stroke is Some(value) && value != "" {
       body.write(" style=\"stroke:")
-      @svg.write_esc(body, value)
+      body.write_esc(value)
       body.write("\"")
     }
     body.write("/>")
@@ -1133,7 +1133,7 @@ fn write_class(
         body.write(
           "<text class=\"pele-annotation\" x=\"0\" y=\"\{num(y + tiny_height / 2 + tiny * 0.35)}\" text-anchor=\"middle\" font-size=\"\{tiny}\" fill=\"var(--_m)\">",
         )
-        @svg.write_esc(body, text)
+        body.write_esc(text)
         body.write("</text>")
         y += tiny_height
       }
@@ -1173,7 +1173,7 @@ fn write_class(
         "$" =>
           if style.text != "" {
             body.write(" pele-static\" style=\"")
-            @svg.write_esc(body, style.text)
+            body.write_esc(style.text)
             body.write("text-decoration:underline\"")
           } else {
             body.write(" pele-static\" style=\"text-decoration:underline\"")
@@ -1188,7 +1188,7 @@ fn write_class(
         }
       }
       body.write(" x=\"\{num(left + PAD_X)}\" y=\"\{num(baseline)}\">")
-      @svg.write_esc(body, line.text)
+      body.write_esc(line.text)
       body.write("</text>")
       baseline += line_height
     }
@@ -1202,7 +1202,7 @@ fn write_class(
   out.write(
     "<g class=\"pele-node pele-class\{@svg.node_class_names(cls.css_classes)}\" data-id=\"",
   )
-  @svg.write_esc_text(out, node_id)
+  out.write_esc_text(node_id)
   out.write("\"\{at}>")
   let linked = match cls.link {
     Some(href) if href != "" => {
@@ -1216,7 +1216,7 @@ fn write_class(
   }
   if cls.tooltip is Some(tip) && tip != "" {
     out.write("<title>")
-    @svg.write_esc_text(out, tip)
+    out.write_esc_text(tip)
     out.write("</title>")
   }
   out.write_markup(body)

@@ -946,7 +946,7 @@ fn draw(
       let c = v.cell
       let top = c.y - c.h / 2
       clusters.write("<g class=\"pele-cluster\{classes}\" data-id=\"")
-      @svg.write_esc_text(clusters, v.block.id)
+      clusters.write_esc_text(v.block.id)
       clusters.write(
         "\"><rect x=\"\{@svg.num(c.x - c.w / 2)}\" y=\"\{@svg.num(top)}\" width=\"\{@svg.num(c.w)}\" height=\"\{@svg.num(c.h)}\" fill=\"var(--_a)\" fill-opacity=\"0.5\" stroke=\"var(--_b)\"",
       )
@@ -969,7 +969,7 @@ fn draw(
     nodes.write(
       "<g class=\"pele-node pele-shape-\{shape_class}\{classes}\" data-id=\"",
     )
-    @svg.write_esc_text(nodes, v.block.id)
+    nodes.write_esc_text(v.block.id)
     nodes.write(
       "\" transform=\"translate(\{@svg.num(v.x())},\{@svg.num(v.y())})\">",
     )
@@ -1038,7 +1038,7 @@ fn draw(
       ""
     }
     edges.write("<g class=\"pele-edge\" data-id=\"")
-    @svg.write_esc_text(edges, edge.id)
+    edges.write_esc_text(edge.id)
     edges.write("\"><path d=\"\{path.d}\"\{thick}\{dotted}/>")
     edges.write(
       @svg.marker(start_type, path.sx, path.sy, path.sdx, path.sdy, "var(--_l)"),

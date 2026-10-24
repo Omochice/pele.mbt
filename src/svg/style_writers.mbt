@@ -76,7 +76,7 @@ pub fn write_style(out : Markup, css : String) -> Unit raise @errors.PeleError {
     return
   }
   out.write(" style=\"")
-  write_esc(out, css)
+  out.write_esc(css)
   out.write("\"")
 }
 
@@ -93,7 +93,7 @@ pub fn write_rounded_style(
     return
   }
   out.write(" style=\"rx:var(--_r);")
-  write_esc(out, css)
+  out.write_esc(css)
   out.write("\"")
 }
 
@@ -169,7 +169,7 @@ pub fn write_styled(
   let mut at = @util.index_of(template, "\u{0}")
   while at >= 0 {
     out.write(@util.slice(template, from, end=at))
-    write_esc(out, slot_value(template, at, css))
+    out.write_esc(slot_value(template, at, css))
     from = at + 2
     at = @util.index_of(template, "\u{0}", from~)
   }

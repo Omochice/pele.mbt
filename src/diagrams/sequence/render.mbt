@@ -924,7 +924,7 @@ fn draw(
     widen(x, x + ACT_W)
     let rect = @svg.Markup::new()
     rect.write("<rect class=\"pele-activation\" data-id=\"")
-    @svg.write_esc_text(rect, col.id)
+    rect.write_esc_text(col.id)
     rect.write(
       "\" x=\"\{n(x)}\" y=\"\{n(start)}\" width=\"\{ACT_W}\" height=\"\{n(bottom - start)}\" rx=\"2\"/>",
     )
@@ -937,7 +937,7 @@ fn draw(
     let cy = line_y + 16
     col.life_end = cy
     crosses_out.write("<path class=\"pele-destroy\" data-id=\"")
-    @svg.write_esc_text(crosses_out, col.id)
+    crosses_out.write_esc_text(col.id)
     crosses_out.write(
       "\" d=\"M\{n(cx - 6)},\{n(cy - 6)}L\{n(cx + 6)},\{n(cy + 6)}M\{n(cx + 6)},\{n(cy - 6)}L\{n(cx - 6)},\{n(cy + 6)}\"/>",
     )
@@ -956,7 +956,7 @@ fn draw(
     actors_out.write(
       "<g class=\"pele-node pele-actor pele-actor-\{col.kind}\{foot}\{classes}\" data-id=\"",
     )
-    @svg.write_esc_text(actors_out, col.id)
+    actors_out.write_esc_text(col.id)
     actors_out.write("\">")
     write_actor(
       actors_out,
@@ -1318,7 +1318,7 @@ fn draw(
     let end = if col.life_end >= 0 { col.life_end } else { y }
     if end > col.life_start {
       lifelines.write("<path class=\"pele-lifeline\" data-id=\"")
-      @svg.write_esc_text(lifelines, col.id)
+      lifelines.write_esc_text(col.id)
       lifelines.write("\" d=\"M\{n(col.x)},\{n(col.life_start)}V\{n(end)}\"/>")
     }
   }
@@ -1335,7 +1335,7 @@ fn draw(
     boxes_out.write("<g class=\"pele-cluster pele-box\"")
     if run.box.name is Some(name) && name != "" {
       boxes_out.write(" data-id=\"")
-      @svg.write_esc_text(boxes_out, name)
+      boxes_out.write_esc_text(name)
       boxes_out.write("\"")
     }
     boxes_out.write(

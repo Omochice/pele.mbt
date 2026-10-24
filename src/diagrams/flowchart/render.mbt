@@ -399,7 +399,7 @@ fn draw(
         )
       }
       clusters.write("<g class=\"pele-cluster\{classes}\"")
-      @svg.write_data_id(clusters, node.id)
+      clusters.write_data_id(node.id)
       clusters.write(">")
       clusters.write(
         "<rect x=\"\{@svg.num(c.x - c.w / 2)}\" y=\"\{@svg.num(c.y - c.h / 2)}\" width=\"\{@svg.num(c.w)}\" height=\"\{@svg.num(c.h)}\" fill=\"var(--_a)\" fill-opacity=\"0.5\" stroke=\"var(--_b)\"\{@svg.rounded(view.style.shape)}/>",
@@ -445,7 +445,7 @@ fn draw(
     let body = @svg.Markup::new()
     if node.tooltip is Some(tooltip) && tooltip != "" {
       body.write("<title>")
-      @svg.write_esc_text(body, tooltip)
+      body.write_esc_text(tooltip)
       body.write("</title>")
     }
     body.write_markup(inner)
@@ -458,18 +458,18 @@ fn draw(
       body.write("<a class=\"internal-link\"")
       if @url.link_url(@url.sanitize_url(name), options) is Some(_) {
         body.write(" href=\"")
-        @svg.write_esc(body, name)
+        body.write_esc(name)
         body.write("\"\{@url.rel_attr(options)}")
       }
       body.write(" data-href=\"")
-      @svg.write_esc(body, name)
+      body.write_esc(name)
       body.write_group("\">", text, "</a>")
       links.push({ id: node.id, href: name, internal: true, })
     } else {
       body.write_markup(text)
     }
     nodes_out.write("<g class=\"pele-node pele-shape-\{view.shape}\{classes}\"")
-    @svg.write_data_id(nodes_out, node.id)
+    nodes_out.write_data_id(node.id)
     nodes_out.write(
       " transform=\"translate(\{@svg.num(c.x)},\{@svg.num(c.y)})\">",
     )

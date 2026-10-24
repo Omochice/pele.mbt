@@ -121,7 +121,7 @@ fn write_text_left(
     lines[0][0].math is None &&
     lines[0][0].style == 0 {
     out.write("<text\{attrs} x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\">")
-    @svg.write_esc(out, lines[0][0].text)
+    out.write_esc(lines[0][0].text)
     out.write("</text>")
     return
   }
@@ -167,7 +167,7 @@ fn write_text_left(
         body.write(
           "<tspan\{pos}\{@svg.span_style(span.style & shared.lnot())}>",
         )
-        @svg.write_esc(body, span.text)
+        body.write_esc(span.text)
         body.write("</tspan>")
         placed = true
       }
@@ -565,7 +565,7 @@ fn draw(
         GROUP_PAD,
       )
       clusters.write("<g class=\"pele-cluster\{classes}\"")
-      @svg.write_data_id(clusters, node.id)
+      clusters.write_data_id(node.id)
       clusters.write(
         "><rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(c.w)}\" height=\"\{@svg.num(c.h)}\" fill=\"var(--_a)\" fill-opacity=\"0.5\" stroke=\"var(--_b)\"\{@svg.rounded(view.style.shape)}/>",
       )
@@ -614,18 +614,18 @@ fn draw(
       // The name ends up in an href, so it gets the same check as a URL.
       if @url.link_url(@url.sanitize_url(display), options) is Some(_) {
         name.write(" href=\"")
-        @svg.write_esc(name, display)
+        name.write_esc(display)
         name.write("\"\{@url.rel_attr(options)}")
       }
       name.write(" data-href=\"")
-      @svg.write_esc(name, display)
+      name.write_esc(display)
       name.write_group("\">", label, "</a>")
       links.push({ id: node.label, href: display, internal: true, })
     } else {
       name.write_markup(label)
     }
     nodes_out.write("<g class=\"pele-node pele-entity\{classes}\"")
-    @svg.write_data_id(nodes_out, node.label)
+    nodes_out.write_data_id(node.label)
     nodes_out.write(
       " transform=\"translate(\{@svg.num(c.x)},\{@svg.num(c.y)})\">",
     )
@@ -817,7 +817,7 @@ fn draw(
     let kind = if edge.dashed { "non-identifying" } else { "identifying" }
     let dash = if edge.dashed { " stroke-dasharray=\"4 3\"" } else { "" }
     edges_out.write("<g class=\"pele-edge pele-er-\{kind}\"")
-    @svg.write_data_id(edges_out, edge.id)
+    edges_out.write_data_id(edge.id)
     edges_out.write("><path d=\"\{d}\"\{dash}/>" + start + end + "</g>")
     if label.width > 0 {
       @svg.write_edge_label_with_id(

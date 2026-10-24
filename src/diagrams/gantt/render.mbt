@@ -452,7 +452,7 @@ pub fn render_gantt(
       axis.write(
         "<text x=\"\{@svg.num(tx)}\" y=\"\{@svg.num(y + tick_size * 0.35)}\" text-anchor=\"middle\">",
       )
-      @svg.write_esc(axis, label)
+      axis.write_esc(label)
       axis.write("</text>")
     }
     write_tick(axis_bottom, bottom_y)
@@ -493,7 +493,7 @@ pub fn render_gantt(
     }
     extent = @util.js_max(extent, vert_ends[line])
     vert_lines.write("<path class=\"pele-vert\"")
-    @svg.write_data_id(vert_lines, task.id)
+    vert_lines.write_data_id(task.id)
     vert_lines.write(
       " d=\"M\{@svg.num(vx)},\{@svg.num(plot_top - grid_lead)}V\{@svg.num(plot_bottom)}\"/>",
     )
@@ -658,7 +658,7 @@ pub fn render_gantt(
       " class=\"pele-label\"\{text_fill}",
     )
     tasks_out.write("<g class=\"\{classes.to_string()}\"")
-    @svg.write_data_id(tasks_out, task.id)
+    tasks_out.write_data_id(task.id)
     tasks_out.write(">")
     let linked = match model.links.get(task.id) {
       Some(url) =>

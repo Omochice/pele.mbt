@@ -270,7 +270,7 @@ fn render_venn(
       None => @svg.resolve_raw_style([])
     }
     sets.write("<circle class=\"pele-venn-set\" data-id=\"")
-    @svg.write_esc_text(sets, c.id)
+    sets.write_esc_text(c.id)
     sets.write(
       "\" cx=\"\{@svg.num(c.x)}\" cy=\"\{@svg.num(c.y)}\" r=\"\{@svg.num(c.r)}\" fill=\"\{color}\" fill-opacity=\"0.2\" stroke=\"\{color}\"",
     )
@@ -286,7 +286,7 @@ fn render_venn(
       let d = region_path(region.inside.map(i => placed[i]), @svg.num)
       if d != "" {
         overlaps.write("<path class=\"pele-venn-overlap\" data-id=\"")
-        @svg.write_esc_text(overlaps, id)
+        overlaps.write_esc_text(id)
         overlaps.write("\" d=\"\{d}\" fill=\"none\"")
         @svg.write_style(overlaps, region.style.shape)
         overlaps.write("/>")
@@ -327,7 +327,7 @@ fn render_venn(
       y += line.label.height
     }
     labels.write("<g class=\"pele-venn-region\" data-id=\"")
-    @svg.write_esc_text(labels, id)
+    labels.write_esc_text(id)
     labels.write_group("\">", content, "</g>")
   }
   let body = @svg.Markup::new()

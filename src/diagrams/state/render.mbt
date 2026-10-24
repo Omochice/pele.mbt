@@ -946,7 +946,7 @@ fn draw(
     out.write(
       "<g class=\"\{kind_classes[view.kind]}\{@svg.class_names(strip_mermaid_classes(node.css_classes))}\" data-id=\"",
     )
-    @svg.write_esc_text(out, node.id)
+    out.write_esc_text(node.id)
     out.write(
       if view.kind == K_COMPOSITE {
         "\">"
@@ -972,7 +972,7 @@ fn draw(
     }
     if tooltip != "" {
       out.write("<title>")
-      @svg.write_esc(out, tooltip)
+      out.write_esc(tooltip)
       out.write("</title>")
     }
     out.write_markup(body)
@@ -1144,7 +1144,7 @@ fn draw(
       "pele-transition"
     }
     edges_out.write("<g class=\"pele-edge \{kind}\" data-id=\"")
-    @svg.write_esc_text(edges_out, edge.id)
+    edges_out.write_esc_text(edge.id)
     edges_out.write(
       "\"><path d=\"\{d}\"/>" +
       @svg.marker(end_type, ex, ey, edx, edy, "var(--_l)") +

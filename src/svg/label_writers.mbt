@@ -55,7 +55,7 @@ pub fn write_label_with_id(
     cy,
     out => {
       out.write(before)
-      write_esc_text(out, id)
+      out.write_esc_text(id)
       out.write(after)
       write_style(out, css)
     },

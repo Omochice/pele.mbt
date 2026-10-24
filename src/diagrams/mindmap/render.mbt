@@ -213,7 +213,7 @@ fn draw(
     into.write(
       "<g class=\"pele-node pele-shape-\{kind}\{if i > 0 { "" } else { " pele-root" }}\{@svg.class_names(node.class_.unwrap_or(""))}\" data-id=\"",
     )
-    @svg.write_esc_text(into, node.node_id)
+    into.write_esc_text(node.node_id)
     into.write(
       "\" transform=\"translate(\{@svg.num(cx)},\{@svg.num(top + h[i] / 2)})\">" +
       inner,

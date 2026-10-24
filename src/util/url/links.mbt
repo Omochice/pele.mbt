@@ -131,7 +131,7 @@ pub fn write_link_start(
   guard link_url(url, options) is Some(href) else { return false }
   links.push({ id, href, internal: false, })
   out.write("<a href=\"")
-  @svg.write_esc(out, href)
+  out.write_esc(href)
   out.write("\"\{attrs}\{rel_attr(options)}>")
   true
 }

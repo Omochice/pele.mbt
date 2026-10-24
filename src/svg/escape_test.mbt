@@ -41,7 +41,7 @@ test "text escaped in pieces is written as it is escaped whole, with the aliases
   let whole = @svg.Markup::new()
   whole.write(@svg.esc(text))
   let pieces = @svg.Markup::new()
-  @svg.write_esc(pieces, text)
+  pieces.write_esc(text)
   let document = document_of(pieces)
   inspect(document == document_of(whole), content="true")
   inspect(document.contains("--_w:"), content="true")
@@ -53,7 +53,7 @@ test "text escaped in pieces keeps a heading weight alias whole" {
   let whole = @svg.Markup::new()
   whole.write(@svg.esc(text))
   let pieces = @svg.Markup::new()
-  @svg.write_esc(pieces, text)
+  pieces.write_esc(text)
   let document = document_of(pieces)
   inspect(document == document_of(whole), content="true")
   inspect(document.contains("--_hw:"), content="true")
@@ -65,7 +65,7 @@ test "text escaped in pieces keeps an alias that dropped control characters join
   let whole = @svg.Markup::new()
   whole.write(@svg.esc(text))
   let pieces = @svg.Markup::new()
-  @svg.write_esc(pieces, text)
+  pieces.write_esc(text)
   let document = document_of(pieces)
   inspect(document == document_of(whole), content="true")
   inspect(document.contains("--_w:"), content="true")
@@ -98,6 +98,6 @@ test "a label escaped past V8's longest string fails as nested too deeply" {
 ///|
 test "a data-id is written as an escaped attribute" {
   let out = @svg.Markup::new()
-  @svg.write_data_id(out, "a&amp;<b>")
+  out.write_data_id("a&amp;<b>")
   inspect(out.to_string(), content=" data-id=\"a&amp;&lt;b&gt;\"")
 }

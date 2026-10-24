@@ -247,7 +247,7 @@ fn write_label_parts(
             None => ""
           }
           extra.write("<svg class=\"pele-icon\" data-icon=\"")
-          write_esc_text(extra, name)
+          extra.write_esc_text(name)
           extra.write(
             "\" x=\"\{num(x)}\" y=\"\{num(mid - side / 2)}\" width=\"\{num(side)}\" height=\"\{num(side)}\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\">",
           )

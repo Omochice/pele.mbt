@@ -45,7 +45,7 @@ fn write_text(
   out.write("<text\{attrs}")
   @svg.write_style(out, css)
   out.write(">")
-  @svg.write_esc(out, text)
+  out.write_esc(text)
   out.write("</text>")
 }
 
@@ -73,7 +73,7 @@ fn draw_section(
     " fill-opacity=\"0.12\""
   }
   out.write("<g class=\"pele-node pele-section\{classes}\" data-id=\"")
-  @svg.write_esc_text(out, node.name)
+  out.write_esc_text(node.name)
   out.write(
     "\"><rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(b.w)}\" height=\"\{@svg.num(b.h)}\" fill=\"\{color}\"\{tint} stroke=\"\{color}\"",
   )
@@ -144,7 +144,7 @@ fn draw_leaf(
     None
   }
   out.write("<g class=\"pele-node pele-leaf\{classes}\" data-id=\"")
-  @svg.write_esc_text(out, node.name)
+  out.write_esc_text(node.name)
   out.write(
     "\"><rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(b.w)}\" height=\"\{@svg.num(b.h)}\" fill=\"\{@svg.series_color(b.series)}\"",
   )

@@ -486,7 +486,7 @@ fn draw(
     let body = @svg.Markup::new()
     if node.tooltip is Some(tooltip) && tooltip != "" {
       body.write("<title>")
-      @svg.write_esc_text(body, tooltip)
+      body.write_esc_text(tooltip)
       body.write("</title>")
     }
     body.write(shape)
@@ -499,11 +499,11 @@ fn draw(
       body.write("<a class=\"internal-link\"")
       if @url.link_url(@url.sanitize_url(name), options) is Some(_) {
         body.write(" href=\"")
-        @svg.write_esc(body, name)
+        body.write_esc(name)
         body.write("\"\{@url.rel_attr(options)}")
       }
       body.write(" data-href=\"")
-      @svg.write_esc(body, name)
+      body.write_esc(name)
       body.write_group("\">", text, "</a>")
       links.push({ id: node.id, href: name, internal: true, })
     } else {

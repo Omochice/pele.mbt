@@ -101,7 +101,7 @@ fn write_aligned(
     out.write(
       "<text x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y + label.size * 0.35)}\" text-anchor=\"\{anchor.name()}\">",
     )
-    @svg.write_esc(out, label.lines[0][0].text)
+    out.write_esc(label.lines[0][0].text)
     out.write("</text>")
     return
   }
@@ -559,7 +559,7 @@ pub fn render_xychart(
     let id = @svg.Markup::new()
     if plot.title != "" {
       id.write(" data-id=\"")
-      @svg.write_esc_text(id, plot.title)
+      id.write_esc_text(plot.title)
       id.write("\"")
     }
     // A series declared before the categories can hold more values than there are categories.
@@ -749,7 +749,7 @@ pub fn render_xychart(
     let y = ly + row / 2
     let color = @svg.series_color(index)
     legend_out.write("<g class=\"pele-legend-item\" data-id=\"")
-    @svg.write_esc_text(legend_out, plots[index].title)
+    legend_out.write_esc_text(plots[index].title)
     legend_out.write(
       "\">" +
       (if plots[index].kind is Bar {

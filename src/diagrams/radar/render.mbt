@@ -194,7 +194,7 @@ fn draw(
         0
       })
     labels.write("<g class=\"pele-axis-label\" data-id=\"")
-    @svg.write_esc_text(labels, axes[i].name)
+    labels.write_esc_text(axes[i].name)
     labels.write("\">")
     @svg.write_label(labels, label, cx, cy, "")
     labels.write("</g>")
@@ -217,7 +217,7 @@ fn draw(
     let color = @svg.series_color(index)
     let element = if graticule == "circle" { "path" } else { "polygon" }
     shapes.write("<\{element} class=\"pele-curve\" data-id=\"")
-    @svg.write_esc_text(shapes, curve.name)
+    shapes.write_esc_text(curve.name)
     shapes.write("\" fill=\"\{color}\" stroke=\"\{color}\"")
     if graticule == "circle" {
       shapes.write(" d=\"")
@@ -256,7 +256,7 @@ fn draw(
     let y = legend_top + index.to_double() * ROW + ROW / 2
     let color = @svg.series_color(index)
     legend_out.write("<g class=\"pele-legend-item\" data-id=\"")
-    @svg.write_esc_text(legend_out, curves[index].name)
+    legend_out.write_esc_text(curves[index].name)
     legend_out.write(
       "\"><rect x=\"\{@svg.num(legend_x)}\" y=\"\{@svg.num(y - SWATCH / 2)}\" width=\"\{SWATCH}\" height=\"\{SWATCH}\" rx=\"2\" fill=\"\{color}\" fill-opacity=\"0.4\" stroke=\"\{color}\"/>",
     )

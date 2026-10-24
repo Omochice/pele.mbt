@@ -136,7 +136,7 @@ pub fn write_struck_title(
   }
   let fill = "color-mix(in srgb,var(--_a) \{num(100 * (1 - behind))}%,var(--_bg))"
   out.write("<g class=\"pele-cluster-title\"")
-  write_data_id(out, id)
+  out.write_data_id(id)
   out.write(">")
   write_label(
     out,

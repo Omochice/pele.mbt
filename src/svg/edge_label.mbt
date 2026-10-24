@@ -53,7 +53,7 @@ pub fn write_edge_label_with_id(
 ) -> Unit raise @errors.PeleError {
   write_edge_label_parts(
     out,
-    out => write_data_id(out, id),
+    out => out.write_data_id(id),
     label,
     x,
     y,

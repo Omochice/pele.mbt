@@ -235,12 +235,12 @@ fn horizontal_journey(
         dots.write(
           "<circle class=\"pele-actor\" cx=\"\{@svg.num(dot_x)}\" cy=\"\{@svg.num(dot_y)}\" r=\"\{DOT}\" fill=\"\{color}\" stroke=\"var(--_s)\"><title>",
         )
-        @svg.write_esc_text(dots, name)
+        dots.write_esc_text(name)
         dots.write("</title></circle>")
       }
       let card = @svg.Markup::new()
       card.write("<g class=\"pele-node pele-task\" data-id=\"")
-      @svg.write_esc_text(card, @util.trim(task.task))
+      card.write_esc_text(@util.trim(task.task))
       card.write(
         "\"><rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(cards_y)}\" width=\"\{@svg.num(card_w)}\" height=\"\{@svg.num(card_h)}\" fill=\"var(--_s)\" stroke=\"var(--_b)\"\{@svg.ROUNDED}/>",
       )
@@ -276,7 +276,7 @@ fn horizontal_journey(
           let x = left + run.start.to_double() * pitch
           let w = run.count.to_double() * pitch - GAP
           body.write("<g class=\"pele-cluster pele-section\" data-id=\"")
-          @svg.write_esc_text(body, @util.trim(tasks[run.start].section))
+          body.write_esc_text(@util.trim(tasks[run.start].section))
           body.write(
             "\"><rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(top)}\" width=\"\{@svg.num(w)}\" height=\"\{@svg.num(band_h)}\" fill=\"var(--_a)\"\{@svg.ROUNDED}/>",
           )
@@ -302,7 +302,7 @@ fn horizontal_journey(
         let cy = y0 + item.y + item.h / 2
         let color = @svg.series_color(actor.get(item.name).unwrap_or(0))
         items.write("<g class=\"pele-legend-item\" data-id=\"")
-        @svg.write_esc_text(items, item.name)
+        items.write_esc_text(item.name)
         items.write(
           "\"><circle cx=\"\{@svg.num(x0 + item.x + DOT)}\" cy=\"\{@svg.num(cy)}\" r=\"\{DOT}\" fill=\"\{color}\"/>",
         )

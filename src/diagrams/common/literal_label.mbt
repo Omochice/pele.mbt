@@ -248,10 +248,10 @@ pub fn write_left_label(
       let own = @svg.span_style(span.style & shared.lnot())
       if own != "" {
         text.write("<tspan\{own}>")
-        @svg.write_esc(text, span.text)
+        text.write_esc(span.text)
         text.write("</tspan>")
       } else {
-        @svg.write_esc(text, span.text)
+        text.write_esc(span.text)
       }
     }
     if !text.is_empty() {
@@ -300,10 +300,10 @@ pub fn write_left_label_styled(
       let own = @svg.span_style(span.style & shared.lnot())
       if own != "" {
         text.write("<tspan\{own}>")
-        @svg.write_esc(text, span.text)
+        text.write_esc(span.text)
         text.write("</tspan>")
       } else {
-        @svg.write_esc(text, span.text)
+        text.write_esc(span.text)
       }
     }
     if !text.is_empty() {

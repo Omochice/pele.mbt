@@ -305,7 +305,7 @@ fn draw(
       min_y = @util.js_min(min_y, box_y - category.box_h / 2)
       max_y = @util.js_max(max_y, box_y + category.box_h / 2)
       groups.write("<g class=\"pele-ishikawa-category\" data-id=\"")
-      @svg.write_esc_text(groups, category.node.text)
+      groups.write_esc_text(category.node.text)
       groups.write("\">")
       groups.write_group(
         "<path class=\"pele-ishikawa-bones\" d=\"", d, "\" fill=\"none\" stroke=\"var(--_l)\"/>",
@@ -344,7 +344,7 @@ fn draw(
     )
     body.write_markup(groups)
     body.write("<g class=\"pele-ishikawa-head\" data-id=\"")
-    @svg.write_esc_text(body, root.text)
+    body.write_esc_text(root.text)
     body.write(
       "\"><path d=\"M0,\{@svg.num(-r)}H\{@svg.num(head_w - r)}A\{@svg.num(r)},\{@svg.num(r)} 0 0 1 \{@svg.num(head_w - r)},\{@svg.num(r)}H0Z\" fill=\"var(--_s)\" stroke=\"var(--_b)\" stroke-linejoin=\"round\"/>",
     )
@@ -481,7 +481,7 @@ fn vertical_causes(
       _ => "pele-ishikawa-cause"
     }
     nodes.write("<g class=\"pele-node \{class_name}\" data-id=\"")
-    @svg.write_esc_text(nodes, entry.node.text)
+    nodes.write_esc_text(entry.node.text)
     nodes.write("\">")
     if framed {
       nodes.write(

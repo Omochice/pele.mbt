@@ -213,7 +213,7 @@ fn draw(
     }
     let end = angle + share * @math.PI * 2
     slices.write("<path class=\"pele-slice\" data-id=\"")
-    @svg.write_esc_text(slices, entry.0)
+    slices.write_esc_text(entry.0)
     slices.write(
       "\" d=\"\{slice(angle, end, radius, inner)}\" fill=\"\{@svg.series_color(index)}\"/>",
     )
@@ -267,7 +267,7 @@ fn draw(
   for index, label in legend {
     let y = ly + index.to_double() * ROW + ROW / 2
     legend_out.write("<g class=\"pele-legend-item\" data-id=\"")
-    @svg.write_esc_text(legend_out, entries[index].0)
+    legend_out.write_esc_text(entries[index].0)
     legend_out.write(
       "\"><rect x=\"\{@svg.num(lx)}\" y=\"\{@svg.num(y - SWATCH / 2)}\" width=\"\{SWATCH}\" height=\"\{SWATCH}\" rx=\"2\" fill=\"\{@svg.series_color(index)}\"/>",
     )

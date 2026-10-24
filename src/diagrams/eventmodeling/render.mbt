@@ -111,7 +111,7 @@ fn write_lines(
       body.write(
         "<tspan x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y + i.to_double() * step)}\">",
       )
-      @svg.write_esc(body, row)
+      body.write_esc(row)
       body.write("</tspan>")
     }
   }
@@ -270,7 +270,7 @@ fn draw_across(
     band.y = y
     band.h += 2.0 * LANE_PAD
     lanes.write("<g class=\"pele-cluster pele-em-lane\" data-id=\"")
-    @svg.write_esc_text(lanes, band.lane.label)
+    lanes.write_esc_text(band.lane.label)
     lanes.write(
       "\"><rect x=\"\{@svg.num(left)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(lane_width)}\" height=\"\{@svg.num(band.h)}\" fill=\"var(--_s)\"\{@svg.ROUNDED}/>",
     )

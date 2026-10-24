@@ -238,7 +238,7 @@ fn draw(
         fields.write(
           "<text x=\"\{@svg.num(x + w / 2)}\" y=\"\{@svg.num(y + height / 2 + text.size * 0.35)}\"\{font_size}>",
         )
-        @svg.write_esc(fields, text.text)
+        fields.write_esc(text.text)
         fields.write("</text>")
       }
       fields.write("</g>")

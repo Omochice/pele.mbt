@@ -319,7 +319,7 @@ fn draw(
       )
     }
     edges_out.write("<g class=\"pele-edge\" data-id=\"")
-    @svg.write_esc_text(edges_out, rel.from + "-" + rel.to)
+    edges_out.write_esc_text(rel.from + "-" + rel.to)
     edges_out.write("\"")
     @svg.write_style(edges_out, style.line)
     edges_out.write("><path d=\"\{r.d}\"/>")
@@ -441,11 +441,11 @@ fn draw(
     }
     grow(cx - lw / 2, top, cx + lw / 2, top + lh)
     labels_out.write("<g class=\"pele-edge-label\" data-id=\"")
-    @svg.write_esc_text(labels_out, id)
+    labels_out.write_esc_text(id)
     labels_out.write("\">")
     if rel.descr is Some(descr) && descr != "" {
       labels_out.write("<title>")
-      @svg.write_esc_text(labels_out, descr)
+      labels_out.write_esc_text(descr)
       labels_out.write("</title>")
     }
     labels_out.write(
@@ -515,7 +515,7 @@ fn draw(
       clusters.write(
         "<g class=\"pele-cluster pele-c4-\{if is_node { "node" } else { "boundary" }}\" data-id=\"",
       )
-      @svg.write_esc_text(clusters, boundary.alias_)
+      clusters.write_esc_text(boundary.alias_)
       clusters.write(
         "\"><rect x=\"\{@svg.num(g.x)}\" y=\"\{@svg.num(g.y)}\" width=\"\{@svg.num(g.w)}\" height=\"\{@svg.num(g.h)}\" fill=\"none\" stroke=\"var(--_b)\"\{if is_node { "" } else { " stroke-dasharray=\"6 4\"" }}",
       )
@@ -604,7 +604,7 @@ fn draw(
       nodes_out.write(
         "<g class=\"pele-node pele-shape-\{form} pele-c4-\{shape.kind}\{if external { " pele-c4-external" } else { "" }}\" data-id=\"",
       )
-      @svg.write_esc_text(nodes_out, shape.alias_)
+      nodes_out.write_esc_text(shape.alias_)
       nodes_out.write(
         "\" transform=\"translate(\{@svg.num(node.box.x + w / 2)},\{@svg.num(node.box.y + h / 2)})\">",
       )

@@ -38,7 +38,7 @@ fn write_picture(
   let ah = asset_size(node.asset_height, 80)
   let fit = if node.constraint is Some("on") { "xMidYMid meet" } else { "none" }
   out.write("<image href=\"")
-  @svg.write_esc(out, src)
+  out.write_esc(src)
   out.write(
     "\" x=\"\{@svg.num(-aw / 2)}\" y=\"\{@svg.num(asset_top(node, view, ah))}\" width=\"\{@svg.num(aw)}\" height=\"\{@svg.num(ah)}\" preserveAspectRatio=\"\{fit}\"/>",
   )

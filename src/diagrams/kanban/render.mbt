@@ -140,7 +140,7 @@ fn text_block(
       out.write(
         "<text\{@svg.text_style(attrs, line[0].style)} x=\"\{@svg.num(x)}\" y=\"\{@svg.num(cy + label.size * 0.35)}\"\{anchor}>",
       )
-      @svg.write_esc(out, line[0].text)
+      out.write_esc(line[0].text)
       out.write("</text>")
     } else {
       let width = label.widths[i]
@@ -461,7 +461,7 @@ pub fn render_kanban(
             )
           Some(href) => {
             inner.write("<a href=\"")
-            @svg.write_esc(inner, href)
+            inner.write_esc(href)
             inner.write("\" target=\"_blank\"\{@url.rel_attr(options)}>")
             inner.write_markup(
               text_block(
@@ -497,7 +497,7 @@ pub fn render_kanban(
       body.write(
         "<g class=\"pele-node pele-card\{priority_class}\{@svg.class_names(item.css_classes.unwrap_or(""))}\" data-id=\"",
       )
-      @svg.write_esc_text(body, item.id)
+      body.write_esc_text(item.id)
       body.write_group(
         "\" transform=\"translate(\{COLUMN_PAD},\{@svg.num(y)})\" font-size=\"\{small}\">",
         inner,
@@ -509,7 +509,7 @@ pub fn render_kanban(
     out.write(
       "<g class=\"pele-cluster pele-column\{@svg.class_names(section.css_classes.unwrap_or(""))}\" data-id=\"",
     )
-    @svg.write_esc_text(out, section.id)
+    out.write_esc_text(section.id)
     out.write_group(
       "\" transform=\"translate(\{@svg.num(x)},\{@svg.num(pad + title_height + row_tops[row])})\">",
       body,

@@ -192,7 +192,7 @@ fn draw_down(
         "<rect \{frame} fill=\"\{@svg.series_color(series)}\" fill-opacity=\"0.22\" stroke=\"\{@svg.series_color(series)}\"\{@svg.ROUNDED}/>"
     }
     nodes.write("<g class=\"pele-cluster pele-em-lane\" data-id=\"")
-    @svg.write_esc_text(nodes, box.lane.label)
+    nodes.write_esc_text(box.lane.label)
     nodes.write("\">")
     @common.write_left_label(
       nodes,

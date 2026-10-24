@@ -355,7 +355,7 @@ fn draw(
           inner.write(
             "<text class=\"pele-label\" x=\"\{@svg.num(inset + row.label_x)}\" y=\"\{@svg.num(cy + baseline)}\"\{weight} xml:space=\"preserve\">",
           )
-          @svg.write_esc(inner, row.text)
+          inner.write_esc(row.text)
           inner.write("</text>")
         }
     }
@@ -372,7 +372,7 @@ fn draw(
         inner.write(
           "<text class=\"pele-tree-description\" x=\"\{@svg.num(inset + desc_x)}\" y=\"\{@svg.num(cy + baseline)}\" font-style=\"italic\" fill=\"var(--_m)\" xml:space=\"preserve\">",
         )
-        @svg.write_esc_text(inner, description)
+        inner.write_esc_text(description)
         inner.write("</text>")
       }
       (None, None) => ()
@@ -380,7 +380,7 @@ fn draw(
     body.write(
       "<g class=\"pele-node pele-tree-\{if directory { "dir" } else { "file" }}\{@svg.class_names(node.css_class.unwrap_or(""))}\" data-id=\"",
     )
-    @svg.write_esc_text(body, node.name)
+    body.write_esc_text(node.name)
     body.write_group("\">", inner, "</g>")
   }
   let content = @svg.Markup::new()

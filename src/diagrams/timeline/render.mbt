@@ -297,13 +297,13 @@ fn draw(
   fn open(out : @svg.Markup, group : Group) -> Unit raise @errors.PeleError {
     if group.section >= 0 {
       out.write("<g class=\"pele-cluster pele-section\" data-id=\"")
-      @svg.write_esc_text(out, @util.trim(model.sections[group.section]))
+      out.write_esc_text(@util.trim(model.sections[group.section]))
       out.write("\">")
     }
   }
   fn open_period(out : @svg.Markup, i : Int32) -> Unit raise @errors.PeleError {
     out.write("<g class=\"pele-node pele-period\" data-id=\"")
-    @svg.write_esc_text(out, @util.trim(periods[i].text))
+    out.write_esc_text(@util.trim(periods[i].text))
     out.write("\">")
   }
 

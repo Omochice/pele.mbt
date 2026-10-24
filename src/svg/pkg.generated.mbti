@@ -115,15 +115,9 @@ pub fn with_title(String?, @text.TextMeasurer, Double, Double, Double, Double, S
 
 pub fn with_title_markup(String?, @text.TextMeasurer, Double, Double, Double, Double, Markup) -> TitledMarkup raise @errors.PeleError
 
-pub fn write_data_id(Markup, String) -> Unit raise @errors.PeleError
-
 pub fn write_edge_label(Markup, String, @text.Label, Double, Double, String, icons? : (String) -> String?) -> Unit raise @errors.PeleError
 
 pub fn write_edge_label_with_id(Markup, String, @text.Label, Double, Double, String, css? : String, icons? : (String) -> String?) -> Unit raise @errors.PeleError
-
-pub fn write_esc(Markup, String) -> Unit raise @errors.PeleError
-
-pub fn write_esc_text(Markup, String) -> Unit raise @errors.PeleError
 
 pub fn write_label(Markup, @text.Label, Double, Double, String, icons? : (String) -> String?) -> Unit raise @errors.PeleError
 
@@ -167,7 +161,9 @@ pub fn Markup::length(Self) -> Int32
 pub fn Markup::new() -> Self
 pub fn Markup::to_string(Self) -> String
 pub fn Markup::write(Self, String) -> Unit raise @errors.PeleError
+pub fn Markup::write_data_id(Self, String) -> Unit raise @errors.PeleError
 pub fn Markup::write_esc(Self, String) -> Unit raise @errors.PeleError
+pub fn Markup::write_esc_text(Self, String) -> Unit raise @errors.PeleError
 pub fn Markup::write_group(Self, String, Self, String) -> Unit raise @errors.PeleError
 pub fn Markup::write_markup(Self, Self) -> Unit raise @errors.PeleError
 

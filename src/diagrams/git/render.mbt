@@ -368,7 +368,7 @@ fn draw(
         py(end + TAIL, c),
       )
       branches.write("<g class=\"pele-branch\" data-id=\"")
-      @svg.write_esc_text(branches, model.lanes[i])
+      branches.write_esc_text(model.lanes[i])
       branches.write(
         "\"><path class=\"pele-lane\" d=\"M\{point(-LABEL_GAP, c)}L\{point(end + TAIL, c)}\" stroke=\"\{color}\" stroke-dasharray=\"2 4\"/>",
       )
@@ -503,7 +503,7 @@ fn draw(
     let body = @svg.Markup::new()
     if written {
       body.write("<title>")
-      @svg.write_esc_text(body, commit.message)
+      body.write_esc_text(commit.message)
       body.write("</title>")
     }
     body.write(symbol(commit_type, x, y, @svg.series_color(view.lane)))
@@ -584,7 +584,7 @@ fn draw(
     commits.write(
       "<g class=\"pele-commit pele-commit-\{class_name(commit_type)}\{merge}\" data-id=\"",
     )
-    @svg.write_esc_text(commits, commit.id)
+    commits.write_esc_text(commit.id)
     commits.write_group("\">", body, "</g>")
   }
   if bounds.min_x > bounds.max_x {

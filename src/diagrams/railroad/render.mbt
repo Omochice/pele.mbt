@@ -139,16 +139,16 @@ fn write_leaf(
       out.write(
         "<g class=\"pele-node pele-terminal\">\{shape} rx=\"\{@svg.num(look.box_top)}\" fill=\"var(--_s)\" stroke=\"var(--_b)\"\{look.stroke}/>\{label} font-family=\"\{FONT_MONO}\">",
       )
-      @svg.write_esc(out, text)
+      out.write_esc(text)
       out.write("</text></g>")
     }
     NonTerminalBox => {
       out.write("<g class=\"pele-node pele-nonterminal\" data-id=\"")
-      @svg.write_esc_text(out, box.id)
+      out.write_esc_text(box.id)
       out.write(
         "\">\{shape} fill=\"var(--_bg)\" stroke=\"var(--_b)\"\{look.stroke}\{ROUNDED}/>\{label}>",
       )
-      @svg.write_esc(out, text)
+      out.write_esc(text)
       out.write("</text></g>")
     }
     _ => {
@@ -156,7 +156,7 @@ fn write_leaf(
         "<g class=\"pele-node pele-special\">\{shape} fill=\"var(--_bg)\" stroke=\"var(--_b)\" stroke-dasharray=\"4 3\"\{look.stroke}\{ROUNDED}/>" +
         "\{label} font-style=\"italic\"><tspan fill=\"var(--_m)\">? </tspan>",
       )
-      @svg.write_esc(out, @util.slice(text, 2, end=-2))
+      out.write_esc(@util.slice(text, 2, end=-2))
       out.write("<tspan fill=\"var(--_m)\"> ?</tspan></text></g>")
     }
   }
@@ -304,7 +304,7 @@ fn place(
           ink.nodes.write(
             "<text class=\"pele-edge-label pele-count\" x=\"\{@svg.num(middle)}\" y=\"\{@svg.num(loop_y + COUNT_SIZE + 3)}\" font-size=\"\{COUNT_SIZE}\" fill=\"var(--_m)\">",
           )
-          @svg.write_esc(ink.nodes, box.text)
+          ink.nodes.write_esc(box.text)
           ink.nodes.write("</text>")
         }
         boxes.push(kid)
@@ -419,11 +419,11 @@ fn draw(
       ""
     }
     rules.write("<g class=\"pele-rule\" data-id=\"")
-    @svg.write_esc_text(rules, rule.name)
+    rules.write_esc_text(rule.name)
     rules.write(
       "\"><text class=\"pele-rule-name\" x=\"\{@svg.num(pad)}\" y=\"\{@svg.num(top + head_height / 2 + head_size * 0.35)}\" font-size=\"\{@svg.num(head_size)}\" font-weight=\"var(--_hw)\" text-anchor=\"start\">",
     )
-    @svg.write_esc(rules, name)
+    rules.write_esc(name)
     rules.write("</text>")
     rules.write_group(
       "<path class=\"pele-edge pele-track\" d=\"",

@@ -284,7 +284,7 @@ fn render_quadrant(
     circle.write(
       "<circle class=\"pele-point\{@svg.class_names(point.class_name)}\" data-id=\"",
     )
-    @svg.write_esc_text(circle, point.text.text)
+    circle.write_esc_text(point.text.text)
     circle.write(
       "\" cx=\"\{@svg.num(cx)}\" cy=\"\{@svg.num(cy)}\" r=\"\{@svg.num(r)}\"\{if stroke_width is Some(_) && stroke_color is None { " stroke=\"\{fill}\"" } else { "" }}\{@svg.resolve_style(styles).shape}/>",
     )
