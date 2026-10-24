@@ -469,6 +469,7 @@ export const CASES = [
   // A node's id and label are joined from the texts of their tokens, of which one may be 2^28 code units long.
   lazy('flowchart', 'a node id of 270M a, written twice', () => `graph TD\n${'a'.repeat(270000000)}\n`, RAISED),
   lazy('flowchart', 'a node label of 270M a', () => `graph TD\nA[${'a'.repeat(270000000)}]\n`, RAISED),
+  lazy('swimlane', 'a node id of 270M a in a lane, written twice', () => `swimlane-beta TB\nsubgraph L\n${'a'.repeat(270000000)}\nend\n`, RAISED),
 ];
 
 // A case whose source is built only when the check reaches it, as a getter in the source's place,

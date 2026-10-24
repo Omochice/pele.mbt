@@ -128,3 +128,30 @@ test "a lane named past V8's longest string fails as nested too deeply" {
     content="limit: Diagram is nested too deeply. swimlane swimlane",
   )
 }
+
+
+///|
+#skip("slow: reads a node id of 270 million characters")
+test "a node id of 2^28 or more letters in a lane, written twice, fails as nested too deeply" {
+  let failure = try {
+    @core.render(
+      [@swimlane.swimlane],
+      "swimlane-beta TB\nsubgraph L\n\{"a".repeat(270000000)}\nend\n",
+      {
+        ..@types.RenderOptions::default(),
+        limit: Some(1.0 / 0.0),
+        output_limit: Some(1.0 / 0.0),
+      },
+    )
+    |> ignore
+    "rendered"
+  } catch {
+    @errors.PeleError(failure) =>
+      "\{failure.code.to_string()}: \{failure.message} \{failure.kind.unwrap_or("null")} \{failure.mermaid_type.unwrap_or("null")}"
+  }
+  inspect(
+    failure,
+    content="limit: Diagram is nested too deeply. swimlane swimlane",
+  )
+}
+
