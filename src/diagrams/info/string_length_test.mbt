@@ -51,7 +51,7 @@ test "an accessible description outgrowing V8's longest string fails as nested t
 }
 
 ///|
-#skip("slow: draws a title of 270 million characters")
+#skip("slow, and moon test runs wasm's allocator unmended, which can give a block of 512 MiB or more a smaller one; check-string-length checks it through the mended plugin")
 test "a title of 2^28 or more plain letters is drawn" {
   let title = "a".repeat(270000000)
   let svg = @core.render([@info.info], "info\ntitle \{title}\n", {

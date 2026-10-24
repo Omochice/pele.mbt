@@ -255,7 +255,7 @@ fn unlimited() -> @types.RenderOptions {
 }
 
 ///|
-#skip("slow: reads a node id of 270 million characters")
+#skip("slow, and moon test runs wasm's allocator unmended, which can give a block of 512 MiB or more a smaller one; check-string-length checks it through the mended plugin")
 test "a node id of 2^28 or more letters, written twice, fails as nested too deeply" {
   inspect(
     failure_of("graph TD\n\{"a".repeat(270000000)}\n", unlimited()),
@@ -264,7 +264,7 @@ test "a node id of 2^28 or more letters, written twice, fails as nested too deep
 }
 
 ///|
-#skip("slow: draws a node label of 270 million characters")
+#skip("slow, and moon test runs wasm's allocator unmended, which can give a block of 512 MiB or more a smaller one; check-string-length checks it through the mended plugin")
 test "a node label of 2^28 or more letters is drawn" {
   let svg = @core.render(
       [@flowchart.flowchart],

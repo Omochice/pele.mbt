@@ -199,7 +199,7 @@ test "a task link escaped past what a doubling StringBuilder holds is drawn as p
 }
 
 ///|
-#skip("slow: formats over 270 million code units")
+#skip("slow, and moon test runs wasm's allocator unmended, which can give a block of 512 MiB or more a smaller one and here leaves the drawing 2^20 code units short; check-string-length checks it through the mended plugin")
 test "an axis label formatted past what a doubling StringBuilder holds is drawn as pele draws it" {
   inspect(
     outcome(

@@ -130,7 +130,7 @@ test "a lane named past V8's longest string fails as nested too deeply" {
 }
 
 ///|
-#skip("slow: reads a node id of 270 million characters")
+#skip("slow, and moon test runs wasm's allocator unmended, which can give a block of 512 MiB or more a smaller one; check-string-length checks it through the mended plugin")
 test "a node id of 2^28 or more letters in a lane, written twice, fails as nested too deeply" {
   let failure = try {
     @core.render(
