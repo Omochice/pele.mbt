@@ -386,7 +386,7 @@ fn draw(
       let title_attrs = " class=\"pele-cluster-label\" fill=\"var(--_m)\"\{view.style.text}"
       let struck = @svg.title_crossed(c, view.label.width, title_x, crossings)
       if struck {
-        @svg.write_struck_title_with_id(
+        @svg.write_struck_title(
           struck_titles,
           view.label,
           title_x,

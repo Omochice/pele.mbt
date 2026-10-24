@@ -123,34 +123,6 @@ test "an edge label is written with its id as write_edge_label writes it" {
 }
 
 ///|
-test "a struck title is written with its id as write_struck_title writes it escaped" {
-  let nodes = Array::makei(10, i => @layout.cnode(0, 0, parent=i - 1))
-  for raw in label_samples {
-    let label = label_of(raw)
-    for id in id_samples {
-      for index in [0, 3, 9] {
-        let want = @svg.Markup::new()
-        @svg.write_struck_title(
-          want,
-          label,
-          12.5,
-          -3,
-          " class=\"pele-cluster-label\"",
-          @svg.esc_text(id),
-          nodes,
-          index,
-        )
-        let got = @svg.Markup::new()
-        @svg.write_struck_title_with_id(
-          got, label, 12.5, -3, " class=\"pele-cluster-label\"", id, nodes, index,
-        )
-        assert_eq(got.to_string(), want.to_string())
-      }
-    }
-  }
-}
-
-///|
 let attrs_samples : Array[String] = [
   "", " class=\"pele-section-label\"", " font-weight=\"bold\"", " fill=\"none\" stroke=\"red\"",
   " style=\"fill:red;opacity:0.5\"",

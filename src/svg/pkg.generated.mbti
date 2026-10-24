@@ -135,8 +135,6 @@ pub fn write_rounded_style(Markup, String) -> Unit raise @errors.PeleError
 
 pub fn write_struck_title(Markup, @text.Label, Double, Double, String, String, Array[@layout.CNode], Int32, icons? : (String) -> String?) -> Unit raise @errors.PeleError
 
-pub fn write_struck_title_with_id(Markup, @text.Label, Double, Double, String, String, Array[@layout.CNode], Int32, icons? : (String) -> String?) -> Unit raise @errors.PeleError
-
 pub fn write_style(Markup, String) -> Unit raise @errors.PeleError
 
 pub fn write_styled(Markup, String, RawStyle) -> Unit raise @errors.PeleError
