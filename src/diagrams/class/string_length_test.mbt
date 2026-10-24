@@ -291,7 +291,7 @@ test "a generic of 140 million < fails with its whole line quoted" {
 }
 
 ///|
-#skip("slow, and past wasm's memory under moon test, which holds the source once more than the plugin; check-string-length checks it")
+#skip("slow, and moon test runs wasm's allocator unmended, which can give a block of 512 MiB or more a smaller one; check-string-length checks it through the mended plugin")
 test "a class named by 2^28 or more letters, written twice, fails as nested too deeply" {
   inspect(
     outcome("classDiagram\nclass \{"a".repeat(270000000)}\n"),
@@ -300,7 +300,7 @@ test "a class named by 2^28 or more letters, written twice, fails as nested too 
 }
 
 ///|
-#skip("slow, and past wasm's memory under moon test, which holds the source once more than the plugin; check-string-length checks it")
+#skip("slow, and moon test runs wasm's allocator unmended, which can give a block of 512 MiB or more a smaller one; check-string-length checks it through the mended plugin")
 test "a member of 2^28 or more letters is drawn" {
   inspect(
     outcome("classDiagram\nclass A {\n  \{"a".repeat(270000000)}\n}\n"),
