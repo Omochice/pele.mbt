@@ -46,29 +46,6 @@ test "an accessible description outgrowing V8's longest string fails as nested t
 }
 
 ///|
-fn outcome_of(source : String, options : @types.RenderOptions) -> String {
-  try {
-    @core.render([@pie.pie], source, options) |> ignore
-    "rendered"
-  } catch {
-    @errors.PeleError(failure) =>
-      "\{failure.code.to_string()}: \{failure.message} \{failure.kind.unwrap_or("null")} \{failure.mermaid_type.unwrap_or("null")}"
-  }
-}
-
-///|
-/// pele's pattern for a quoted string runs out of V8's backtracking stack long before the label is drawn, so pele and the port fail while lexing.
-test "an entry named by tens of millions of entities fails as nested too deeply" {
-  inspect(
-    outcome_of("pie\n\"\{"&".repeat(54000000)}\": 1\n", {
-      ..@types.RenderOptions::default(),
-      limit: Some(1.0 / 0.0),
-    }),
-    content="limit: Diagram is nested too deeply. pie pie",
-  )
-}
-
-///|
 /// The outcome of rendering `source` with no limit on the source or the output, or the error it fails with.
 fn backtrack_outcome(source : String) -> String {
   try {
@@ -86,28 +63,18 @@ fn backtrack_outcome(source : String) -> String {
 }
 
 ///|
-#skip("slow: draws an entry of four million characters")
-test "an entry name fails as nested too deeply where pele's pattern runs out of V8's backtracking stack" {
+test "an entry name of millions of characters is drawn" {
   inspect(
-    backtrack_outcome("pie\n\"\{"a".repeat(4194294)}\": 1\n"),
+    backtrack_outcome("pie\n\"\{"a".repeat(5000000)}\": 1\n"),
     content="rendered",
-  )
-  inspect(
-    backtrack_outcome("pie\n\"\{"a".repeat(4194295)}\": 1\n"),
-    content="limit: Diagram is nested too deeply. pie pie",
   )
 }
 
 ///|
-#skip("slow: preprocesses eight million characters")
-test "a directive fails as nested too deeply, before its diagram is known, where pele's pattern runs out of V8's backtracking stack" {
+test "a directive of millions of characters is read" {
   inspect(
-    backtrack_outcome("%%{init: \{"!".repeat(8388577)}}%%\npie\n\"a\": 1\n"),
+    backtrack_outcome("%%{init: \{"!".repeat(9000000)}}%%\npie\n\"a\": 1\n"),
     content="rendered",
-  )
-  inspect(
-    backtrack_outcome("%%{init: \{"!".repeat(8388578)}}%%\npie\n\"a\": 1\n"),
-    content="limit: Diagram is nested too deeply. null null",
   )
 }
 

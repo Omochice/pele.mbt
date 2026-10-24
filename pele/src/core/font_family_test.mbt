@@ -21,73 +21,36 @@ fn font_list(count : Int32) -> String {
 }
 
 ///|
-test "a font list fails as nested too deeply where pele's pattern runs out of V8's backtracking stack" {
+test "a font list of millions of fonts is drawn" {
   let options = @types.RenderOptions::default()
   inspect(
-    pie_outcome({ ..options, font_family: Some(font_list(1525197)), }),
+    pie_outcome({ ..options, font_family: Some(font_list(2000000)), }),
     content="rendered",
   )
   inspect(
-    pie_outcome({ ..options, font_family: Some(font_list(1525198)), }),
-    content="limit: Diagram is nested too deeply. pie pie",
-  )
-  inspect(
-    pie_outcome({ ..options, font_family_mono: Some(font_list(1525197)), }),
+    pie_outcome({ ..options, font_family_mono: Some(font_list(2000000)), }),
     content="rendered",
   )
   inspect(
-    pie_outcome({ ..options, font_family_mono: Some(font_list(1525198)), }),
-    content="limit: Diagram is nested too deeply. pie pie",
+    pie_outcome({ ..options, font_family: Some("Ā" + ",a".repeat(5000000)), }),
+    content="rendered",
+  )
+  inspect(
+    pie_outcome({
+      ..options,
+      font_family: Some("Ā,\"" + "a".repeat(9000000) + "\""),
+    }),
+    content="rendered",
   )
 }
 
 ///|
-test "a font list with a character past Latin-1 takes V8's backtracking stack for each character as well" {
-  let options = @types.RenderOptions::default()
-  let outcome = (list : String) => {
-    pie_outcome({ ..options, font_family: Some(list), })
+test "a font list of millions of fonts followed by one that is not a font falls back to the generic family" {
+  let style = (list : String) => {
+    @svg.font_style(16, Some(list), None).has_suffix(
+      "var(--pele-font,sans-serif)",
+    )
   }
-  inspect(outcome("Ā" + ",a".repeat(4194294)), content="rendered")
-  inspect(
-    outcome("Ā" + ",a".repeat(4194295)),
-    content="limit: Diagram is nested too deeply. pie pie",
-  )
-  inspect(outcome("Ā" + "a".repeat(4194294)), content="rendered")
-  inspect(
-    outcome("Ā" + "a".repeat(4194295)),
-    content="limit: Diagram is nested too deeply. pie pie",
-  )
-  inspect(outcome("Ā,\"" + "a".repeat(8388586) + "\""), content="rendered")
-  inspect(
-    outcome("Ā,\"" + "a".repeat(8388587) + "\""),
-    content="limit: Diagram is nested too deeply. pie pie",
-  )
-  inspect(outcome(" ".repeat(8388588) + "Ā"), content="rendered")
-  inspect(
-    outcome(" ".repeat(8388589) + "Ā"),
-    content="limit: Diagram is nested too deeply. pie pie",
-  )
-}
-
-///|
-test "a font list counts the fonts read before one that is not a font against V8's backtracking stack" {
-  let options = @types.RenderOptions::default()
-  inspect(
-    pie_outcome({ ..options, font_family: Some(font_list(1525197) + ";a"), }),
-    content="rendered",
-  )
-  inspect(
-    pie_outcome({
-      ..options,
-      font_family: Some(font_list(1525198) + ";" + font_list(9)),
-    }),
-    content="limit: Diagram is nested too deeply. pie pie",
-  )
-  inspect(
-    pie_outcome({
-      ..options,
-      font_family: Some("\"a\"" + ", 'b c'".repeat(1525198)),
-    }),
-    content="limit: Diagram is nested too deeply. pie pie",
-  )
+  inspect(style(font_list(2000000) + ";a"), content="true")
+  inspect(style(font_list(2000000)), content="false")
 }

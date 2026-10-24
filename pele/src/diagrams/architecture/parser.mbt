@@ -245,16 +245,14 @@ fn scan_icon(src : String, p : Int32) -> Int32 {
 ///|
 /// `\[(?:"([^"\\]|\\.)*"|'([^'\\]|\\.)*'|[^\[\]\r\n]+)\]`
 /// Neither quoted repetition can give back a character that would let the closing quote come sooner.
-fn scan_label(src : String, p : Int32) -> Int32 raise @errors.PeleError {
+fn scan_label(src : String, p : Int32) -> Int32 {
   if @util.code_at(src, p) != '['.to_int() {
     return @common.NO_MATCH
   }
   let open = @util.code_at(src, p + 1)
   if open == '"'.to_int() || open == '\''.to_int() {
-    let (close, steps) = @common.quoted_span(src, p + 1)
-    let closed = close != -1 && @util.code_at(src, close) == ']'.to_int()
-    @common.check_quoted_steps(steps, untried_alternative=closed)
-    if closed {
+    let close = @common.quoted_span(src, p + 1)
+    if close != -1 && @util.code_at(src, close) == ']'.to_int() {
       return close + 1
     }
   }
@@ -325,7 +323,7 @@ let architecture_tokens : Array[@common.TokenType] = [
   @common.pattern("ARCH_ICON", scan_icon, first="("),
   {
     name: "ARCH_TITLE",
-    scanner: () => scan_label,
+    scanner: () => (src, p) => scan_label(src, p),
     first: Some("["),
     hidden: false,
   },

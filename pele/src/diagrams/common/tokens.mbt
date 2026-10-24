@@ -214,15 +214,13 @@ pub let title : TokenType = pattern(
 
 ///|
 /// Where `"([^"\\]|\\.)*"`, or its single-quoted twin, matches the string whose quote is at `p`: its end, or -1.
-/// Also how many times the group repeats, once for each character or escape pair, which runs to the end of the text when no quote closes it.
-pub fn quoted_span(src : String, p : Int32) -> (Int32, Int32) {
+pub fn quoted_span(src : String, p : Int32) -> Int32 {
   let quote = @util.code_at(src, p)
-  let mut steps = 0
   let mut i = p + 1
   while i < src.length() {
     let c = @util.code_at(src, i)
     if c == quote {
-      return (i + 1, steps)
+      return i + 1
     }
     if c == '\\'.to_int() {
       let next = @util.code_at(src, i + 1)
@@ -233,22 +231,8 @@ pub fn quoted_span(src : String, p : Int32) -> (Int32, Int32) {
     } else {
       i += 1
     }
-    steps += 1
   }
-  (-1, steps)
-}
-
-///|
-/// Raises the error pele reports where its pattern for a quoted string runs V8's backtracking stack out, after repeating its group `steps` times.
-/// Each repetition takes four slots, and a match that ends with an alternative of the pattern after it still untried takes four more.
-pub fn check_quoted_steps(
-  steps : Int32,
-  untried_alternative~ : Bool,
-) -> Unit raise @errors.PeleError {
-  let more = if untried_alternative { 4L } else { 0L }
-  if @util.backtrack_stack_overflows(4L * steps.to_int64() + more) {
-    raise @errors.nested_too_deeply()
-  }
+  -1
 }
 
 ///|
@@ -260,11 +244,7 @@ pub let string : TokenType = {
     if quote != '"'.to_int() && quote != '\''.to_int() {
       return NO_MATCH
     }
-    let (end, steps) = quoted_span(src, p)
-    check_quoted_steps(
-      steps,
-      untried_alternative=end != -1 && quote == '"'.to_int(),
-    )
+    let end = quoted_span(src, p)
     if end == -1 {
       NO_MATCH
     } else {

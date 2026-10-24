@@ -1,5 +1,5 @@
 ///|
-fn tokens(source : String) -> String raise {
+fn tokens(source : String) -> String {
   let tokens = @flowchart.tokenize(source)
   let lines = []
   for i, kind in tokens.types {

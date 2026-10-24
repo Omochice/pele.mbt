@@ -40,7 +40,7 @@ fn document_tag(
   acc_title : String?,
   acc_descr : String?,
   used : Set[String],
-) -> String raise @errors.PeleError {
+) -> String {
   let prefix = id_prefix(options)
   let aria = StringBuilder()
   if acc_title is Some(title) && title != "" {

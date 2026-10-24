@@ -111,36 +111,22 @@ fn backtrack_outcome(source : String) -> String {
 }
 
 ///|
-#skip("slow: lexes eight million line breaks")
-test "a run of line breaks fails as nested too deeply where pele's pattern runs out of V8's backtracking stack" {
+test "a run of millions of line breaks is skipped" {
   inspect(
-    backtrack_outcome("graph TD\nA\{"\n".repeat(8388591)}B\n"),
+    backtrack_outcome("graph TD\nA\{"\n".repeat(9000000)}B\n"),
     content="rendered",
-  )
-  inspect(
-    backtrack_outcome("graph TD\nA\{"\n".repeat(8388592)}B\n"),
-    content="limit: Diagram is nested too deeply. flowchart flowchart-v2",
   )
 }
 
 ///|
-#skip("slow: lexes eight million line breaks")
-test "line breaks after the keyword fail as nested too deeply where pele's pattern runs out of V8's backtracking stack" {
+test "millions of line breaks after the keyword are skipped" {
   inspect(
-    backtrack_outcome("graph\{"\n".repeat(8388590)}A\n"),
+    backtrack_outcome("graph\{"\n".repeat(9000000)}A\n"),
     content="rendered",
   )
   inspect(
-    backtrack_outcome("graph\{"\n".repeat(8388591)}A\n"),
-    content="limit: Diagram is nested too deeply. flowchart flowchart-v2",
-  )
-  inspect(
-    backtrack_outcome("graph\{"\n".repeat(8388589)} \nA\n"),
+    backtrack_outcome("graph\{"\n".repeat(9000000)} \nA\n"),
     content="rendered",
-  )
-  inspect(
-    backtrack_outcome("graph\{"\n".repeat(8388590)} \nA\n"),
-    content="limit: Diagram is nested too deeply. flowchart flowchart-v2",
   )
 }
 

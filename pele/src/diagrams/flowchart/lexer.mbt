@@ -538,7 +538,7 @@ fn Lexer::link_id(self : Lexer, c : Int32) -> Bool {
 }
 
 ///|
-fn Lexer::initial(self : Lexer, c : Int32) -> Bool raise @errors.PeleError {
+fn Lexer::initial(self : Lexer, c : Int32) -> Bool {
   if self.keyword(c) || self.direction() || self.link_id(c) {
     return true
   }
@@ -884,7 +884,7 @@ fn Lexer::up_to(self : Lexer, kind : Int32, stop : String) -> Unit {
 
 ///|
 /// Reads one token or state change at `p`; false where the text is unrecognized.
-fn Lexer::step(self : Lexer, c : Int32) -> Bool raise @errors.PeleError {
+fn Lexer::step(self : Lexer, c : Int32) -> Bool {
   let p = self.p
   match self.state {
     S_INITIAL => return self.initial(c)
@@ -1055,7 +1055,7 @@ fn end_token(state : Int32) -> Int32 {
 ///|
 /// Splits flowchart text into tokens as Mermaid's lexer does.
 /// Text the lexer cannot read ends the list with an `INVALID` token where it stops.
-pub fn tokenize(src : String) -> Tokens raise @errors.PeleError {
+pub fn tokenize(src : String) -> Tokens {
   let lexer : Lexer = {
     src,
     n: src.length(),

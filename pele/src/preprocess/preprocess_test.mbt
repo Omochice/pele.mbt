@@ -233,37 +233,17 @@ fn directive_outcome(source : String) -> String {
 }
 
 ///|
-test "a directive's body fails as nested too deeply where pele's pattern runs out of V8's backtracking stack" {
+test "a directive whose body is millions of characters long is read whole" {
   inspect(
-    directive_outcome("%%{init: \{"!".repeat(8388577)}}%%\npie\n\"a\": 1\n"),
+    directive_outcome("%%{init: \{"!".repeat(9000000)}}%%\npie\n\"a\": 1\n"),
     content="11 code units",
   )
   inspect(
-    directive_outcome("%%{init: \{"!".repeat(8388578)}}%%\npie\n\"a\": 1\n"),
-    content="limit: Diagram is nested too deeply. null",
-  )
-}
-
-///|
-test "a directive without a colon runs one more character before V8's backtracking stack runs out" {
-  inspect(
-    directive_outcome("%%{wrap \{"!".repeat(8388578)}}%%\npie\n\"a\": 1\n"),
+    directive_outcome("%%{wrap \{"!".repeat(9000000)}}%%\npie\n\"a\": 1\n"),
     content="11 code units",
   )
   inspect(
-    directive_outcome("%%{wrap \{"!".repeat(8388579)}}%%\npie\n\"a\": 1\n"),
-    content="limit: Diagram is nested too deeply. null",
-  )
-}
-
-///|
-test "an unclosed directive counts the line breaks that trimming leaves out against V8's backtracking stack" {
-  inspect(
-    directive_outcome("pie\n\"a\": 1\n%%{init: \{"!".repeat(8388574)}\n\n\n"),
+    directive_outcome("pie\n\"a\": 1\n%%{init: \{"!".repeat(9000000)}\n\n\n"),
     content="11 code units",
-  )
-  inspect(
-    directive_outcome("pie\n\"a\": 1\n%%{init: \{"!".repeat(8388575)}\n\n\n"),
-    content="limit: Diagram is nested too deeply. null",
   )
 }

@@ -75,61 +75,36 @@ fn backtrack_outcome(source : String) -> String {
 }
 
 ///|
-#skip("slow: draws a terminal of four million characters")
-test "a double-quoted terminal fails as nested too deeply where pele's pattern runs out of V8's backtracking stack" {
+test "a double-quoted terminal of millions of characters is drawn" {
   inspect(
-    backtrack_outcome("railroad-peg-beta\nr <- \"\{"a".repeat(4194294)}\" ;\n"),
+    backtrack_outcome("railroad-peg-beta\nr <- \"\{"a".repeat(5000000)}\" ;\n"),
     content="rendered",
   )
   inspect(
-    backtrack_outcome("railroad-peg-beta\nr <- \"\{"a".repeat(4194295)}\" ;\n"),
-    content="limit: Diagram is nested too deeply. railroad railroadPeg",
-  )
-  inspect(
-    backtrack_outcome("railroad-ebnf-beta\nr = \"\{"a".repeat(4194294)}\" ;\n"),
-    content="rendered",
-  )
-  inspect(
-    backtrack_outcome("railroad-ebnf-beta\nr = \"\{"a".repeat(4194295)}\" ;\n"),
-    content="limit: Diagram is nested too deeply. railroad railroadEbnf",
-  )
-  inspect(
-    backtrack_outcome(
-      "railroad-beta\nr = terminal(\"\{"a".repeat(4194294)}\") ;\n",
-    ),
+    backtrack_outcome("railroad-ebnf-beta\nr = \"\{"a".repeat(5000000)}\" ;\n"),
     content="rendered",
   )
   inspect(
     backtrack_outcome(
-      "railroad-beta\nr = terminal(\"\{"a".repeat(4194295)}\") ;\n",
+      "railroad-beta\nr = terminal(\"\{"a".repeat(5000000)}\") ;\n",
     ),
-    content="limit: Diagram is nested too deeply. railroad railroad",
+    content="rendered",
   )
 }
 
 ///|
-#skip("slow: draws a terminal of four million characters")
-test "a single-quoted terminal runs one more character before V8's backtracking stack runs out" {
+test "a single-quoted terminal of millions of characters is drawn" {
   inspect(
-    backtrack_outcome("railroad-peg-beta\nr <- '\{"a".repeat(4194295)}' ;\n"),
+    backtrack_outcome("railroad-peg-beta\nr <- '\{"a".repeat(5000000)}' ;\n"),
     content="rendered",
-  )
-  inspect(
-    backtrack_outcome("railroad-peg-beta\nr <- '\{"a".repeat(4194296)}' ;\n"),
-    content="limit: Diagram is nested too deeply. railroad railroadPeg",
   )
 }
 
 ///|
-#skip("slow: draws a value of three million parts")
-test "a numeric value fails as nested too deeply where pele's pattern runs out of V8's backtracking stack" {
+test "a numeric value of millions of parts is drawn" {
   inspect(
-    backtrack_outcome("railroad-abnf-beta\nr = %x1\{".1".repeat(3355435)} ;\n"),
+    backtrack_outcome("railroad-abnf-beta\nr = %x1\{".1".repeat(4000000)} ;\n"),
     content="rendered",
-  )
-  inspect(
-    backtrack_outcome("railroad-abnf-beta\nr = %x1\{"-1".repeat(3355436)} ;\n"),
-    content="limit: Diagram is nested too deeply. railroad railroadAbnf",
   )
 }
 

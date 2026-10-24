@@ -65,23 +65,14 @@ fn backtrack_outcome(source : String) -> String {
 }
 
 ///|
-#skip("slow: lexes eight million line breaks")
-test "line breaks after the keyword fail as nested too deeply where pele's pattern runs out of V8's backtracking stack" {
+test "millions of line breaks after the keyword are skipped" {
   inspect(
-    backtrack_outcome("agentflow-beta\{"\n".repeat(8388590)}a\n"),
+    backtrack_outcome("agentflow-beta\{"\n".repeat(9000000)}a\n"),
     content="rendered",
   )
   inspect(
-    backtrack_outcome("agentflow-beta\{"\n".repeat(8388591)}a\n"),
-    content="limit: Diagram is nested too deeply. agentflow agentflow",
-  )
-  inspect(
-    backtrack_outcome("agentflow-beta\{"\n".repeat(8388589)} \na\n"),
+    backtrack_outcome("agentflow-beta\{"\n".repeat(9000000)} \na\n"),
     content="rendered",
-  )
-  inspect(
-    backtrack_outcome("agentflow-beta\{"\n".repeat(8388590)} \na\n"),
-    content="limit: Diagram is nested too deeply. agentflow agentflow",
   )
 }
 

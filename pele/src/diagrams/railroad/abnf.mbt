@@ -118,7 +118,6 @@ fn hex_run(src : String, from : Int32) -> Int32 {
 
 ///|
 /// `%[xXdDbB][0-9A-Fa-f]+(?:-[0-9A-Fa-f]+|\.[0-9A-Fa-f]+)*`
-/// Each part after the first takes five slots of V8's backtracking stack, and the match four more.
 let abnf_numval : @common.TokenType = {
   name: "ABNF_NUMVAL",
   scanner: () => {
@@ -134,7 +133,6 @@ let abnf_numval : @common.TokenType = {
       if end == p + 2 {
         return @common.NO_MATCH
       }
-      let mut parts = 0L
       while true {
         let c = @util.code_at(src, end)
         if c != '-'.to_int() && c != '.'.to_int() {
@@ -145,10 +143,6 @@ let abnf_numval : @common.TokenType = {
           break
         }
         end = next
-        parts += 1
-      }
-      if @util.backtrack_stack_overflows(5L * parts + 4) {
-        raise @errors.nested_too_deeply()
       }
       end
     }

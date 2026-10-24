@@ -88,48 +88,28 @@ fn backtrack_outcome(source : String) -> String {
 }
 
 ///|
-#skip("slow: draws an anchor label of four million characters")
-test "an anchor label fails as nested too deeply where pele's pattern runs out of V8's backtracking stack" {
+test "an anchor label of millions of characters is drawn" {
   inspect(
     backtrack_outcome(
-      "wardley-beta\nanchor \"\{"a".repeat(4194294)}\" [0.5, 0.5]\n",
+      "wardley-beta\nanchor \"\{"a".repeat(5000000)}\" [0.5, 0.5]\n",
     ),
     content="rendered",
-  )
-  inspect(
-    backtrack_outcome(
-      "wardley-beta\nanchor \"\{"a".repeat(4194295)}\" [0.5, 0.5]\n",
-    ),
-    content="limit: Diagram is nested too deeply. wardley wardley",
   )
 }
 
 ///|
-#skip("slow: draws a component name of eight million characters")
-test "a component name fails as nested too deeply where pele's pattern runs out of V8's backtracking stack" {
+test "a component name of millions of characters is drawn" {
   inspect(
     backtrack_outcome(
-      "wardley-beta\ncomponent \{"a".repeat(8388590)} [0.5, 0.5]\n",
+      "wardley-beta\ncomponent \{"a".repeat(9000000)} [0.5, 0.5]\n",
     ),
     content="rendered",
   )
   inspect(
     backtrack_outcome(
-      "wardley-beta\ncomponent \{"a".repeat(8388591)} [0.5, 0.5]\n",
-    ),
-    content="limit: Diagram is nested too deeply. wardley wardley",
-  )
-  inspect(
-    backtrack_outcome(
-      "wardley-beta\ncomponent a\{" a".repeat(3355435)} [0.5, 0.5]\n",
+      "wardley-beta\ncomponent a\{" a".repeat(4000000)} [0.5, 0.5]\n",
     ),
     content="rendered",
-  )
-  inspect(
-    backtrack_outcome(
-      "wardley-beta\ncomponent a\{" a".repeat(3355436)} [0.5, 0.5]\n",
-    ),
-    content="limit: Diagram is nested too deeply. wardley wardley",
   )
 }
 

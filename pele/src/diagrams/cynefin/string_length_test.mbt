@@ -66,15 +66,10 @@ fn backtrack_outcome(source : String) -> String {
 }
 
 ///|
-#skip("slow: draws an item of four million characters")
-test "an item fails as nested too deeply where pele's pattern runs out of V8's backtracking stack" {
+test "an item of millions of characters is drawn" {
   inspect(
-    backtrack_outcome("cynefin-beta\ncomplex\n  \"\{"a".repeat(4194294)}\"\n"),
+    backtrack_outcome("cynefin-beta\ncomplex\n  \"\{"a".repeat(5000000)}\"\n"),
     content="rendered",
-  )
-  inspect(
-    backtrack_outcome("cynefin-beta\ncomplex\n  \"\{"a".repeat(4194295)}\"\n"),
-    content="limit: Diagram is nested too deeply. cynefin cynefin",
   )
 }
 
