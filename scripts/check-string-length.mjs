@@ -1,8 +1,8 @@
-// Renders diagrams whose SVG comes near or past the longest string V8 can make, through the wasm
-// plugin and through pele's dist bundle, and checks that the plugin answers as pele does.
-// pele's concatenation throws a RangeError past that length, which pele reports as a `limit` error
-// before its output limit is ever checked; below it pele draws the SVG, and so must the plugin,
-// however far past what a doubling StringBuilder could hold the SVG is.
+// Renders diagrams whose SVG is hundreds of millions of code units long, through the wasm plugin and
+// through pele's dist bundle, and checks that the plugin answers as pele does.
+// A drawing up to the port's hold limit must come out byte for byte as pele's, however far past
+// what a doubling StringBuilder could hold it is, and one past it must fail with the port's own
+// limit error; an error pele gives must be given as it is.
 // Each drawing is also rendered through the theme typst sends, which has to answer without trapping.
 // A case's options are written as the plugin's JSON, and pele is given the callbacks they stand for.
 //
@@ -30,11 +30,11 @@ process.env.TZ = 'UTC';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const wasmPath = join(root, '_build/wasm/release/build/Omochice/pele-typst/plugin/plugin.wasm');
 
-// The maximum the port assumes; 32-bit V8 builds and other engines allow a different length,
-// and pele's outcomes there are not the ones the port reproduces.
-const V8_MAX_STRING_LENGTH = 536870888;
-if (constants.MAX_STRING_LENGTH !== V8_MAX_STRING_LENGTH) {
-  console.error(`node ${process.version} allows strings of ${constants.MAX_STRING_LENGTH} characters, not ${V8_MAX_STRING_LENGTH}`);
+// The longest drawing among the cases, which pele draws only where strings are as long as 64-bit
+// V8 makes them; with shorter ones pele fails it on the engine's limit, which the port does not imitate.
+const LONGEST_DRAWING = 535038344;
+if (constants.MAX_STRING_LENGTH < LONGEST_DRAWING) {
+  console.error(`node ${process.version} allows strings of ${constants.MAX_STRING_LENGTH} characters, fewer than ${LONGEST_DRAWING}`);
   process.exit(1);
 }
 
@@ -48,7 +48,7 @@ function outcome(error) {
 }
 
 // The most code units the wasm port holds, as pele/src/svg/markup.mbt's HOLD_LIMIT; past it the port
-// returns a limit error where pele still draws, the one platform-imposed difference from pele.
+// returns its own limit error where pele still draws, the one platform-imposed difference from pele.
 const HOLD_LIMIT = 400000000;
 
 function peleOutcome(text, options) {
@@ -72,7 +72,7 @@ function portLimit(type, mermaidType) {
 }
 
 // The SVG of a drawing's answer, unescaped from its JSON string as UTF-8 bytes.
-// An answer can be longer than V8's longest string, so it is read as bytes rather than parsed.
+// An answer can be longer than the longest string node makes, so it is read as bytes rather than parsed.
 function svgOfAnswer(bytes) {
   const opening = Buffer.from('{"svg":"');
   const out = Buffer.alloc(bytes.length);

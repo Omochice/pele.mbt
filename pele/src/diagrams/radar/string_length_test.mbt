@@ -1,23 +1,4 @@
 ///|
-#skip("slow: draws over 536 million code units before it fails")
-test "graticule rings outgrowing V8's longest string fail as nested too deeply" {
-  let axes = Array::makei(1050000, i => "a\{i}").join(", ")
-  let failure = try {
-    @core.render(
-      [@radar.radar],
-      "radar-beta\ngraticule polygon\nticks 32\naxis \{axes}\n",
-      { ..@types.RenderOptions::default(), limit: Some(1.0 / 0.0), },
-    )
-    |> ignore
-    "rendered"
-  } catch {
-    @errors.PeleError(failure) =>
-      "\{failure.code.to_string()}: \{failure.message} \{failure.kind.unwrap_or("null")} \{failure.mermaid_type.unwrap_or("null")}"
-  }
-  inspect(failure, content="limit: Diagram is nested too deeply. radar radar")
-}
-
-///|
 /// The outcome of rendering `source` with no limit on the source or the output, or the error it fails with.
 fn backtrack_outcome(source : String) -> String {
   try {
@@ -40,22 +21,4 @@ test "an axis label of millions of characters is drawn" {
     backtrack_outcome("radar-beta\naxis a[\"\{"a".repeat(5000000)}\"]\n"),
     content="rendered",
   )
-}
-
-///|
-#skip("slow: escapes over 536 million code units before it fails")
-test "a title outgrowing V8's longest string fails as nested too deeply" {
-  let failure = try {
-    @core.render(
-      [@radar.radar],
-      "radar-beta\ntitle \{"\"".repeat(90000000)}\naxis a\n",
-      { ..@types.RenderOptions::default(), limit: Some(1.0 / 0.0), },
-    )
-    |> ignore
-    "rendered"
-  } catch {
-    @errors.PeleError(failure) =>
-      "\{failure.code.to_string()}: \{failure.message} \{failure.kind.unwrap_or("null")} \{failure.mermaid_type.unwrap_or("null")}"
-  }
-  inspect(failure, content="limit: Diagram is nested too deeply. radar radar")
 }
