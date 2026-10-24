@@ -59,7 +59,7 @@ fn encode(
   }
   let write_svg = (out : &Logger) => {
     match theme {
-      Some(theme) => @typst.write_drawable(result.svg, theme, out)
+      Some(theme) => @theme.write_drawable(result.svg, theme, out)
       None => out.write_string(result.svg)
     }
   }

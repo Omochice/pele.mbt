@@ -1,13 +1,13 @@
 ///|
 fn drawable(svg : String, theme : Map[String, String]) -> String {
   let out = StringBuilder()
-  @typst.write_drawable(svg, theme, out)
+  @theme.write_drawable(svg, theme, out)
   out.to_string()
 }
 
 ///|
 fn composed(svg : String, theme : Map[String, String]) -> String {
-  @typst.hoist_radii(@typst.mix_colors(@typst.resolve_vars(svg, theme)))
+  @theme.hoist_radii(@theme.mix_colors(@theme.resolve_vars(svg, theme)))
 }
 
 ///|
@@ -67,7 +67,7 @@ test "a style of tens of millions of entities is rewritten as the three rewrites
   let fill = "&amp;".repeat(54000000)
   let svg = "<svg style=\"--_r:var(--pele-radius,4)\"><rect style=\"rx:var(--_r);fill:\{fill}\"/></svg>"
   let out : Tally = { length: 0, head: StringBuilder(), tail: "", }
-  @typst.write_drawable(svg, {}, out)
+  @theme.write_drawable(svg, {}, out)
   inspect(
     "\{out.length} \{out.head.to_string()} … \{out.tail}",
     content=(

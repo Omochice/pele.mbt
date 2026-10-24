@@ -38,7 +38,7 @@ The argument of each `#skip` states why, and the reasons are the two below.
 - 16 of them also hold a string of 2^28 code units or more, which `moon test` cannot check because it runs the allocator moonc links in unmended, as [the allocator bug](allocator-bug.md) describes.
 
 `scripts/check-string-length.mjs` checks the same inputs instead, through the plugin with its allocator mended: most cases in `scripts/string-length-cases.mjs` are the same as a test in a diagram's `string_length_test.mbt`.
-The four skipped tests outside the diagrams, three in `pele/src/svg/escape_test.mbt` and one in `typst/src/typst/drawable_test.mbt`, cover the escape writers and the theme's rewrite of a style, which that check reaches through whole diagrams and through the theme typst sends.
+The four skipped tests outside the diagrams, three in `pele/src/svg/escape_test.mbt` and one in `typst/src/theme/drawable_test.mbt`, cover the escape writers and the theme's rewrite of a style, which that check reaches through whole diagrams and through the theme typst sends.
 
 ## Golden fixtures
 

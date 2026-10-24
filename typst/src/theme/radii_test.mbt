@@ -1,7 +1,7 @@
 ///|
 test "a radius alone in the style becomes an attribute" {
   inspect(
-    @typst.hoist_radii(
+    @theme.hoist_radii(
       (
         #|<svg><rect x="0" style="rx:4px"/></svg>
       ),
@@ -15,7 +15,7 @@ test "a radius alone in the style becomes an attribute" {
 ///|
 test "a radius leaves the style's other declarations in place" {
   inspect(
-    @typst.hoist_radii(
+    @theme.hoist_radii(
       (
         #|<svg><rect style="rx:4px;fill:red" stroke="blue"/></svg>
       ),
@@ -29,7 +29,7 @@ test "a radius leaves the style's other declarations in place" {
 ///|
 test "the style's radius wins over an attribute, as CSS does" {
   inspect(
-    @typst.hoist_radii(
+    @theme.hoist_radii(
       (
         #|<svg><rect rx="2" width="5" style="rx:6px"/></svg>
       ),
@@ -43,7 +43,7 @@ test "the style's radius wins over an attribute, as CSS does" {
 ///|
 test "the last radius in the style wins" {
   inspect(
-    @typst.hoist_radii(
+    @theme.hoist_radii(
       (
         #|<svg><rect style="rx:4px;fill:red;rx:10"/><ellipse style="ry: 3 ;rx:2"/></svg>
       ),
@@ -58,5 +58,5 @@ test "the last radius in the style wins" {
 test "styles without a radius and text are left alone" {
   let svg =
     #|<svg><text style="fill:red" data-id="rx:1">rx:1</text></svg>
-  inspect(@typst.hoist_radii(svg), content=svg)
+  inspect(@theme.hoist_radii(svg), content=svg)
 }

@@ -6,7 +6,7 @@ const ROOT : String =
 ///|
 /// What `resolve_vars` makes of `body` inside pele's root element.
 fn resolve_body(body : String, theme~ : Map[String, String] = {}) -> String {
-  let out = @typst.resolve_vars(ROOT + body + "</svg>", theme)
+  let out = @theme.resolve_vars(ROOT + body + "</svg>", theme)
   let start = out.find(">").unwrap() + 1
   out.view(start_offset=start, end_offset=out.length() - 6).to_owned()
 }
@@ -14,7 +14,7 @@ fn resolve_body(body : String, theme~ : Map[String, String] = {}) -> String {
 ///|
 test "the root's aliases are inlined and their declarations dropped" {
   inspect(
-    @typst.resolve_vars(ROOT + "</svg>", {}),
+    @theme.resolve_vars(ROOT + "</svg>", {}),
     content=(
       #|<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10" style="max-width:100%;height:auto;color:#1f1f1f;font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:sans-serif" fill="#1f1f1f"></svg>
     ),
@@ -143,7 +143,7 @@ test "a reference to an undefined property drops what holds it" {
 ///|
 test "properties that refer to each other take the reference's fallback" {
   inspect(
-    @typst.resolve_vars(
+    @theme.resolve_vars(
       (
         #|<svg style="--a:var(--b);--b:var(--a);color:var(--a,red)"><g style="--c:1"/></svg>
       ),

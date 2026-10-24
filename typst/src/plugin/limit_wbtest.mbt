@@ -42,7 +42,7 @@ test "the answer is the JSON of the drawing, with its escapes and characters out
     let svg = match theme {
       Some(theme) => {
         let rewritten = StringBuilder()
-        @typst.write_drawable(result.svg, theme, rewritten)
+        @theme.write_drawable(result.svg, theme, rewritten)
         rewritten.to_string()
       }
       None => result.svg

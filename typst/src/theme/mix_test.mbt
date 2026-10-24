@@ -2,7 +2,7 @@
 /// What `mix_colors` makes of `value` as the stroke of a text.
 /// The expected colors are what Chrome 156 computes each value to, as `color(srgb r g b / a)`, scaled to bytes and rounded half up, as Chrome rounds `rgb()` channels.
 fn stroke(value : String) -> String {
-  let out = @typst.mix_colors("<text stroke=\"\{value}\">t</text>")
+  let out = @theme.mix_colors("<text stroke=\"\{value}\">t</text>")
   let start = out.find("stroke=\"").unwrap() + 8
   let end = start + out.view(start_offset=start).find("\"").unwrap()
   out.view(start_offset=start, end_offset=end).to_owned()
@@ -164,7 +164,7 @@ test "a mix of colors it cannot evaluate is left as written" {
 ///|
 test "a mix is evaluated in place within a declaration" {
   inspect(
-    @typst.mix_colors(
+    @theme.mix_colors(
       (
         #|<rect style="fill:red;stroke:color-mix(in srgb,red,blue)" fill="url(#g) color-mix(in srgb,red,blue)"/>
       ),
@@ -179,5 +179,5 @@ test "a mix is evaluated in place within a declaration" {
 test "text and attributes that are not CSS are left alone" {
   let svg =
     #|<g data-id="color-mix(in srgb,red,blue)"><title>color-mix(in srgb,red,blue)</title><text class="x">color-mix(in srgb,red,blue)</text></g>
-  inspect(@typst.mix_colors(svg), content=svg)
+  inspect(@theme.mix_colors(svg), content=svg)
 }
