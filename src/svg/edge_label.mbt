@@ -36,7 +36,9 @@ pub fn write_edge_label(
 }
 
 ///|
-/// Writes an edge label to `out` as `write_edge_label` does, with `id` escaped a piece at a time.
+/// Writes an edge label to `out` as `write_edge_label` does, with `id` escaped a piece at a time,
+/// and with the `style` attribute `resolve_style` makes of `css` after `attrs`, as
+/// `write_label_styled` writes it.
 /// An id made of a long source name escapes to more than a doubling StringBuilder holds.
 /// Raises pele's `limit` error when the markup would be longer than V8 allows.
 pub fn write_edge_label_with_id(
@@ -46,6 +48,7 @@ pub fn write_edge_label_with_id(
   x : Double,
   y : Double,
   attrs : String,
+  css~ : String = "",
   icons? : @types.IconResolver,
 ) -> Unit raise @errors.PeleError {
   write_edge_label_parts(
@@ -55,13 +58,14 @@ pub fn write_edge_label_with_id(
     x,
     y,
     attrs,
+    css~,
     icons?,
   )
 }
 
 ///|
 /// Writes an edge label to `out` as `edge_label_svg` draws it, with `write_id` writing its
-/// ` data-id` attribute.
+/// ` data-id` attribute and the label written as `write_label_styled` writes it.
 fn write_edge_label_parts(
   out : Markup,
   write_id : (Markup) -> Unit raise @errors.PeleError,
@@ -69,6 +73,7 @@ fn write_edge_label_parts(
   x : Double,
   y : Double,
   attrs : String,
+  css~ : String = "",
   icons? : @types.IconResolver,
 ) -> Unit raise @errors.PeleError {
   let w = label.width + 8
@@ -78,6 +83,6 @@ fn write_edge_label_parts(
   out.write(
     "><rect x=\"\{num(x - w / 2)}\" y=\"\{num(y - h / 2)}\" width=\"\{num(w)}\" height=\"\{num(h)}\" rx=\"3\" fill=\"var(--_bg)\"/>",
   )
-  write_label(out, label, x, y, attrs, icons?)
+  write_label_styled(out, label, x, y, attrs, css, icons?)
   out.write("</g>")
 }

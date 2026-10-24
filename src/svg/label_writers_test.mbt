@@ -222,3 +222,38 @@ test "an id naming an alias puts the alias in the root's style as write_label do
   assert_eq(document(got), document(want))
   assert_true(document(got).contains("--_hw:"))
 }
+
+///|
+test "a styled edge label is written as write_edge_label writes it under the escaped style" {
+  let declarations = [
+    [],
+    ["color:red"],
+    ["fill:#123", "color:a&b"],
+    ["stroke:x", "opacity:0.5", "font-style:italic"],
+  ]
+  for raw in label_samples {
+    let label = label_of(raw)
+    for list in declarations {
+      let want = @svg.Markup::new()
+      @svg.write_edge_label(
+        want,
+        "e&1",
+        label,
+        3,
+        4,
+        " fill=\"var(--_m)\"" + @svg.resolve_style(list).text,
+      )
+      let got = @svg.Markup::new()
+      @svg.write_edge_label_with_id(
+        got,
+        "e&1",
+        label,
+        3,
+        4,
+        " fill=\"var(--_m)\"",
+        css=@svg.resolve_raw_style(list).text,
+      )
+      assert_eq(got.to_string(), want.to_string())
+    }
+  }
+}

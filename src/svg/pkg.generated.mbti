@@ -119,7 +119,7 @@ pub fn write_data_id(Markup, String) -> Unit raise @errors.PeleError
 
 pub fn write_edge_label(Markup, String, @text.Label, Double, Double, String, icons? : (String) -> String?) -> Unit raise @errors.PeleError
 
-pub fn write_edge_label_with_id(Markup, String, @text.Label, Double, Double, String, icons? : (String) -> String?) -> Unit raise @errors.PeleError
+pub fn write_edge_label_with_id(Markup, String, @text.Label, Double, Double, String, css? : String, icons? : (String) -> String?) -> Unit raise @errors.PeleError
 
 pub fn write_esc(Markup, String) -> Unit raise @errors.PeleError
 
