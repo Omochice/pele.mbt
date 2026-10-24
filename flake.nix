@@ -161,6 +161,7 @@
             ghalint
             zizmor
           ];
+          coverage = [ pkgs.octocov ];
           golden = with pkgs; [
             nodejs_24
           ];
@@ -175,6 +176,7 @@
             treefmt.config.build.wrapper
           ]
           ++ actions
+          ++ coverage
           ++ golden
           ++ moonbit
           ++ typst;
