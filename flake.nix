@@ -83,6 +83,16 @@
           in
           {
             settings.global.excludes = [ ];
+            # moon fmt formats each package a file it is given belongs to, so its output matches moon fmt run by hand.
+            settings.formatter.moon-fmt = {
+              command = "${pkgs.moonbit-bin.latest}/bin/moon";
+              options = [ "fmt" ];
+              includes = [
+                "*.mbt"
+                "moon.mod"
+                "moon.pkg"
+              ];
+            };
             settings.formatter.rumdl-format.options = [
               "--config"
               (toString rumdlConfig)
