@@ -18,8 +18,8 @@ The port does the work instead, and answers as pele would have without the engin
 - Regular expression backtracking: a pattern that repeats a group with more than one way through it keeps a few slots of V8's 64 MiB backtracking stack for every repetition, and V8 throws once the stack is full.
     pele runs such patterns over a quoted string in the git graph, pie, packet, radar, Wardley map, Cynefin, architecture and railroad diagrams, an architecture label, an ABNF numeric value, a Wardley name, a run of line breaks in a flowchart and after the flowchart and agentflow keywords, the body of every `%%{...}%%` directive, and the host's font lists.
     pele therefore fails a quoted string past about 4 million characters and a run of line breaks, a directive body or a name past about 8 million, all of which the port reads to their end.
-
-Inputs nested deeply enough to run pele out of V8's call stack are covered by paragraphs of their own.
+- Call stack: pele recurses through a deeply nested init directive in its config merge and through a pie `legendPosition` nested in arrays in `String()`, and the depth where V8 runs out of stack varies with the platform and the process.
+    On arm64 macOS with node 24 the merge stops after about 4,468 objects, keeping only the keys merged before that, and the legend position fails the diagram past about 2,750 levels, while the port merges and writes both to the end.
 
 ## Where the port cannot follow pele
 
@@ -36,11 +36,3 @@ They are accepted as constraints rather than reproduced, because each would need
 - A Gantt axis label or a use case label whose text alone passes the hold limit fails with the port's own `limit` error as soon as the text is built, before pele's output limit is checked, so under an output limit below the drawing the port gives its own error where pele, without V8's limits, would give the output limit's.
 - `moon test` runs the allocator unmended, as [the allocator bug](allocator-bug.md) describes, so its tests of 2^28 code units or more are skipped and `scripts/check-string-length.mjs` checks the same inputs instead.
 - A journey task or a timeline event of about 270 million characters, and a timeline event or a quadrant label of a hundred million, run pele itself out of node's heap, so there is no outcome of pele's to compare the port with.
-
-The port also differs from pele on an init directive nested deeply enough, where pele's recursive merge runs V8 out of stack and keeps only the keys it merged before that.
-The depth where that happens varies with the platform and the process: about 4,468 objects on arm64 macOS with node 24, and deeper on x86_64 Linux.
-The port does not cut the merge off on purpose and applies every key of such a directive, so the two agree below the depth where pele stops and differ past it.
-
-The port also differs from pele on a pie `legendPosition` nested deeply enough in arrays, where pele's `String()` joins the arrays by recursion, runs V8 out of stack and fails the diagram as nested too deeply.
-The depth where that happens varies with the platform and the process: about 2,750 levels with node 24's default stack on arm64 macOS, against about 760 with a 300 KB stack and 11,500 with 4 MB.
-The port does not cut the stringification off on purpose and writes such a legend position to the end, so the two agree below the depth where pele stops and differ past it.
