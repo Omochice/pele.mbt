@@ -117,3 +117,29 @@ test "a leaf colored by tens of millions of entities fails as nested too deeply"
     content="limit: Diagram is nested too deeply. treemap treemap",
   )
 }
+
+///|
+#skip("slow, and moon test runs wasm's allocator unmended, which can give a block of 512 MiB or more a smaller one; check-string-length checks it through the mended plugin")
+test "a leaf label cut among more code points than V8's longest array holds fails as nested too deeply" {
+  let outcome = (count : Int32) => {
+    @core.render(
+      [@treemap.treemap],
+      "treemap-beta\n\"\{"a".repeat(count)}\": 1\n",
+      {
+        ..@types.RenderOptions::default(),
+        limit: Some(1.0 / 0.0),
+        output_limit: Some(1.0 / 0.0),
+      },
+    ).svg
+    .length()
+    .to_string() catch {
+      @errors.PeleError(failure) =>
+        "\{failure.code.to_string()}: \{failure.message} \{failure.kind.unwrap_or("null")} \{failure.mermaid_type.unwrap_or("null")}"
+    }
+  }
+  inspect(outcome(134217728), content="134218886")
+  inspect(
+    outcome(134217729),
+    content="limit: Diagram is nested too deeply. treemap treemap",
+  )
+}

@@ -533,6 +533,9 @@ export const CASES = [
   lazy('quadrant', 'a point named by 270M a, written twice', () => `quadrantChart\n${'a'.repeat(270000000)}: [0.5, 0.5]\n`, RAISED),
   lazy('xychart', 'a category of 270M a', () => `xychart\nx-axis [${'a'.repeat(270000000)}]\nbar [1]\n`, RAISED),
   lazy('sankey', 'a node named by 270M a, written several times', () => `sankey\n\n${'a'.repeat(270000000)},B,1\n`, RAISED),
+  // pele cuts a label too wide for its box among its code points, held in an array of V8's longest length.
+  lazy('treemap', 'a leaf label of 2^27 a, cut among as many code points as V8 holds', () => `treemap-beta\n"${'a'.repeat(134217728)}": 1\n`, RAISED),
+  lazy('treemap', 'a leaf label of 2^27 + 1 a, one code point past what V8 holds', () => `treemap-beta\n"${'a'.repeat(134217729)}": 1\n`, RAISED),
 ];
 
 // A case whose source is built only when the check reaches it, as a getter in the source's place,
