@@ -68,24 +68,17 @@ priv struct MergeFrame {
   into : Map[String, Json]
   from : Array[(String, Json)]
   mut next : Int32
-  /// The object and key a fresh copy is stored under once it is complete, or `None` when `into` was already in the config.
-  attach : (Map[String, Json], String)?
 }
 
 ///|
 /// Objects being merged wait on a stack of their own, so nesting is limited by memory and not by the call stack.
 /// pele's recursion stops wherever V8 runs out of stack and keeps what it merged so far, but that depth varies with the platform and the process, so the port does not cut the merge off on purpose.
-/// The stack walks the objects in the order pele's recursion does and stores a fresh copy once it is complete, as pele's `target[key] = merge({}, value)` does.
+/// The stack walks the objects in the order pele's recursion does.
 fn merge(target : @types.Config, source : @types.Config) -> @types.Config {
-  let frames = [
-    { into: target, from: js_entries(source), next: 0, attach: None, },
-  ]
+  let frames = [{ into: target, from: js_entries(source), next: 0, }]
   while frames.last() is Some(frame) {
     if frame.next >= frame.from.length() {
       frames.pop() |> ignore
-      if frame.attach is Some((parent, key)) {
-        parent[key] = Json::object(frame.into)
-      }
       continue
     }
     let (key, value) = frame.from[frame.next]
@@ -93,21 +86,18 @@ fn merge(target : @types.Config, source : @types.Config) -> @types.Config {
     if is_unsafe_key(key) {
       continue
     }
-    match (value, is_record(frame.into.get(key))) {
-      (Object(incoming), Some(current)) =>
-        frames.push({
-          into: current,
-          from: js_entries(incoming),
-          next: 0,
-          attach: None,
-        })
-      (Object(incoming), None) =>
-        frames.push({
-          into: Map([]),
-          from: js_entries(incoming),
-          next: 0,
-          attach: Some((frame.into, key)),
-        })
+    match value {
+      Object(incoming) => {
+        let into = match is_record(frame.into.get(key)) {
+          Some(current) => current
+          None => {
+            let fresh = Map([])
+            frame.into[key] = Json::object(fresh)
+            fresh
+          }
+        }
+        frames.push({ into, from: js_entries(incoming), next: 0, })
+      }
       _ => frame.into[key] = value
     }
   }
