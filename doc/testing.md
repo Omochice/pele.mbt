@@ -17,7 +17,7 @@ moon build --target wasm --release
 The checks that render through pele import its built bundle, `dist/pele.js`, from the checkout that `PELE_ROOT` names.
 The development shell builds the pele commit pinned as the flake's `pele` input and sets `PELE_ROOT` to it, so pele needs no fetching or building by hand.
 `scripts/check-stress.mjs` and `scripts/fuzz.mjs` also read pele's `tests/` from that checkout, and every script stops with an error naming `nix develop` when `PELE_ROOT` is unset.
-Without Nix, `PELE_ROOT` has to name a checkout of that commit built with `npm ci && npm run build`, and `PELE_COMMIT` has to name the commit unless that checkout is a git repository.
+Without Nix, `PELE_ROOT` has to name a checkout of that commit built with `npm ci && npm run build`.
 
 The scripts that render through pele pin `TZ=UTC` themselves, as the goldens are made, so no time zone has to be set by hand.
 Gantt reads a date-only value as UTC midnight but floors its axis ticks to local midnight, so without that pin pele's output would depend on the machine's time zone.

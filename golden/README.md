@@ -25,13 +25,13 @@ It contains no timestamps, so regeneration is byte-identical.
 
 ## Regenerating
 
-The script reads the pele checkout that `PELE_ROOT` names and records `PELE_COMMIT` as its commit, and the development shell sets both to the pele pinned as the flake's `pele` input, already built.
+The script reads the pele checkout that `PELE_ROOT` names and records the commit that `flake.lock` pins for the flake's `pele` input, and the development shell sets `PELE_ROOT` to that pele, already built.
 
 ```sh
 nix develop -c node scripts/gen-golden.mjs
 ```
 
-Without Nix, `PELE_ROOT` has to name a checkout of that commit built with `npm ci && npm run build`, and `PELE_COMMIT` has to name the commit unless that checkout is a git repository.
+Without Nix, `PELE_ROOT` has to name a checkout of that commit built with `npm ci && npm run build`.
 
 The script deletes everything in `golden/` except this README and then rewrites it.
 Corpus inputs are collected by a port of `loadCorpus` in pele's `tests/support/corpus.ts`, which takes string literals from `tests/compat/<diagram>/*.spec.{js,ts}` that match a per-diagram keyword and adds `tests/corpus/<diagram>-docs.json`.

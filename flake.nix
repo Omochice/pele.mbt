@@ -213,7 +213,6 @@
               buildInputs = buildInputs ++ pre-commit-check.enabledPackages;
               inherit (pre-commit-check) shellHook;
               PELE_ROOT = peleCheckout;
-              PELE_COMMIT = pele.rev;
             }
           ))
         ];
