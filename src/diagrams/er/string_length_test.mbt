@@ -152,3 +152,23 @@ test "a relationship of an entity named past V8's longest string fails as nested
     content="limit: Diagram is nested too deeply. er er",
   )
 }
+
+
+///|
+#skip("slow, and moon test runs wasm's allocator unmended, which can give a block of 512 MiB or more a smaller one; check-string-length checks it through the mended plugin")
+test "an entity named by 2^28 or more letters, written twice, fails as nested too deeply" {
+  let failure = try {
+    @core.render([@er.er], "erDiagram\n\{"a".repeat(270000000)} {}\n", {
+      ..@types.RenderOptions::default(),
+      limit: Some(1.0 / 0.0),
+      output_limit: Some(1.0 / 0.0),
+    })
+    |> ignore
+    "rendered"
+  } catch {
+    @errors.PeleError(failure) =>
+      "\{failure.code.to_string()}: \{failure.message} \{failure.kind.unwrap_or("null")} \{failure.mermaid_type.unwrap_or("null")}"
+  }
+  inspect(failure, content="limit: Diagram is nested too deeply. er er")
+}
+

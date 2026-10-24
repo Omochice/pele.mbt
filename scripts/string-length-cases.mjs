@@ -496,6 +496,7 @@ export const CASES = [
   lazy('swimlane', 'a node id of 270M a in a lane, written twice', () => `swimlane-beta TB\nsubgraph L\n${'a'.repeat(270000000)}\nend\n`, RAISED),
   lazy('class', 'a class named by 270M a, written twice', () => `classDiagram\nclass ${'a'.repeat(270000000)}\n`, RAISED),
   lazy('class', 'a member of 270M a', () => `classDiagram\nclass A {\n  ${'a'.repeat(270000000)}\n}\n`, RAISED),
+  lazy('er', 'an entity named by 270M a, written twice', () => `erDiagram\n${'a'.repeat(270000000)} {}\n`, RAISED),
 ];
 
 // A case whose source is built only when the check reaches it, as a getter in the source's place,
