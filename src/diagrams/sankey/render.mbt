@@ -158,7 +158,9 @@ fn draw(
     }
     let text_width = measurer.width(
       if value != "" {
-        "\{id} \{value}"
+        // Joined at its final size, because interpolating a name of hundreds of millions of
+        // characters would need a doubling builder's block past what wasm allocates.
+        [id, " ", value].join("")
       } else {
         id
       },
