@@ -68,13 +68,17 @@ fn one_of(
 
 ///|
 fn qualified_name(r : @common.TokenReader) -> String raise @errors.PeleError {
-  let name = StringBuilder()
-  name.write_string(r.expect(t_id))
+  // Joined at its final size, because a name of hundreds of millions of characters would need a
+  // doubling builder's block past what wasm allocates.
+  let parts = [r.expect(t_id)]
   while r.accept(t_dot) {
-    name.write_char('.')
-    name.write_string(r.expect(t_id))
+    parts.push(r.expect(t_id))
   }
-  name.to_string()
+  if parts.length() == 1 {
+    parts[0]
+  } else {
+    parts.join(".")
+  }
 }
 
 ///|
