@@ -132,7 +132,7 @@ So the plugin stops at 400000000 code units of SVG: a drawing larger than that f
 The several-render fit path at that ceiling peaks at about 3.1 GiB, inside wasm's 4 GiB.
 
 This ceiling is the one intentional, platform-imposed difference from pele: every input whose SVG is at most 400000000 code units is drawn byte for byte as pele draws it, apart from the few enormous inputs that [Known constraints](https://github.com/Omochice/pele.mbt/blob/main/doc/known-constraints.md) lists.
-pele's own output limit is checked first, so the error appears only for a drawing that limit allows, apart from a single text past the ceiling that Known constraints lists.
+pele's own output limit is checked first, so the error appears only for a drawing that limit allows, apart from a Gantt axis label or a use case label whose text alone passes the ceiling, as Known constraints lists.
 A second guard covers a response whose bytes, rather than code units, would not fit one of wasm's memory blocks: a JSON response over 1000000000 bytes fails with a `limit` error naming that byte limit.
 It covers a failure as well as a drawing, since a failure's message can quote a whole line of the source; a drawing under the code-unit ceiling reaches it only when it is almost all non-ASCII text.
 

@@ -23,7 +23,8 @@ Inputs nested deeply enough to run pele out of V8's call stack are covered by pa
 
 ## Where the port cannot follow pele
 
-On the first six inputs below the plugin traps, by refusing an allocation or running out of memory, where pele draws the diagram or, without V8's limits, would fail it with a `limit` error; each was rendered through pele and through the plugin to confirm it.
+On the first six inputs below the plugin traps, by refusing an allocation or running out of memory, where pele draws the diagram or, without V8's limits, would fail it with a `limit` error.
+Each was rendered through pele and through the plugin to confirm it while the port still imitated those limits, and the kanban card was rendered again since and still traps.
 They are accepted as constraints rather than reproduced, because each would need another part of the port to be rebuilt around pieces.
 
 - A `classDef` or `style` value of about 270 million plain letters in a flowchart, class, state, ER, block or agentflow diagram, which pele draws: `resolve_style` and `resolve_raw_style` in `pele/src/svg/` lowercase it with `lower_ascii` in `pele/src/svg/style.mbt` into a doubling `StringBuilder`, which needs more than the largest block wasm's allocator gives.
