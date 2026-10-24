@@ -18,7 +18,7 @@ The `<id>` is the first 16 hex characters of the SHA-256 of the source text, so 
     They exist only for sources whose outcome under that profile differs from the default outcome, so when they are missing the default files are also that profile's expectation.
 
 Errors are goldens too, because a port has to reject the same inputs with the same code and message.
-`manifest.json` records the pele version and commit, the node version, the option profiles, and per-diagram counts.
+`manifest.json` records the pele version and commit, the option profiles, and per-diagram counts.
 The `ok` and `error` counts describe the default profile, and a count named after any other profile counts the sources that have files of that profile.
 It contains no timestamps, so regeneration is byte-identical.
 `node scripts/check-golden.mjs --profile icons` checks only the named profile, and the flag may be repeated.
