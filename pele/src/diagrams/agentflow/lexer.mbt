@@ -1,11 +1,16 @@
 ///|
 /// An agentflow's tokens as parallel arrays: the type of each, its text, where it starts, and its span.
-/// `locs` holds four numbers per token, counted as Jison counts them: first line, first column, last line, last column, with lines from 1 and columns from 0.
+/// The span is counted as Jison counts it, with lines from 1 and columns from 0.
+/// Each number of the span has an array of its own rather than four sharing one, because an array
+/// four times as long reaches the largest block wasm's allocator gives with a quarter of the tokens.
 pub(all) struct Tokens {
   types : Array[Int32]
   texts : Array[String]
   starts : Array[Int32]
-  locs : Array[Int32]
+  first_lines : Array[Int32]
+  first_columns : Array[Int32]
+  last_lines : Array[Int32]
+  last_columns : Array[Int32]
 }
 
 // Lexer states, numbered as pele's `const enum S`.
@@ -65,7 +70,10 @@ priv struct Lexer {
   types : Array[Int32]
   texts : Array[String]
   starts : Array[Int32]
-  locs : Array[Int32]
+  first_lines : Array[Int32]
+  first_columns : Array[Int32]
+  last_lines : Array[Int32]
+  last_columns : Array[Int32]
   stack : Array[Int32]
   mut state : Int32
   mut p : Int32
@@ -135,20 +143,20 @@ fn Lexer::open_token(
 ) -> Unit raise @errors.PeleError {
   // pele pushes a token's first line and column into one array with its last, so the push that
   // would pass V8's longest array throws as the token opens.
-  if self.locs.length() + 2 > @util.JS_ARRAY_MAX_LENGTH {
+  if 4 * self.first_lines.length() + 2 > @util.JS_ARRAY_MAX_LENGTH {
     raise @errors.nested_too_deeply()
   }
   self.types.push(kind)
   self.texts.push(text)
   self.starts.push(self.p)
-  self.locs.push(self.line)
-  self.locs.push(self.col)
+  self.first_lines.push(self.line)
+  self.first_columns.push(self.col)
 }
 
 ///|
 fn Lexer::close_token(self : Lexer) -> Unit {
-  self.locs.push(self.line)
-  self.locs.push(self.col)
+  self.last_lines.push(self.line)
+  self.last_columns.push(self.col)
 }
 
 ///|
@@ -1196,7 +1204,10 @@ pub fn tokenize(src : String) -> Tokens raise @errors.PeleError {
     types: [],
     texts: [],
     starts: [],
-    locs: [],
+    first_lines: [],
+    first_columns: [],
+    last_lines: [],
+    last_columns: [],
     stack: [],
     state: S_INITIAL,
     p: 0,
@@ -1247,6 +1258,9 @@ fn Lexer::tokens(self : Lexer) -> Tokens {
     types: self.types,
     texts: self.texts,
     starts: self.starts,
-    locs: self.locs,
+    first_lines: self.first_lines,
+    first_columns: self.first_columns,
+    last_lines: self.last_lines,
+    last_columns: self.last_columns,
   }
 }

@@ -6,9 +6,8 @@ fn lex(source : String) -> String raise {
   let tokens = @agentflow.tokenize(source)
   let lines = []
   for i, kind in tokens.types {
-    let l = tokens.locs
     lines.push(
-      "\{@agentflow.token_names[kind]}@\{tokens.starts[i]} \{quote(tokens.texts[i])} \{l[4 * i]}:\{l[4 * i + 1]}-\{l[4 * i + 2]}:\{l[4 * i + 3]}",
+      "\{@agentflow.token_names[kind]}@\{tokens.starts[i]} \{quote(tokens.texts[i])} \{tokens.first_lines[i]}:\{tokens.first_columns[i]}-\{tokens.last_lines[i]}:\{tokens.last_columns[i]}",
     )
   }
   lines.join("\n")
