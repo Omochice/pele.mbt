@@ -136,9 +136,11 @@ const NESTING = [
   ['label of nested tags', { text: `graph TD\nA["${'<b>'.repeat(DEEP)}x${'</b>'.repeat(DEEP)}"]\n` }],
   ['label of nested emphasis', { text: 'graph TD\nA["`' + '**a _b '.repeat(DEEP) + 'x' + ' b_ a**'.repeat(DEEP) + '`"]\n' }],
   ['config option of nested objects', { text: 'graph TD\nA-->B\n', options: { config: JSON.parse(`{"x":${deepObject}}`) } }],
-  // pele writes this one with String(), whose recursion outgrows V8's stack between these two depths.
+  // pele writes this one with String(), whose recursion runs out of V8's stack at a depth that varies
+  // with the platform and the process, about 2,750 with node 24 on arm64 macOS, while the port writes
+  // it to the end, so the cases stay at depths where pele's String() still gets through.
   ['legend position of 1,000 nested arrays', { text: legendPosition(1000) }],
-  ['legend position of 5,000 nested arrays', { text: legendPosition(5000) }],
+  ['legend position of 2,000 nested arrays', { text: legendPosition(2000) }],
 ];
 
 function legendPosition(depth) {

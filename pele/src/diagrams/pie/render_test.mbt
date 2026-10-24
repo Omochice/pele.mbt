@@ -19,7 +19,7 @@ fn outcome(source : String) -> String {
 }
 
 ///|
-test "a legend position nested deeper than String() goes in pele is a limit" {
+test "a legend position nested thousands of arrays deep is written to the end" {
   let nested = (depth : Int32) => {
     "%%{init: {\"pie\": {\"legendPosition\": " +
     "[".repeat(depth) +
@@ -27,11 +27,10 @@ test "a legend position nested deeper than String() goes in pele is a limit" {
     "]".repeat(depth) +
     "}}}%%\npie\n\"a\": 1"
   }
-  inspect(outcome(nested(2800)), content="ok")
-  inspect(
-    outcome(nested(2801)),
-    content="limit Diagram is nested too deeply. pie pie",
-  )
+  let left = svg(nested(0))
+  inspect(outcome(nested(5000)), content="ok")
+  assert_eq(svg(nested(5000)), left)
+  assert_eq(svg(nested(12000)), left)
 }
 
 ///|

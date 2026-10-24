@@ -18,3 +18,7 @@ They are accepted as constraints rather than reproduced, because each would need
 The port also differs from pele on an init directive nested deeply enough, where pele's recursive merge runs V8 out of stack and keeps only the keys it merged before that.
 The depth where that happens varies with the platform and the process: about 4,468 objects on arm64 macOS with node 24, and deeper on x86_64 Linux.
 The port does not cut the merge off on purpose and applies every key of such a directive, so the two agree below the depth where pele stops and differ past it.
+
+The port also differs from pele on a pie `legendPosition` nested deeply enough in arrays, where pele's `String()` joins the arrays by recursion, runs V8 out of stack and fails the diagram as nested too deeply.
+The depth where that happens varies with the platform and the process: about 2,750 levels with node 24's default stack on arm64 macOS, against about 760 with a 300 KB stack and 11,500 with 4 MB.
+The port does not cut the stringification off on purpose and writes such a legend position to the end, so the two agree below the depth where pele stops and differ past it.

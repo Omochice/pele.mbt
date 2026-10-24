@@ -6,8 +6,6 @@ pub const BACKTRACK_STACK_SLOTS : Int64 = 16777184
 
 pub const JS_ARRAY_MAX_LENGTH : Int32 = 134217728
 
-pub const JS_STRING_MAX_DEPTH : Int32 = 2800
-
 pub fn backtrack_stack_overflows(Int64) -> Bool
 
 pub fn code_at(String, Int32) -> Int32
@@ -41,8 +39,6 @@ pub fn js_min(Double, Double) -> Double
 pub fn js_number(Json) -> Double
 
 pub fn js_string(Json) -> String
-
-pub fn js_string_too_deep(Json) -> Bool
 
 pub fn js_truthy(Json) -> Bool
 
