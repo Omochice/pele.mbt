@@ -166,17 +166,16 @@ export const CASES = [
   ['sequence', 'host icons in one message label', `sequenceDiagram\nA->>B: ${Array(5400).fill('fa:fa-x').join(' ')}\n`, ICONS],
   // A participant without an alias is labelled with its name, which its data-ids and lifeline repeat.
   lazy('sequence', 'one participant named by many &', () => `sequenceDiagram\nparticipant ${'&'.repeat(54000000)}\n`, RAISED),
-  // pele fails this while parsing, because its pattern for a quoted string runs out of V8's
-  // backtracking stack past 4194294 characters; the port, which has no such stack, fails as the
-  // id is written twice past V8's longest string, with the same error.
+  // pele fails this while lexing, because its pattern for a quoted string runs out of V8's
+  // backtracking stack past 4194294 characters, and the port fails there too, as it counts the
+  // slots the pattern would take.
   lazy('git', 'one commit id of many &', () => `gitGraph\ncommit id: "${'&'.repeat(54000000)}"\n`, RAISED),
   // An entry's name is written in its data-id and as its text.
   lazy('treeview', 'one entry named by many &', () => `treeView-beta\n  "${'&'.repeat(54000000)}"\n`, RAISED),
   lazy('treeview', 'one entry described by many &', () => `treeView-beta\n  a "${'&'.repeat(110000000)}"\n`, RAISED),
   ['wardley', 'host icons in one anchor label', `wardley-beta\nanchor "${Array(5400).fill('fa:fa-x').join(' ')}" [0.5, 0.5]\n`, ICONS],
   ['wardley', 'host icons in one link label', `wardley-beta\ncomponent A [0.2, 0.2]\ncomponent B [0.8, 0.8]\nA->B; ${Array(5400).fill('fa:fa-x').join(' ')}\n`, ICONS],
-  // pele fails this while parsing, as it does a commit id of the same length; the port fails as
-  // the slice's and the legend item's data-ids and the label pass V8's longest string.
+  // pele and the port fail this while lexing, as they do a commit id of the same length.
   lazy('pie', 'one entry named by many &', () => `pie\n"${'&'.repeat(54000000)}": 1\n`, RAISED),
   lazy('eventmodeling', 'one frame with data of many &', () => `eventmodeling\ntf 01 evt E "${'&'.repeat(110000000)}"\n`, RAISED),
   lazy('eventmodeling', 'one frame with data drawn past what a doubling StringBuilder holds', () => `eventmodeling\ntf 01 evt E "${'&'.repeat(60000000)}"\n`, RAISED),
@@ -187,16 +186,14 @@ export const CASES = [
   // A task's and a section's text are written in their data-ids and as their labels.
   lazy('journey', 'one task of many &', () => `journey\nsection S\n  ${'&'.repeat(54000000)}: 5: Me\n`, RAISED),
   lazy('journey', 'one section of many &', () => `journey\nsection ${'&'.repeat(54000000)}\n  T: 5: Me\n`, RAISED),
-  // pele fails this while parsing, as it does a commit id of the same length; the port fails as
-  // the field's label, drawn down for a narrow host, passes V8's longest string.
+  // pele and the port fail this while lexing, as they do a commit id of the same length.
   lazy('packet', 'one field of many &, drawn down', () => `packet\n0-31: "${'&'.repeat(62000000)}"\n`, { ...RAISED, maxWidth: 300 }),
   // A point's name is written in its data-id and as its label.
   lazy('quadrant', 'one point named by many &', () => `quadrantChart\n${'&'.repeat(54000000)}: [0.5, 0.5]\n`, RAISED),
-  // pele fails these while parsing, as it does a commit id past 4194294 characters; the port fails
-  // as the label passes V8's longest string.
+  // pele and the port fail these while lexing, as they do a commit id past 4194294 characters.
   lazy('radar', 'one axis labelled by many &', () => `radar-beta\naxis a["${'&'.repeat(110000000)}"]\n`, RAISED),
   lazy('radar', 'one curve labelled by many &', () => `radar-beta\naxis a\ncurve c["${'&'.repeat(110000000)}"]{1}\n`, RAISED),
-  // A quoted terminal fails in pele while parsing past 4194294 characters; a special sequence does not.
+  // A quoted terminal fails while lexing past 4194294 characters; a special sequence does not.
   lazy('railroad', 'one special sequence of many &', () => `railroad-ebnf-beta\nr = ? ${'&'.repeat(110000000)} ? ;\n`, RAISED),
   lazy('sankey', 'one node named by many &', () => `sankey\n\nA${'&'.repeat(54000000)},B,1\n`, RAISED),
   // A period's and a section's text are written in their data-ids and as their labels.
