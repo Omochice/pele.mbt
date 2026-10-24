@@ -31,7 +31,7 @@ process.env.TZ = 'UTC';
 const self = fileURLToPath(import.meta.url);
 const root = join(dirname(self), '..');
 const goldenDir = join(root, 'golden');
-const wasmPath = join(root, '_build/wasm/release/build/plugin/plugin.wasm');
+const wasmPath = join(root, '_build/wasm/release/build/Omochice/pele-typst/plugin/plugin.wasm');
 const { render, detectType } = await import(join(peleRoot, 'dist/pele.js'));
 
 // pele reports a stack overflow as "nested too deeply", so its outcome depends on the stack it runs on.

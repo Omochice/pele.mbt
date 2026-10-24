@@ -8,7 +8,7 @@ The checks differ in where the inputs come from and in how far past ordinary siz
 Every check is run from the repository root.
 The flake's default development shell, entered with `nix develop`, provides `moon`, node 24 and `typst`.
 
-The checks that load the plugin read `_build/wasm/release/build/plugin/plugin.wasm`, so the plugin has to be built first.
+The checks that load the plugin read `_build/wasm/release/build/Omochice/pele-typst/plugin/plugin.wasm`, so the plugin has to be built first.
 
 ```sh
 moon build --target wasm --release
@@ -24,9 +24,9 @@ Gantt reads a date-only value as UTC midnight but floors its axis ticks to local
 
 ## moon test
 
-`moon test` runs the unit tests and the tests that pin pele's behavior in each package under `pele/src/`.
-`moon.work` at the repository root makes the module under `pele/` a member of one workspace, so moon is run from the root.
-`pele/moon.mod` names wasm as the preferred target, so no target has to be given.
+`moon test` runs the unit tests and the tests that pin pele's behavior in each package under `pele/src/` and `typst/src/`.
+`moon.work` at the repository root makes the library under `pele/` and the plugin under `typst/` members of one workspace, so moon run from the root checks, tests and builds both.
+Both `moon.mod` files name wasm as the preferred target, so no target has to be given.
 `pele/src/diagrams/flowchart/golden_cases_test.mbt` is generated, as [Regenerating](#regenerating) describes, and holds for every flowchart golden source what pele's `parse()` makes of it.
 
 ### Skipped tests
@@ -38,7 +38,7 @@ The argument of each `#skip` states why, and the reasons are the two below.
 - 16 of them also hold a string of 2^28 code units or more, which `moon test` cannot check because it runs the allocator moonc links in unmended, as [the allocator bug](allocator-bug.md) describes.
 
 `scripts/check-string-length.mjs` checks the same inputs instead, through the plugin with its allocator mended: most cases in `scripts/string-length-cases.mjs` are the same as a test in a diagram's `string_length_test.mbt`.
-The four skipped tests outside the diagrams, three in `pele/src/svg/escape_test.mbt` and one in `pele/src/typst/drawable_test.mbt`, cover the escape writers and the theme's rewrite of a style, which that check reaches through whole diagrams and through the theme typst sends.
+The four skipped tests outside the diagrams, three in `pele/src/svg/escape_test.mbt` and one in `typst/src/typst/drawable_test.mbt`, cover the escape writers and the theme's rewrite of a style, which that check reaches through whole diagrams and through the theme typst sends.
 
 ## Golden fixtures
 

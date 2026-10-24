@@ -12,7 +12,7 @@ This ceiling is the one intentional, platform-imposed difference from pele: ever
 
 ## The answer
 
-The plugin answers with JSON, which `pele/src/plugin/response.mbt` first counts and then writes into one block of its final size, so the SVG is held only once more however long it is.
+The plugin answers with JSON, which `typst/src/plugin/response.mbt` first counts and then writes into one block of its final size, so the SVG is held only once more however long it is.
 A failure is answered the same way, because its message can quote a whole line of the source, and a syntax error's snippet and message are built at their final size before that.
 typst reads the answer from one block of the plugin's memory, so an answer over 1000000000 bytes fails instead with the `limit` error "Diagram output is longer than the typst plugin can return: its JSON response would pass the plugin's limit of 1000000000 bytes.", tagged with the diagram's type, or for a failure with the failure's.
 
@@ -56,7 +56,7 @@ Each has a case named for the text it fills, such as "host icons in one node lab
 The requirement diagram draws no host icons, so its case fills a field with math instead; a kanban card breaks its label to fit its column, so its case keeps math typeset almost without width on one line; and a C4 label draws each icon span only as an empty box, so its cases hold millions of spans.
 
 The few texts that are rewritten before they are written are built at their final size instead: `plain_text` in `pele/src/diagrams/common/fit.mbt`, which escapes a journey or timeline title before it is wrapped into lines, the use case's `literal`, a syntax error's snippet, and the style that typst's theme rewrites.
-The theme rewrites each tag of the SVG as `write_drawable` in `pele/src/typst/` copies it into the answer, and `rebuild` in `pele/src/typst/declarations.mbt` makes a new style only where a declaration changes.
+The theme rewrites each tag of the SVG as `write_drawable` in `typst/src/typst/` copies it into the answer, and `rebuild` in `typst/src/typst/declarations.mbt` makes a new style only where a declaration changes.
 `inline` in `pele/src/text/label.mbt` takes a line's text as slices of the source rather than copying it, and `@util.slice` shares the strings of one or two ASCII code units, so a source lexed into tens of millions of one-character tokens does not hold a string for each.
 
 pele reads a quoted string in the git graph, pie, packet, radar, Wardley map, Cynefin, architecture and a railroad terminal with a pattern that runs out of V8's backtracking stack past 4194294 characters, and reports that as the `limit` error while lexing, so a quoted label there reaches V8's longest string only through host icons the label draws; their cases of `&` fail in pele and in the port while lexing, as [V8's backtracking stack](#v8s-backtracking-stack) describes.

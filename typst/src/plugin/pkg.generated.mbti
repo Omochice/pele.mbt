@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "Omochice/pele/plugin"
+package "Omochice/pele-typst/plugin"
 
 // Values
 pub fn render(Int32, Int32) -> Int32

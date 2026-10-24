@@ -21,5 +21,5 @@ if (build.error) {
 if (build.status !== 0) process.exit(build.status ?? 1);
 
 const target = join(root, 'typst/package/plugin.wasm');
-writeFileSync(target, fixAllocator(readFileSync(join(root, '_build/wasm/release/build/plugin/plugin.wasm'))));
+writeFileSync(target, fixAllocator(readFileSync(join(root, '_build/wasm/release/build/Omochice/pele-typst/plugin/plugin.wasm'))));
 console.log(`copied the plugin, with its allocator mended, to ${target}`);

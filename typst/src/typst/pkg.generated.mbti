@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "Omochice/pele/typst"
+package "Omochice/pele-typst/typst"
 
 // Values
 pub fn hoist_radii(String) -> String

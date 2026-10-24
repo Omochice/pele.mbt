@@ -36,7 +36,7 @@ import {
   "Omochice/pele/errors",
   "Omochice/pele/text",
   "Omochice/pele/types",
-  "Omochice/pele/typst",
+  "Omochice/pele-typst/typst",
   "Omochice/pele/util",
   "moonbitlang/core/encoding/utf8",
 }

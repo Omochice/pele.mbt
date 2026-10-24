@@ -15,7 +15,7 @@ import { loadPlugin } from './plugin-host.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const goldenDir = join(root, 'golden');
-const wasmPath = join(root, '_build/wasm/release/build/plugin/plugin.wasm');
+const wasmPath = join(root, '_build/wasm/release/build/Omochice/pele-typst/plugin/plugin.wasm');
 
 // Diagrams whose goldens are expected to pass. The others are reported as skipped, not failed,
 // so the list grows as diagrams are ported.

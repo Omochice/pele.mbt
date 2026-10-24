@@ -37,7 +37,7 @@ process.env.TZ = 'UTC';
 
 const self = fileURLToPath(import.meta.url);
 const root = join(dirname(self), '..');
-const wasmPath = join(root, '_build/wasm/release/build/plugin/plugin.wasm');
+const wasmPath = join(root, '_build/wasm/release/build/Omochice/pele-typst/plugin/plugin.wasm');
 // gen-golden pins the same clock, so gantt charts do not depend on the day the check runs.
 const NOW = 1767225600000;
 

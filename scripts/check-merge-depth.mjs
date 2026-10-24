@@ -27,7 +27,7 @@ import { peleRoot } from './pele-root.mjs';
 import { loadPlugin } from './plugin-host.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const wasmPath = join(root, '_build/wasm/release/build/plugin/plugin.wasm');
+const wasmPath = join(root, '_build/wasm/release/build/Omochice/pele-typst/plugin/plugin.wasm');
 const options = JSON.parse(readFileSync(join(root, 'golden/manifest.json'), 'utf8')).profiles.default;
 
 const { values: flags } = parseArgs({

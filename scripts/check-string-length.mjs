@@ -28,7 +28,7 @@ import { CASES } from './string-length-cases.mjs';
 process.env.TZ = 'UTC';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const wasmPath = join(root, '_build/wasm/release/build/plugin/plugin.wasm');
+const wasmPath = join(root, '_build/wasm/release/build/Omochice/pele-typst/plugin/plugin.wasm');
 
 // The maximum the port assumes; 32-bit V8 builds and other engines allow a different length,
 // and pele's outcomes there are not the ones the port reproduces.
