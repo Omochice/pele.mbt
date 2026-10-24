@@ -7,7 +7,7 @@
 // smaller than the request.
 // This raises the bound to round below to the highest one whose rounding stays in the table, and
 // makes the allocator trap rather than search for anything past it.
-// golden/README.md, under "Allocator", shows the failure in a few lines of MoonBit.
+// doc/allocator-bug.md shows the failure in a few lines of MoonBit.
 
 /**
  * The bound below which the allocator rounds a request up, and in which the rounding of a block
@@ -97,7 +97,7 @@ export function fixAllocator(bytes) {
     const found = occurrences(out, code, from);
     if (found.length !== count) {
       throw new Error(
-        `expected ${what} ${count} times in the plugin's code, found it ${found.length} times; see "Allocator" in golden/README.md`,
+        `expected ${what} ${count} times in the plugin's code, found it ${found.length} times; see doc/allocator-bug.md`,
       );
     }
     for (const at of found) out.set(to, at);
