@@ -210,7 +210,18 @@ jobs:
           if-no-files-found: ignore
 
   report:
-    needs: [moon]
+    needs:
+      # keep-sorted start
+      - flake-check
+      - fuzz
+      - generated
+      - golden
+      - moon
+      - stress
+      - typst
+      # keep-sorted end
+    # Runs after a failed check too, so the comment shows which check failed; status-check still fails.
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -226,8 +237,19 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          name: coverage
+          # A pattern, unlike a name, matches nothing without failing when the moon job uploaded no report.
+          pattern: coverage
           path: _build/coverage
+          merge-multiple: true
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: checks-*
+          path: _build/checks
+          merge-multiple: true
+      - name: Table the checks for octocov
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: nix develop --command node scripts/merge-checks.mjs _build/checks _build/checks.json
       - name: Expose Nix-provided octocov on PATH
         run: |
           nix develop --command bash <<'EOF' >> "$GITHUB_PATH"
@@ -235,7 +257,9 @@ jobs:
           octocov_path="$(command -v octocov)"
           dirname "$octocov_path"
           EOF
-      - name: Report coverage
+      - name: Report coverage and the checks
+        env:
+          OCTOCOV_CUSTOM_METRICS_CHECKS: _build/checks.json
         uses: k1LoW/octocov-action@a167dc0dee441b7ffc45e1b862ab55ec0d87f278 # v1.5.2
         with:
           config: octocov.yaml
