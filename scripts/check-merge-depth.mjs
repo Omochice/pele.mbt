@@ -14,7 +14,7 @@
 // environment of a process take stack too, so each input is rendered by scripts/pele-render.mjs in
 // a fresh process with an empty environment, the repository as its working directory, and nothing
 // on its command line but that script's relative path.
-// The bound the port reproduces is MERGE_MAX_DEPTH in src/preprocess/preprocess.mbt.
+// The bound the port reproduces is MERGE_MAX_DEPTH in pele/src/preprocess/preprocess.mbt.
 
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';

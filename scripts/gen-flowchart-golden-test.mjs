@@ -1,5 +1,5 @@
-// Writes src/diagrams/flowchart/golden_cases_test.mbt: for every flowchart golden source, what pele's parse() makes of it under the default profile.
-// A failure is written as its code, type and message, which must match the golden's; a success as a hash of the model's dump, which src/diagrams/flowchart/dump_test.mbt writes in the same form as `dump` below.
+// Writes pele/src/diagrams/flowchart/golden_cases_test.mbt: for every flowchart golden source, what pele's parse() makes of it under the default profile.
+// A failure is written as its code, type and message, which must match the golden's; a success as a hash of the model's dump, which pele/src/diagrams/flowchart/dump_test.mbt writes in the same form as `dump` below.
 // Sources that pele detects as another diagram type are left out.
 //
 // Usage: node scripts/gen-flowchart-golden-test.mjs [--dumps <dir>]
@@ -13,7 +13,7 @@ import { peleRoot } from './pele-root.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const goldenDir = join(root, 'golden/flowchart');
-const out = join(root, 'src/diagrams/flowchart/golden_cases_test.mbt');
+const out = join(root, 'pele/src/diagrams/flowchart/golden_cases_test.mbt');
 const { parse } = await import(join(peleRoot, 'dist/pele.js'));
 const manifest = JSON.parse(readFileSync(join(root, 'golden/manifest.json'), 'utf8'));
 const profile = manifest.profiles.default;
@@ -60,7 +60,7 @@ function dump(db) {
   return lines.join('\n');
 }
 
-// FNV-1a over UTF-16 code units, as `fnv1a` in src/diagrams/flowchart/golden_test.mbt.
+// FNV-1a over UTF-16 code units, as `fnv1a` in pele/src/diagrams/flowchart/golden_test.mbt.
 function fnv1a(text) {
   let h = 0x811c9dc5;
   for (let i = 0; i < text.length; i++) {

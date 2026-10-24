@@ -47,7 +47,7 @@ function outcome(error) {
   return { name: error.name, code: error.code ?? null, message: error.message, type: error.type ?? null, mermaidType: error.mermaidType ?? null };
 }
 
-// The most code units the wasm port holds, as src/svg/markup.mbt's HOLD_LIMIT; past it the port
+// The most code units the wasm port holds, as pele/src/svg/markup.mbt's HOLD_LIMIT; past it the port
 // returns a limit error where pele still draws, the one platform-imposed difference from pele.
 const HOLD_LIMIT = 400000000;
 

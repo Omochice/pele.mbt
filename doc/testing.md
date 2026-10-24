@@ -24,20 +24,21 @@ Gantt reads a date-only value as UTC midnight but floors its axis ticks to local
 
 ## moon test
 
-`moon test` runs the unit tests and the tests that pin pele's behavior in each package under `src/`.
-`moon.mod` names wasm as the preferred target, so no target has to be given.
-`src/diagrams/flowchart/golden_cases_test.mbt` is generated, as [Regenerating](#regenerating) describes, and holds for every flowchart golden source what pele's `parse()` makes of it.
+`moon test` runs the unit tests and the tests that pin pele's behavior in each package under `pele/src/`.
+`moon.work` at the repository root makes the module under `pele/` a member of one workspace, so moon is run from the root.
+`pele/moon.mod` names wasm as the preferred target, so no target has to be given.
+`pele/src/diagrams/flowchart/golden_cases_test.mbt` is generated, as [Regenerating](#regenerating) describes, and holds for every flowchart golden source what pele's `parse()` makes of it.
 
 ### Skipped tests
 
-280 tests are marked `#skip`, all but four of them in the `string_length_test.mbt` of each diagram under `src/diagrams/`.
+280 tests are marked `#skip`, all but four of them in the `string_length_test.mbt` of each diagram under `pele/src/diagrams/`.
 The argument of each `#skip` states why, and the reasons are the two below.
 
 - Every one is slow, because it lexes, escapes or draws millions to hundreds of millions of code units, as an input near V8's longest string or its backtracking stack takes.
 - 16 of them also hold a string of 2^28 code units or more, which `moon test` cannot check because it runs the allocator moonc links in unmended, as [the allocator bug](allocator-bug.md) describes.
 
 `scripts/check-string-length.mjs` checks the same inputs instead, through the plugin with its allocator mended: most cases in `scripts/string-length-cases.mjs` are the same as a test in a diagram's `string_length_test.mbt`.
-The four skipped tests outside the diagrams, three in `src/svg/escape_test.mbt` and one in `src/typst/drawable_test.mbt`, cover the escape writers and the theme's rewrite of a style, which that check reaches through whole diagrams and through the theme typst sends.
+The four skipped tests outside the diagrams, three in `pele/src/svg/escape_test.mbt` and one in `pele/src/typst/drawable_test.mbt`, cover the escape writers and the theme's rewrite of a style, which that check reaches through whole diagrams and through the theme typst sends.
 
 ## Golden fixtures
 
@@ -58,7 +59,7 @@ The check needs no pele checkout, since the goldens hold pele's output.
 ### Regenerating
 
 The goldens are regenerated with `node scripts/gen-golden.mjs` from a built pele checkout, as [golden/README.md](../golden/README.md#regenerating) describes.
-`src/diagrams/flowchart/golden_cases_test.mbt` is generated from the goldens and pele's `parse()`, so it is regenerated after them.
+`pele/src/diagrams/flowchart/golden_cases_test.mbt` is generated from the goldens and pele's `parse()`, so it is regenerated after them.
 
 ```sh
 node scripts/gen-golden.mjs
@@ -100,7 +101,7 @@ By default the plugin runs under node, rewritten to trap past the call frames ty
 `scripts/check-merge-depth.mjs` renders init directives nested around the depth where pele's config merge runs out of stack, through pele and through the plugin, and compares them byte for byte.
 Where that merge stops depends on how much stack is left and on whether the process has rendered before, so these inputs cannot join the goldens, which one warm process renders.
 Each input is therefore rendered by `scripts/pele-render.mjs` in a fresh process with an empty environment.
-The bound the port reproduces is `MERGE_MAX_DEPTH` in `src/preprocess/preprocess.mbt`.
+The bound the port reproduces is `MERGE_MAX_DEPTH` in `pele/src/preprocess/preprocess.mbt`.
 
 ```sh
 node scripts/check-merge-depth.mjs
@@ -146,4 +147,4 @@ The modules below are not run on their own but shared by the checks above, or ru
 - `scripts/pele-render.mjs` renders one source read from stdin with pele and prints the outcome as JSON, so that a caller controls the stack pele starts from.
 - `scripts/plugin-options.mjs` turns the plugin's JSON forms of `icons`, `math` and `measurer` back into pele's callbacks, and is the reference for what that data means.
 - `scripts/string-length-cases.mjs` holds the inputs of the string length check.
-- `scripts/gen-letters.mjs` writes `src/util/letters.mbt`, the code points of `[\p{L}\p{N}]` as the running node sees them, because pele checks font names with that class and MoonBit's core library has no Unicode property tables.
+- `scripts/gen-letters.mjs` writes `pele/src/util/letters.mbt`, the code points of `[\p{L}\p{N}]` as the running node sees them, because pele checks font names with that class and MoonBit's core library has no Unicode property tables.

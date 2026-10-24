@@ -1,4 +1,4 @@
-// Writes src/util/letters.mbt: the code points of `[\p{L}\p{N}]` as the running node sees them.
+// Writes pele/src/util/letters.mbt: the code points of `[\p{L}\p{N}]` as the running node sees them.
 // pele checks font names with that class, and MoonBit's core library has no Unicode property tables.
 //
 // Usage: node scripts/gen-letters.mjs
@@ -41,4 +41,4 @@ pub fn is_letter_or_number(code_point : Int) -> Bool {
   in_ranges(letter_ranges, code_point)
 }
 `;
-writeFileSync(join(root, 'src/util/letters.mbt'), source);
+writeFileSync(join(root, 'pele/src/util/letters.mbt'), source);

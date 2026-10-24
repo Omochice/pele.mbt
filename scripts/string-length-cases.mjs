@@ -1,7 +1,7 @@
 // The inputs scripts/check-string-length.mjs renders, as [diagram, name, source, options].
 // The options are in the JSON form the plugin reads, so an icon resolver is a map from name to fragment.
 // Every diagram has sources whose drawing comes near or past V8's longest string, most of them the
-// same as a test in src/diagrams/<diagram>/string_length_test.mbt, which skips the slow ones.
+// same as a test in pele/src/diagrams/<diagram>/string_length_test.mbt, which skips the slow ones.
 // Every case builds its source and options only when the check reaches it, so that a check of one
 // diagram holds no other diagram's inputs and only one of its own at a time.
 
