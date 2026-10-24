@@ -153,7 +153,6 @@ test "a relationship of an entity named past V8's longest string fails as nested
   )
 }
 
-
 ///|
 #skip("slow, and moon test runs wasm's allocator unmended, which can give a block of 512 MiB or more a smaller one; check-string-length checks it through the mended plugin")
 test "an entity named by 2^28 or more letters, written twice, fails as nested too deeply" {
@@ -171,4 +170,3 @@ test "an entity named by 2^28 or more letters, written twice, fails as nested to
   }
   inspect(failure, content="limit: Diagram is nested too deeply. er er")
 }
-

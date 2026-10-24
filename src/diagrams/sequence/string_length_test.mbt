@@ -149,7 +149,6 @@ test "a block color escaped past V8's longest string fails as nested too deeply"
   )
 }
 
-
 ///|
 #skip("slow, and moon test runs wasm's allocator unmended, which can give a block of 512 MiB or more a smaller one; check-string-length checks it through the mended plugin")
 test "a message of 2^28 or more letters is drawn" {
@@ -164,4 +163,3 @@ test "a message of 2^28 or more letters is drawn" {
     ).svg
   inspect(svg.length(), content="270002422")
 }
-

@@ -155,7 +155,6 @@ test "an internal link escaped past V8's longest string fails as nested too deep
   )
 }
 
-
 ///|
 /// The outcome of rendering `source` with no source limit, with an error's message cut to its
 /// length unless it is the limit error.
@@ -202,8 +201,6 @@ test "a style of one & per token fails as nested too deeply one token past the 2
   )
 }
 
-
-
 ///|
 #skip("slow, and moon test runs wasm's allocator unmended, which can give a block of 512 MiB or more a smaller one; check-string-length checks it through the mended plugin")
 test "an agent named by 2^28 or more letters, written twice, fails as nested too deeply" {
@@ -212,4 +209,3 @@ test "an agent named by 2^28 or more letters, written twice, fails as nested too
     content="limit: Diagram is nested too deeply. agentflow agentflow",
   )
 }
-

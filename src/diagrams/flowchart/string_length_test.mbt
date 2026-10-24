@@ -245,7 +245,6 @@ test "a subgraph id escaped past what a doubling StringBuilder holds is drawn as
   )
 }
 
-
 ///|
 fn unlimited() -> @types.RenderOptions {
   {
@@ -274,4 +273,3 @@ test "a node label of 2^28 or more letters is drawn" {
     ).svg
   inspect(svg.length(), content="270001025")
 }
-

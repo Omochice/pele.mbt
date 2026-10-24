@@ -129,7 +129,6 @@ test "a lane named past V8's longest string fails as nested too deeply" {
   )
 }
 
-
 ///|
 #skip("slow: reads a node id of 270 million characters")
 test "a node id of 2^28 or more letters in a lane, written twice, fails as nested too deeply" {
@@ -154,4 +153,3 @@ test "a node id of 2^28 or more letters in a lane, written twice, fails as neste
     content="limit: Diagram is nested too deeply. swimlane swimlane",
   )
 }
-
