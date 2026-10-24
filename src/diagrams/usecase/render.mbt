@@ -56,7 +56,9 @@ priv enum Kind {
 priv struct View {
   node : UsecaseGraphNode
   mut kind : Kind
+  /// The attributes of the style, with stand-ins for the CSS of `css`.
   style : @svg.ResolvedStyle
+  css : @svg.RawStyle
   mut label : @text.Label
   stereotype : @text.Label
   /// The size of what is drawn; the layout box is larger when the node carries a self-relationship.
@@ -86,8 +88,22 @@ fn number_option(
 ///|
 /// A plain label is shown as written: no tags, no markdown, no `\n` breaks.
 /// Its markup characters are handed to the label parser as character references, which it turns back into characters.
-fn literal(text : String) -> String {
-  let out = StringBuilder()
+/// Raises pele's `limit` error where the references make the text longer than V8 allows.
+fn literal(text : String) -> String raise @errors.PeleError {
+  let mut length = text.length()
+  for i in 0..<text.length() {
+    let c = @util.code_at(text, i)
+    // Each of these codes has two digits, so its reference has five code units.
+    if c == 38 || c == 60 || c == 62 || c == 92 {
+      if length > @svg.MAX_STRING_LENGTH - 4 {
+        raise @errors.nested_too_deeply()
+      }
+      length += 4
+    }
+  }
+  // Sized to the escaped text, because a doubling builder past 2^28 code units asks wasm for a
+  // block of 1 GiB that it refuses, and a label of tens of millions of `&` escapes past that.
+  let out = StringBuilder(size_hint=length * 2)
   for i in 0..<text.length() {
     let c = @util.code_at(text, i)
     if c == 38 || c == 60 || c == 62 || c == 92 {
@@ -107,7 +123,7 @@ fn text(
   size : Double,
   wrap : Double,
   base~ : Int32 = 0,
-) -> @text.Label {
+) -> @text.Label raise @errors.PeleError {
   let shown = match raw {
     Some(text) if !markdown => Some(literal(text))
     _ => raw
@@ -285,36 +301,58 @@ fn mark(
 }
 
 ///|
-/// The drawing of an actor, centered on its figure.
-fn figure(view : View, icons : @types.IconResolver?) -> String {
+/// Writes the drawing of an actor, centered on its figure.
+fn write_figure(
+  out : @svg.Markup,
+  view : View,
+  icons : @types.IconResolver?,
+) -> Unit raise @errors.PeleError {
   let node = view.node
   let shape = view.style.shape
   let line = " fill=\"none\" stroke=\"var(--_b)\"\{view.style.line}"
   let mut head = -21.0
   let mut radius = 9.0
-  let out = match node.actor_type {
+  match node.actor_type {
     Some("hollow") => {
       radius = 8
-      "<circle cy=\"-21\" r=\"8\" fill=\"var(--_bg)\" stroke=\"var(--_b)\"\{shape}/>" +
-      "<path d=\"M-20,-9H20V0H5.5L20,15.5L12,25.5L0,12L-12,25.5L-20,15.5L-5.5,0H-20Z\" fill=\"var(--_bg)\" stroke=\"var(--_b)\" stroke-linejoin=\"round\"\{shape}/>"
+      @svg.write_styled(
+        out,
+        "<circle cy=\"-21\" r=\"8\" fill=\"var(--_bg)\" stroke=\"var(--_b)\"\{shape}/>" +
+        "<path d=\"M-20,-9H20V0H5.5L20,15.5L12,25.5L0,12L-12,25.5L-20,15.5L-5.5,0H-20Z\" fill=\"var(--_bg)\" stroke=\"var(--_b)\" stroke-linejoin=\"round\"\{shape}/>",
+        view.css,
+      )
     }
     Some("awesome") =>
-      "<path d=\"M0,-30A11,11 0 1 1 0,-8A11,11 0 1 1 0,-30ZM-20,25C-20,9 -12,-3 0,-3C12,-3 20,9 20,25C20,28 18,30 15,30H-15C-18,30 -20,28 -20,25Z\" fill=\"var(--_b)\"\{shape}/>"
+      @svg.write_styled(
+        out,
+        "<path d=\"M0,-30A11,11 0 1 1 0,-8A11,11 0 1 1 0,-30ZM-20,25C-20,9 -12,-3 0,-3C12,-3 20,9 20,25C20,28 18,30 15,30H-15C-18,30 -20,28 -20,25Z\" fill=\"var(--_b)\"\{shape}/>",
+        view.css,
+      )
     Some("icon") => {
       head = -14
       radius = 12
-      "<rect x=\"-22\" y=\"-26\" width=\"44\" height=\"44\"\{@svg.rounded(SHAPE_ATTRS + shape)}/>" +
-      @common.icon_svg(node.icon.unwrap_or(""), -14, -18, 28, icons?)
+      @svg.write_styled(
+        out,
+        "<rect x=\"-22\" y=\"-26\" width=\"44\" height=\"44\"\{@svg.rounded(SHAPE_ATTRS + shape)}/>",
+        view.css,
+      )
+      @common.write_icon(out, node.icon.unwrap_or(""), -14, -18, 28, icons?)
     }
     _ =>
-      "<circle cy=\"-21\" r=\"9\"\{SHAPE_ATTRS}\{shape}/><path d=\"M0,-12V10M-14,-3H14M0,10L-12,30M0,10L12,30\"\{line}/>"
+      @svg.write_styled(
+        out,
+        "<circle cy=\"-21\" r=\"9\"\{SHAPE_ATTRS}\{shape}/><path d=\"M0,-12V10M-14,-3H14M0,10L-12,30M0,10L12,30\"\{line}/>",
+        view.css,
+      )
   }
   if node.business is Some(true) {
     // The slash of a business actor: a chord across the lower right of the head.
-    return out +
-      "<path class=\"pele-business\" d=\"M\{@svg.num(0.12 * radius)},\{@svg.num(head + 0.99 * radius)}L\{@svg.num(0.92 * radius)},\{@svg.num(head - 0.39 * radius)}\"\{line}/>"
+    @svg.write_styled(
+      out,
+      "<path class=\"pele-business\" d=\"M\{@svg.num(0.12 * radius)},\{@svg.num(head + 0.99 * radius)}L\{@svg.num(0.92 * radius)},\{@svg.num(head - 0.39 * radius)}\"\{line}/>",
+      view.css,
+    )
   }
-  out
 }
 
 ///|
@@ -361,19 +399,29 @@ fn write_left_label(
   x : Double,
   cy : Double,
   attrs : String,
+  css : String,
   icons? : @types.IconResolver,
 ) -> Unit raise @errors.PeleError {
   if label.lines.length() < 2 {
-    @svg.write_label(out, label, x + label.width / 2, cy, attrs, icons?)
+    @svg.write_label_styled(
+      out,
+      label,
+      x + label.width / 2,
+      cy,
+      attrs,
+      css,
+      icons?,
+    )
     return
   }
   for i in 0..<label.lines.length() {
-    @svg.write_label(
+    @svg.write_label_styled(
       out,
       @text.label_line(label, i),
       x + label.widths[i] / 2,
       cy - label.height / 2 + @text.line_middle(label, i),
       attrs,
+      css,
       icons?,
     )
   }
@@ -443,13 +491,14 @@ fn draw(
   let views : Array[View] = []
   let cnodes : Array[@layout.CNode] = []
   for node in graph.nodes {
-    let style = @svg.resolve_style(
+    let css = @svg.resolve_raw_style(
       if node.css_styles.length() > 0 {
         node.css_compiled_styles + node.css_styles
       } else {
         node.css_compiled_styles
       },
     )
+    let style = css.slots()
     let base = (if style.bold { @text.STYLE_BOLD } else { 0 }) |
       (if style.italic { @text.STYLE_ITALIC } else { 0 })
     let font_size = style.font_size.unwrap_or(size)
@@ -466,6 +515,7 @@ fn draw(
       node,
       kind: Box,
       style,
+      css,
       label: stereotype,
       stereotype,
       w: 0,
@@ -686,7 +736,6 @@ fn draw(
       strip_prefix(node.css_classes, "default", false),
     )
     let id = @svg.esc_text(node.id)
-    let text_attrs = view.style.text
     let shape = view.style.shape
     let w = view.w
     let h = view.h
@@ -694,35 +743,41 @@ fn draw(
       let x = c.x - c.w / 2
       let y = c.y - c.h / 2
       let box = " fill=\"var(--_a)\" fill-opacity=\"0.5\" stroke=\"var(--_b)\"\{shape}"
-      let title_attrs = " class=\"pele-cluster-label\" fill=\"var(--_m)\"\{text_attrs}"
+      let title_attrs = " class=\"pele-cluster-label\" fill=\"var(--_m)\""
       clusters.write(
         "<g class=\"pele-cluster pele-boundary\{classes}\" data-id=\"\{id}\">",
       )
       if node.boundary_type is Some("package") {
         let tab_w = @util.js_min(view.label.width + 2 * TAB_PAD + 8, c.w)
         let tab_h = view.label.height + 2 * TAB_PAD
-        clusters.write(
+        @svg.write_styled(
+          clusters,
           "<rect class=\"pele-boundary-tab\" x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(tab_w)}\" height=\"\{@svg.num(tab_h)}\"\{box}/>" +
           "<rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y + tab_h)}\" width=\"\{@svg.num(c.w)}\" height=\"\{@svg.num(c.h - tab_h)}\"\{box}/>",
+          view.css,
         )
-        @svg.write_label(
+        @svg.write_label_styled(
           clusters,
           view.label,
           x + tab_w / 2,
           y + tab_h / 2,
           title_attrs,
+          view.css.text,
           icons?=options.icons,
         )
       } else {
-        clusters.write(
+        @svg.write_styled(
+          clusters,
           "<rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(c.w)}\" height=\"\{@svg.num(c.h)}\"\{@svg.rounded(box)}/>",
+          view.css,
         )
-        @svg.write_label(
+        @svg.write_label_styled(
           clusters,
           view.label,
           title_x(c, view.label.width, crossings),
           y + 8 + view.label.height / 2,
           title_attrs,
+          view.css.text,
           icons?=options.icons,
         )
       }
@@ -738,8 +793,10 @@ fn draw(
           FIGURE_GAP +
           view.stereotype.height / 2
         body.write(
-          "<g class=\"pele-actor-figure\" transform=\"translate(0,\{@svg.num(top + FIGURE_H / 2)})\">\{figure(view, options.icons)}</g>",
+          "<g class=\"pele-actor-figure\" transform=\"translate(0,\{@svg.num(top + FIGURE_H / 2)})\">",
         )
+        write_figure(body, view, options.icons)
+        body.write("</g>")
         @svg.write_label(
           body,
           view.stereotype,
@@ -748,12 +805,13 @@ fn draw(
           " class=\"pele-stereotype\" font-size=\"\{tiny}\" fill=\"var(--_m)\"",
           icons?=options.icons,
         )
-        @svg.write_label(
+        @svg.write_label_styled(
           body,
           view.label,
           0,
           h / 2 - view.label.height / 2,
-          " class=\"pele-label\"\{text_attrs}",
+          " class=\"pele-label\"",
+          view.css.text,
           icons?=options.icons,
         )
         "pele-actor"
@@ -786,21 +844,25 @@ fn draw(
             value,
             x0 + view.key_w + CELL_PAD,
             y + row_h / 2,
-            " class=\"pele-json-value\"\{text_attrs}",
+            " class=\"pele-json-value\"",
+            view.css.text,
             icons?=options.icons,
           )
           y += row_h
         }
-        body.write(
+        @svg.write_styled(
+          body,
           "<rect x=\"\{@svg.num(x0)}\" y=\"\{@svg.num(-h / 2)}\" width=\"\{@svg.num(w)}\" height=\"\{@svg.num(h)}\"\{@svg.rounded(SHAPE_ATTRS + shape)}/>" +
           "<path class=\"pele-json-lines\" d=\"\{lines}\" fill=\"none\" stroke=\"var(--_b)\"\{view.style.line}/>",
+          view.css,
         )
-        @svg.write_label(
+        @svg.write_label_styled(
           body,
           view.label,
           0,
           -h / 2 + view.head_h / 2,
-          " class=\"pele-label\" font-weight=\"var(--_hw)\"\{text_attrs}",
+          " class=\"pele-label\" font-weight=\"var(--_hw)\"",
+          view.css.text,
           icons?=options.icons,
         )
         body.write_group("<g font-size=\"\{small}\">", cells, "</g>")
@@ -836,7 +898,7 @@ fn draw(
           )
         }
         let note_size = if note { " font-size=\"\{small}\"" } else { "" }
-        body.write(outline)
+        @svg.write_styled(body, outline, view.css)
         @svg.write_label(
           body,
           view.stereotype,
@@ -845,12 +907,13 @@ fn draw(
           " class=\"pele-stereotype\" font-size=\"\{tiny}\" fill=\"var(--_m)\"",
           icons?=options.icons,
         )
-        @svg.write_label(
+        @svg.write_label_styled(
           body,
           view.label,
           0,
           view.stereotype.height / 2,
-          " class=\"pele-label\"\{note_size}\{text_attrs}",
+          " class=\"pele-label\"\{note_size}",
+          view.css.text,
           icons?=options.icons,
         )
         kind
@@ -868,12 +931,8 @@ fn draw(
   for i, ce in cedges {
     let edge = drawn[i]
     let label = edge_labels[i]
-    let style = if edge.style.length() > 0 ||
-      edge.css_compiled_styles.length() > 0 {
-      Some(@svg.resolve_style(edge.css_compiled_styles + edge.style))
-    } else {
-      None
-    }
+    let css = @svg.resolve_raw_style(edge.css_compiled_styles + edge.style)
+    let style = css.slots()
     let start_type = edge.arrow_type_start
     let end_type = edge.arrow_type_end
     let path : @svg.EdgePath = if ce.src == ce.dst {
@@ -940,8 +999,8 @@ fn draw(
       }
       @svg.route_path(ce.route, None, trim(start_type), trim(end_type))
     }
-    let color = match style {
-      Some({ stroke: Some(stroke), .. }) if stroke != "" => @svg.esc(stroke)
+    let color = match css.stroke {
+      Some(stroke) if stroke != "" => @svg.STROKE_CSS
       _ => "var(--_l)"
     }
     // Mermaid animates these dashes.
@@ -958,31 +1017,30 @@ fn draw(
     let edge_classes = @svg.class_names(
       strip_prefix(edge.classes, "default relationship relationship-", true),
     )
-    let line = match style {
-      Some(resolved) => resolved.line
-      None => ""
-    }
-    edges_out.write(
-      "<g class=\"pele-edge pele-\{edge.relationship_type}\{edge_classes}\" data-id=\"\{@svg.esc_text(edge.id)}\"\{line}>" +
+    @svg.write_styled(
+      edges_out,
+      "<g class=\"pele-edge pele-\{edge.relationship_type}\{edge_classes}\" data-id=\"\{@svg.esc_text(edge.id)}\"\{style.line}>" +
       "<path d=\"\{path.d}\"\{dashes}/>" +
       mark(start_type, path.sx, path.sy, path.sdx, path.sdy, color) +
       mark(end_type, path.ex, path.ey, path.edx, path.edy, color) +
       "</g>",
+      css,
     )
     if label.width > 0 {
       let semantic = edge.relationship_type == "include" ||
         edge.relationship_type == "extend"
-      let text_attrs = match style {
-        Some(resolved) => resolved.text
-        None => ""
-      }
-      @svg.write_edge_label(
+      @svg.write_edge_label_with_id(
         labels_out,
         edge.id,
         label,
         ce.label_x,
         ce.label_y,
-        (if semantic { " fill=\"var(--_m)\"" } else { "" }) + text_attrs,
+        if semantic {
+          " fill=\"var(--_m)\""
+        } else {
+          ""
+        },
+        css=css.text,
         icons?=options.icons,
       )
     }
