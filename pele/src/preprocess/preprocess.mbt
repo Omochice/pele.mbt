@@ -63,16 +63,6 @@ fn js_entries(fields : Map[String, Json]) -> Array[(String, Json)] {
 }
 
 ///|
-/// How many objects deep pele's recursive `merge` reaches before V8 runs out of stack, counting the directive's own object.
-/// pele catches the RangeError together with the directive's JSON errors, so a deeper directive keeps only what was merged before the stack ran out.
-/// The reach depends on everything that takes stack before the merge, so the reference is one fixed invocation: `render()` of pele's dist/pele.js called by scripts/pele-render.mjs in a fresh process of node v24.21.0 (V8 13.6.233.17-node.53, arm64 macOS) with the default stack size and JIT flags, an empty environment, and nothing on the command line but that script's relative path, where 4,468 objects merge and 4,469 do not in each of 40 runs.
-/// The goldens come from a warm process that inherits a shell's environment, so they cannot stand for it: the arguments and the environment sit at the top of the main thread's stack, and every 200 bytes or so of them costs pele one object, while a warm process may already run `merge` compiled with smaller frames.
-/// When every level loops over another key before going deeper, V8 compiles `merge` in the background partway down and pele reaches about 6,000 objects or fewer depending on when the compiled code arrives.
-/// Such a source is at least 11 characters per object, so past this bound only a few dozen more objects fit in the default limit of 50,000 characters.
-/// No fixed depth matches that race, so the bound is the reach of the merge V8 does not compile.
-const MERGE_MAX_DEPTH : Int32 = 4468
-
-///|
 /// One object being merged, as one call of pele's recursive `merge` holds it.
 priv struct MergeFrame {
   into : Map[String, Json]
@@ -84,8 +74,8 @@ priv struct MergeFrame {
 
 ///|
 /// Objects being merged wait on a stack of their own, so nesting is limited by memory and not by the call stack.
-/// The stack walks the objects in the order pele's recursion does and stores a fresh copy only once it is complete, as pele's `target[key] = merge({}, value)` does, so that a merge stopped partway leaves what pele's leaves.
-/// It stops where pele's stops, at `MERGE_MAX_DEPTH`.
+/// pele's recursion stops wherever V8 runs out of stack and keeps what it merged so far, but that depth varies with the platform and the process, so the port does not cut the merge off on purpose.
+/// The stack walks the objects in the order pele's recursion does and stores a fresh copy once it is complete, as pele's `target[key] = merge({}, value)` does.
 fn merge(target : @types.Config, source : @types.Config) -> @types.Config {
   let frames = [
     { into: target, from: js_entries(source), next: 0, attach: None, },
@@ -102,10 +92,6 @@ fn merge(target : @types.Config, source : @types.Config) -> @types.Config {
     frame.next += 1
     if is_unsafe_key(key) {
       continue
-    }
-    if value is Object(_) && frames.length() == MERGE_MAX_DEPTH {
-      // The fresh copies still on the stack are never stored, as pele never returns to store them.
-      break
     }
     match (value, is_record(frame.into.get(key))) {
       (Object(incoming), Some(current)) =>
