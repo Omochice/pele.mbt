@@ -671,16 +671,18 @@ fn draw(
     let y = project_y(annotation.y)
     let r = @util.js_max(10, label.width / 2 + 4)
     bounds.grow(x - r, y - r, x + r, y + r)
-    let mark = "<circle cx=\"\{@svg.num(x)}\" cy=\"\{@svg.num(y)}\" r=\"\{@svg.num(r)}\" fill=\"var(--_bg)\" stroke=\"\{LINE}\"/>" +
-      @svg.label_svg(
-        label,
-        x,
-        y,
-        " font-size=\"\{tiny}\" font-weight=\"var(--_hw)\"",
-      )
     annotations.write(
-      "<g class=\"pele-wardley-annotation\" data-id=\"\{@svg.esc_text(annotation.number.to_string())}\">\{mark}</g>",
+      "<g class=\"pele-wardley-annotation\" data-id=\"\{@svg.esc_text(annotation.number.to_string())}\">" +
+      "<circle cx=\"\{@svg.num(x)}\" cy=\"\{@svg.num(y)}\" r=\"\{@svg.num(r)}\" fill=\"var(--_bg)\" stroke=\"\{LINE}\"/>",
     )
+    @svg.write_label(
+      annotations,
+      label,
+      x,
+      y,
+      " font-size=\"\{tiny}\" font-weight=\"var(--_hw)\"",
+    )
+    annotations.write("</g>")
   }
   let listed = stable_sorted(model.annotations.filter(a => a.text != ""), a => {
     a.number
