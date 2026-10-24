@@ -3,7 +3,6 @@
     "version": "1.8.0",
     "commit": "1dd58b7ebb0ec654fa7dc4304d50cf8fd3a65d7b"
   },
-  "node": "v24.21.0",
   "timeZone": "UTC",
   "profiles": {
     "default": {

@@ -307,7 +307,6 @@ writeFileSync(
   join(goldenDir, 'manifest.json'),
   json({
     pele,
-    node: process.version,
     timeZone: process.env.TZ,
     profiles,
     diagrams: counts,
