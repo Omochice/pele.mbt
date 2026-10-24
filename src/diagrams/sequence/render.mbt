@@ -906,7 +906,7 @@ fn draw(
 
   // Shaded blocks and activations close from the inside out.
   // They are written in reverse, so that the inner ones end up on top.
-  let rects_out : Array[String] = []
+  let rects_out : Array[@svg.Markup] = []
   let activations_out : Array[@svg.Markup] = []
   let frames_out = @svg.Markup::new()
   let edges_out = @svg.Markup::new()
@@ -1001,15 +1001,22 @@ fn draw(
       let x = n(frame.x0)
       let w = n(frame.x1 - frame.x0)
       if frame.kind == "rect" {
-        let fill = if frame.fill != "" {
-          @svg.resolve_style(["fill:" + frame.fill]).shape
-        } else {
-          ""
-        }
-        let opacity = if fill != "" { "" } else { " fill-opacity=\"0.5\"" }
-        rects_out.push(
-          "<rect class=\"pele-rect\" x=\"\{x}\" y=\"\{n(frame.top)}\" width=\"\{w}\" height=\"\{n(bottom - frame.top)}\"\{@svg.rounded(opacity + fill)}/>",
+        let css = @svg.resolve_raw_style(
+          if frame.fill != "" {
+            ["fill:" + frame.fill]
+          } else {
+            []
+          },
         )
+        let fill = css.slots().shape
+        let opacity = if fill != "" { "" } else { " fill-opacity=\"0.5\"" }
+        let rect = @svg.Markup::new()
+        @svg.write_styled(
+          rect,
+          "<rect class=\"pele-rect\" x=\"\{x}\" y=\"\{n(frame.top)}\" width=\"\{w}\" height=\"\{n(bottom - frame.top)}\"\{@svg.rounded(opacity + fill)}/>",
+          css,
+        )
+        rects_out.push(rect)
       } else {
         let inner = @svg.Markup::new()
         inner.write(
@@ -1394,14 +1401,6 @@ fn draw(
     }
   }
 
-  fn reversed(pieces : Array[String]) -> @svg.Markup raise @errors.PeleError {
-    let out = @svg.Markup::new()
-    for piece in pieces.rev_iter() {
-      out.write(piece)
-    }
-    out
-  }
-
   fn reversed_markup(
     pieces : Array[@svg.Markup],
   ) -> @svg.Markup raise @errors.PeleError {
@@ -1413,7 +1412,10 @@ fn draw(
   }
 
   group("<g class=\"pele-boxes\" font-size=\"\{small}\">", boxes_out)
-  group("<g class=\"pele-rects\" fill=\"var(--_a)\">", reversed(rects_out))
+  group(
+    "<g class=\"pele-rects\" fill=\"var(--_a)\">",
+    reversed_markup(rects_out),
+  )
   group(
     "<g class=\"pele-lifelines\" fill=\"none\" stroke=\"var(--_b)\">", lifelines,
   )
