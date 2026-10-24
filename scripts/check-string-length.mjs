@@ -11,6 +11,9 @@
 // PELE_ROOT points at a pele checkout with dist/ when vendor/pele is not initialized.
 // Each input makes pele and the plugin produce hundreds of millions of characters, so a case takes
 // half a minute or more, and the plugin may grow its memory to 4 GiB.
+// Node's default heap holds every case but some of the journey, quadrant, railroad, timeline,
+// usecase and xychart ones, where pele itself needs more, so those diagrams are checked under
+// NODE_OPTIONS=--max-old-space-size=20480.
 
 import { constants } from 'node:buffer';
 import { dirname, join } from 'node:path';

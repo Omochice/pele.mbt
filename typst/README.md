@@ -135,13 +135,15 @@ A diagram that fits to its width is also drawn several times so their widths can
 So the plugin stops at 400000000 code units of SVG, a little above half of V8's longest string: a drawing larger than that fails with the `limit` error "Diagram output is too large for the wasm port: it would hold more than 400000000 code units, the most the port can hold at once.", tagged with the diagram's type, where pele would still draw it.
 The several-render fit path at that ceiling peaks at about 3.1 GiB, inside wasm's 4 GiB.
 
-This ceiling is the one intentional, platform-imposed difference from pele: every input whose SVG is at most 400000000 code units is drawn byte for byte as pele draws it, and only inputs between the ceiling and V8's longest string, which pele draws and a wasm32 plugin cannot hold, come out as this `limit` error rather than as a drawing.
-A second guard covers a response whose bytes, rather than code units, would not fit one of wasm's memory blocks: a JSON response over 1000000000 bytes, which a drawing under the code-unit ceiling reaches only when it is almost all non-ASCII text, fails with a `limit` error naming that byte limit.
+This ceiling is the one intentional, platform-imposed difference from pele: every input whose SVG is at most 400000000 code units is drawn byte for byte as pele draws it, apart from the few enormous inputs that `golden/README.md` lists under "Known constraints", and only inputs between the ceiling and V8's longest string, which pele draws and a wasm32 plugin cannot hold, come out as this `limit` error rather than as a drawing.
+A second guard covers a response whose bytes, rather than code units, would not fit one of wasm's memory blocks: a JSON response over 1000000000 bytes fails with a `limit` error naming that byte limit.
+It covers a failure as well as a drawing, since a failure's message can quote a whole line of the source; a drawing under the code-unit ceiling reaches it only when it is almost all non-ASCII text.
 
 ## Limitations
 
 - The outline of a cluster title is not drawn when `surface-alt` or `bg` is a color the plugin cannot mix, as listed under [Theme](#theme).
 - A diagram whose SVG would be longer than 400000000 code units fails with a `limit` error rather than being drawn, as described under [Output ceiling](#output-ceiling).
+- A few inputs of tens to hundreds of millions of characters trap the plugin where pele draws or rejects them, as `golden/README.md` lists under "Known constraints".
 
 ## Checking
 

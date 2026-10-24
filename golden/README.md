@@ -149,15 +149,19 @@ It rounds to hundredths and drops trailing zeros, so a port has to reproduce it 
 
 pele builds its SVG by string concatenation, and V8 throws a `RangeError` once a string would pass 536870888 UTF-16 code units, the longest string it makes on a 64-bit host.
 pele reports that as the `limit` error "Diagram is nested too deeply." before it checks its own output limit, so an input whose SVG crosses that length fails there even under the default options.
-The port reproduces this: `src/svg/markup.mbt` tracks a drawing's length as it is assembled and raises the same error at the same point.
-`scripts/check-string-length.mjs` renders, through pele's dist and through the plugin, one amplifying input per diagram that can reach it, and checks the three bands against each other: an input pele rejects, one pele draws within the port's reach, and one pele draws past it.
-`scripts/string-length-cases.mjs` lists the inputs.
+The port reproduces this: `Markup` in `src/svg/markup.mbt` keeps a drawing as pieces, counts its length as each piece is written, and raises the same error at the same point.
 
 The port stops below V8's longest string.
-It runs as wasm32 with one linear memory of at most 4 GiB, and holds a drawing's pieces, the single string made of them, and the UTF-8 bytes of the response at once, a fit diagram several times over, so it stops at 400000000 code units of SVG (`HOLD_LIMIT` in `src/svg/markup.mbt`).
+It runs as wasm32 with one linear memory of at most 4 GiB, and holds a drawing's pieces, the single string made of them, and the UTF-8 bytes of the response at once, so it stops at 400000000 code units of SVG (`HOLD_LIMIT` in `src/svg/markup.mbt`).
 An SVG larger than that, which pele draws and a wasm32 plugin cannot hold, fails with the `limit` error "Diagram output is too large for the wasm port: it would hold more than 400000000 code units, the most the port can hold at once.", tagged with the diagram's type.
 pele checks its output limit against such a drawing as against any other, so the port does as well, from the length it keeps of a drawing it does not hold: under the default output limit, or any output limit below the drawing's length, the drawing fails with pele's "Diagram output is longer than the limit of N characters.", and only one the output limit allows fails with the port's error; the flowchart case "edges pele draws past the port but under V8, under the default output limit" checks it.
-This ceiling is the one intentional, platform-imposed difference from pele; every SVG at or under it is drawn byte for byte as pele draws it.
+This ceiling is the one intentional, platform-imposed difference from pele: every SVG at or under it is drawn byte for byte as pele draws it, apart from the enormous inputs listed under [Known constraints](#known-constraints).
+
+### The answer
+
+The plugin answers with JSON, which `src/plugin/response.mbt` first counts and then writes into one block of its final size, so the SVG is held only once more however long it is.
+A failure is answered the same way, because its message can quote a whole line of the source, and a syntax error's snippet and message are built at their final size before that.
+typst reads the answer from one block of the plugin's memory, so an answer over 1000000000 bytes fails instead with the `limit` error "Diagram output is longer than the typst plugin can return: its JSON response would pass the plugin's limit of 1000000000 bytes.", tagged with the diagram's type, or for a failure with the failure's.
 
 ### Which diagrams can reach it
 
@@ -166,7 +170,7 @@ Every diagram that writes a `classDef` or `style` into each of many elements can
 The `limit` option caps only the length of the source, so once it is raised a diagram also reaches the ceiling by count alone, because an element draws hundreds of code units from a source line of a dozen and few diagrams cap how many elements they draw.
 Repeated text amplifies further, because `&` escapes to five code units and an element often writes its name both in its `data-id` and in its label.
 
-The flowchart (and the swimlane it renders through), class, state, ER, block, agentflow, requirement, treemap, use case, architecture, C4, Cynefin, Gantt, kanban, mindmap, sequence, git graph, tree view, Wardley map, pie, event model, Ishikawa, journey, packet, quadrant, radar, railroad, sankey, timeline, Venn, XY chart, and info diagrams build their SVG with `Markup` and so fail with a `limit` error where pele does; each has an amplifying input in `scripts/string-length-cases.mjs` and a skipped test in `src/diagrams/<diagram>/string_length_test.mbt`.
+Every diagram builds its SVG with `Markup`, so each fails with a `limit` error where pele does, and each has amplifying inputs in `scripts/string-length-cases.mjs` and tests, skipped where they are slow, in `src/diagrams/<diagram>/string_length_test.mbt`.
 The C4 diagram draws no host markup, only an empty icon box of about 260 code units for each icon span in a label, so it reaches V8's longest string only from a source of tens of millions of code units under a raised `limit`.
 The git graph draws neither host icons nor styles but writes each `&` of a commit id as five code units twice, in the commit's `data-id` and in its label, so that with the `limit` option raised a source a tenth of V8's longest string reaches the ceiling.
 Some diagrams reach the ceiling only past a cap that looks as if it bounded them:
@@ -184,23 +188,31 @@ The journey case "long tasks, drawn down within the port after across past it" a
 
 The info diagram draws only its title and pele's version, so no part of it repeats; it reaches the ceiling only through a single title or accessible description, and its cases check both where pele draws them and where pele fails.
 
-Every diagram's accessible name and description reach the ceiling the same way.
-`markup_document` writes them into the document's `Markup` with `Markup::write_esc`, which escapes a piece of the text at a time, and holds them with the content, so they fail with the `limit` error where pele does and count toward the hold limit; the info and pie cases check it.
+### Long text
 
-A single label can reach the ceiling on its own, however small the diagram, because each of its icon spans draws the host's drawing of the icon and each of its `$$…$$` spans draws the host's math markup.
-`write_label`, `write_edge_label` and `write_struck_title` in `src/svg/` write a label to `Markup` with each host drawing as a piece of its own, and `label_svg`, `edge_label_svg` and `struck_title` make their strings from them, aborting past V8's longest string since a string result has no error to carry.
-The flowchart writes its node labels, cluster titles and edge labels with them, and the swimlane its lane titles, so those fail with the `limit` error where pele does; the cases "host icons in one node label", "one node label longer than a doubling StringBuilder holds" and "host icons in one lane title" check it.
-`write_label` escapes the text of each span with `Markup::write_esc` as well, so a label of tens of millions of `&` is never escaped into one string; `with_title_markup`, the info diagram and the sequence diagram write their titles with it, which the info and sequence cases check.
-The class, state, ER, block, agentflow, use case, requirement, architecture, C4, Cynefin, Gantt and kanban diagrams write their labels with them as well, and the C4 diagram its boundary labels with `write_left_label` in `src/diagrams/common/`, so a label of many host drawings fails there with the `limit` error too; each has a case named for the label it fills.
+A single text can reach the ceiling on its own, however small the diagram: a label of thousands of host icons or `$$…$$` spans, each drawing the host's markup, or a label, id or style of tens of millions of `&`, each escaped to five code units.
+Apart from the inputs under [Known constraints](#known-constraints), none of these is built as one string before it is written, because a `StringBuilder` doubles its buffer and wasm's allocator refuses the block of 1 GiB that would follow 2^28 code units, while `Markup` keeps a long piece as it is and allocates the whole drawing at its final size.
+The writers that put such text into `Markup` are these:
+
+- `Markup::write_esc`, `Markup::write_esc_text` and `Markup::write_data_id` in `src/svg/escape.mbt` escape 65536 code units at a time, and search each escaped piece together with the end of the one before for the private aliases, such as `var(--_w)`, that the root element declares.
+- `write_label`, `write_edge_label` and `write_struck_title` in `src/svg/` and `write_left_label` in `src/diagrams/common/` write each span's text with the escape writers and each host drawing as a piece of its own, and `write_label_styled` and `write_label_with_id` add a style and an id written the same way.
+- `write_style`, `write_rounded_style` and `write_styled` in `src/svg/style_writers.mbt` write the style that `resolve_raw_style` makes of a `classDef` or `style` a piece at a time, and `write_icon` in `src/diagrams/common/` writes an icon's name and drawing apart.
+
+Every diagram writes its labels, titles, ids, tooltips, links, icon names, styles and axis labels with these writers, and `markup_document` writes the accessible name and description with them as well, holding them with the content so that they count toward the hold limit.
+Each has a case named for the text it fills, such as "host icons in one node label", "one tooltip of many &" or "a title past V8", and the info and pie cases check the accessible text.
 The requirement diagram draws no host icons, so its case fills a field with math instead; a kanban card breaks its label to fit its column, so its case keeps math typeset almost without width on one line; and a C4 label draws each icon span only as an empty box, so its cases hold millions of spans.
-Every diagram writes its title, from front matter or from its own title statement, to its `Markup` with `write_label`, so a title that escapes past V8's longest string fails with the `limit` error where pele does; each diagram's case "a title past V8", or "a front matter title past V8" where the diagram has no title statement, checks it.
-The journey and timeline diagrams lay their titles out as plain text, which escapes every `<` before the title is wrapped into lines, so `plain_text` in `src/diagrams/common/fit.mbt` builds the escaped text at its final size and `inline` in `src/text/label.mbt` takes a line's text as slices of the source rather than copying it into a doubling StringBuilder; their cases "a front matter title wrapped past what a doubling StringBuilder holds" check that a title of seventy million `<` is drawn as pele draws it.
-A Gantt chart without tasks draws only its title, and its case "a title over no tasks longer than a doubling StringBuilder holds" checks that such a title is drawn whole.
 
-`write_esc` and `write_esc_text` in `src/svg/escape.mbt` write escaped text to `Markup` a chunk at a time, and `write_label` writes each span's text with them, because a span of tens of millions of `&` escapes to more than a doubling StringBuilder holds; `write_left_label` in `src/diagrams/common/` writes a label drawn line by line from its start.
-The mindmap, sequence, git graph, tree view, Wardley map, pie, event model, Ishikawa, journey, packet, quadrant, radar, railroad, sankey, timeline, Venn and XY chart diagrams write their labels, and the data-ids and titles that repeat a label's text, with these writers, so one label of thousands of host icons or of tens of millions of `&` fails with the `limit` error where pele does; the cases from the mindmap's "host icons in one node label" on check it, and only the Wardley map's annotation numbers, each a number of at most 24 code units as JavaScript writes it, are still written with `label_svg`.
-pele reads a quoted string in the git graph, pie, packet, radar, Wardley map, Cynefin, architecture and a railroad terminal with a pattern that runs out of V8's backtracking stack past 4194294 characters, and reports that as the `limit` error while parsing, so a quoted label there reaches V8's longest string only through host icons the label draws; their cases of `&` fail in pele and in the port while lexing, as the next section describes.
-pele runs out of memory laying out a timeline event or a quadrant label of a hundred million characters, so those labels have no case past V8's longest string.
+The few texts that are rewritten before they are written are built at their final size instead: `plain_text` in `src/diagrams/common/fit.mbt`, which escapes a journey or timeline title before it is wrapped into lines, the use case's `literal`, a syntax error's snippet, and the style that typst's theme rewrites.
+The theme rewrites each tag of the SVG as `write_drawable` in `src/typst/` copies it into the answer, and `rebuild` in `src/typst/declarations.mbt` makes a new style only where a declaration changes.
+`inline` in `src/text/label.mbt` takes a line's text as slices of the source rather than copying it, and `@util.slice` shares the strings of one or two ASCII code units, so a source lexed into tens of millions of one-character tokens does not hold a string for each.
+
+pele reads a quoted string in the git graph, pie, packet, radar, Wardley map, Cynefin, architecture and a railroad terminal with a pattern that runs out of V8's backtracking stack past 4194294 characters, and reports that as the `limit` error while lexing, so a quoted label there reaches V8's longest string only through host icons the label draws; their cases of `&` fail in pele and in the port while lexing, as [V8's backtracking stack](#v8s-backtracking-stack) describes.
+
+### V8's longest array
+
+V8 holds at most 2^27 elements in an array grown by pushing, `JS_ARRAY_MAX_LENGTH` in `src/util/js_array.mbt`, and pele reports the `RangeError` of a push past it as "Diagram is nested too deeply.".
+pele's agentflow lexer keeps four numbers per token in one array, so it fails on opening its 2^25 + 1st token, and the port's agentflow lexer raises the same error there; the agentflow cases "a style of 2^25 - 16 &, the most tokens pele lexes" and "a style of 2^25 - 15 &, one token more than pele lexes" check both sides of it.
+pele cuts a label too wide for its box among `Array.from` of its code points, so a label of more than 2^27 code points fails as nested too deeply, and `fit_text` in `src/diagrams/common/` raises the same; the treemap cases "a leaf label of 2^27 a, cut among as many code points as V8 holds" and "a leaf label of 2^27 + 1 a, one code point past what V8 holds" check it.
 
 ### Allocator
 
@@ -231,8 +243,10 @@ This is a bug in MoonBit's runtime, to be reported upstream with the program abo
 It raises the bound below which `searchBlock` and `growMemory` round a request up to 1040187393 bytes, the highest at which rounding up by as much as 2^25 - 1 bytes stays below 2^30, the first size past the table, and lowers the largest request `prepareSize` lets through from 1073741820 to 1040187388 bytes, so that a request too large to round traps rather than corrupting memory.
 No block can therefore pass 1040187380 bytes, 32 MiB less than before, which the port reaches only with a source of more than 520 million characters, near V8's longest string.
 `scripts/build-typst.mjs` writes the mended plugin to `typst/plugin.wasm`, and `scripts/plugin-host.mjs` mends the plugin it loads, so every check runs the allocator typst runs; both fail when the allocator's code is not as expected, as after an upgrade of moonc, which then has to be checked for the same bug.
-`moon test` runs the allocator unmended, so its tests that hold a string of 2^28 code units or more pass only because they make that request in a heap without a smaller free block of its class.
 The git graph cases "a branch named by 140M a, drawn into a block of 512 MiB or more" and "a branch named by 270M a, read into a block of 512 MiB or more" check the mended plugin, and the first fails without the mend.
+
+`moon test` runs the allocator unmended, so the tests that hold a string of 2^28 code units or more are skipped, and `scripts/check-string-length.mjs` checks the same inputs through the mended plugin.
+The Gantt test "an axis label formatted past what a doubling StringBuilder holds is drawn as pele draws it" shows why: its drawing of 273001582 code units comes out exactly 2^20 code units short under the unmended allocator, in a fresh instance of the plugin built in debug or release alike, and matches pele once the allocator is mended.
 
 ### V8's backtracking stack
 
@@ -255,3 +269,27 @@ They do not depend on the rest of the input, except for the font list, whose pat
 A closed `"` string therefore fails past 4194294 characters or escape pairs, and a `'` string or one left unclosed, which runs to the end of the text, past 4194295.
 Every other pattern in pele's sources repeats only single characters, greedily or lazily, which V8 matches without keeping slots, except the tree view's bare name, which pele never runs because a scanner of its own answers for it.
 Each pattern has cases in `scripts/string-length-cases.mjs` named "at V8's backtracking stack", each next to one "just short of" it, and tests next to its scanner or skipped ones in the diagrams' `string_length_test.mbt`.
+
+### Checking against pele
+
+`scripts/check-string-length.mjs` renders each case of `scripts/string-length-cases.mjs` through pele's dist and through the plugin, and checks it in one of three bands: an input pele rejects, one pele draws within the port's reach, and one pele draws past it.
+It runs pele with `TZ=UTC`, as the goldens are made, and renders each drawing within the port's reach again through the theme typst sends, which has to answer without trapping.
+Each case builds its source only when the check reaches it, so a check of one diagram holds only the case it renders, and `node scripts/check-string-length.mjs <diagram>` runs in node's default heap for every diagram but the journey, quadrant, railroad, timeline, use case and XY chart, where pele itself runs out of that heap on some case and the check needs `NODE_OPTIONS=--max-old-space-size=20480`.
+The plugin's memory on the largest cases comes close to wasm's 4 GiB: it grows to the whole 4 GiB on the event model case "time frames sharing long data, drawn down", which it draws, and on the styled flowchart, swimlane, ER, requirement and agentflow cases, which end in a `limit` error in both, and to 3831 MiB on the info, sequence and class drawings of 270M letters.
+
+### Known constraints
+
+The port still differs from pele, or cannot be compared with it, on the inputs below, each of tens to hundreds of millions of characters.
+On the first seven the plugin traps, by refusing an allocation or running out of memory, where pele draws the diagram or fails it with a `limit` error; the first six were each rendered through pele and through the plugin to confirm it.
+They are accepted as constraints rather than reproduced, because each would need another part of the port to be rebuilt around pieces.
+
+- A `classDef` or `style` value of about 270 million plain letters in a flowchart, class, state, ER, block or agentflow diagram, which pele draws: `resolve_style` and `resolve_raw_style` in `src/svg/` lowercase it with `lower_ascii` in `src/svg/style.mbt` into a doubling `StringBuilder`, which needs more than the largest block wasm's allocator gives.
+- A kanban card label of about 270 million plain letters, which pele fails as nested too deeply: the plugin traps before the card's lines, each written into `Markup` on its own, add up to that length.
+- A label that typesets math under a style or an id of 2^28 code units or more, which pele fails as nested too deeply: `write_label_styled` and `write_label_with_id` give the math its color from their attributes made into one string.
+- An option string of 2^28 code units or more, such as a single host icon drawing, which pele draws: the plugin reads its options with `JsonReader::string` in `src/util/json.mbt` into a doubling `StringBuilder`, and `icon_svg` in `src/diagrams/common/icon.mbt`, which the tree view and the architecture's `icon_slot` draw icons with, makes the icon one string as well.
+- An ER attribute type of about 70 million `~`, which pele draws as an SVG of 280 million code units: `@text.layout_label` lays the attribute's label out from a source of 280 million code units.
+- A source of more than 2^27 tokens in a lexer other than agentflow's, such as a class diagram of 134 million commas: pele fails as nested too deeply on its 2^27 + 1st token, while the port runs out of memory before it gets there.
+- A use case label for which `literal` in `src/diagrams/usecase/render.mbt` makes a string between about 480 million code units and V8's longest string, which wasm cannot allocate where V8 can.
+- pele's arrays of one element per character, `split('')` in `generics.ts`, `Array.from` in `literal-label.ts` and the spread in `sequence/db.ts`, fail past 2^27 elements, and the port is not shown to fail where they do, since no case reaches them.
+- `moon test` runs the allocator unmended, as [Allocator](#allocator) describes, so its tests of 2^28 code units or more are skipped and `scripts/check-string-length.mjs` checks the same inputs instead.
+- A journey task or a timeline event of about 270 million characters, and a timeline event or a quadrant label of a hundred million, run pele itself out of node's heap, so there is no outcome of pele's to compare the port with.
