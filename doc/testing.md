@@ -96,20 +96,6 @@ By default the plugin runs under node, rewritten to trap past the call frames ty
 `--typst` runs it under `typst compile` itself, `$TYPST` or `typst` on `PATH`, which is slow but confirms that emulation.
 `--stack-sizes` computes pele's outcomes again under each given V8 stack size and reports every input whose outcome depends on it, since a `RangeError` from a deep stack is how pele reports nesting as a limit.
 
-## Merge depth
-
-`scripts/check-merge-depth.mjs` renders init directives nested around the depth where pele's config merge runs out of stack, through pele and through the plugin, and compares them byte for byte.
-Where that merge stops depends on how much stack is left and on whether the process has rendered before, so these inputs cannot join the goldens, which one warm process renders.
-Each input is therefore rendered by `scripts/pele-render.mjs` in a fresh process with an empty environment.
-The bound the port reproduces is `MERGE_MAX_DEPTH` in `pele/src/preprocess/preprocess.mbt`.
-
-```sh
-node scripts/check-merge-depth.mjs
-node scripts/check-merge-depth.mjs --measure --runs 5
-```
-
-`--measure` leaves the plugin out and finds by bisection the deepest nesting pele merges, rendering every probe `--runs` times, once by default.
-
 ## String length
 
 `scripts/check-string-length.mjs` renders each case of `scripts/string-length-cases.mjs`, whose drawings come near or past V8's longest string, through pele and through the plugin.
@@ -144,7 +130,6 @@ The modules below are not run on their own but shared by the checks above, or ru
 - `scripts/plugin-host.mjs` hosts the plugin as typst does, through the wasm-minimal-protocol, with its allocator mended as `typst/package/plugin.wasm` ships it, and refuses a plugin that imports anything typst does not provide.
 - `scripts/allocator.mjs` mends the allocator moonc links in, as [the allocator bug](allocator-bug.md) describes.
 - `scripts/call-depth.mjs` rewrites the plugin to count its own call depth and trap past typst's limit, since V8 allows wasm a far deeper stack.
-- `scripts/pele-render.mjs` renders one source read from stdin with pele and prints the outcome as JSON, so that a caller controls the stack pele starts from.
 - `scripts/plugin-options.mjs` turns the plugin's JSON forms of `icons`, `math` and `measurer` back into pele's callbacks, and is the reference for what that data means.
 - `scripts/string-length-cases.mjs` holds the inputs of the string length check.
 - `scripts/gen-letters.mjs` writes `pele/src/util/letters.mbt`, the code points of `[\p{L}\p{N}]` as the running node sees them, because pele checks font names with that class and MoonBit's core library has no Unicode property tables.
