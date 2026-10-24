@@ -1,0 +1,170 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  flake-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: $/.github/actions/setup-nix
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - run: nix flake check
+
+  moon:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: $/.github/actions/setup-nix
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - run: nix develop --command moon check --target wasm --deny-warn
+
+      - run: nix develop --command moon test --target wasm
+
+      - run: nix develop --command moon build --target wasm --release
+
+  golden:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: $/.github/actions/setup-nix
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - run: nix develop --command moon build --target wasm --release
+
+      - run: nix develop --command node scripts/check-golden.mjs
+
+      - run: nix develop --command node scripts/check-merge-depth.mjs
+
+  stress:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: $/.github/actions/setup-nix
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - run: nix develop --command moon build --target wasm --release
+
+      - run: nix develop --command node scripts/check-stress.mjs
+
+  fuzz:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: $/.github/actions/setup-nix
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - run: nix develop --command moon build --target wasm --release
+
+      - run: nix develop --command node scripts/fuzz.mjs --count 500
+
+  typst:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: $/.github/actions/setup-nix
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - run: nix develop --command node scripts/build-typst.mjs
+
+      - run: nix develop --command node scripts/check-typst.mjs
+
+  generated:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: $/.github/actions/setup-nix
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Regenerate the goldens from the pinned pele
+        run: nix develop --command node scripts/gen-golden.mjs
+
+      - name: Regenerate the flowchart golden cases from the goldens
+        run: nix develop --command node scripts/gen-flowchart-golden-test.mjs
+
+      - run: nix develop --command moon fmt
+
+      - name: Fail when a generated file differs from the committed one
+        run: |
+          git status --short
+          git diff --exit-code
+          test -z "$(git status --porcelain)"
+
+  status-check:
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    needs:
+      # keep-sorted start
+      - flake-check
+      - fuzz
+      - generated
+      - golden
+      - moon
+      - stress
+      - typst
+      # keep-sorted end
+    permissions: {}
+    if: failure() || cancelled()
+    steps:
+      - run: exit 1
