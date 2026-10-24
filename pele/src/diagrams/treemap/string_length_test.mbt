@@ -55,7 +55,7 @@ test "a section filled by tens of millions of entities is drawn as pele draws it
 }
 
 ///|
-#skip("slow, and moon test runs wasm's allocator unmended, which can give a block of 512 MiB or more a smaller one; check-string-length checks it through the mended plugin")
+#skip("slow, and moon test runs wasm's allocator unmended, which can give a block of 512 MiB or more a smaller one; check-string-length checks the same cut one code point shorter through the mended plugin")
 test "a leaf label of more than 2^27 code points is cut to fit its leaf" {
   let outcome = (count : Int32) => {
     @core.render(
