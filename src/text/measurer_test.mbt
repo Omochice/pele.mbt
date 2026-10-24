@@ -22,11 +22,6 @@ test "bold text is measured from the bold Arial table" {
 }
 
 ///|
-test "text of more font units than an Int32 counts is measured as pele measures it" {
-  inspect(width("&".repeat(3000000), 16, @text.STYLE_BOLD), content="34656000")
-}
-
-///|
 test "wide characters take an em and other non-ASCII characters an estimate" {
   inspect(width("日本語", 16, 0), content="48")
   inspect(width("\u{e9}", 16, 0), content="9.28")
@@ -48,6 +43,7 @@ test "monospace text uses fixed advances" {
 ///|
 test "text whose advances pass 2^31 font units is measured in full" {
   inspect(width("a".repeat(5000000), 16, 0), content="44480000")
+  inspect(width("&".repeat(3000000), 16, @text.STYLE_BOLD), content="34656000")
   inspect(
     width("日".repeat(3000000), 16, @text.STYLE_MONO),
     content="57600000",
