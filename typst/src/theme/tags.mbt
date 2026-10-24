@@ -76,7 +76,7 @@ fn read_tag(svg : String, start : Int32) -> Tag? {
 ///|
 /// Visits the start tags of pele's SVG in document order.
 /// pele quotes every attribute value with double quotes and escapes `<` everywhere else, so a `<` before a letter always starts a tag.
-/// The tags are visited one at a time rather than collected, because an SVG near V8's longest string has millions of them.
+/// The tags are visited one at a time rather than collected, because an SVG near the port's hold limit has millions of them.
 fn each_tag(svg : String, visit : (Tag) -> Unit) -> Unit {
   let mut at = @util.index_of(svg, "<")
   while at >= 0 {

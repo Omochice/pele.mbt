@@ -210,13 +210,14 @@ test "an axis label formatted past what a doubling StringBuilder holds is drawn 
 }
 
 ///|
-#skip("slow: formats over 536 million code units before it fails")
-test "an axis label formatted past V8's longest string fails as nested too deeply" {
+test "an axis label formatted past the port's hold limit fails with the port's limit" {
   inspect(
     outcome(
       "gantt\ndateFormat YYYY-MM-DD\naxisFormat \{"%c".repeat(30000000)}\nsection s\nt :2026-01-01, 1d\n",
     ),
-    content="limit: Diagram is nested too deeply. gantt gantt",
+    content=(
+      #|limit: Diagram output is too large for the wasm port: it would hold more than 400000000 code units, the most the port can hold at once. gantt gantt
+    ),
   )
 }
 

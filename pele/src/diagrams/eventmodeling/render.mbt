@@ -104,7 +104,7 @@ fn write_lines(
   y : Double,
   step : Double,
   attrs : String,
-) -> Unit raise @errors.PeleError {
+) -> Unit {
   let body = @svg.Markup::new()
   for i, row in rows {
     if row != "" {

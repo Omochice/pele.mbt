@@ -88,15 +88,16 @@ fn number_option(
 ///|
 /// A plain label is shown as written: no tags, no markdown, no `\n` breaks.
 /// Its markup characters are handed to the label parser as character references, which it turns back into characters.
-/// Raises pele's `limit` error where the references make the text longer than V8 allows.
+/// Raises the port's `limit` error where the references make the text longer than the port
+/// holds, since a drawing that writes it would be too.
 fn literal(text : String) -> String raise @errors.PeleError {
   let mut length = text.length()
   for i in 0..<text.length() {
     let c = @util.code_at(text, i)
     // Each of these codes has two digits, so its reference has five code units.
     if c == 38 || c == 60 || c == 62 || c == 92 {
-      if length > @svg.MAX_STRING_LENGTH - 4 {
-        raise @errors.nested_too_deeply()
+      if length > @svg.HOLD_LIMIT - 4 {
+        raise @svg.too_large_to_hold()
       }
       length += 4
     }
@@ -306,7 +307,7 @@ fn write_figure(
   out : @svg.Markup,
   view : View,
   icons : @types.IconResolver?,
-) -> Unit raise @errors.PeleError {
+) -> Unit {
   let node = view.node
   let shape = view.style.shape
   let line = " fill=\"none\" stroke=\"var(--_b)\"\{view.style.line}"

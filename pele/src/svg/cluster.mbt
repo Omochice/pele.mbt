@@ -96,7 +96,6 @@ pub fn title_crossed(
 /// `id` names the cluster in its data-id, escaped as `esc_text` escapes it, a piece at a time.
 /// The diagrams name a cluster by its source text, which escapes to more than a doubling
 /// StringBuilder holds.
-/// Raises pele's `limit` error when the markup would be longer than V8 allows.
 pub fn write_struck_title(
   out : Markup,
   label : @text.Label,

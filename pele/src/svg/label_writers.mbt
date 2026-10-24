@@ -3,7 +3,6 @@
 /// `style` attribute `resolve_style` makes of `css`, which is escaped a piece at a time.
 /// Math under such a label takes its color from the attributes written whole, so a label with
 /// math still escapes all of `css` at once.
-/// Raises pele's `limit` error when the markup would be longer than V8 allows.
 pub fn write_label_styled(
   out : Markup,
   label : @text.Label,
@@ -36,7 +35,6 @@ pub fn write_label_styled(
 /// `esc_text` makes of `id`, and `after`, escaping the id a piece at a time as well.
 /// Math under such a label takes its color from the attributes written whole, so a label with
 /// math still escapes all of the id at once.
-/// Raises pele's `limit` error when the markup would be longer than V8 allows.
 pub fn write_label_with_id(
   out : Markup,
   label : @text.Label,

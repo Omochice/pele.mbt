@@ -72,7 +72,7 @@ fn write_linked(
   id : String,
   links : Array[@types.LinkInfo],
   options : @types.RenderOptions,
-) -> Unit raise @errors.PeleError {
+) -> Unit {
   let linked = match url {
     Some(url) if url != "" =>
       @url.write_link_start(

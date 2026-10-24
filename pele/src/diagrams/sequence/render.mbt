@@ -914,10 +914,7 @@ fn draw(
   let notes_out = @svg.Markup::new()
   let actors_out = @svg.Markup::new()
   let crosses_out = @svg.Markup::new()
-  fn end_activation(
-    col : Column,
-    end : Double,
-  ) -> Double raise @errors.PeleError {
+  fn end_activation(col : Column, end : Double) -> Double {
     let start = col.activations.unsafe_pop()
     let bottom = @util.js_max(end, start + ACT_MIN)
     let x = col.x - ACT_W / 2 + col.activations.length().to_double() * ACT_STEP
@@ -932,7 +929,7 @@ fn draw(
     bottom
   }
   // The lifeline of a destroyed participant ends in a cross a little below the message that ends it.
-  fn destroy(col : Column, line_y : Double) -> Double raise @errors.PeleError {
+  fn destroy(col : Column, line_y : Double) -> Double {
     let cx = col.x
     let cy = line_y + 16
     col.life_end = cy
@@ -1395,15 +1392,13 @@ fn draw(
     "<g transform=\"translate(\{n(pad - min_x)},\{n(pad - min_y)})\">",
   )
   content.write_markup(title_out)
-  fn group(open : String, body : @svg.Markup) -> Unit raise @errors.PeleError {
+  fn group(open : String, body : @svg.Markup) -> Unit {
     if !body.is_empty() {
       content.write_group(open, body, "</g>")
     }
   }
 
-  fn reversed_markup(
-    pieces : Array[@svg.Markup],
-  ) -> @svg.Markup raise @errors.PeleError {
+  fn reversed_markup(pieces : Array[@svg.Markup]) -> @svg.Markup {
     let out = @svg.Markup::new()
     for piece in pieces.rev_iter() {
       out.write_markup(piece)

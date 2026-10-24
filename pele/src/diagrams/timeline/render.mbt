@@ -294,14 +294,14 @@ fn draw(
   let dot = (x : Double, y : Double, color : String) => {
     "<circle class=\"pele-dot\" cx=\"\{@svg.num(x)}\" cy=\"\{@svg.num(y)}\" r=\"4\" fill=\"\{color}\" stroke=\"var(--_bg)\" stroke-width=\"2\"/>"
   }
-  fn open(out : @svg.Markup, group : Group) -> Unit raise @errors.PeleError {
+  fn open(out : @svg.Markup, group : Group) -> Unit {
     if group.section >= 0 {
       out.write("<g class=\"pele-cluster pele-section\" data-id=\"")
       out.write_esc_text(@util.trim(model.sections[group.section]))
       out.write("\">")
     }
   }
-  fn open_period(out : @svg.Markup, i : Int32) -> Unit raise @errors.PeleError {
+  fn open_period(out : @svg.Markup, i : Int32) -> Unit {
     out.write("<g class=\"pele-node pele-period\" data-id=\"")
     out.write_esc_text(@util.trim(periods[i].text))
     out.write("\">")

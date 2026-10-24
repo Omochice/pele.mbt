@@ -105,7 +105,7 @@ pub let whitespace : TokenType
 
 pub fn word_at(String, Int32, String) -> Bool
 
-pub fn write_icon(@svg.Markup, String, Double, Double, Double, icons? : (String) -> String?, drawing? : String) -> Unit raise @errors.PeleError
+pub fn write_icon(@svg.Markup, String, Double, Double, Double, icons? : (String) -> String?, drawing? : String) -> Unit
 
 pub fn write_left_label(@svg.Markup, @text.Label, Double, Double, String) -> Unit raise @errors.PeleError
 

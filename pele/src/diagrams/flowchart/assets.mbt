@@ -32,7 +32,7 @@ fn write_picture(
   img : String,
   view : NodeView,
   options : @types.RenderOptions,
-) -> Unit raise @errors.PeleError {
+) -> Unit {
   guard @url.image_url(@url.safe_url(img), options) is Some(src) else { return }
   let aw = asset_size(node.asset_width, 80)
   let ah = asset_size(node.asset_height, 80)
@@ -52,7 +52,7 @@ fn write_icon(
   icon : String,
   view : NodeView,
   icons : @types.IconResolver?,
-) -> Unit raise @errors.PeleError {
+) -> Unit {
   let box = asset_size(node.asset_height, 48)
   let top = asset_top(node, view, box)
   match node.shape {

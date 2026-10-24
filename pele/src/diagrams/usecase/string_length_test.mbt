@@ -135,10 +135,11 @@ test "a use case named by a label referenced past what a doubling StringBuilder 
 }
 
 ///|
-#skip("slow: references 110 million characters before it fails")
-test "a label referenced past V8's longest string fails as nested too deeply" {
+test "a label referenced past the port's hold limit fails with the port's limit" {
   inspect(
     drawn_or_failed("usecase-beta\nU(\"\{"&".repeat(110000000)}\")\n"),
-    content="limit: Diagram is nested too deeply. usecase usecase",
+    content=(
+      #|limit: Diagram output is too large for the wasm port: it would hold more than 400000000 code units, the most the port can hold at once. usecase usecase
+    ),
   )
 }

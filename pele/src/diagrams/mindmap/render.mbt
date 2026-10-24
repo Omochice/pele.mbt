@@ -71,7 +71,7 @@ fn draw(
   let mut color = ""
   // Running down: how far the trunk under each node has been drawn.
   let trunk = Array::make(n, 0.0)
-  fn flush(section : Int32?) raise @errors.PeleError {
+  fn flush(section : Int32?) {
     if body.is_empty() {
       return
     }

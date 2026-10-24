@@ -189,7 +189,7 @@ fn write_rect(
   h : Double,
   rest : String,
   css : String,
-) -> Unit raise @errors.PeleError {
+) -> Unit {
   out.write(
     "<rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(w)}\" height=\"\{@svg.num(h)}\"\{rest}",
   )
