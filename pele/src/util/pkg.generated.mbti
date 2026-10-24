@@ -2,12 +2,6 @@
 package "Omochice/pele/util"
 
 // Values
-pub const BACKTRACK_STACK_SLOTS : Int64 = 16777184
-
-pub const JS_ARRAY_MAX_LENGTH : Int32 = 134217728
-
-pub fn backtrack_stack_overflows(Int64) -> Bool
-
 pub fn code_at(String, Int32) -> Int32
 
 pub fn index_of(String, String, from? : Int32) -> Int32

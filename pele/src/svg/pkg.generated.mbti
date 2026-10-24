@@ -19,8 +19,6 @@ pub const LEAD : Double = 6
 
 pub const LINE_CSS : String = "\x00l"
 
-pub const MAX_STRING_LENGTH : Int32 = 536870888
-
 pub const PAD_X : Double = 18
 
 pub const PAD_Y : Double = 12
@@ -41,7 +39,7 @@ pub fn class_names(String) -> String
 
 pub fn cluster_title_x(@layout.CNode, Double, Crossings, Double) -> Double
 
-pub fn document_length(String) -> Int32
+pub fn document_length(String) -> Int64
 
 pub fn draw_shape(String, Double, Double, String, String) -> String
 
@@ -51,7 +49,7 @@ pub fn esc(String) -> String
 
 pub fn esc_text(String) -> String
 
-pub fn font_style(Double, String?, String?) -> String raise @errors.PeleError
+pub fn font_style(Double, String?, String?) -> String
 
 pub fn inset_route(Array[Double], Int32, @layout.CNode, shape~ : String, w~ : Double, h~ : Double) -> Unit
 
@@ -65,7 +63,7 @@ pub fn marker(String, Double, Double, Double, Double, String) -> String
 
 pub fn marker_trim(String) -> Double
 
-pub fn markup_document(String, Double, Double, Double, @types.RenderOptions, String?, String?, Markup) -> String raise @errors.PeleError
+pub fn markup_document(String, Double, Double, Double, @types.RenderOptions, String?, String?, Markup) -> String
 
 pub fn node_class_names(String) -> String
 
@@ -115,13 +113,13 @@ pub fn write_label_styled(Markup, @text.Label, Double, Double, String, String, i
 
 pub fn write_label_with_id(Markup, @text.Label, Double, Double, String, String, String, String, icons? : (String) -> String?) -> Unit raise @errors.PeleError
 
-pub fn write_rounded_style(Markup, String) -> Unit raise @errors.PeleError
+pub fn write_rounded_style(Markup, String) -> Unit
 
 pub fn write_struck_title(Markup, @text.Label, Double, Double, String, String, Array[@layout.CNode], Int32, icons? : (String) -> String?) -> Unit raise @errors.PeleError
 
-pub fn write_style(Markup, String) -> Unit raise @errors.PeleError
+pub fn write_style(Markup, String) -> Unit
 
-pub fn write_styled(Markup, String, RawStyle) -> Unit raise @errors.PeleError
+pub fn write_styled(Markup, String, RawStyle) -> Unit
 
 // Errors
 
@@ -146,15 +144,15 @@ pub(all) struct EdgePath {
 
 type Markup
 pub fn Markup::is_empty(Self) -> Bool
-pub fn Markup::length(Self) -> Int32
+pub fn Markup::length(Self) -> Int64
 pub fn Markup::new() -> Self
 pub fn Markup::to_string(Self) -> String
-pub fn Markup::write(Self, String) -> Unit raise @errors.PeleError
-pub fn Markup::write_data_id(Self, String) -> Unit raise @errors.PeleError
-pub fn Markup::write_esc(Self, String) -> Unit raise @errors.PeleError
-pub fn Markup::write_esc_text(Self, String) -> Unit raise @errors.PeleError
-pub fn Markup::write_group(Self, String, Self, String) -> Unit raise @errors.PeleError
-pub fn Markup::write_markup(Self, Self) -> Unit raise @errors.PeleError
+pub fn Markup::write(Self, String) -> Unit
+pub fn Markup::write_data_id(Self, String) -> Unit
+pub fn Markup::write_esc(Self, String) -> Unit
+pub fn Markup::write_esc_text(Self, String) -> Unit
+pub fn Markup::write_group(Self, String, Self, String) -> Unit
+pub fn Markup::write_markup(Self, Self) -> Unit
 
 pub(all) struct RawStyle {
   shape : String

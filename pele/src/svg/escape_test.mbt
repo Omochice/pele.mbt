@@ -22,7 +22,7 @@ fn written_length(label : @text.Label) -> String {
 }
 
 ///|
-fn document_of(content : @svg.Markup) -> String raise @errors.PeleError {
+fn document_of(content : @svg.Markup) -> String {
   @svg.markup_document(
     "pie",
     10,
@@ -83,15 +83,6 @@ test "a line escaped past what a doubling StringBuilder holds is written" {
   inspect(
     written_length(ampersand_label(55000000, "<br/>a")),
     content="275000116",
-  )
-}
-
-///|
-#skip("slow: escapes 110 million characters before it fails")
-test "a label escaped past V8's longest string fails as nested too deeply" {
-  inspect(
-    written_length(ampersand_label(110000000, "")),
-    content="limit: Diagram is nested too deeply.",
   )
 }
 

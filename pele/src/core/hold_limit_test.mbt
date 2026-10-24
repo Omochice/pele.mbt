@@ -3,7 +3,7 @@ const MEBI : Int32 = 1048576
 
 ///|
 /// Markup of `length` code units, made of shared pieces so that the test holds little besides the markup.
-fn markup_of(length : Int32) -> @svg.Markup raise @errors.PeleError {
+fn markup_of(length : Int32) -> @svg.Markup {
   let markup = @svg.Markup::new()
   let piece = "a".repeat(MEBI)
   for _ in 0..<(length / MEBI) {
@@ -85,12 +85,10 @@ test "a drawing past the hold limit that is only measured does not keep the narr
 }
 
 ///|
-test "a drawing past the hold limit that is only measured does not keep the next drawing from failing as nested too deeply" {
+test "a drawing past the hold limit that is only measured does not keep the next drawing past it from failing with the port's limit" {
   inspect(
-    turned_outcome(
-      turning(@svg.HOLD_LIMIT + 1, 900, @svg.MAX_STRING_LENGTH, 300),
-    ),
-    content="limit: Diagram is nested too deeply. pie pie",
+    turned_outcome(turning(@svg.HOLD_LIMIT + 1, 900, @svg.HOLD_LIMIT + 1, 300)),
+    content="limit: Diagram output is too large for the wasm port: it would hold more than 400000000 code units, the most the port can hold at once. pie pie",
   )
 }
 
@@ -129,7 +127,7 @@ test "a drawing past the hold limit that an output limit allows fails with the p
   inspect(
     turned_outcome(
       turning(@svg.HOLD_LIMIT + 1, 900, 1000, 950),
-      output_limit=Some(@svg.MAX_STRING_LENGTH.to_double()),
+      output_limit=Some(2.0 * @svg.HOLD_LIMIT.to_double()),
     ),
     content="limit: Diagram output is too large for the wasm port: it would hold more than 400000000 code units, the most the port can hold at once. pie pie",
   )

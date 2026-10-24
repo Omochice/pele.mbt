@@ -48,7 +48,7 @@ pub fn keyword_space_end(String, Int32, String) -> Int32
 
 pub fn label_type_of(Json?) -> LabelType
 
-pub fn nodir_end(String, Int32) -> Int32 raise @errors.PeleError
+pub fn nodir_end(String, Int32) -> Int32
 
 pub fn number_option(Map[String, Json], String, Double) -> Double
 
@@ -60,7 +60,7 @@ pub fn render_flowchart(FlowDb, Map[String, Json], @types.RenderOptions, variant
 
 pub let token_names : Array[String]
 
-pub fn tokenize(String) -> Tokens raise @errors.PeleError
+pub fn tokenize(String) -> Tokens
 
 pub fn unquote(String) -> String
 

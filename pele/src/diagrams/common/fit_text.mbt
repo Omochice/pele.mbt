@@ -9,8 +9,6 @@ pub(all) struct Fitted {
 ///|
 /// Fits one line of text into `max`: first by shrinking the font down to `min`, then by cutting the text and adding an ellipsis.
 /// Returns `None` when not even one character fits.
-/// Raises the `limit` error pele gives for a text it would have to cut of more code points than
-/// V8's longest array holds.
 pub fn fit_text(
   text : String,
   max : Double,
@@ -18,7 +16,7 @@ pub fn fit_text(
   min : Double,
   measurer : @text.TextMeasurer,
   style~ : Int32 = 0,
-) -> Fitted? raise @errors.PeleError {
+) -> Fitted? {
   if text == "" || max <= 0 {
     return None
   }
@@ -35,12 +33,7 @@ pub fn fit_text(
     }
     fitted -= 1
   }
-  // pele cuts among the text's code points held in an array, which V8 holds to a length its
-  // longest array allows.
   let count = code_point_count(text)
-  if count > @util.JS_ARRAY_MAX_LENGTH {
-    raise @errors.nested_too_deeply()
-  }
   // Without surrogate pairs each code point starts at its own index, and no table of where they
   // start is made, which for a text of hundreds of millions of characters is larger than wasm
   // allocates.

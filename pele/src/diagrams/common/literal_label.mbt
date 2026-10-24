@@ -204,7 +204,6 @@ pub fn break_label(
 /// at a time, so a label can be as long as the markup holding it.
 /// A line is anchored at its start and keeps its spaces, so that where it begins does not depend on
 /// how its text was measured.
-/// Raises pele's `limit` error when the markup would be longer than V8 allows.
 pub fn write_left_label(
   out : @svg.Markup,
   label : @text.Label,
@@ -254,7 +253,6 @@ pub fn write_left_label(
 /// attributes `attrs` followed by the `style` attribute `resolve_style` makes of `css`, which is
 /// escaped a piece at a time.
 /// A style of tens of millions of `&` escapes to more than a doubling StringBuilder holds.
-/// Raises pele's `limit` error when the markup would be longer than V8 allows.
 pub fn write_left_label_styled(
   out : @svg.Markup,
   label : @text.Label,

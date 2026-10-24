@@ -119,7 +119,6 @@ pub fn rel_attr(options : @types.RenderOptions) -> String {
 /// piece at a time, and records the link in `links`.
 /// An address of tens of millions of `&` escapes to more than a doubling StringBuilder holds.
 /// Returns whether the anchor was started, which it is not when the link is refused.
-/// Raises pele's `limit` error when the markup would be longer than V8 allows.
 pub fn write_link_start(
   out : @svg.Markup,
   url : String,
@@ -127,7 +126,7 @@ pub fn write_link_start(
   links : Array[@types.LinkInfo],
   options : @types.RenderOptions,
   attrs~ : String = "",
-) -> Bool raise @errors.PeleError {
+) -> Bool {
   guard link_url(url, options) is Some(href) else { return false }
   links.push({ id, href, internal: false, })
   out.write("<a href=\"")

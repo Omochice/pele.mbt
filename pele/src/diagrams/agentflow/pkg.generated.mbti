@@ -22,7 +22,7 @@ pub fn render_agentflow(AgentflowDb, Map[String, Json], @types.RenderOptions) ->
 
 pub let token_names : Array[String]
 
-pub fn tokenize(String) -> Tokens raise @errors.PeleError
+pub fn tokenize(String) -> Tokens
 
 // Errors
 
@@ -240,7 +240,10 @@ pub(all) struct Tokens {
   types : Array[Int32]
   texts : Array[String]
   starts : Array[Int32]
-  locs : Array[Int32]
+  first_lines : Array[Int32]
+  first_columns : Array[Int32]
+  last_lines : Array[Int32]
+  last_columns : Array[Int32]
 }
 
 // Type aliases

@@ -20,7 +20,6 @@ pub fn icon_svg(
 /// Writes the square `icon_svg` draws for the icon `name` to `out`, with the name escaped a piece
 /// at a time and the drawing written as a piece of its own.
 /// A name of tens of millions of `&` escapes to more than a doubling StringBuilder holds.
-/// Raises pele's `limit` error when the markup would be longer than V8 allows.
 pub fn write_icon(
   out : @svg.Markup,
   name : String,
@@ -29,7 +28,7 @@ pub fn write_icon(
   side : Double,
   icons? : @types.IconResolver,
   drawing~ : String = "",
-) -> Unit raise @errors.PeleError {
+) -> Unit {
   let drawing = match icons {
     Some(resolve) => resolve(name).unwrap_or(drawing)
     None => drawing

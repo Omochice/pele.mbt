@@ -103,9 +103,3 @@ pub fn syntax_error(
   let message = message.to_string()
   pele_error(message, code=Syntax, kind~, line~, column~, snippet~)
 }
-
-///|
-/// The `limit` error pele gives when deep input runs JavaScript out of stack.
-pub fn nested_too_deeply() -> PeleError {
-  pele_error("Diagram is nested too deeply.", code=Limit)
-}

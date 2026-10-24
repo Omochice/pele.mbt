@@ -313,12 +313,7 @@ fn dedent_body(front : FrontMatter) -> String {
 
 ///|
 /// The parts of a `%%{...}%%` directive at `at`, as `RE_DIRECTIVE` captures them, or `None`.
-/// Of V8's backtracking stack, reading the body takes two slots for each character or line break, and 28 more after a colon or 26 without one.
-/// Raises the error pele reports once that fills the stack.
-fn match_directive(
-  text : String,
-  at : Int32,
-) -> (Int32, String, String?)? raise @errors.PeleError {
+fn match_directive(text : String, at : Int32) -> (Int32, String, String?)? {
   let mut i = at + 3
   while @util.is_space(@util.code_at(text, i)) {
     i += 1
@@ -349,7 +344,6 @@ fn match_directive(
     }
   } else {
     let start = i
-    let mut steps = 0L
     while i < text.length() {
       let c = @util.code_at(text, i)
       if @util.starts_with_at(text, "}%%", i) {
@@ -365,11 +359,6 @@ fn match_directive(
       } else {
         break
       }
-      steps += 1
-    }
-    let more = if colon { 28L } else { 26L }
-    if @util.backtrack_stack_overflows(2L * steps + more) {
-      raise @errors.nested_too_deeply()
     }
     args = Some(@util.slice(text, start, end=i))
   }
@@ -384,10 +373,7 @@ fn match_directive(
 
 ///|
 /// Applies `%%{init: ...}%%` and `%%{wrap}%%` directives to the config and removes them.
-fn directives(
-  text : String,
-  config : @types.Config,
-) -> String raise @errors.PeleError {
+fn directives(text : String, config : @types.Config) -> String {
   if !text.contains("%%{") {
     return text
   }
@@ -433,7 +419,7 @@ fn directives(
 
 ///|
 /// Reads front matter and directives into a config, as Mermaid does before parsing.
-/// Raises a syntax `PeleError` when the front matter is not valid YAML, and a limit one where pele's pattern for a directive runs out of V8's backtracking stack.
+/// Raises a syntax `PeleError` when the front matter is not valid YAML.
 pub fn preprocess(source : String) -> Preprocessed raise @errors.PeleError {
   let mut text = if source.contains("\r") {
     @util.normalize_line_breaks(source)

@@ -1,16 +1,7 @@
 ///|
-/// The longest string V8 makes on a 64-bit host, in UTF-16 code units, as node's
-/// `buffer.constants.MAX_STRING_LENGTH` gives it.
-/// pele builds its SVG by concatenation, which throws a `RangeError` past this length, and pele
-/// reports that as a diagram nested too deeply.
-pub const MAX_STRING_LENGTH : Int32 = 536870888
-
-///|
-/// The most code units the port holds while it builds a drawing, below the length a `String`
-/// could reach, because the port holds the pieces, the string it makes of them and the answer's
-/// bytes at once, which near V8's longest string would outgrow wasm's 4 GiB of memory.
-/// pele draws up to V8's longest string; the port stops here, which is its one platform-imposed
-/// difference from pele.
+/// The most code units the port holds while it builds a drawing.
+/// The port holds the pieces, the string it makes of them and the answer's bytes at once, and a
+/// drawing much longer than this would outgrow wasm's 4 GiB of memory while it does.
 pub const HOLD_LIMIT : Int32 = 400000000
 
 ///|
@@ -23,18 +14,18 @@ const SHARED_LENGTH : Int32 = 1024
 
 ///|
 /// SVG markup put together piece by piece, as pele concatenates it.
-/// It fails as pele does where V8 could not hold the markup.
 /// It keeps its pieces apart until it is turned into a string, because a `StringBuilder` doubles
 /// its buffer and wasm's allocator refuses the block of 1 GiB that would follow 2^28 code units,
-/// while a string allocated at its final size can be as long as V8's longest.
+/// while a string allocated at its final size can be as long as the hold limit.
 /// Past `HOLD_LIMIT` it drops its pieces and only counts, because holding, materializing and
 /// answering with markup that long would outgrow wasm's memory; `markup_document` reports the
 /// `limit` error for markup that is no longer held.
+/// It counts in 64 bits, since markup that is only counted can pass what 32 bits hold.
 struct Markup {
   mut pieces : Array[String]
   mut tail : StringBuilder
   mut tail_length : Int32
-  mut length : Int32
+  mut length : Int64
   mut held : Bool
   used : Set[String]
 }
@@ -54,7 +45,7 @@ pub fn Markup::new() -> Markup {
 
 ///|
 /// The length of the markup in UTF-16 code units.
-pub fn Markup::length(self : Markup) -> Int32 {
+pub fn Markup::length(self : Markup) -> Int64 {
   self.length
 }
 
@@ -65,16 +56,10 @@ pub fn Markup::is_empty(self : Markup) -> Bool {
 }
 
 ///|
-fn Markup::lengthen(
-  self : Markup,
-  count : Int32,
-) -> Unit raise @errors.PeleError {
-  if count > MAX_STRING_LENGTH - self.length {
-    raise @errors.nested_too_deeply()
-  }
+fn Markup::lengthen(self : Markup, count : Int64) -> Unit {
   self.length += count
   // Dropping the pieces frees them under reference counting, so holding never passes `HOLD_LIMIT`.
-  if self.held && self.length > HOLD_LIMIT {
+  if self.held && self.length > HOLD_LIMIT.to_int64() {
     self.held = false
     self.pieces = []
     self.tail = StringBuilder()
@@ -110,23 +95,15 @@ fn Markup::append(self : Markup, piece : String) -> Unit {
 
 ///|
 /// Appends `piece`.
-/// Raises pele's `limit` error when the markup would be longer than V8 allows.
-pub fn Markup::write(
-  self : Markup,
-  piece : String,
-) -> Unit raise @errors.PeleError {
-  self.lengthen(piece.length())
+pub fn Markup::write(self : Markup, piece : String) -> Unit {
+  self.lengthen(piece.length().to_int64())
   add_aliases(self.used, piece)
   self.append(piece)
 }
 
 ///|
 /// Appends `other`, sharing its pieces rather than copying them.
-/// Raises pele's `limit` error when the markup would be longer than V8 allows.
-pub fn Markup::write_markup(
-  self : Markup,
-  other : Markup,
-) -> Unit raise @errors.PeleError {
+pub fn Markup::write_markup(self : Markup, other : Markup) -> Unit {
   self.lengthen(other.length)
   for token in other.used {
     self.used.add(token)
@@ -141,13 +118,12 @@ pub fn Markup::write_markup(
 
 ///|
 /// Appends `section` between `start` and `end`, as a group of markup is written.
-/// Raises pele's `limit` error when the markup would be longer than V8 allows.
 pub fn Markup::write_group(
   self : Markup,
   start : String,
   section : Markup,
   end : String,
-) -> Unit raise @errors.PeleError {
+) -> Unit {
   self.write(start)
   self.write_markup(section)
   self.write(end)
@@ -175,7 +151,7 @@ fn exact_builder(length : Int32) -> StringBuilder {
 /// Aborts for markup the port no longer holds, which `markup_document` leaves as a stand-in instead.
 pub fn Markup::to_string(self : Markup) -> String {
   guard self.held else { abort("SVG markup past the port's hold limit") }
-  let out = exact_builder(self.length)
+  let out = exact_builder(self.length.to_int())
   self.write_to(out)
   out.to_string()
 }
@@ -204,20 +180,20 @@ const UNHELD : String = "\u{0}"
 ///|
 /// The stand-in for a document of `length` code units that the port does not hold, which gives
 /// the length in decimal after `UNHELD`.
-fn unheld_document(length : Int32) -> String {
+fn unheld_document(length : Int64) -> String {
   UNHELD + length.to_string()
 }
 
 ///|
 /// The length in UTF-16 code units of the drawing a document from `markup_document` stands for,
 /// whether the port holds it or not.
-pub fn document_length(document : String) -> Int32 {
+pub fn document_length(document : String) -> Int64 {
   if is_held_document(document) {
-    return document.length()
+    return document.length().to_int64()
   }
-  let mut length = 0
+  let mut length = 0L
   for i in UNHELD.length()..<document.length() {
-    length = length * 10 + (document.unsafe_get(i).to_int() - '0')
+    length = length * 10 + (document.unsafe_get(i).to_int() - '0').to_int64()
   }
   length
 }
@@ -225,8 +201,6 @@ pub fn document_length(document : String) -> Int32 {
 ///|
 /// Wraps diagram content in the root `svg` element, with its accessible name and description,
 /// its theme aliases, and its fonts.
-/// Raises pele's `limit` error, before concatenating, when the document would be longer than V8
-/// allows.
 /// A document longer than the port can hold is left as a stand-in that only gives its length, for
 /// `is_held_document` to tell apart and `document_length` to measure.
 pub fn markup_document(
@@ -238,7 +212,7 @@ pub fn markup_document(
   acc_title : String?,
   acc_descr : String?,
   content : Markup,
-) -> String raise @errors.PeleError {
+) -> String {
   let start = document_tag(
     kind,
     width,
@@ -255,16 +229,13 @@ pub fn markup_document(
   write_document_head(body, options, acc_title, acc_descr)
   body.write_markup(content)
   let end = "</svg>"
-  if start.length() + end.length() > MAX_STRING_LENGTH - body.length {
-    raise @errors.nested_too_deeply()
-  }
   // Failing here would refuse a drawing that is only measured, as a diagram drawn again to fit a
   // narrow host measures its first drawing, where pele goes on to draw the next one.
-  let length = start.length() + body.length + end.length()
+  let length = start.length().to_int64() + body.length + end.length().to_int64()
   if !body.held {
     return unheld_document(length)
   }
-  let out = exact_builder(length)
+  let out = exact_builder(length.to_int())
   out.write_string(start)
   body.write_to(out)
   out.write_string(end)

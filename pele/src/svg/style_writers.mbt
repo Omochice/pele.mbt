@@ -70,8 +70,7 @@ pub fn resolve_raw_style(declarations : Array[String]) -> RawStyle {
 
 ///|
 /// Writes the `style` attribute `resolve_style` makes of `css`, escaping it a piece at a time.
-/// Raises pele's `limit` error when the markup would be longer than V8 allows.
-pub fn write_style(out : Markup, css : String) -> Unit raise @errors.PeleError {
+pub fn write_style(out : Markup, css : String) -> Unit {
   if css == "" {
     return
   }
@@ -83,11 +82,7 @@ pub fn write_style(out : Markup, css : String) -> Unit raise @errors.PeleError {
 ///|
 /// Writes the `style` attribute of `css` with the corner radius first, as `rounded` adds it to
 /// attributes whose only `style` attribute is the one `resolve_style` makes of `css`.
-/// Raises pele's `limit` error when the markup would be longer than V8 allows.
-pub fn write_rounded_style(
-  out : Markup,
-  css : String,
-) -> Unit raise @errors.PeleError {
+pub fn write_rounded_style(out : Markup, css : String) -> Unit {
   if css == "" {
     out.write(ROUNDED)
     return
@@ -159,12 +154,7 @@ fn slot_value(template : String, at : Int32, css : RawStyle) -> String {
 /// Writes `template` to `out` with each stand-in replaced by the CSS of `css` it stands for, escaped
 /// a piece at a time, since a style value of tens of millions of `&` escapes to more than a
 /// doubling StringBuilder holds.
-/// Raises pele's `limit` error when the markup would be longer than V8 allows.
-pub fn write_styled(
-  out : Markup,
-  template : String,
-  css : RawStyle,
-) -> Unit raise @errors.PeleError {
+pub fn write_styled(out : Markup, template : String, css : RawStyle) -> Unit {
   let mut from = 0
   let mut at = @util.index_of(template, "\u{0}")
   while at >= 0 {

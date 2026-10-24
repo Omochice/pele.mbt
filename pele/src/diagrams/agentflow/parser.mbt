@@ -290,12 +290,12 @@ fn Parser::shape_data(self : Parser) -> String {
 ///|
 /// The span from the start of token `a` to the end of token `b`.
 fn Parser::span(self : Parser, a : Int32, b : Int32) -> Loc {
-  let locs = self.tokens.locs
+  let tokens = self.tokens
   {
-    first_line: locs[4 * a],
-    first_column: locs[4 * a + 1],
-    last_line: locs[4 * b + 2],
-    last_column: locs[4 * b + 3],
+    first_line: tokens.first_lines[a],
+    first_column: tokens.first_columns[a],
+    last_line: tokens.last_lines[b],
+    last_column: tokens.last_columns[b],
   }
 }
 

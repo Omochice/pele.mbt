@@ -25,9 +25,9 @@ This is a bug in MoonBit's runtime, to be reported upstream with the program abo
 
 `scripts/allocator.mjs` mends the allocator in the built plugin, since no option of moonc replaces it.
 It raises the bound below which `searchBlock` and `growMemory` round a request up to 1040187393 bytes, the highest at which rounding up by as much as 2^25 - 1 bytes stays below 2^30, the first size past the table, and lowers the largest request `prepareSize` lets through from 1073741820 to 1040187388 bytes, so that a request too large to round traps rather than corrupting memory.
-No block can therefore pass 1040187380 bytes, 32 MiB less than before, which the port reaches only with a source of more than 520 million characters, near V8's longest string.
+No block can therefore pass 1040187380 bytes, 32 MiB less than before, which the port reaches only with a source of more than 520 million characters.
 `scripts/build-typst.mjs` writes the mended plugin to `typst/package/plugin.wasm`, and `scripts/plugin-host.mjs` mends the plugin it loads, so every check runs the allocator typst runs; both fail when the allocator's code is not as expected, as after an upgrade of moonc, which then has to be checked for the same bug.
-The git graph cases "a branch named by 140M a, drawn into a block of 512 MiB or more" and "a branch named by 270M a, read into a block of 512 MiB or more" check the mended plugin, and the first fails without the mend.
+The git graph case "a branch named by 140M a, drawn into a block of 512 MiB or more" checks the mended plugin and fails without the mend, and the cases of 270M letters read their source into blocks of 512 MiB or more as well.
 
 `moon test` runs the allocator unmended, so the tests that hold a string of 2^28 code units or more are skipped, and `scripts/check-string-length.mjs` checks the same inputs through the mended plugin.
 The Gantt test "an axis label formatted past what a doubling StringBuilder holds is drawn as pele draws it" shows why: its drawing of 273001582 code units comes out exactly 2^20 code units short under the unmended allocator, in a fresh instance of the plugin built in debug or release alike, and matches pele once the allocator is mended.

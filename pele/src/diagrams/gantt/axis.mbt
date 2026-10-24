@@ -410,15 +410,16 @@ fn iso_thursday(date : @date.JsDate) -> @date.JsDate {
 
 ///|
 /// Formats a date with a d3 time format specifier such as `%Y-%m-%d`.
-/// Raises pele's `limit` error where the text would be longer than V8 allows.
+/// Raises the port's `limit` error where the text would be longer than the port holds, since a
+/// drawing that writes it would be too.
 pub fn time_format(
   specifier : String,
   date : @date.JsDate,
 ) -> String raise @errors.PeleError {
   let mut length = 0
   let grow = (count : Int32) => {
-    if count > @svg.MAX_STRING_LENGTH - length {
-      raise @errors.nested_too_deeply()
+    if count > @svg.HOLD_LIMIT - length {
+      raise @svg.too_large_to_hold()
     }
     length += count
   }

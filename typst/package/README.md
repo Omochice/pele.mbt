@@ -126,18 +126,18 @@ Without a theme, the plugin returns pele's output byte for byte.
 
 ## Output ceiling
 
-pele builds its SVG by string concatenation, and the longest string V8 makes on a 64-bit host is 536870888 UTF-16 code units; past that pele reports the `limit` error "Diagram is nested too deeply.".
-The plugin reproduces that outcome exactly.
-
-The plugin reaches its own limit first.
-It runs as wasm32, where all of a render lives in one linear memory of at most 4 GiB, and a drawing is held three times over at its largest: the pieces it is built from, the single string made of them, and the UTF-8 bytes of the JSON response.
+The plugin runs as wasm32, where all of a render lives in one linear memory of at most 4 GiB, and a drawing is held three times over at its largest: the pieces it is built from, the single string made of them, and the UTF-8 bytes of the JSON response.
 A diagram that fits to its width is also drawn several times so their widths can be compared.
-So the plugin stops at 400000000 code units of SVG, a little above half of V8's longest string: a drawing larger than that fails with the `limit` error "Diagram output is too large for the wasm port: it would hold more than 400000000 code units, the most the port can hold at once.", tagged with the diagram's type, where pele would still draw it.
+So the plugin stops at 400000000 code units of SVG: a drawing larger than that fails with the `limit` error "Diagram output is too large for the wasm port: it would hold more than 400000000 code units, the most the port can hold at once.", tagged with the diagram's type, where pele would still draw it.
 The several-render fit path at that ceiling peaks at about 3.1 GiB, inside wasm's 4 GiB.
 
-This ceiling is the one intentional, platform-imposed difference from pele: every input whose SVG is at most 400000000 code units is drawn byte for byte as pele draws it, apart from the few enormous inputs that [Known constraints](https://github.com/Omochice/pele.mbt/blob/main/doc/known-constraints.md) lists, and only inputs between the ceiling and V8's longest string, which pele draws and a wasm32 plugin cannot hold, come out as this `limit` error rather than as a drawing.
+This ceiling is the one intentional, platform-imposed difference from pele: every input whose SVG is at most 400000000 code units is drawn byte for byte as pele draws it, apart from the few enormous inputs that [Known constraints](https://github.com/Omochice/pele.mbt/blob/main/doc/known-constraints.md) lists.
+pele's own output limit is checked first, so the error appears only for a drawing that limit allows, apart from a Gantt axis label or a use case label whose text alone passes the ceiling, as Known constraints lists.
 A second guard covers a response whose bytes, rather than code units, would not fit one of wasm's memory blocks: a JSON response over 1000000000 bytes fails with a `limit` error naming that byte limit.
 It covers a failure as well as a drawing, since a failure's message can quote a whole line of the source; a drawing under the code-unit ceiling reaches it only when it is almost all non-ASCII text.
+
+pele itself fails some enormous inputs with the `limit` error "Diagram is nested too deeply." only because the JavaScript engine it runs on cannot make a string, an array or a regular expression match that long.
+The plugin does not reproduce those failures, and draws such an input whenever it fits under the ceiling above.
 
 ## Limitations
 

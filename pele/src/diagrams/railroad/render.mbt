@@ -103,12 +103,7 @@ priv struct Look {
 }
 
 ///|
-fn line(
-  ink : Ink,
-  x1 : Double,
-  y : Double,
-  x2 : Double,
-) -> Unit raise @errors.PeleError {
+fn line(ink : Ink, x1 : Double, y : Double, x2 : Double) -> Unit {
   if x2 > x1 {
     ink.track.write("M\{@svg.num(x1)},\{@svg.num(y)}H\{@svg.num(x2)}")
   }
@@ -123,7 +118,7 @@ fn write_leaf(
   y : Double,
   m : Metrics,
   look : Look,
-) -> Unit raise @errors.PeleError {
+) -> Unit {
   let text = box.text
   let space = if text.has_prefix(" ") ||
     text.has_suffix(" ") ||
@@ -172,7 +167,7 @@ fn place(
   baseline : Double,
   m : Metrics,
   look : Look,
-) -> Unit raise @errors.PeleError {
+) -> Unit {
   let arc = m.arc
   let t = turns(arc)
   let boxes : Array[Box] = [root]

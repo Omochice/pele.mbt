@@ -8,7 +8,6 @@ pub(all) struct Titled {
 
 ///|
 /// Puts a diagram title above markup that was laid out without one.
-/// Raises pele's `limit` error when the markup would be longer than V8 allows.
 pub fn with_title(
   title : String?,
   measurer : @text.TextMeasurer,

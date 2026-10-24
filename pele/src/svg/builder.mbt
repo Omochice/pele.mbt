@@ -127,7 +127,6 @@ pub fn text_style(attrs : String, shared : Int32) -> String {
 /// Writes a measured label to `out` as SVG text centered on (`cx`, `cy`), keeping each host drawing
 /// a piece of its own rather than copying it, so a label can be as long as the markup holding it.
 /// `icons` draws inside the square of each icon span, which is otherwise left empty.
-/// Raises pele's `limit` error when the markup would be longer than V8 allows.
 pub fn write_label(
   out : Markup,
   label : @text.Label,
@@ -343,7 +342,7 @@ fn write_math(
   box : String,
   size : Double,
   attrs : String,
-) -> Unit raise @errors.PeleError {
+) -> Unit {
   match math.body {
     Svg(svg) => {
       out.write("<svg class=\"pele-math\" \{box} overflow=\"visible\"\{attrs}>")

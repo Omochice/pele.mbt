@@ -105,7 +105,6 @@ fn figure(kind : String, cx : Double, top : Double) -> String {
 ///|
 /// Writes a participant whose bounding box has its top center at (`cx`, `top`) to `out`, with its
 /// label written piece by piece and `icons` drawing the icons in it.
-/// Raises pele's `limit` error when the markup would be longer than V8 allows.
 pub fn write_actor(
   out : @svg.Markup,
   kind : String,

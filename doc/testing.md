@@ -31,14 +31,14 @@ Both `moon.mod` files name wasm as the preferred target, so no target has to be 
 
 ### Skipped tests
 
-280 tests are marked `#skip`, all but four of them in the `string_length_test.mbt` of each diagram under `pele/src/diagrams/`.
+90 tests are marked `#skip`, all but three of them in the `string_length_test.mbt` of each diagram under `pele/src/diagrams/`.
 The argument of each `#skip` states why, and the reasons are the two below.
 
-- Every one is slow, because it lexes, escapes or draws millions to hundreds of millions of code units, as an input near V8's longest string or its backtracking stack takes.
-- 16 of them also hold a string of 2^28 code units or more, which `moon test` cannot check because it runs the allocator moonc links in unmended, as [the allocator bug](allocator-bug.md) describes.
+- Every one is slow, because it lexes, escapes or draws tens to hundreds of millions of code units, as an input past what a doubling `StringBuilder` holds takes.
+- 9 of them also hold a string of 2^28 code units or more, which `moon test` cannot check because it runs the allocator moonc links in unmended, as [the allocator bug](allocator-bug.md) describes.
 
 `scripts/check-string-length.mjs` checks the same inputs instead, through the plugin with its allocator mended: most cases in `scripts/string-length-cases.mjs` are the same as a test in a diagram's `string_length_test.mbt`.
-The four skipped tests outside the diagrams, three in `pele/src/svg/escape_test.mbt` and one in `typst/src/theme/drawable_test.mbt`, cover the escape writers and the theme's rewrite of a style, which that check reaches through whole diagrams and through the theme typst sends.
+The three skipped tests outside the diagrams, two in `pele/src/svg/escape_test.mbt` and one in `typst/src/theme/drawable_test.mbt`, cover the escape writers and the theme's rewrite of a style, which that check reaches through whole diagrams and through the theme typst sends.
 
 ## Golden fixtures
 
@@ -80,7 +80,6 @@ node scripts/fuzz.mjs [--seed n] [--count n] [--variations n] [--jobs n] [--out 
 
 The defaults are seed 1, 1000 sources per diagram, one random option set, and one worker fewer than the available parallelism.
 A run makes `count * (profiles + variations)` comparisons per diagram, and a seed gives the same cases and the same report whatever `--jobs` is.
-Workers are given the V8 stack of node's main thread, because pele reports a stack overflow as "nested too deeply" and the goldens come from the main thread.
 
 ## pele's stress tests
 
@@ -98,16 +97,15 @@ By default the plugin runs under node, rewritten to trap past the call frames ty
 
 ## String length
 
-`scripts/check-string-length.mjs` renders each case of `scripts/string-length-cases.mjs`, whose drawings come near or past V8's longest string, through pele and through the plugin.
+`scripts/check-string-length.mjs` renders each case of `scripts/string-length-cases.mjs`, whose drawings are hundreds of millions of code units long, through pele and through the plugin.
 [Checking against pele](output-ceiling.md#checking-against-pele) describes what it checks, and [Output ceiling](output-ceiling.md) why those lengths matter.
 
 ```sh
-node scripts/check-string-length.mjs [diagram ...]
-NODE_OPTIONS=--max-old-space-size=20480 node scripts/check-string-length.mjs journey quadrant railroad timeline usecase xychart
+NODE_OPTIONS=--max-old-space-size=20480 node scripts/check-string-length.mjs [diagram ...]
 ```
 
 Each case makes pele and the plugin produce hundreds of millions of characters, so a case takes half a minute or more, and the plugin may grow its memory to 4 GiB.
-Node's default heap holds every case of every diagram but the journey, quadrant, railroad, timeline, usecase and xychart ones, where pele itself needs more, so those diagrams are checked under `NODE_OPTIONS=--max-old-space-size=20480`.
+pele itself runs out of node's default heap on some cases, so the check is run under `NODE_OPTIONS=--max-old-space-size=20480`.
 Each case builds its source only when the check reaches it, so naming one diagram holds only that diagram's cases, one at a time.
 
 ## typst

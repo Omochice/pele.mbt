@@ -1,7 +1,6 @@
 ///|
 /// Writes an edge label centered on (`x`, `y`) to `out`, on a patch of the background so the line
 /// does not run through the text, with `attrs` added to the text element.
-/// Raises pele's `limit` error when the markup would be longer than V8 allows.
 pub fn write_edge_label(
   out : Markup,
   id : String,
@@ -27,7 +26,6 @@ pub fn write_edge_label(
 /// and with the `style` attribute `resolve_style` makes of `css` after `attrs`, as
 /// `write_label_styled` writes it.
 /// An id made of a long source name escapes to more than a doubling StringBuilder holds.
-/// Raises pele's `limit` error when the markup would be longer than V8 allows.
 pub fn write_edge_label_with_id(
   out : Markup,
   id : String,

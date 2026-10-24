@@ -43,13 +43,11 @@ pub fn break_label(@text.Label, @text.TextMeasurer, Double) -> @text.Label
 
 pub fn cap_width(@types.RenderOptions, Double, Double, around? : Double) -> Double
 
-pub fn check_quoted_steps(Int32, untried_alternative~ : Bool) -> Unit raise @errors.PeleError
-
 pub let directive : TokenType
 
 pub fn fit_label(String?, @text.TextMeasurer, Double, Double, base? : Int32) -> @text.Label
 
-pub fn fit_text(String, Double, Double, Double, @text.TextMeasurer, style? : Int32) -> Fitted? raise @errors.PeleError
+pub fn fit_text(String, Double, Double, Double, @text.TextMeasurer, style? : Int32) -> Fitted?
 
 pub fn fit_width(@types.RenderOptions, Double, Double, (Double, Bool) -> @types.Rendered raise?) -> @types.Rendered raise?
 
@@ -75,7 +73,7 @@ pub fn pattern(String, (String, Int32) -> Int32, first? : String, hidden? : Bool
 
 pub fn plain_label(String?, @text.TextMeasurer, Double, Double, base? : Int32) -> @text.Label
 
-pub fn quoted_span(String, Int32) -> (Int32, Int32)
+pub fn quoted_span(String, Int32) -> Int32
 
 pub let resumable_acc_descr : TokenType
 
@@ -107,7 +105,7 @@ pub let whitespace : TokenType
 
 pub fn word_at(String, Int32, String) -> Bool
 
-pub fn write_icon(@svg.Markup, String, Double, Double, Double, icons? : (String) -> String?, drawing? : String) -> Unit raise @errors.PeleError
+pub fn write_icon(@svg.Markup, String, Double, Double, Double, icons? : (String) -> String?, drawing? : String) -> Unit
 
 pub fn write_left_label(@svg.Markup, @text.Label, Double, Double, String) -> Unit raise @errors.PeleError
 

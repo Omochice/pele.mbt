@@ -175,8 +175,6 @@ test "with_title leaves the content alone without a title" {
 /// Markup holding `text`.
 fn markup_holding(text : String) -> @svg.Markup {
   let out = @svg.Markup::new()
-  out.write(text) catch {
-    _ => abort("unreachable")
-  }
+  out.write(text)
   out
 }

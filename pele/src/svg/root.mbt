@@ -40,7 +40,7 @@ fn document_tag(
   acc_title : String?,
   acc_descr : String?,
   used : Set[String],
-) -> String raise @errors.PeleError {
+) -> String {
   let prefix = id_prefix(options)
   let aria = StringBuilder()
   if acc_title is Some(title) && title != "" {
@@ -73,13 +73,12 @@ fn document_tag(
 ///|
 /// Writes the accessible name and description, which follow the root `svg` element's start tag,
 /// escaping each a piece at a time so that either can be as long as the markup holding it.
-/// Raises pele's `limit` error when the markup would be longer than V8 allows.
 fn write_document_head(
   out : Markup,
   options : @types.RenderOptions,
   acc_title : String?,
   acc_descr : String?,
-) -> Unit raise @errors.PeleError {
+) -> Unit {
   let prefix = id_prefix(options)
   if acc_title is Some(title) && title != "" {
     out.write("<title id=\"\{prefix}-title\">")

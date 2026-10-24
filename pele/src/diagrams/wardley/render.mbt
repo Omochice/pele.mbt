@@ -128,7 +128,7 @@ fn write_start_label(
   x : Double,
   y : Double,
   attrs : String,
-) -> Unit raise @errors.PeleError {
+) -> Unit {
   let shared = @svg.shared_style(label)
   let body = @svg.Markup::new()
   let mut baseline = y
@@ -247,7 +247,7 @@ fn draw(
     x : Double,
     y : Double,
     attrs : String,
-  ) -> Unit raise @errors.PeleError {
+  ) -> Unit {
     bounds.grow(
       x,
       y - label.size,

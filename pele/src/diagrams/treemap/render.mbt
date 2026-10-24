@@ -41,7 +41,7 @@ fn write_text(
   attrs : String,
   css : String,
   text : String,
-) -> Unit raise @errors.PeleError {
+) -> Unit {
   out.write("<text\{attrs}")
   @svg.write_style(out, css)
   out.write(">")
@@ -60,7 +60,7 @@ fn draw_section(
   y : Double,
   size : Double,
   measurer : @text.TextMeasurer,
-) -> Unit raise @errors.PeleError {
+) -> Unit {
   let node = b.node
   let style = @svg.resolve_raw_style(node.css_compiled_styles.unwrap_or([]))
   let classes = @svg.class_names(node.class_selector.unwrap_or(""))
@@ -131,7 +131,7 @@ fn draw_leaf(
   y : Double,
   size : Double,
   measurer : @text.TextMeasurer,
-) -> Unit raise @errors.PeleError {
+) -> Unit {
   let node = b.node
   let style = @svg.resolve_raw_style(node.css_compiled_styles.unwrap_or([]))
   let classes = @svg.class_names(node.class_selector.unwrap_or(""))

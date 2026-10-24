@@ -3,7 +3,7 @@ const MEBI : Int32 = 1048576
 
 ///|
 /// Markup of `length` code units, made of shared pieces so that the test holds little besides the markup.
-fn markup_of(length : Int32) -> @svg.Markup raise @errors.PeleError {
+fn markup_of(length : Int32) -> @svg.Markup {
   let markup = @svg.Markup::new()
   let piece = "a".repeat(MEBI)
   for _ in 0..<(length / MEBI) {
@@ -11,17 +11,6 @@ fn markup_of(length : Int32) -> @svg.Markup raise @errors.PeleError {
   }
   markup.write("a".repeat(length % MEBI))
   markup
-}
-
-///|
-fn failure(run : () -> Unit raise @errors.PeleError) -> String {
-  try {
-    run()
-    "written"
-  } catch {
-    @errors.PeleError(failure) =>
-      "\{failure.code.to_string()}: \{failure.message}"
-  }
 }
 
 ///|
@@ -38,14 +27,25 @@ test "markup holds what is written to it" {
 }
 
 ///|
-test "markup grows to V8's longest string and fails one code unit past it" {
-  let markup = markup_of(@svg.MAX_STRING_LENGTH)
-  inspect(markup.length(), content="536870888")
-  inspect(
-    failure(() => markup.write("a")),
-    content="limit: Diagram is nested too deeply.",
+test "markup past the hold limit counts on past what 32 bits hold" {
+  let markup = @svg.Markup::new()
+  let piece = "a".repeat(MEBI)
+  for _ in 0..<2100 {
+    markup.write(piece)
+  }
+  inspect(markup.length(), content="2202009600")
+  let document = @svg.markup_document(
+    "pie",
+    10,
+    20,
+    16,
+    @types.RenderOptions::default(),
+    None,
+    None,
+    markup,
   )
-  inspect(markup.length(), content="536870888")
+  inspect(@svg.is_held_document(document), content="false")
+  inspect(@svg.document_length(document), content="2202010267")
 }
 
 ///|
@@ -106,17 +106,7 @@ test "a held document is as long as the drawing it stands for" {
     content,
   )
   inspect(@svg.is_held_document(document), content="true")
-  assert_eq(@svg.document_length(document), document.length())
-}
-
-///|
-test "markup fails when other markup appended to it would make it longer than V8's longest string" {
-  let half = @svg.MAX_STRING_LENGTH / 2
-  let markup = markup_of(half)
-  inspect(
-    failure(() => markup.write_markup(markup_of(half + 1))),
-    content="limit: Diagram is nested too deeply.",
-  )
+  assert_eq(@svg.document_length(document), document.length().to_int64())
 }
 
 ///|
@@ -197,25 +187,4 @@ test "a document whose accessible text and content pass the hold limit together 
     markup_of(@svg.HOLD_LIMIT - 50000000),
   )
   inspect(@svg.is_held_document(document), content="false")
-}
-
-///|
-test "a document fails when its start and end would make it longer than V8's longest string" {
-  let content = markup_of(@svg.MAX_STRING_LENGTH - 10)
-  inspect(
-    failure(() => {
-      @svg.markup_document(
-        "pie",
-        10,
-        20,
-        16,
-        @types.RenderOptions::default(),
-        None,
-        None,
-        content,
-      )
-      |> ignore
-    }),
-    content="limit: Diagram is nested too deeply.",
-  )
 }
