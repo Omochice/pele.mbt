@@ -148,3 +148,20 @@ test "a block color escaped past V8's longest string fails as nested too deeply"
     content="limit: Diagram is nested too deeply. sequence sequence",
   )
 }
+
+
+///|
+#skip("slow, and moon test runs wasm's allocator unmended, which can give a block of 512 MiB or more a smaller one; check-string-length checks it through the mended plugin")
+test "a message of 2^28 or more letters is drawn" {
+  let svg = @core.render(
+      [@sequence.sequence],
+      "sequenceDiagram\nA->>B: \{"a".repeat(270000000)}\n",
+      {
+        ..@types.RenderOptions::default(),
+        limit: Some(1.0 / 0.0),
+        output_limit: Some(1.0 / 0.0),
+      },
+    ).svg
+  inspect(svg.length(), content="270002422")
+}
+
