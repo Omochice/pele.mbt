@@ -25,18 +25,16 @@ It contains no timestamps, so regeneration is byte-identical.
 
 ## Regenerating
 
-The script reads the pinned pele checkout, so the submodule has to be initialised and built first.
+The script reads the pele checkout that `PELE_ROOT` names and records `PELE_COMMIT` as its commit, and the development shell sets both to the pele pinned as the flake's `pele` input, already built.
 
 ```sh
-git submodule update --init vendor/pele
-(cd vendor/pele && npm ci && npm run build)
-node scripts/gen-golden.mjs
+nix develop -c node scripts/gen-golden.mjs
 ```
 
-`PELE_ROOT` names another built pele checkout to read instead of `vendor/pele`, for a git worktree whose submodule is not initialised.
+Without Nix, `PELE_ROOT` has to name a checkout of that commit built with `npm ci && npm run build`, and `PELE_COMMIT` has to name the commit unless that checkout is a git repository.
 
 The script deletes everything in `golden/` except this README and then rewrites it.
-Corpus inputs are collected by a port of `loadCorpus` in `vendor/pele/tests/support/corpus.ts`, which takes string literals from `tests/compat/<diagram>/*.spec.{js,ts}` that match a per-diagram keyword and adds `tests/corpus/<diagram>-docs.json`.
+Corpus inputs are collected by a port of `loadCorpus` in pele's `tests/support/corpus.ts`, which takes string literals from `tests/compat/<diagram>/*.spec.{js,ts}` that match a per-diagram keyword and adds `tests/corpus/<diagram>-docs.json`.
 `tests/corpus/agentflow-reference.json` is not included because its entries are objects rather than plain source strings.
 The string literals of `tests/render/math.test.ts` that contain `$$` are added as well, each under the diagram that pele's `detectType` names for it.
 No compat spec puts `$$` in a diagram that typesets math, so without them a math resolver would never be asked for anything.
@@ -126,7 +124,7 @@ The width of a text is computed one UTF-16 code unit at a time:
 - a code unit in the ranges it treats as double width adds `wide`;
 - any other code unit adds `default`.
 
-The ranges are those of `isZeroWidth` and `isWide` in `vendor/pele/src/text/measurer.ts`, so a character outside the basic plane adds `wide` for its high surrogate and nothing for its low one.
+The ranges are those of `isZeroWidth` and `isWide` in pele's `src/text/measurer.ts`, so a character outside the basic plane adds `wide` for its high surrogate and nothing for its low one.
 `default` is 0 when it is not a number, and `wide` is `default` when it is not a number.
 The width is the sum of the advances times the font size divided by `unitsPerEm`, in that order, as pele's built-in measurer computes it with 1000.
 `unitsPerEm` is 1000 when it is not a positive number, so a font's own units can be passed without converting them.
@@ -143,5 +141,5 @@ The `metrics` profile holds a monospace-like table in 2048 units per em with a d
 
 ## Number formatting
 
-Every coordinate in the SVG output is formatted by `num()` in `vendor/pele/src/svg/builder.ts`.
+Every coordinate in the SVG output is formatted by `num()` in pele's `src/svg/builder.ts`.
 It rounds to hundredths and drops trailing zeros, so a port has to reproduce it exactly, including its handling of negative values and zero, for a byte-exact comparison.
