@@ -3,6 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { peleRoot } from './pele-root.mjs';
 import { peleOptions } from './plugin-options.mjs';
 
 // Gantt floors axis ticks to local midnight, so the host's time zone would leak into the goldens.
@@ -10,8 +11,6 @@ import { peleOptions } from './plugin-options.mjs';
 process.env.TZ = 'UTC';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-// A git worktree has no initialised submodule of its own, so the checkout can be named instead.
-const peleRoot = process.env.PELE_ROOT ?? join(root, 'vendor/pele');
 const goldenDir = join(root, 'golden');
 const { detectType, render } = await import(join(peleRoot, 'dist/pele.js'));
 

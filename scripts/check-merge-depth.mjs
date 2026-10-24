@@ -19,14 +19,14 @@
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { isDeepStrictEqual, parseArgs } from 'node:util';
 import { TYPST_CALL_DEPTH } from './call-depth.mjs';
+import { peleRoot } from './pele-root.mjs';
 import { loadPlugin } from './plugin-host.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const peleRoot = resolve(process.env.PELE_ROOT ?? join(root, 'vendor/pele'));
 const wasmPath = join(root, '_build/wasm/release/build/plugin/plugin.wasm');
 const options = JSON.parse(readFileSync(join(root, 'golden/manifest.json'), 'utf8')).profiles.default;
 

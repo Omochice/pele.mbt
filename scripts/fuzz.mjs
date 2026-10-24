@@ -21,6 +21,7 @@ import { fileURLToPath } from 'node:url';
 import { isDeepStrictEqual, parseArgs } from 'node:util';
 import { Worker, isMainThread, parentPort, workerData } from 'node:worker_threads';
 import { TYPST_CALL_DEPTH } from './call-depth.mjs';
+import { peleRoot } from './pele-root.mjs';
 import { loadPlugin } from './plugin-host.mjs';
 import { peleOptions } from './plugin-options.mjs';
 
@@ -29,7 +30,6 @@ process.env.TZ = 'UTC';
 
 const self = fileURLToPath(import.meta.url);
 const root = join(dirname(self), '..');
-const peleRoot = process.env.PELE_ROOT ?? join(root, 'vendor/pele');
 const goldenDir = join(root, 'golden');
 const wasmPath = join(root, '_build/wasm/release/build/plugin/plugin.wasm');
 const { render, detectType } = await import(join(peleRoot, 'dist/pele.js'));

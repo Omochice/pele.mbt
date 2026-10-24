@@ -8,12 +8,11 @@
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { peleRoot } from './pele-root.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const goldenDir = join(root, 'golden/flowchart');
 const out = join(root, 'src/diagrams/flowchart/golden_cases_test.mbt');
-// PELE_ROOT points at another checkout of pele, for a worktree whose submodule is not initialized.
-const peleRoot = process.env.PELE_ROOT ?? join(root, 'vendor/pele');
 const { parse } = await import(join(peleRoot, 'dist/pele.js'));
 const manifest = JSON.parse(readFileSync(join(root, 'golden/manifest.json'), 'utf8'));
 const profile = manifest.profiles.default;

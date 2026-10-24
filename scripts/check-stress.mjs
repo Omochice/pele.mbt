@@ -30,13 +30,13 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import { fixAllocator } from './allocator.mjs';
 import { TYPST_CALL_DEPTH } from './call-depth.mjs';
+import { peleRoot } from './pele-root.mjs';
 import { loadPlugin } from './plugin-host.mjs';
 
 process.env.TZ = 'UTC';
 
 const self = fileURLToPath(import.meta.url);
 const root = join(dirname(self), '..');
-const peleRoot = process.env.PELE_ROOT ?? join(root, 'vendor/pele');
 const wasmPath = join(root, '_build/wasm/release/build/plugin/plugin.wasm');
 // gen-golden pins the same clock, so gantt charts do not depend on the day the check runs.
 const NOW = 1767225600000;

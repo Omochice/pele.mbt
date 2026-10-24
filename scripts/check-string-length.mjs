@@ -19,6 +19,7 @@ import { constants } from 'node:buffer';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { isDeepStrictEqual } from 'node:util';
+import { peleRoot } from './pele-root.mjs';
 import { loadPlugin } from './plugin-host.mjs';
 import { peleOptions } from './plugin-options.mjs';
 import { CASES } from './string-length-cases.mjs';
@@ -27,7 +28,6 @@ import { CASES } from './string-length-cases.mjs';
 process.env.TZ = 'UTC';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const peleRoot = process.env.PELE_ROOT ?? join(root, 'vendor/pele');
 const wasmPath = join(root, '_build/wasm/release/build/plugin/plugin.wasm');
 
 // The maximum the port assumes; 32-bit V8 builds and other engines allow a different length,
