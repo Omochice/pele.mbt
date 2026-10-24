@@ -167,6 +167,17 @@ fn Parser::separator(self : Parser) -> Unit raise @errors.PeleError {
 }
 
 ///|
+/// The texts of the current token and of the tokens after it that `belongs` accepts, joined.
+fn Parser::joined(self : Parser, belongs : (Int32) -> Bool) -> String {
+  let out = StringBuilder()
+  out.write_string(self.take())
+  while belongs(self.kind()) {
+    out.write_string(self.take())
+  }
+  out.to_string()
+}
+
+///|
 fn Parser::run_of(
   self : Parser,
   belongs : (Int32) -> Bool,
@@ -175,12 +186,7 @@ fn Parser::run_of(
   if !belongs(self.kind()) {
     self.fail(expected)
   }
-  let out = StringBuilder()
-  out.write_string(self.take())
-  while belongs(self.kind()) {
-    out.write_string(self.take())
-  }
-  out.to_string()
+  self.joined(belongs)
 }
 
 ///|
@@ -205,12 +211,7 @@ fn Parser::text(self : Parser) -> FlowText raise @errors.PeleError {
   } else {
     self.fail("\{text_tokens}, 'TAGEND', 'STR', 'MD_STR'")
   }
-  let out = StringBuilder()
-  out.write_string(self.take())
-  while is_text_token(self.kind()) {
-    out.write_string(self.take())
-  }
-  { text: out.to_string(), kind, }
+  { text: self.joined(is_text_token), kind, }
 }
 
 ///|
@@ -231,12 +232,7 @@ fn Parser::edge_text(self : Parser) -> FlowText raise @errors.PeleError {
   } else {
     self.fail("'EDGE_TEXT', 'STR', 'MD_STR'")
   }
-  let out = StringBuilder()
-  out.write_string(self.take())
-  while is_edge_text(self.kind()) {
-    out.write_string(self.take())
-  }
-  { text: out.to_string(), kind, }
+  { text: self.joined(is_edge_text), kind, }
 }
 
 ///|
@@ -251,22 +247,12 @@ fn Parser::text_no_tags(self : Parser) -> FlowText raise @errors.PeleError {
   } else {
     self.fail("'NODE_STRING', 'STR', 'MD_STR'")
   }
-  let out = StringBuilder()
-  out.write_string(self.take())
-  while is_no_tags_token(self.kind()) {
-    out.write_string(self.take())
-  }
-  { text: out.to_string(), kind, }
+  { text: self.joined(is_no_tags_token), kind, }
 }
 
 ///|
 fn Parser::shape_data(self : Parser) -> String {
-  let out = StringBuilder()
-  out.write_string(self.take())
-  while self.kind() == SHAPE_DATA {
-    out.write_string(self.take())
-  }
-  out.to_string()
+  self.joined(t => t == SHAPE_DATA)
 }
 
 ///|
