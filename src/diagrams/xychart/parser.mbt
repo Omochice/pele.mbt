@@ -98,14 +98,17 @@ fn Parser::text(self : Parser) -> String raise @errors.PeleError {
     self.fail("'STR', 'ALPHA', 'NUM'")
   }
   let quoted = self.kind() == Str
-  let text = StringBuilder()
-  text.write_string(self.take())
-  if !quoted {
-    while is_word(self.kind()) {
-      text.write_string(self.take())
-    }
+  let first = self.take()
+  if quoted || !is_word(self.kind()) {
+    return first
   }
-  text.to_string()
+  // The run is gathered before it is copied, because a label of hundreds of millions of
+  // characters copied into a doubling builder would need a block past what wasm allocates.
+  let parts = [first]
+  while is_word(self.kind()) {
+    parts.push(self.take())
+  }
+  parts.join("")
 }
 
 ///|
