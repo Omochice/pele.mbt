@@ -46,7 +46,9 @@ pub fn ErDb::add_entity(
     }
     None => {
       let entity = {
-        id: "entity-\{name}-\{self.entities.length()}",
+        // Joined at its final size, because interpolating a name of hundreds of millions of
+        // characters would need a doubling builder's block past what wasm allocates.
+        id: ["entity-", name, "-", self.entities.length().to_string()].join(""),
         label: name,
         alias_name,
         attributes: [],
