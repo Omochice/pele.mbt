@@ -209,11 +209,16 @@
         devShells = pkgs.lib.pipe devPackages [
           (pkgs.lib.attrsets.mapAttrs (
             name: buildInputs:
-            pkgs.mkShell {
-              buildInputs = buildInputs ++ pre-commit-check.enabledPackages;
-              inherit (pre-commit-check) shellHook;
-              PELE_ROOT = peleCheckout;
-            }
+            pkgs.mkShell (
+              {
+                buildInputs = buildInputs ++ pre-commit-check.enabledPackages;
+                inherit (pre-commit-check) shellHook;
+              }
+              # Only the shells that run the scripts against pele build it on entry.
+              // pkgs.lib.optionalAttrs (name == "golden" || name == "default") {
+                PELE_ROOT = peleCheckout;
+              }
+            )
           ))
         ];
         formatter = treefmt.config.build.wrapper;
