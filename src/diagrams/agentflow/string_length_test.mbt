@@ -154,3 +154,51 @@ test "an internal link escaped past V8's longest string fails as nested too deep
     content="limit: Diagram is nested too deeply. agentflow agentflow",
   )
 }
+
+
+///|
+/// The outcome of rendering `source` with no source limit, with an error's message cut to its
+/// length unless it is the limit error.
+fn token_outcome(source : String) -> String {
+  try {
+    @core.render([@agentflow.agentflow], source, {
+      ..@types.RenderOptions::default(),
+      limit: Some(1.0 / 0.0),
+    })
+    |> ignore
+    "rendered"
+  } catch {
+    @errors.PeleError(failure) => {
+      let message = if failure.code is Limit {
+        failure.message
+      } else {
+        failure.message.length().to_string()
+      }
+      "\{failure.code.to_string()}: \{message} \{failure.kind.unwrap_or("null")} \{failure.mermaid_type.unwrap_or("null")}"
+    }
+  }
+}
+
+///|
+#skip("slow: lexes 33 million tokens")
+test "a style of one & per token fails as nested too deeply one token past the 2^25 pele's lexer holds" {
+  inspect(
+    token_outcome(
+      "agentflow-beta TB\n  a\nstyle a fill:\{"&".repeat(33554416)}\n",
+    ),
+    content="syntax: 33554524 agentflow agentflow",
+  )
+  inspect(
+    token_outcome(
+      "agentflow-beta TB\n  a\nstyle a fill:\{"&".repeat(33554417)}\n",
+    ),
+    content="limit: Diagram is nested too deeply. agentflow agentflow",
+  )
+  inspect(
+    token_outcome(
+      "agentflow-beta TB\n  a\nlinkStyle 0 stroke:\{"&".repeat(33554417)}\n",
+    ),
+    content="limit: Diagram is nested too deeply. agentflow agentflow",
+  )
+}
+

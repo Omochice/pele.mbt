@@ -491,6 +491,13 @@ export const CASES = [
   lazy('class', 'a generic of 140M <, quoted whole in its syntax error', () => `classDiagram\nclass A~${'<'.repeat(140000000)}~\n`, RAISED),
   // Each tab of a quoted line is escaped in the JSON answer, which so holds twice as many bytes as the line.
   lazy('railroad', 'a special sequence of 140M tabs, quoted whole in its syntax error', () => `railroad-ebnf-beta\nr = ? ${'\t'.repeat(140000000)} ? ;\n`, RAISED),
+  // pele's agentflow lexer keeps four numbers per token in one array, which V8 holds to 2^27
+  // elements, so it fails as nested too deeply on opening its 2^25 + 1st token; each `&` of a
+  // style is a token of its own, and these sources have 16 tokens besides.
+  lazy('agentflow', 'a style of 30M &, quoted whole in its syntax error', () => `agentflow-beta TB\n  a\nstyle a fill:${'&'.repeat(30000000)}\n`, RAISED),
+  lazy('agentflow', 'a style of 2^25 - 16 &, the most tokens pele lexes', () => `agentflow-beta TB\n  a\nstyle a fill:${'&'.repeat(33554416)}\n`, RAISED),
+  lazy('agentflow', 'a style of 2^25 - 15 &, one token more than pele lexes', () => `agentflow-beta TB\n  a\nstyle a fill:${'&'.repeat(33554417)}\n`, RAISED),
+  lazy('agentflow', 'a link style of 2^25 - 15 &, one token more than pele lexes', () => `agentflow-beta TB\n  a\nlinkStyle 0 stroke:${'&'.repeat(33554417)}\n`, RAISED),
   // A source of 2^28 code units or more is held with every copy made of it, so a title that long
   // is drawn only when it is copied once out of its line rather than at each step that trims it.
   lazy('info', 'a title of 270M a', () => `info\ntitle ${'a'.repeat(270000000)}\n`, RAISED),
