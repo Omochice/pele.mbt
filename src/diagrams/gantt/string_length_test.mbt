@@ -219,3 +219,20 @@ test "an axis label formatted past V8's longest string fails as nested too deepl
     content="limit: Diagram is nested too deeply. gantt gantt",
   )
 }
+
+
+///|
+#skip("slow, and moon test runs wasm's allocator unmended, which can give a block of 512 MiB or more a smaller one; check-string-length checks it through the mended plugin")
+test "a task named by 2^28 or more letters is drawn" {
+  let svg = @core.render(
+      [@gantt.gantt],
+      "gantt\ndateFormat YYYY-MM-DD\nsection S\n\{"a".repeat(270000000)} :2026-01-01, 1d\n",
+      {
+        ..@types.RenderOptions::default(),
+        limit: Some(1.0 / 0.0),
+        output_limit: Some(1.0 / 0.0),
+      },
+    ).svg
+  inspect(svg.length(), content="270001690")
+}
+

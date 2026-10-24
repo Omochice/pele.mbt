@@ -522,6 +522,7 @@ export const CASES = [
   lazy('class', 'a member of 270M a', () => `classDiagram\nclass A {\n  ${'a'.repeat(270000000)}\n}\n`, RAISED),
   lazy('er', 'an entity named by 270M a, written twice', () => `erDiagram\n${'a'.repeat(270000000)} {}\n`, RAISED),
   lazy('agentflow', 'an agent named by 270M a, written twice', () => `agentflow-beta TB\n  ${'a'.repeat(270000000)}\n`, RAISED),
+  lazy('gantt', 'a task named by 270M a', () => `gantt\ndateFormat YYYY-MM-DD\nsection S\n${'a'.repeat(270000000)} :2026-01-01, 1d\n`, RAISED),
 ];
 
 // A case whose source is built only when the check reaches it, as a getter in the source's place,
