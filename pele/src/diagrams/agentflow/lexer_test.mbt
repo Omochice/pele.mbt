@@ -2,7 +2,7 @@
 
 ///|
 /// The token stream one per line, as `NAME@start "text" line:column-line:column` with the text escaped.
-fn lex(source : String) -> String raise {
+fn lex(source : String) -> String {
   let tokens = @agentflow.tokenize(source)
   let lines = []
   for i, kind in tokens.types {

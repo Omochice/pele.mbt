@@ -171,24 +171,22 @@ fn token_outcome(source : String) -> String {
 
 ///|
 #skip("slow: lexes 33 million tokens")
-test "a style of one & per token fails as nested too deeply one token past the 2^25 pele's lexer holds" {
-  inspect(
-    token_outcome(
-      "agentflow-beta TB\n  a\nstyle a fill:\{"&".repeat(33554416)}\n",
-    ),
-    content="syntax: 33554524 agentflow agentflow",
-  )
+test "a style of more than 2^25 tokens is lexed to its end" {
   inspect(
     token_outcome(
       "agentflow-beta TB\n  a\nstyle a fill:\{"&".repeat(33554417)}\n",
     ),
-    content="limit: Diagram is nested too deeply. agentflow agentflow",
+    content=(
+      #|syntax: 33554525 agentflow agentflow
+    ),
   )
   inspect(
     token_outcome(
       "agentflow-beta TB\n  a\nlinkStyle 0 stroke:\{"&".repeat(33554417)}\n",
     ),
-    content="limit: Diagram is nested too deeply. agentflow agentflow",
+    content=(
+      #|semantic: 162 agentflow agentflow
+    ),
   )
 }
 

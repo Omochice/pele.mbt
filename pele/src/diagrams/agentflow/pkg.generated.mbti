@@ -22,7 +22,7 @@ pub fn render_agentflow(AgentflowDb, Map[String, Json], @types.RenderOptions) ->
 
 pub let token_names : Array[String]
 
-pub fn tokenize(String) -> Tokens raise @errors.PeleError
+pub fn tokenize(String) -> Tokens
 
 // Errors
 

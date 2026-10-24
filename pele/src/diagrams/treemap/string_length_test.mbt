@@ -120,7 +120,7 @@ test "a leaf colored by tens of millions of entities fails as nested too deeply"
 
 ///|
 #skip("slow, and moon test runs wasm's allocator unmended, which can give a block of 512 MiB or more a smaller one; check-string-length checks it through the mended plugin")
-test "a leaf label cut among more code points than V8's longest array holds fails as nested too deeply" {
+test "a leaf label of more than 2^27 code points is cut to fit its leaf" {
   let outcome = (count : Int32) => {
     @core.render(
       [@treemap.treemap],
@@ -137,9 +137,5 @@ test "a leaf label cut among more code points than V8's longest array holds fail
         "\{failure.code.to_string()}: \{failure.message} \{failure.kind.unwrap_or("null")} \{failure.mermaid_type.unwrap_or("null")}"
     }
   }
-  inspect(outcome(134217728), content="134218886")
-  inspect(
-    outcome(134217729),
-    content="limit: Diagram is nested too deeply. treemap treemap",
-  )
+  inspect(outcome(134217729), content="134218887")
 }
