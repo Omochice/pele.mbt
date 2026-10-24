@@ -42,6 +42,15 @@ jobs:
       - run: nix develop --command moon check --target wasm --deny-warn
       - run: nix develop --command moon test --target wasm
       - run: nix develop --command moon build --target wasm --release
+      - run: nix develop --command moon test --target wasm --enable-coverage
+      - run: mkdir -p _build/coverage
+      - run: nix develop --command moon coverage report -f cobertura -o _build/coverage/cobertura.xml
+      - name: Drop files without instrumented lines from the report
+        run: perl -0pi -e 's/ *<class [^>]*line-rate="-?nan">\s*<lines>\s*<\/lines>\s*<\/class>\n//g' _build/coverage/cobertura.xml
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage
+          path: _build/coverage/cobertura.xml
 
   golden:
     runs-on: ubuntu-latest
@@ -126,6 +135,38 @@ jobs:
           git diff --exit-code
           test -z "$(git status --porcelain)"
 
+  report:
+    needs: [moon]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write
+      actions: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: $/.github/actions/setup-nix
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: coverage
+          path: _build/coverage
+      - name: Expose Nix-provided octocov on PATH
+        run: |
+          nix develop --command bash <<'EOF' >> "$GITHUB_PATH"
+          set -euo pipefail
+          octocov_path="$(command -v octocov)"
+          dirname "$octocov_path"
+          EOF
+      - name: Report coverage
+        uses: k1LoW/octocov-action@a167dc0dee441b7ffc45e1b862ab55ec0d87f278 # v1.5.2
+        with:
+          config: octocov.yaml
+          check-existence: true
+
   status-check:
     timeout-minutes: 5
     runs-on: ubuntu-latest
@@ -136,6 +177,7 @@ jobs:
       - generated
       - golden
       - moon
+      - report
       - stress
       - typst
       # keep-sorted end
