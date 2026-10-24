@@ -8,6 +8,11 @@ on:
 permissions:
   contents: read
 
+defaults:
+  run:
+    # Adds pipefail, so a check whose output is copied to a log with tee still fails its step.
+    shell: bash
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -26,6 +31,18 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - run: nix flake check
+      - name: Count the files nix fmt changes
+        if: ${{ !cancelled() }}
+        run: |
+          nix fmt
+          git status --porcelain > "$RUNNER_TEMP/nix-fmt.log"
+          nix develop --command node scripts/record-check.mjs nix-fmt "$RUNNER_TEMP/nix-fmt.log"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ !cancelled() }}
+        with:
+          name: checks-flake-check
+          path: _build/checks/
+          if-no-files-found: ignore
 
   moon:
     runs-on: ubuntu-latest
@@ -39,8 +56,8 @@ jobs:
       - uses: $/.github/actions/setup-nix
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      - run: nix develop --command moon check --target wasm --deny-warn
-      - run: nix develop --command moon test --target wasm
+      - run: nix develop --command moon check --target wasm --deny-warn 2>&1 | tee "$RUNNER_TEMP/moon-check.log"
+      - run: nix develop --command moon test --target wasm 2>&1 | tee "$RUNNER_TEMP/moon-test.log"
       - run: nix develop --command moon build --target wasm --release
       - run: nix develop --command moon test --target wasm --enable-coverage
       - run: mkdir -p _build/coverage
@@ -51,6 +68,16 @@ jobs:
         with:
           name: coverage
           path: _build/coverage/cobertura.xml
+      - if: ${{ !cancelled() }}
+        run: |
+          nix develop --command node scripts/record-check.mjs moon-check "$RUNNER_TEMP/moon-check.log"
+          nix develop --command node scripts/record-check.mjs moon-test "$RUNNER_TEMP/moon-test.log"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ !cancelled() }}
+        with:
+          name: checks-moon
+          path: _build/checks/
+          if-no-files-found: ignore
 
   golden:
     runs-on: ubuntu-latest
@@ -65,7 +92,16 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - run: nix develop --command moon build --target wasm --release
-      - run: nix develop --command node scripts/check-golden.mjs
+
+      - run: nix develop --command node scripts/check-golden.mjs 2>&1 | tee "$RUNNER_TEMP/golden.log"
+      - if: ${{ !cancelled() }}
+        run: nix develop --command node scripts/record-check.mjs golden "$RUNNER_TEMP/golden.log"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ !cancelled() }}
+        with:
+          name: checks-golden
+          path: _build/checks/
+          if-no-files-found: ignore
 
   stress:
     runs-on: ubuntu-latest
@@ -80,7 +116,16 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - run: nix develop --command moon build --target wasm --release
-      - run: nix develop --command node scripts/check-stress.mjs
+
+      - run: nix develop --command node scripts/check-stress.mjs 2>&1 | tee "$RUNNER_TEMP/stress.log"
+      - if: ${{ !cancelled() }}
+        run: nix develop --command node scripts/record-check.mjs stress "$RUNNER_TEMP/stress.log"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ !cancelled() }}
+        with:
+          name: checks-stress
+          path: _build/checks/
+          if-no-files-found: ignore
 
   fuzz:
     runs-on: ubuntu-latest
@@ -95,7 +140,16 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - run: nix develop --command moon build --target wasm --release
-      - run: nix develop --command node scripts/fuzz.mjs --count 500
+
+      - run: nix develop --command node scripts/fuzz.mjs --count 500 2>&1 | tee "$RUNNER_TEMP/fuzz.log"
+      - if: ${{ !cancelled() }}
+        run: nix develop --command node scripts/record-check.mjs fuzz "$RUNNER_TEMP/fuzz.log"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ !cancelled() }}
+        with:
+          name: checks-fuzz
+          path: _build/checks/
+          if-no-files-found: ignore
 
   typst:
     runs-on: ubuntu-latest
@@ -110,7 +164,16 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - run: nix develop --command node scripts/build-typst.mjs
-      - run: nix develop --command node scripts/check-typst.mjs
+
+      - run: nix develop --command node scripts/check-typst.mjs 2>&1 | tee "$RUNNER_TEMP/typst.log"
+      - if: ${{ !cancelled() }}
+        run: nix develop --command node scripts/record-check.mjs typst "$RUNNER_TEMP/typst.log"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ !cancelled() }}
+        with:
+          name: checks-typst
+          path: _build/checks/
+          if-no-files-found: ignore
 
   generated:
     runs-on: ubuntu-latest
@@ -134,6 +197,17 @@ jobs:
           git status --short
           git diff --exit-code
           test -z "$(git status --porcelain)"
+      - name: Count the files the regeneration changed
+        if: ${{ !cancelled() }}
+        run: |
+          git status --porcelain > "$RUNNER_TEMP/generated.log"
+          nix develop --command node scripts/record-check.mjs generated "$RUNNER_TEMP/generated.log"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ !cancelled() }}
+        with:
+          name: checks-generated
+          path: _build/checks/
+          if-no-files-found: ignore
 
   report:
     needs: [moon]
