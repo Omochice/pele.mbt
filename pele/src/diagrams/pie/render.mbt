@@ -64,11 +64,6 @@ fn render_pie(
   config : @types.Config,
   options : @types.RenderOptions,
 ) -> @types.Rendered raise @errors.PeleError {
-  // The legend position is the only value pele writes with String() that config from JSON can nest without bound.
-  if option(config, "legendPosition") is Some(value) &&
-    @util.js_string_too_deep(value) {
-    raise @errors.nested_too_deeply()
-  }
   @common.fit_width(options, RADIUS * 2, 140, (diameter, tight) => {
     draw(model, config, options, diameter / 2, tight)
   })

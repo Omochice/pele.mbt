@@ -1,5 +1,6 @@
 ///|
 /// The value as JavaScript's `String()` writes it.
+/// Arrays are written however deeply they nest, although pele's `String()` fails where V8 runs out of stack, because that depth varies with the platform and the process and is not a limit pele chose.
 pub fn js_string(value : Json) -> String {
   match value {
     Null => "null"
@@ -10,34 +11,6 @@ pub fn js_string(value : Json) -> String {
     Array(items) => join_nested(items)
     Object(_) => "[object Object]"
   }
-}
-
-///|
-/// How deeply arrays may nest for pele's `String()` to write them.
-/// V8 joins nested arrays by recursion, so in pele a deeper value runs out of stack and fails as nested too deeply.
-/// The depth it reaches is the engine's: node 24 with its default stack writes 2,816 levels and fails at 2,818, against about 850 with a 300 KB stack and 11,500 with 4 MB.
-/// The bound is a round number just under node's default, so whatever is written here pele writes there too, and nothing short of hostile input nests arrays this deep.
-pub const JS_STRING_MAX_DEPTH : Int32 = 2800
-
-///|
-/// Whether `value` nests arrays deeper than pele's `String()` can write, see `JS_STRING_MAX_DEPTH`.
-pub fn js_string_too_deep(value : Json) -> Bool {
-  guard value is Array(items) else { return false }
-  let lists = [items]
-  let depths = [1]
-  while lists.pop() is Some(list) {
-    let depth = depths.pop().unwrap()
-    if depth > JS_STRING_MAX_DEPTH {
-      return true
-    }
-    for item in list {
-      if item is Array(inner) {
-        lists.push(inner)
-        depths.push(depth + 1)
-      }
-    }
-  }
-  false
 }
 
 ///|
