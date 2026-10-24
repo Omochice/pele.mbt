@@ -42,7 +42,7 @@ pub fn relative_radius(
 
 ///|
 /// Writes a closed Catmull-Rom spline through the points, as cubic Bezier segments, one segment at a time.
-fn write_closed_round_curve(
+pub fn write_closed_round_curve(
   points : Array[Point],
   tension : Double,
   write : (String) -> Unit raise?,
@@ -60,14 +60,6 @@ fn write_closed_round_curve(
     )
   }
   write(" Z")
-}
-
-///|
-/// A closed Catmull-Rom spline through the points, as cubic Bezier segments.
-pub fn closed_round_curve(points : Array[Point], tension : Double) -> String {
-  let d = StringBuilder()
-  write_closed_round_curve(points, tension, segment => d.write_string(segment))
-  d.to_string()
 }
 
 ///|

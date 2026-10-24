@@ -77,7 +77,7 @@ test "a curve without tension is a polygon of degenerate segments" {
     { x: 0, y: 100, },
   ]
   inspect(
-    @radar.closed_round_curve(points, 0),
+    round_curve(points, 0),
     content="M0,0 C0,0 100,0 100,0 C100,0 100,100 100,100 C100,100 0,100 0,100 C0,100 0,0 0,0 Z",
   )
 }
@@ -85,7 +85,7 @@ test "a curve without tension is a polygon of degenerate segments" {
 ///|
 test "a closed round curve passes through its points" {
   inspect(
-    @radar.closed_round_curve([{ x: 0, y: 0, }, { x: 100, y: 100, }], 0.5),
+    round_curve([{ x: 0, y: 0, }, { x: 100, y: 100, }], 0.5),
     content="M0,0 C0,0 100,100 100,100 C100,100 0,0 0,0 Z",
   )
   let points : Array[@radar.Point] = [
@@ -95,7 +95,7 @@ test "a closed round curve passes through its points" {
     { x: 0, y: 100, },
   ]
   inspect(
-    @radar.closed_round_curve(points, 0.5),
+    round_curve(points, 0.5),
     content="M0,0 C50,-50 50,-50 100,0 C150,50 150,50 100,100 C50,150 50,150 0,100 C-50,50 -50,50 0,0 Z",
   )
 }
@@ -295,4 +295,14 @@ test "a chart wider than maxWidth stacks its legend below" {
   inspect(wide.width > 400, content="true")
   inspect(narrow.width <= 400, content="true")
   inspect(narrow.height > wide.height, content="true")
+}
+
+///|
+/// The path `write_closed_round_curve` writes through `points`.
+fn round_curve(points : Array[@radar.Point], tension : Double) -> String {
+  let d = StringBuilder()
+  @radar.write_closed_round_curve(points, tension, segment => {
+    d.write_string(segment)
+  })
+  d.to_string()
 }

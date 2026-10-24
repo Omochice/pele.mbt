@@ -9,13 +9,13 @@ import {
 // Values
 pub fn build_radar(RadarAst, String?) -> RadarModel raise @errors.PeleError
 
-pub fn closed_round_curve(Array[Point], Double) -> String
-
 pub fn parse_radar(String) -> RadarAst raise @errors.PeleError
 
 pub let radar : @types.Diagram
 
 pub fn relative_radius(Double, Double, Double, Double) -> Double
+
+pub fn write_closed_round_curve(Array[Point], Double, (String) -> Unit raise?) -> Unit raise?
 
 // Errors
 
