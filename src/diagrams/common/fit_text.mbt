@@ -33,12 +33,26 @@ pub fn fit_text(
     }
     fitted -= 1
   }
-  let starts = code_point_starts(text)
-  let cut_at = (count : Int32) => {
-    @util.trim_end(@util.slice(text, 0, end=starts[count])) + "…"
+  let count = code_point_count(text)
+  // Without surrogate pairs each code point starts at its own index, and no table of where they
+  // start is made, which for a text of hundreds of millions of characters is larger than wasm
+  // allocates.
+  let starts = if count == text.length() {
+    None
+  } else {
+    Some(code_point_starts(text))
+  }
+  let start_of = (at : Int32) => {
+    match starts {
+      Some(starts) => starts[at]
+      None => at
+    }
+  }
+  let cut_at = (at : Int32) => {
+    @util.trim_end(@util.slice(text, 0, end=start_of(at))) + "…"
   }
   let mut low = 0
-  let mut high = starts.length() - 2
+  let mut high = count - 1
   while low < high {
     let mid = (low + high + 1) >> 1
     if measurer.width(cut_at(mid), min, style) <= max {

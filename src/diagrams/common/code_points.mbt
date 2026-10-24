@@ -18,3 +18,20 @@ fn code_point_starts(text : String) -> Array[Int32] {
   starts.push(n)
   starts
 }
+
+///|
+/// How many code points `text` holds, a surrogate pair counting as one.
+fn code_point_count(text : String) -> Int32 {
+  let n = text.length()
+  let mut count = n
+  for i in 0..<(n - 1) {
+    let c = text.unsafe_get(i).to_int()
+    if c >= 0xd800 && c <= 0xdbff {
+      let d = text.unsafe_get(i + 1).to_int()
+      if d >= 0xdc00 && d <= 0xdfff {
+        count -= 1
+      }
+    }
+  }
+  count
+}
