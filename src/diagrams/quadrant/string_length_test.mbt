@@ -76,3 +76,16 @@ test "a point color followed by 110 million - fails on the color alone" {
     content="semantic: value for color x is invalid, please use a valid hex code quadrantChart quadrantChart",
   )
 }
+
+///|
+#skip("slow, and moon test runs wasm's allocator unmended, which can give a block of 512 MiB or more a smaller one; check-string-length checks it through the mended plugin")
+test "a point named by 2^28 or more letters, written twice, fails as nested too deeply" {
+  inspect(
+    outcome_of("quadrantChart\n\{"a".repeat(270000000)}: [0.5, 0.5]\n", {
+      ..@types.RenderOptions::default(),
+      limit: Some(1.0 / 0.0),
+      output_limit: Some(1.0 / 0.0),
+    }),
+    content="limit: Diagram is nested too deeply. quadrantChart quadrantChart",
+  )
+}
