@@ -5,8 +5,8 @@
 //
 // Usage: NEEDS=<the workflow's toJSON(needs)> node scripts/merge-checks.mjs <rows dir> <out>
 
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { CHECKS } from './ci-checks.mjs';
 
 const [rowsDir, out] = process.argv.slice(2);
@@ -22,5 +22,6 @@ const metrics = CHECKS.map(({ key, name, job }) => {
   return { key, name, value: 0, unit: ` (no result; ${job} ${needs[job]?.result ?? 'did not run'})` };
 });
 
+mkdirSync(dirname(out), { recursive: true });
 writeFileSync(out, `${JSON.stringify({ key: 'checks', name: 'Checks', metrics }, null, 2)}\n`);
 for (const m of metrics) console.log(`${m.name}: ${m.value}${m.unit}`);
