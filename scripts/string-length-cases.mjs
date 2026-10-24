@@ -531,6 +531,7 @@ export const CASES = [
   lazy('sequence', 'a message of 270M a', () => `sequenceDiagram\nA->>B: ${'a'.repeat(270000000)}\n`, RAISED),
   lazy('eventmodeling', 'a frame\'s entity named by 270M a', () => `eventmodeling\ntf 01 evt ${'a'.repeat(270000000)}\n`, RAISED),
   lazy('quadrant', 'a point named by 270M a, written twice', () => `quadrantChart\n${'a'.repeat(270000000)}: [0.5, 0.5]\n`, RAISED),
+  lazy('xychart', 'a category of 270M a', () => `xychart\nx-axis [${'a'.repeat(270000000)}]\nbar [1]\n`, RAISED),
 ];
 
 // A case whose source is built only when the check reaches it, as a getter in the source's place,
