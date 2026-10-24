@@ -179,12 +179,17 @@ fn Parser::run_of(
   if !belongs(self.kind()) {
     self.fail(expected)
   }
-  let out = StringBuilder()
-  out.write_string(self.take())
+  // Joined at its final size, because a run holding a token of hundreds of millions of
+  // characters would need a doubling builder's block past what wasm allocates.
+  let parts = [self.take()]
   while belongs(self.kind()) {
-    out.write_string(self.take())
+    parts.push(self.take())
   }
-  out.to_string()
+  if parts.length() == 1 {
+    parts[0]
+  } else {
+    parts.join("")
+  }
 }
 
 ///|
