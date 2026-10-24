@@ -1,40 +1,72 @@
 ///|
-/// Replaces each run of at least two code units accepted by `inside` with `with`.
+/// The code units of `text` from `from` to `to`, with each run of at least two of them accepted by
+/// `inside` replaced with `replacement`.
 fn collapse_runs(
   text : String,
   inside : (Int32) -> Bool,
   replacement : String,
+  from~ : Int32 = 0,
+  to? : Int32,
 ) -> String {
-  let out = StringBuilder()
-  let mut i = 0
-  let mut last = 0
-  while i < text.length() {
+  let to = to.unwrap_or(text.length())
+  // The runs are found before anything is copied, because a title of hundreds of millions of
+  // characters copied into a doubling builder would need a block past what wasm allocates, and
+  // one without runs needs only its one slice.
+  let runs : Array[(Int32, Int32)] = []
+  let mut i = from
+  while i < to {
     if !inside(@util.code_at(text, i)) {
       i += 1
       continue
     }
     let start = i
-    while inside(@util.code_at(text, i)) {
+    while i < to && inside(@util.code_at(text, i)) {
       i += 1
     }
     if i - start >= 2 {
-      @util.write_range(out, text, last, start)
-      out.write_string(replacement)
-      last = i
+      runs.push((start, i))
     }
   }
-  @util.write_range(out, text, last, text.length())
+  if runs.is_empty() {
+    return @util.slice(text, from, end=to)
+  }
+  let mut length = to - from
+  for run in runs {
+    length += replacement.length() - (run.1 - run.0)
+  }
+  let out = StringBuilder(size_hint=length * 2)
+  let mut last = from
+  for run in runs {
+    @util.write_range(out, text, last, run.0)
+    out.write_string(replacement)
+    last = run.1
+  }
+  @util.write_range(out, text, last, to)
   out.to_string()
 }
 
 ///|
-fn single(text : String) -> String {
-  collapse_runs(@util.trim(text), @util.is_blank, " ")
+/// The code units of `text` from `from` to `to`, trimmed, with each run of blanks made one space.
+fn single(text : String, from : Int32, to : Int32) -> String {
+  let mut from = from
+  let mut to = to
+  while from < to && @util.is_space(@util.code_at(text, from)) {
+    from += 1
+  }
+  while to > from && @util.is_space(@util.code_at(text, to - 1)) {
+    to -= 1
+  }
+  collapse_runs(text, @util.is_blank, " ", from~, to~)
 }
 
 ///|
-/// The rest of the line after `keyword` and the blanks and colon that may follow it.
-fn after_keyword(text : String, keyword : String, colon : Bool) -> String {
+/// Where the rest of the line after `keyword` and the blanks and colon that may follow it starts
+/// and ends.
+fn after_keyword(
+  text : String,
+  keyword : String,
+  colon : Bool,
+) -> (Int32, Int32) {
   let at = @util.index_of(text, keyword)
   let mut i = at + keyword.length()
   if colon {
@@ -43,13 +75,13 @@ fn after_keyword(text : String, keyword : String, colon : Bool) -> String {
     }
     i += 1
   } else if !@util.is_blank(@util.code_at(text, i)) {
-    return ""
+    return (i, i)
   }
   let mut end = i
   while end < text.length() && !is_line_break(@util.code_at(text, end)) {
     end += 1
   }
-  @util.slice(text, i, end~)
+  (i, end)
 }
 
 ///|
@@ -60,13 +92,15 @@ fn is_line_break(c : Int32) -> Bool {
 ///|
 /// The title a `TITLE` token gives.
 pub fn title_value(text : String) -> String {
-  single(after_keyword(text, "title", false))
+  let (from, to) = after_keyword(text, "title", false)
+  single(text, from, to)
 }
 
 ///|
 /// The title an `ACC_TITLE` token gives.
 pub fn acc_title_value(text : String) -> String {
-  single(after_keyword(text, "accTitle", true))
+  let (from, to) = after_keyword(text, "accTitle", true)
+  single(text, from, to)
 }
 
 ///|
@@ -130,7 +164,10 @@ pub fn acc_descr_value(text : String) -> String {
     i
   }
   if @util.code_at(text, colon) == ':'.to_int() {
-    return single(after_keyword(text, "accDescr", true))
+    return {
+      let (from, to) = after_keyword(text, "accDescr", true)
+      single(text, from, to)
+    }
   }
   let open = @util.index_of(text, "{", from=at)
   let close = @util.index_of(text, "}", from=open + 1)
