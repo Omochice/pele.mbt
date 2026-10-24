@@ -2,5 +2,5 @@
 _build/
 .mooncakes/
 .moonagent/
-typst/plugin.wasm
+typst/package/plugin.wasm
 .direnv/

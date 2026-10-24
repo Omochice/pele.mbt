@@ -1,6 +1,6 @@
 # Documentation
 
-These files describe how the port is checked against pele and where it knowingly stops following it, apart from the golden fixtures, which [golden/README.md](../golden/README.md) describes, and the typst package, which [typst/README.md](../typst/README.md) describes.
+These files describe how the port is checked against pele and where it knowingly stops following it, apart from the golden fixtures, which [golden/README.md](../golden/README.md) describes, and the typst package, which [typst/package/README.md](../typst/package/README.md) describes.
 
 - [testing.md](testing.md) lists every check, what it verifies, and how to run it.
 - [output-ceiling.md](output-ceiling.md) describes the longest SVG the port draws and how it follows V8's limits on strings, arrays and regular expressions.

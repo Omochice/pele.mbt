@@ -125,8 +125,8 @@ Each case builds its source only when the check reaches it, so naming one diagra
 
 ## typst
 
-`scripts/build-typst.mjs` builds the plugin in release, mends its allocator, and writes it to `typst/plugin.wasm`, which is not tracked.
-`scripts/check-typst.mjs` then compiles every document under `typst/examples` and `typst/tests` with `$TYPST`, or `typst` on `PATH`.
+`scripts/build-typst.mjs` builds the plugin in release, mends its allocator, and writes it to `typst/package/plugin.wasm`, which is not tracked.
+`scripts/check-typst.mjs` then compiles every document under `typst/package/examples` and `typst/package/tests` with `$TYPST`, or `typst` on `PATH`.
 
 ```sh
 node scripts/build-typst.mjs
@@ -140,7 +140,7 @@ A document passes when it compiles without an error or a warning, and a test nam
 
 The modules below are not run on their own but shared by the checks above, or run only when what they generate has to change.
 
-- `scripts/plugin-host.mjs` hosts the plugin as typst does, through the wasm-minimal-protocol, with its allocator mended as `typst/plugin.wasm` ships it, and refuses a plugin that imports anything typst does not provide.
+- `scripts/plugin-host.mjs` hosts the plugin as typst does, through the wasm-minimal-protocol, with its allocator mended as `typst/package/plugin.wasm` ships it, and refuses a plugin that imports anything typst does not provide.
 - `scripts/allocator.mjs` mends the allocator moonc links in, as [the allocator bug](allocator-bug.md) describes.
 - `scripts/call-depth.mjs` rewrites the plugin to count its own call depth and trap past typst's limit, since V8 allows wasm a far deeper stack.
 - `scripts/pele-render.mjs` renders one source read from stdin with pele and prints the outcome as JSON, so that a caller controls the stack pele starts from.

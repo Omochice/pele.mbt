@@ -19,7 +19,7 @@ The script runs `moon build --target wasm --release` with the `moon` found on `P
 Without a `width` or `height`, a diagram keeps its own size but shrinks to fit the space it is placed in.
 
 ```typ
-#import "typst/lib.typ": mermaid
+#import "typst/package/lib.typ": mermaid
 
 #mermaid("graph TD\n  A --> B")
 
@@ -64,7 +64,7 @@ Text drawn in a font with other metrics then overflows its box or leaves a gap.
 `font-measurer` measures a font's advances with typst and returns them in the form the `measurer` option takes, so labels are laid out in the font they are drawn in.
 
 ```typ
-#import "typst/lib.typ": font-measurer, mermaid
+#import "typst/package/lib.typ": font-measurer, mermaid
 
 #context mermaid(
   fontFamily: "Libertinus Serif",
@@ -108,7 +108,7 @@ It maps each TeX string, then the font size in pixels written as a number such a
 Node labels ask for the diagram's font size, while edge labels and class cardinalities ask for smaller ones.
 TeX the map does not hold at the size asked for stays as its text, and so does TeX in diagram titles and in the diagram types pele does not typeset math in.
 pele also takes `html` markup in place of `svg`, but typst warns about the `foreignObject` that holds it and draws nothing there.
-[golden/README.md](../golden/README.md#math) states the exact rules.
+[golden/README.md](https://github.com/Omochice/pele.mbt/blob/main/golden/README.md#math) states the exact rules.
 
 ## Why the SVG is rewritten
 
@@ -135,7 +135,7 @@ A diagram that fits to its width is also drawn several times so their widths can
 So the plugin stops at 400000000 code units of SVG, a little above half of V8's longest string: a drawing larger than that fails with the `limit` error "Diagram output is too large for the wasm port: it would hold more than 400000000 code units, the most the port can hold at once.", tagged with the diagram's type, where pele would still draw it.
 The several-render fit path at that ceiling peaks at about 3.1 GiB, inside wasm's 4 GiB.
 
-This ceiling is the one intentional, platform-imposed difference from pele: every input whose SVG is at most 400000000 code units is drawn byte for byte as pele draws it, apart from the few enormous inputs that [Known constraints](../doc/known-constraints.md) lists, and only inputs between the ceiling and V8's longest string, which pele draws and a wasm32 plugin cannot hold, come out as this `limit` error rather than as a drawing.
+This ceiling is the one intentional, platform-imposed difference from pele: every input whose SVG is at most 400000000 code units is drawn byte for byte as pele draws it, apart from the few enormous inputs that [Known constraints](https://github.com/Omochice/pele.mbt/blob/main/doc/known-constraints.md) lists, and only inputs between the ceiling and V8's longest string, which pele draws and a wasm32 plugin cannot hold, come out as this `limit` error rather than as a drawing.
 A second guard covers a response whose bytes, rather than code units, would not fit one of wasm's memory blocks: a JSON response over 1000000000 bytes fails with a `limit` error naming that byte limit.
 It covers a failure as well as a drawing, since a failure's message can quote a whole line of the source; a drawing under the code-unit ceiling reaches it only when it is almost all non-ASCII text.
 
@@ -143,7 +143,7 @@ It covers a failure as well as a drawing, since a failure's message can quote a 
 
 - The outline of a cluster title is not drawn when `surface-alt` or `bg` is a color the plugin cannot mix, as listed under [Theme](#theme).
 - A diagram whose SVG would be longer than 400000000 code units fails with a `limit` error rather than being drawn, as described under [Output ceiling](#output-ceiling).
-- A few inputs of tens to hundreds of millions of characters trap the plugin where pele draws or rejects them, as [Known constraints](../doc/known-constraints.md) lists.
+- A few inputs of tens to hundreds of millions of characters trap the plugin where pele draws or rejects them, as [Known constraints](https://github.com/Omochice/pele.mbt/blob/main/doc/known-constraints.md) lists.
 
 ## Checking
 

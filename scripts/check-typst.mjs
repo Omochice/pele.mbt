@@ -12,11 +12,11 @@ import { basename, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const packageDir = join(root, 'typst');
+const packageDir = join(root, 'typst/package');
 const typst = process.env.TYPST ?? 'typst';
 
 if (!existsSync(join(packageDir, 'plugin.wasm'))) {
-  console.error('missing typst/plugin.wasm; run `node scripts/build-typst.mjs` first');
+  console.error('missing typst/package/plugin.wasm; run `node scripts/build-typst.mjs` first');
   process.exit(1);
 }
 
