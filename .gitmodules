@@ -1,3 +1,0 @@
-[submodule "vendor/pele"]
-	path = vendor/pele
-	url = https://github.com/obsidianmd/pele.git
