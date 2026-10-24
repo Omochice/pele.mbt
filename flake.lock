@@ -113,6 +113,23 @@
         "type": "github"
       }
     },
+    "pele": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1792523199,
+        "narHash": "sha256-ZNhkBWTbZh2GPWsEXN5OCvi0XJtgUof2HKI9n93Be5w=",
+        "owner": "obsidianmd",
+        "repo": "pele",
+        "rev": "1dd58b7ebb0ec654fa7dc4304d50cf8fd3a65d7b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "obsidianmd",
+        "repo": "pele",
+        "rev": "1dd58b7ebb0ec654fa7dc4304d50cf8fd3a65d7b",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "flake-utils": "flake-utils",
@@ -120,6 +137,7 @@
         "moonbit-overlay": "moonbit-overlay",
         "nixpkgs": "nixpkgs",
         "nur-packages": "nur-packages",
+        "pele": "pele",
         "treefmt-nix": "treefmt-nix_3"
       }
     },

@@ -20,6 +20,10 @@
       url = "github:moonbit-community/moonbit-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    pele = {
+      url = "github:obsidianmd/pele/1dd58b7ebb0ec654fa7dc4304d50cf8fd3a65d7b";
+      flake = false;
+    };
   };
 
   outputs =
@@ -31,6 +35,7 @@
       nur-packages,
       git-hooks,
       moonbit-overlay,
+      pele,
     }:
     flake-utils.lib.eachDefaultSystem (
       system:
@@ -41,6 +46,21 @@
             nur-packages.overlays.default
             moonbit-overlay.overlays.default
           ];
+        };
+        # pele publishes only dist/, but the scripts also read its tests/ and package.json,
+        # so the whole source tree is installed rather than what npm pack would keep.
+        peleCheckout = pkgs.buildNpmPackage {
+          pname = "pele";
+          version = (pkgs.lib.importJSON "${pele}/package.json").version;
+          src = pele;
+          nodejs = pkgs.nodejs_24;
+          npmDepsHash = "sha256-7EKcDBKHikfWMsrxujgLfmRGJozhcw81+viN2iMUpNY=";
+          installPhase = ''
+            runHook preInstall
+            rm -rf node_modules
+            cp -r . $out
+            runHook postInstall
+          '';
         };
         treefmt = treefmt-nix.lib.evalModule pkgs (
           { ... }:
@@ -192,6 +212,8 @@
             pkgs.mkShell {
               buildInputs = buildInputs ++ pre-commit-check.enabledPackages;
               inherit (pre-commit-check) shellHook;
+              PELE_ROOT = peleCheckout;
+              PELE_COMMIT = pele.rev;
             }
           ))
         ];
