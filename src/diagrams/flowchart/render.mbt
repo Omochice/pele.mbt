@@ -58,7 +58,7 @@ pub(all) struct FlowVariant {
     @layout.LayeredOptions,
     Bool,
   ) -> @layout.CompoundResult
-  /// Writes a top-level group to the markup from its laid out box, title, style, classes, escaped id, the diagram's direction and the host's icons.
+  /// Writes a top-level group to the markup from its laid out box, title, style, classes, id, the diagram's direction and the host's icons.
   draw_group : ((
     @svg.Markup,
     @layout.CNode,
@@ -360,7 +360,6 @@ fn draw(
     let c = cnodes[i]
     let node = view.node
     let classes = @svg.node_class_names(node.css_classes)
-    let id = @svg.esc_text(node.id)
     if c.is_group &&
       c.parent < 0 &&
       variant is Some({ draw_group: Some(draw_group), .. }) {
@@ -370,7 +369,7 @@ fn draw(
         view.label,
         view.style,
         classes,
-        id,
+        node.id,
         root_dir,
         options.icons,
       )
@@ -387,19 +386,21 @@ fn draw(
       let title_attrs = " class=\"pele-cluster-label\" fill=\"var(--_m)\"\{view.style.text}"
       let struck = @svg.title_crossed(c, view.label.width, title_x, crossings)
       if struck {
-        @svg.write_struck_title(
+        @svg.write_struck_title_with_id(
           struck_titles,
           view.label,
           title_x,
           title_y,
           title_attrs,
-          id,
+          node.id,
           cnodes,
           i,
           icons?=options.icons,
         )
       }
-      clusters.write("<g class=\"pele-cluster\{classes}\" data-id=\"\{id}\">")
+      clusters.write("<g class=\"pele-cluster\{classes}\"")
+      @svg.write_data_id(clusters, node.id)
+      clusters.write(">")
       clusters.write(
         "<rect x=\"\{@svg.num(c.x - c.w / 2)}\" y=\"\{@svg.num(c.y - c.h / 2)}\" width=\"\{@svg.num(c.w)}\" height=\"\{@svg.num(c.h)}\" fill=\"var(--_a)\" fill-opacity=\"0.5\" stroke=\"var(--_b)\"\{@svg.rounded(view.style.shape)}/>",
       )
@@ -416,17 +417,20 @@ fn draw(
       clusters.write("</g>")
       continue
     }
-    let inner = if node.img is Some(img) && img != "" {
-      picture(node, img, view, options)
+    let inner = @svg.Markup::new()
+    if node.img is Some(img) && img != "" {
+      write_picture(inner, node, img, view, options)
     } else if node.icon is Some(icon) && icon != "" {
-      icon_svg(node, icon, view, options.icons)
+      write_icon(inner, node, icon, view, options.icons)
     } else {
-      @svg.draw_shape(
-        view.shape,
-        view.w,
-        view.h,
-        SHAPE_ATTRS + view.style.shape,
-        LINE_ATTRS + view.style.line,
+      inner.write(
+        @svg.draw_shape(
+          view.shape,
+          view.w,
+          view.h,
+          SHAPE_ATTRS + view.style.shape,
+          LINE_ATTRS + view.style.line,
+        ),
       )
     }
     let text = @svg.Markup::new()
@@ -440,46 +444,49 @@ fn draw(
     )
     let body = @svg.Markup::new()
     if node.tooltip is Some(tooltip) && tooltip != "" {
-      body.write("<title>\{@svg.esc_text(tooltip)}</title>")
+      body.write("<title>")
+      @svg.write_esc_text(body, tooltip)
+      body.write("</title>")
     }
-    body.write(inner)
+    body.write_markup(inner)
     if (classes + " ").contains(" internal-link ") &&
       node.label is Some(note) &&
       note != "" &&
       options.links != Some(false) {
       // The label is a note name, but it still ends up in an href, so it gets the same check as a URL.
       let name = @text.decode_entities(note)
-      let target = @svg.esc(name)
-      let href = if @url.link_url(@url.sanitize_url(name), options) is Some(_) {
-        " href=\"\{target}\"\{@url.rel_attr(options)}"
-      } else {
-        ""
+      body.write("<a class=\"internal-link\"")
+      if @url.link_url(@url.sanitize_url(name), options) is Some(_) {
+        body.write(" href=\"")
+        @svg.write_esc(body, name)
+        body.write("\"\{@url.rel_attr(options)}")
       }
-      body.write_group(
-        "<a class=\"internal-link\"\{href} data-href=\"\{target}\">",
-        text,
-        "</a>",
-      )
+      body.write(" data-href=\"")
+      @svg.write_esc(body, name)
+      body.write_group("\">", text, "</a>")
       links.push({ id: node.id, href: name, internal: true, })
     } else {
       body.write_markup(text)
     }
-    let link_start = match node.link {
+    nodes_out.write("<g class=\"pele-node pele-shape-\{view.shape}\{classes}\"")
+    @svg.write_data_id(nodes_out, node.id)
+    nodes_out.write(
+      " transform=\"translate(\{@svg.num(c.x)},\{@svg.num(c.y)})\">",
+    )
+    let linked = match node.link {
       Some(link) if link != "" => {
+        // A link target is one of four keywords, so it is never long.
         let attrs = match node.link_target {
           Some(target) if target != "" => " target=\"\{@svg.esc(target)}\""
           _ => ""
         }
-        @url.link_start(link, node.id, links, options, attrs~)
+        @url.write_link_start(nodes_out, link, node.id, links, options, attrs~)
       }
-      _ => None
+      _ => false
     }
-    nodes_out.write(
-      "<g class=\"pele-node pele-shape-\{view.shape}\{classes}\" data-id=\"\{id}\" transform=\"translate(\{@svg.num(c.x)},\{@svg.num(c.y)})\">",
-    )
-    match link_start {
-      Some(start) => nodes_out.write_group(start, body, "</a>")
-      None => nodes_out.write_markup(body)
+    nodes_out.write_markup(body)
+    if linked {
+      nodes_out.write("</a>")
     }
     nodes_out.write("</g>")
   }
