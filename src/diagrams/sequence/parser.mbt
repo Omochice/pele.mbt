@@ -105,7 +105,22 @@ pub fn parse_sequence(src : String, db : SeqDb) -> Unit raise @errors.PeleError 
   }
 
   fn text2() -> SeqText raise @errors.PeleError {
-    db.parse_message(@util.slice(@util.trim(expect(Txt)), 1))
+    // The text after the colon is trimmed by moving its ends and sliced once, because a message
+    // of hundreds of millions of characters copied at each step would not fit beside the source.
+    let text = expect(Txt)
+    let mut from = 0
+    let mut to = text.length()
+    while to > from && @util.is_space(@util.code_at(text, to - 1)) {
+      to -= 1
+    }
+    while from < to && @util.is_space(@util.code_at(text, from)) {
+      from += 1
+    }
+    from = if from < to { from + 1 } else { to }
+    while from < to && @util.is_space(@util.code_at(text, from)) {
+      from += 1
+    }
+    db.parse_message(@util.slice(text, from, end=to))
   }
 
   fn participant() -> Declared raise @errors.PeleError {
