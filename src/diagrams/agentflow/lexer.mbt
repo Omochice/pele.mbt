@@ -128,7 +128,16 @@ fn Lexer::advance(self : Lexer, e : Int32) -> Unit {
 }
 
 ///|
-fn Lexer::open_token(self : Lexer, kind : Int32, text : String) -> Unit {
+fn Lexer::open_token(
+  self : Lexer,
+  kind : Int32,
+  text : String,
+) -> Unit raise @errors.PeleError {
+  // pele pushes a token's first line and column into one array with its last, so the push that
+  // would pass V8's longest array throws as the token opens.
+  if self.locs.length() + 2 > @util.JS_ARRAY_MAX_LENGTH {
+    raise @errors.nested_too_deeply()
+  }
   self.types.push(kind)
   self.texts.push(text)
   self.starts.push(self.p)
@@ -143,7 +152,11 @@ fn Lexer::close_token(self : Lexer) -> Unit {
 }
 
 ///|
-fn Lexer::emit(self : Lexer, kind : Int32, e : Int32) -> Unit {
+fn Lexer::emit(
+  self : Lexer,
+  kind : Int32,
+  e : Int32,
+) -> Unit raise @errors.PeleError {
   self.open_token(kind, @util.slice(self.src, self.p, end=e))
   self.advance(e)
   self.close_token()
@@ -151,7 +164,11 @@ fn Lexer::emit(self : Lexer, kind : Int32, e : Int32) -> Unit {
 
 ///|
 /// For a token that cannot hold a line break.
-fn Lexer::emit_flat(self : Lexer, kind : Int32, e : Int32) -> Unit {
+fn Lexer::emit_flat(
+  self : Lexer,
+  kind : Int32,
+  e : Int32,
+) -> Unit raise @errors.PeleError {
   self.open_token(kind, @util.slice(self.src, self.p, end=e))
   self.col += e - self.p
   self.p = e
@@ -160,7 +177,11 @@ fn Lexer::emit_flat(self : Lexer, kind : Int32, e : Int32) -> Unit {
 
 ///|
 /// For a run that Jison matches one character at a time, where \r\n counts as two line breaks.
-fn Lexer::emit_chars(self : Lexer, kind : Int32, e : Int32) -> Unit {
+fn Lexer::emit_chars(
+  self : Lexer,
+  kind : Int32,
+  e : Int32,
+) -> Unit raise @errors.PeleError {
   self.open_token(kind, @util.slice(self.src, self.p, end=e))
   for k in self.p..<e {
     let ch = self.at(k)
@@ -181,7 +202,7 @@ fn Lexer::emit_text(
   kind : Int32,
   text : String,
   e : Int32,
-) -> Unit {
+) -> Unit raise @errors.PeleError {
   self.open_token(kind, text)
   self.advance(e)
   self.close_token()
@@ -260,7 +281,7 @@ fn Lexer::arrow_end(self : Lexer, q : Int32) -> Int32 {
 }
 
 ///|
-fn Lexer::link(self : Lexer) -> Bool {
+fn Lexer::link(self : Lexer) -> Bool raise @errors.PeleError {
   let j = self.ws_end(self.p)
   if j == self.no_link || self.at(j) != '-' {
     return false
@@ -319,7 +340,7 @@ fn Lexer::quote(self : Lexer) -> Unit {
 }
 
 ///|
-fn Lexer::opener(self : Lexer, c : Int32) -> Bool {
+fn Lexer::opener(self : Lexer, c : Int32) -> Bool raise @errors.PeleError {
   let p = self.p
   let d = self.at(p + 1)
   if c == '(' {
@@ -371,7 +392,7 @@ fn Lexer::opener(self : Lexer, c : Int32) -> Bool {
 }
 
 ///|
-fn Lexer::node_string(self : Lexer) -> Bool {
+fn Lexer::node_string(self : Lexer) -> Bool raise @errors.PeleError {
   let mut q = self.p
   while q < self.n {
     let ch = self.at(q)
@@ -409,7 +430,7 @@ fn Lexer::blanks(self : Lexer, from : Int32) -> Int32 {
 
 ///|
 /// The keywords of the initial state, by their first character.
-fn Lexer::keyword(self : Lexer, c : Int32) -> Bool {
+fn Lexer::keyword(self : Lexer, c : Int32) -> Bool raise @errors.PeleError {
   let p = self.p
   let src = self.src
   match c {
@@ -533,7 +554,7 @@ fn Lexer::keyword(self : Lexer, c : Int32) -> Bool {
 
 ///|
 /// A direction statement starting here, as Mermaid's `.*direction\s+TB[^\n]*` and its siblings.
-fn Lexer::direction(self : Lexer) -> Bool {
+fn Lexer::direction(self : Lexer) -> Bool raise @errors.PeleError {
   if self.dir_next == -1 || self.p < self.dir_failed {
     return false
   }
@@ -567,7 +588,7 @@ fn Lexer::direction(self : Lexer) -> Bool {
 
 ///|
 /// A link id is a run of non-space characters up to its last `@` that is not followed by `{` or `"`.
-fn Lexer::link_id(self : Lexer, c : Int32) -> Bool {
+fn Lexer::link_id(self : Lexer, c : Int32) -> Bool raise @errors.PeleError {
   if self.at_next == -1 || c == '"' || @util.is_space(c) {
     return false
   }
@@ -609,7 +630,7 @@ fn Lexer::link_id(self : Lexer, c : Int32) -> Bool {
 }
 
 ///|
-fn Lexer::initial(self : Lexer, c : Int32) -> Bool {
+fn Lexer::initial(self : Lexer, c : Int32) -> Bool raise @errors.PeleError {
   if self.keyword(c) || self.direction() || self.link_id(c) {
     return true
   }
@@ -748,7 +769,7 @@ fn Lexer::initial(self : Lexer, c : Int32) -> Bool {
 }
 
 ///|
-fn Lexer::string_state(self : Lexer, c : Int32) -> Unit {
+fn Lexer::string_state(self : Lexer, c : Int32) -> Unit raise @errors.PeleError {
   if c == '"' {
     if self.at(self.p + 1) == '`' {
       self.push(S_MD_STRING)
@@ -764,7 +785,10 @@ fn Lexer::string_state(self : Lexer, c : Int32) -> Unit {
 }
 
 ///|
-fn Lexer::md_string_state(self : Lexer, c : Int32) -> Bool {
+fn Lexer::md_string_state(
+  self : Lexer,
+  c : Int32,
+) -> Bool raise @errors.PeleError {
   if c == '`' {
     if self.at(self.p + 1) == '"' {
       self.pop()
@@ -831,7 +855,7 @@ fn is_text_stop(ch : Int32) -> Bool {
 }
 
 ///|
-fn Lexer::text_state(self : Lexer, c : Int32) -> Bool {
+fn Lexer::text_state(self : Lexer, c : Int32) -> Bool raise @errors.PeleError {
   let p = self.p
   let d = self.at(p + 1)
   match c {
@@ -886,7 +910,10 @@ fn Lexer::text_state(self : Lexer, c : Int32) -> Bool {
 }
 
 ///|
-fn Lexer::ellipse_text_state(self : Lexer, c : Int32) -> Bool {
+fn Lexer::ellipse_text_state(
+  self : Lexer,
+  c : Int32,
+) -> Bool raise @errors.PeleError {
   let p = self.p
   let d = self.at(p + 1)
   if c == '"' {
@@ -947,7 +974,10 @@ fn is_trap_stop(ch : Int32) -> Bool {
 }
 
 ///|
-fn Lexer::trap_text_state(self : Lexer, c : Int32) -> Bool {
+fn Lexer::trap_text_state(
+  self : Lexer,
+  c : Int32,
+) -> Bool raise @errors.PeleError {
   let p = self.p
   let d = self.at(p + 1)
   if c == '"' {
@@ -1010,7 +1040,10 @@ fn Lexer::trap_text_state(self : Lexer, c : Int32) -> Bool {
 }
 
 ///|
-fn Lexer::edge_text_state(self : Lexer, c : Int32) -> Bool {
+fn Lexer::edge_text_state(
+  self : Lexer,
+  c : Int32,
+) -> Bool raise @errors.PeleError {
   if c == '"' {
     self.quote()
     return true
