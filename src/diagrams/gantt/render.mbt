@@ -40,8 +40,11 @@ fn flag(config : @types.Config, key : String) -> Bool {
 ///|
 /// The text with every `<br>` turned into a space, as `replace(/<br\s*\/?>/gi, ' ')`.
 fn breaks_to_spaces(raw : String) -> String {
-  let out = StringBuilder()
+  // The breaks are found before anything is copied, because a task name of hundreds of millions
+  // of characters copied into a doubling builder would need a block past what wasm allocates.
+  let breaks : Array[(Int32, Int32)] = []
   let n = raw.length()
+  let mut length = n
   let mut i = 0
   while i < n {
     if caseless_at(raw, i, "<br") {
@@ -50,14 +53,25 @@ fn breaks_to_spaces(raw : String) -> String {
         e += 1
       }
       if @util.code_at(raw, e) == 62 {
-        out.write_char(' ')
+        breaks.push((i, e + 1))
+        length -= e + 1 - i - 1
         i = e + 1
         continue
       }
     }
-    @util.write_range(out, raw, i, i + 1)
     i += 1
   }
+  if breaks.is_empty() {
+    return raw
+  }
+  let out = StringBuilder(size_hint=length * 2)
+  let mut last = 0
+  for brk in breaks {
+    @util.write_range(out, raw, last, brk.0)
+    out.write_char(' ')
+    last = brk.1
+  }
+  @util.write_range(out, raw, last, n)
   out.to_string()
 }
 
