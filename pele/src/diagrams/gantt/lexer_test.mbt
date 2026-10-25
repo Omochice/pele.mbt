@@ -237,9 +237,10 @@ test "reads keywords whose value starts on the next line" {
     content=(
       #|gantt@0 "gantt"
       #|NL@5 "\n"
-      #|title@6 "title\nsection"
-      #|NL@19 "\n"
-      #|dateFormat@20 "dateFormat\nx"
+      #|NL@11 "\n"
+      #|section@12 "section\ndateFormat"
+      #|NL@30 "\n"
+      #|taskTxt@31 "x"
       #|EOF@32 ""
       #|$end@32 ""
     ),

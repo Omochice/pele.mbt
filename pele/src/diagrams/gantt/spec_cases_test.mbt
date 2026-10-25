@@ -215,3 +215,19 @@ test "a task whose name runs into %% keeps it" {
   )
   inspect(tasks.map(task => task.task).join("|"), content="A%% label ")
 }
+
+///|
+test "a bare title is no title, and a title after a tab is kept" {
+  let db = model("gantt\ntitle\nsection Work\nTask :2026-01-01, 1d")
+  inspect(db.title is None, content="true")
+  let tasks = scheduled_tasks(
+    "gantt\ntitle\nsection Work\nTask :2026-01-01, 1d",
+  )
+  inspect(
+    tasks.map(task => "\{task.task}/\{task.section}").join("|"),
+    content=(
+      #|Task /Work
+    ),
+  )
+  inspect(model("gantt\ntitle\tPlan\n").title.unwrap_or("-"), content="Plan")
+}
