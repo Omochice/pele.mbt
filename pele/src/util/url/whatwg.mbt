@@ -5,24 +5,11 @@
 /// The code points of `text`, with each lone surrogate read as U+FFFD as a USVString conversion does.
 fn code_points(text : String) -> Array[Int32] {
   let out = []
-  let n = text.length()
   let mut i = 0
-  while i < n {
-    let c = @util.code_at(text, i)
-    if c >= 0xd800 && c <= 0xdbff {
-      let d = @util.code_at(text, i + 1)
-      if d >= 0xdc00 && d <= 0xdfff {
-        out.push(0x10000 + ((c - 0xd800) << 10) + (d - 0xdc00))
-        i += 2
-        continue
-      }
-      out.push(0xfffd)
-    } else if c >= 0xdc00 && c <= 0xdfff {
-      out.push(0xfffd)
-    } else {
-      out.push(c)
-    }
-    i += 1
+  while i < text.length() {
+    let (c, next) = @util.code_point_at(text, i)
+    out.push(if c >= 0xd800 && c <= 0xdfff { 0xfffd } else { c })
+    i = next
   }
   out
 }

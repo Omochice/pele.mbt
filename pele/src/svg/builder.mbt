@@ -47,14 +47,12 @@ fn is_xml_forbidden(c : Int32) -> Bool {
 /// takes.
 /// The pattern reads code points, so only a surrogate that is not half of a pair is in it.
 fn invalid_xml_at(text : String, i : Int32) -> (Bool, Int32) {
-  let c = text.unsafe_get(i).to_int()
-  if c >= 0xd800 && c <= 0xdbff && i + 1 < text.length() {
-    let next = text.unsafe_get(i + 1).to_int()
-    if next >= 0xdc00 && next <= 0xdfff {
-      return (false, 2)
-    }
-  }
-  (is_xml_forbidden(c) || (c >= 0xd800 && c <= 0xdfff) || c >= 0xfffe, 1)
+  let (c, next) = @util.code_point_at(text, i)
+  let invalid = is_xml_forbidden(c) ||
+    (c >= 0xd800 && c <= 0xdfff) ||
+    c == 0xfffe ||
+    c == 0xffff
+  (invalid, next - i)
 }
 
 ///|

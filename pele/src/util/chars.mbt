@@ -10,6 +10,20 @@ pub fn code_at(text : String, i : Int32) -> Int32 {
 }
 
 ///|
+/// The code point at `i` and where the next one starts, reading a surrogate pair as one code point as the `u` flag does.
+/// A surrogate that is not half of a pair is a code point of its own.
+pub fn code_point_at(text : String, i : Int32) -> (Int32, Int32) {
+  let c = code_at(text, i)
+  if c >= 0xd800 && c <= 0xdbff {
+    let low = code_at(text, i + 1)
+    if low >= 0xdc00 && low <= 0xdfff {
+      return (0x10000 + ((c - 0xd800) << 10) + (low - 0xdc00), i + 2)
+    }
+  }
+  (c, i + 1)
+}
+
+///|
 /// Whitespace as JavaScript's `\s` sees it.
 pub fn is_space(c : Int32) -> Bool {
   if c < 128 {

@@ -59,29 +59,6 @@ fn is_text_data(c : Int32) -> Bool {
 }
 
 ///|
-/// The code point at `at`, or the surrogate itself when it is not half of a pair.
-fn code_point_at(src : String, at : Int32) -> Int32 {
-  let c = @util.code_at(src, at)
-  if c >= 0xd800 && c <= 0xdbff && at + 1 < src.length() {
-    let low = @util.code_at(src, at + 1)
-    if low >= 0xdc00 && low <= 0xdfff {
-      return 0x10000 + ((c - 0xd800) << 10) + (low - 0xdc00)
-    }
-  }
-  c
-}
-
-///|
-/// The code units the code point `c` takes.
-fn units(c : Int32) -> Int32 {
-  if c > 0xffff {
-    2
-  } else {
-    1
-  }
-}
-
-///|
 fn push_token(
   tokens : Tokens,
   src : String,
@@ -139,9 +116,9 @@ pub fn tokenize(src : String) -> Tokens {
         continue
       }
       while q < n {
-        let d = code_point_at(src, q)
+        let (d, next) = @util.code_point_at(src, q)
         if is_text_data(d) || d == 44 || d == 13 || d == 10 {
-          q += units(d)
+          q = next
         } else if d == 34 && @util.code_at(src, q + 1) == 34 {
           q += 2
         } else {
@@ -186,11 +163,11 @@ pub fn tokenize(src : String) -> Tokens {
         continue
       }
       while q < n {
-        let d = code_point_at(src, q)
+        let (d, next) = @util.code_point_at(src, q)
         if !is_text_data(d) {
           break
         }
-        q += units(d)
+        q = next
       }
       push_token(tokens, src, NonEscapedText, p, q)
       p = q

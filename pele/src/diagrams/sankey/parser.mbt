@@ -192,25 +192,19 @@ fn Reader::name(self : Reader) -> String raise @errors.PeleError {
 ///|
 /// Whether `text` holds a control character, a lone surrogate or a noncharacter XML forbids.
 fn has_invalid_xml(text : String) -> Bool {
-  let n = text.length()
   let mut i = 0
-  while i < n {
-    let c = @util.code_at(text, i)
-    if c <= 8 || c == 0xb || c == 0xc || (c >= 0xe && c <= 0x1f) || c >= 0xfffe {
+  while i < text.length() {
+    let (c, next) = @util.code_point_at(text, i)
+    if c <= 8 ||
+      c == 0xb ||
+      c == 0xc ||
+      (c >= 0xe && c <= 0x1f) ||
+      (c >= 0xd800 && c <= 0xdfff) ||
+      c == 0xfffe ||
+      c == 0xffff {
       return true
     }
-    if c >= 0xd800 && c <= 0xdbff {
-      let low = if i + 1 < n { @util.code_at(text, i + 1) } else { 0 }
-      if !(low >= 0xdc00 && low <= 0xdfff) {
-        return true
-      }
-      i += 2
-      continue
-    }
-    if c >= 0xdc00 && c <= 0xdfff {
-      return true
-    }
-    i += 1
+    i = next
   }
   false
 }

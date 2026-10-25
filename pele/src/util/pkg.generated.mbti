@@ -4,6 +4,8 @@ package "Omochice/pele/util"
 // Values
 pub fn code_at(String, Int32) -> Int32
 
+pub fn code_point_at(String, Int32) -> (Int32, Int32)
+
 pub fn index_of(String, String, from? : Int32) -> Int32
 
 pub fn is_blank(Int32) -> Bool
