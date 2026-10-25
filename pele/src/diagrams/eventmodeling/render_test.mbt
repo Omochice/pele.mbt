@@ -275,3 +275,12 @@ test "a width that leaves no room for a card is exceeded rather than squeezed" {
     ),
   )
 }
+
+///|
+test "long data lines wrap without splitting emoji" {
+  let drawn = svg(
+    "eventmodeling\ntf 01 cmd A {" + "a".repeat(47) + "\u{1f600}Z}",
+  )
+  assert_true(drawn.contains(">" + "a".repeat(47) + "\u{1f600}</tspan>"))
+  assert_true(drawn.contains(">Z</tspan>"))
+}
