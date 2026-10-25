@@ -185,18 +185,9 @@ fn VennLexer::next(self : VennLexer) -> Int32 {
       return T_EOF
     }
     let c = @util.code_at(src, i)
-    // A comment runs to the end of the line. It also takes the character before it along,
-    // whatever that is: a line break, or the last letter of a word.
-    if (
-        c == 37 &&
-        @util.code_at(src, i + 1) == 37 &&
-        @util.code_at(src, i + 2) != 123
-      ) ||
-      (
-        c != 125 &&
-        @util.code_at(src, i + 1) == 37 &&
-        @util.code_at(src, i + 2) == 37
-      ) {
+    if c == 37 &&
+      @util.code_at(src, i + 1) == 37 &&
+      @util.code_at(src, i + 2) != 123 {
       self.at = self.line_end(i + 2)
       continue
     }

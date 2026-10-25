@@ -129,6 +129,16 @@ test "keywords ignore case and comments are skipped" {
 }
 
 ///|
+test "the character before a comment is kept" {
+  inspect(
+    dump("venn-beta\nset A%% note\nset B:5%% note\nunion A,B%% note"),
+    content=(
+      #|title=- subsets=[A:10:-, B:5:-, A|B:2.5:-] texts=[] styles=[]
+    ),
+  )
+}
+
+///|
 test "a text after an unindented statement does not continue the set" {
   inspect(
     dump("venn-beta\nset A\ntext A x\n  text y"),
