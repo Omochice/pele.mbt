@@ -1,25 +1,25 @@
-// Collects the rows scripts/record-check.mjs wrote in every CI job into one octocov custom
-// metric set, so the coverage comment shows the checks as a single table.
-// A check whose row is missing still gets one, naming its job's result, because a job that
-// failed before its check printed a summary is what the table most needs to show.
+// Reads the logs every CI job uploaded into one octocov custom metric set, so the coverage
+// comment shows the checks as a single table.
+// A check whose log is missing or holds no summary still gets a row, because a job that failed
+// before its check printed a summary is what the table most needs to show, and octocov's custom
+// metrics take only numbers, so the row carries 0 and says in its unit that there was no result.
 //
-// Usage: NEEDS=<the workflow's toJSON(needs)> node scripts/merge-checks.mjs <rows dir> <out>
+// Usage: node scripts/merge-checks.mjs <logs dir> <out>
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { CHECKS } from './ci-checks.mjs';
 
-const [rowsDir, out] = process.argv.slice(2);
-if (!rowsDir || !out) {
-  console.error('usage: node scripts/merge-checks.mjs <rows dir> <out>');
+const [logsDir, out] = process.argv.slice(2);
+if (!logsDir || !out) {
+  console.error('usage: node scripts/merge-checks.mjs <logs dir> <out>');
   process.exit(1);
 }
-const needs = JSON.parse(process.env.NEEDS ?? '{}');
 
-const metrics = CHECKS.map(({ key, name, job }) => {
-  const row = join(rowsDir, `${key}.json`);
-  if (existsSync(row)) return { key, name, ...JSON.parse(readFileSync(row, 'utf8')) };
-  return { key, name, value: 0, unit: ` (no result; ${job} ${needs[job]?.result ?? 'did not run'})` };
+const metrics = CHECKS.map(({ key, name, parse }) => {
+  const log = join(logsDir, `${key}.log`);
+  const result = existsSync(log) && parse(readFileSync(log, 'utf8'));
+  return { key, name, ...(result || { value: 0, unit: ' (no result)' }) };
 });
 
 mkdirSync(dirname(out), { recursive: true });

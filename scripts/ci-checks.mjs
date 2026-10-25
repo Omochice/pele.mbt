@@ -39,16 +39,16 @@ function changedFiles(log) {
 }
 
 /**
- * Each check's metric key, the row name, the job that runs it, and how its log is read.
+ * Each check's metric key, which also names its log, the row name, and how its log is read.
  * `parse` returns null when the log holds no summary, as when the check stopped early.
  */
 export const CHECKS = [
-  { key: 'moon-check', name: 'moon check --deny-warn', job: 'moon', parse: moonCheck },
-  { key: 'moon-test', name: 'moon test', job: 'moon', parse: moonTest },
-  { key: 'golden', name: 'check-golden', job: 'golden', parse: plugin },
-  { key: 'stress', name: 'check-stress', job: 'stress', parse: plugin },
-  { key: 'fuzz', name: 'fuzz (--count 500)', job: 'fuzz', parse: fuzz },
-  { key: 'typst', name: 'typst', job: 'typst', parse: typst },
-  { key: 'generated', name: 'golden regeneration', job: 'generated', parse: changedFiles },
-  { key: 'nix-fmt', name: 'nix fmt', job: 'flake-check', parse: changedFiles },
+  { key: 'moon-check', name: 'moon check --deny-warn', parse: moonCheck },
+  { key: 'moon-test', name: 'moon test', parse: moonTest },
+  { key: 'golden', name: 'check-golden', parse: plugin },
+  { key: 'stress', name: 'check-stress', parse: plugin },
+  { key: 'fuzz', name: 'fuzz (--count 500)', parse: fuzz },
+  { key: 'typst', name: 'typst', parse: typst },
+  { key: 'generated', name: 'golden regeneration', parse: changedFiles },
+  { key: 'nix-fmt', name: 'nix fmt', parse: changedFiles },
 ];
