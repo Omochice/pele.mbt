@@ -50,7 +50,7 @@ pub fn build_pie(
   for section in ast.sections {
     if section.value < 0 {
       raise @errors.pele_error(
-        "\"\{section.label}\" has invalid value: \{section.value}. Negative values are not allowed in pie charts. All slice values must be >= 0.",
+        "\"\{@text.decode_entities(section.label)}\" has invalid value: \{section.value}. Negative values are not allowed in pie charts. All slice values must be >= 0.",
         code=Semantic,
         kind="pie",
       )
