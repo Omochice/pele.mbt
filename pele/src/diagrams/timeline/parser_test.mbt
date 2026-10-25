@@ -101,7 +101,7 @@ test "accessible names are trimmed, and a description block loses its indentatio
 }
 
 ///|
-test "an event after a section header attaches to the last period, and a title may be on the next line" {
+test "an event after a section header attaches to the last period, and a bare title is no title" {
   inspect(
     parse_dump("timeline\n  2001 : a\n  section S\n  : b\n"),
     content="dir=LR title=undefined accTitle=undefined accDescr=undefined sections=\"S\" periods=\"2001 \"/\"a\",\"b\"/\"\"/-1",
@@ -114,11 +114,11 @@ test "an event after a section header attaches to the last period, and a title m
   )
   inspect(
     parse_dump("timeline\ntitle\nx"),
-    content="dir=LR title=\"x\" accTitle=undefined accDescr=undefined sections= periods=",
+    content="dir=LR title=undefined accTitle=undefined accDescr=undefined sections= periods=\"x\"//\"\"/-1",
   )
   inspect(
     parse_dump("timeline\ntitle"),
-    content="dir=LR title=undefined accTitle=undefined accDescr=undefined sections= periods=\"title\"//\"\"/-1",
+    content="dir=LR title=undefined accTitle=undefined accDescr=undefined sections= periods=",
   )
 }
 
@@ -184,7 +184,7 @@ test "models and errors match pele for every text of up to four statement pieces
     "timeline", " ", "\n", ":", "a", "title", "section", " TD", "#", "accTitle:",
     "accDescr {", "}", "\t",
   ]
-  let expected = ["f24886eb", "e1cbf153", "b218a01d", "634d15f6", "768a0aa5"]
+  let expected = ["f24886eb", "e1cbf153", "b29e86ca", "5adef41c", "8ad05141"]
   for length in 0..<=4 {
     let outputs = strings_over(pieces, length).map(piece => {
       parse_dump("timeline" + piece)

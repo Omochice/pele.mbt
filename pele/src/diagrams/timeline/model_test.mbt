@@ -102,3 +102,23 @@ test "the character before a comment is kept" {
   }
   assert_true(failed.contains("got 'INVALID'"))
 }
+
+///|
+test "a bare title is no title" {
+  let db = @timeline.TimelineDb::new()
+  @timeline.parse_timeline("timeline\ntitle\n2024 : Event\n2025 : Next", db) catch {
+    _ => abort("the timeline does not parse")
+  }
+  inspect(db.title.unwrap_or("-"), content="-")
+  inspect(
+    dump_model(db),
+    content=(
+      #|sections= periods="2024 "/"Event"/""/-1;"2025 "/"Next"/""/-1
+    ),
+  )
+  let kept = @timeline.TimelineDb::new()
+  @timeline.parse_timeline("timeline\n  title\u{a0}Kept\n  2024 : Event", kept) catch {
+    _ => abort("the timeline does not parse")
+  }
+  inspect(kept.title.unwrap_or("-"), content="Kept")
+}

@@ -60,11 +60,11 @@ test "the timeline keyword takes an optional direction" {
 }
 
 ///|
-test "a title takes the rest of its line, and the next line when nothing follows the keyword" {
+test "a title takes the rest of its line, and a bare title is no title" {
   let cases = [
     ("title x", "7@0+7 1@7+0 0@7+0"),
-    ("title\nx", "7@0+7 1@7+0 0@7+0"),
-    ("title ", "14@0+6 1@6+0 0@6+0"),
+    ("title\nx", "3@5+1 14@6+1 1@7+0 0@7+0"),
+    ("title ", "1@6+0 0@6+0"),
     ("title  y\n", "7@0+8 3@8+1 1@9+0 0@9+0"),
     ("title x\ntimeline", "7@0+7 3@7+1 4@8+8 1@16+0 0@16+0"),
   ]
@@ -146,7 +146,7 @@ test "tokens match pele for every string of up to four lexical pieces" {
     "timeline", " ", "\n", ":", "a", "title", "section", "LR", "td", "#", "%%", "acc",
     "\t",
   ]
-  let expected = ["bd92d544", "7f9c63be", "38df550f", "cef6bd89", "7b2f1ee0"]
+  let expected = ["bd92d544", "4cbb7669", "34b47610", "a5abf21b", "b42c7e49"]
   for length in 0..<=4 {
     let outputs = strings_over(pieces, length).map(dump_tokens)
     assert_eq(
