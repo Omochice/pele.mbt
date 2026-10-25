@@ -1,4 +1,4 @@
-// pele's gantt-security templates and payloads (tests/render/gantt-security.test.ts, tests/support/inert.ts), with a hash of what pele v1.8.0's render gives each pair at 2014-01-16T12:00, taken with local time fixed to UTC.
+// pele's gantt-security templates and payloads (tests/render/gantt-security.test.ts, tests/support/inert.ts), with a hash of what pele v1.10.0's render gives each pair at 2014-01-16T12:00, taken with local time fixed to UTC.
 
 ///|
 /// Each template as the text around the places its payload goes.

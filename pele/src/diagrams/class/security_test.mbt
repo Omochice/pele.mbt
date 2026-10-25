@@ -1,4 +1,4 @@
-// pele's class-security templates and payloads (tests/render/class-security.test.ts, tests/support/inert.ts), with a hash of what pele v1.8.0's render gives each template with every payload, as written and with its quotes as #quot;.
+// pele's class-security templates and payloads (tests/render/class-security.test.ts, tests/support/inert.ts), with a hash of what pele v1.10.0's render gives each template with every payload, as written and with its quotes as #quot;.
 
 ///|
 /// Each template as the text around the places its payload goes.

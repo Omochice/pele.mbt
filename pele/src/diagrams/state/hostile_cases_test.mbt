@@ -1,4 +1,4 @@
-// pele's state-security templates and payloads (tests/render/state-security.test.ts, tests/support/inert.ts), with a hash of what pele v1.8.0's render gives each pair.
+// pele's state-security templates and payloads (tests/render/state-security.test.ts, tests/support/inert.ts), with a hash of what pele v1.10.0's render gives each pair.
 
 ///|
 /// Each template as the text around the places its payload goes.
