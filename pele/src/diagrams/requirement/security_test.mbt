@@ -128,19 +128,54 @@ fn inert_problem(svg : String) -> String? {
 ///|
 /// Text an attacker might put anywhere a diagram accepts a string.
 let payloads : Array[String] = [
-  "<script>alert(1)</script>", "\"><script>alert(1)</script>", "<img src=x onerror=alert(1)>",
-  "<svg onload=alert(1)>", "<a href=\"javascript:alert(1)\">x</a>", "<foreignObject><iframe src=javascript:alert(1)></iframe></foreignObject>",
-  "</text></g></svg><script>alert(1)</script>", "javascript:alert(1)", "JaVaScRiPt:alert(1)",
-  " javascript:alert(1)", "jav&#x09;ascript:alert(1)", "data:text/html,<script>alert(1)</script>",
-  "vbscript:msgbox(1)", "' onload='alert(1)", "\" onmouseover=\"alert(1)", "x\" onclick=\"alert(1)\" y=\"",
-  "#60;script#62;alert(1)#60;/script#62;", "#106;avascript:alert(1)", "#34; onload=#34;alert(1)",
-  "url#40;javascript:alert#40;1#41;#41;", "red#59;background:url#40;//evil.example/x#41;",
-  "&lt;script&gt;alert(1)&lt;/script&gt;", "&#60;script&#62;", "url(javascript:alert(1))",
-  "expression(alert(1))", "red;background:url(//evil.example/x)", "red\" onload=\"alert(1)",
-  "]]><script>alert(1)</script>", "--><script>alert(1)</script>", "\u{0}\u{1}\u{8}\u{b}\u{1f}",
-  "u\u{1}rl(//evil.example/x)", "__proto__", "constructor", "toString", "hasOwnProperty",
-  "{{7*7}}", "${alert(1)}", "%0ajavascript:alert(1)", "file:///etc/passwd", "//evil.example/share",
-  "\\\\evil.example\\share", "smb://evil.example/share", "obsidian://open?vault=x",
+  "<script>alert(1)</script>",
+  "\"><script>alert(1)</script>",
+  "<img src=x onerror=alert(1)>",
+  "<svg onload=alert(1)>",
+  "<a href=\"javascript:alert(1)\">x</a>",
+  "<foreignObject><iframe src=javascript:alert(1)></iframe></foreignObject>",
+  "</text></g></svg><script>alert(1)</script>",
+  "javascript:alert(1)",
+  "JaVaScRiPt:alert(1)",
+  " javascript:alert(1)",
+  "jav&#x09;ascript:alert(1)",
+  "data:text/html,<script>alert(1)</script>",
+  "vbscript:msgbox(1)",
+  "' onload='alert(1)",
+  "\" onmouseover=\"alert(1)",
+  "x\" onclick=\"alert(1)\" y=\"",
+  "#60;script#62;alert(1)#60;/script#62;",
+  "#106;avascript:alert(1)",
+  "#34; onload=#34;alert(1)",
+  "url#40;javascript:alert#40;1#41;#41;",
+  "red#59;background:url#40;//evil.example/x#41;",
+  "&lt;script&gt;alert(1)&lt;/script&gt;",
+  "&#60;script&#62;",
+  "url(javascript:alert(1))",
+  "expression(alert(1))",
+  "red;background:url(//evil.example/x)",
+  "red\" onload=\"alert(1)",
+  "]]><script>alert(1)</script>",
+  "--><script>alert(1)</script>",
+  "\u{0}\u{1}\u{8}\u{b}\u{1f}",
+  "u\u{1}rl(//evil.example/x)",
+  "u￾RL(//evil.example/x)",
+  "u" + String::from_array([(0xd800).unsafe_to_char()]) + "rl(//evil.example/x)",
+  "java￾script:alert(1)",
+  "java" + String::from_array([(0xdc00).unsafe_to_char()]) + "script:alert(1)",
+  "file￿:///etc/passwd",
+  "__proto__",
+  "constructor",
+  "toString",
+  "hasOwnProperty",
+  "{{7*7}}",
+  "${alert(1)}",
+  "%0ajavascript:alert(1)",
+  "file:///etc/passwd",
+  "//evil.example/share",
+  "\\\\evil.example\\share",
+  "smb://evil.example/share",
+  "obsidian://open?vault=x",
   "\\\"><script>",
 ]
 
@@ -227,7 +262,7 @@ test "the output is inert with hostile text in every position" {
     }
   }
   // pele v1.8.0 draws exactly this many of these texts and rejects the rest.
-  inspect(rendered, content="801")
+  inspect(rendered, content="905")
 }
 
 ///|

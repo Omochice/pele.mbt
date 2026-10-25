@@ -2,31 +2,48 @@
 let blank : String = "about:blank"
 
 ///|
-/// A character of `[\u0000-\u001F\u007F-\u009F -‍﻿]`, which sanitize-url strips.
-fn is_ctrl(c : Int32) -> Bool {
-  c <= 0x1f ||
-  (c >= 0x7f && c <= 0x9f) ||
-  (c >= 0x2000 && c <= 0x200d) ||
-  c == 0xfeff
+/// Whether the character at `i` is in `[\u0000-\u001F\u007F-\u009F -‍﻿\uD800-\uDFFF\uFFFE\uFFFF]/u`,
+/// which sanitize-url strips, and how many code units it takes.
+/// The class reads code points, so only a surrogate that is not half of a pair is in it.
+fn ctrl_at(text : String, i : Int32) -> (Bool, Int32) {
+  let c = @util.code_at(text, i)
+  if c >= 0xd800 && c <= 0xdbff {
+    let next = @util.code_at(text, i + 1)
+    return if next >= 0xdc00 && next <= 0xdfff { (false, 2) } else { (true, 1) }
+  }
+  let ctrl = c <= 0x1f ||
+    (c >= 0x7f && c <= 0x9f) ||
+    (c >= 0x2000 && c <= 0x200d) ||
+    (c >= 0xdc00 && c <= 0xdfff) ||
+    c == 0xfeff ||
+    c == 0xfffe ||
+    c == 0xffff
+  (ctrl, 1)
 }
 
 ///|
 fn without_ctrl(text : String) -> String {
   let out = StringBuilder()
-  for i in 0..<text.length() {
-    if !is_ctrl(@util.code_at(text, i)) {
-      @util.write_range(out, text, i, i + 1)
+  let mut i = 0
+  while i < text.length() {
+    let (ctrl, width) = ctrl_at(text, i)
+    if !ctrl {
+      @util.write_range(out, text, i, i + width)
     }
+    i += width
   }
   out.to_string()
 }
 
 ///|
 fn has_ctrl(text : String) -> Bool {
-  for i in 0..<text.length() {
-    if is_ctrl(@util.code_at(text, i)) {
+  let mut i = 0
+  while i < text.length() {
+    let (ctrl, width) = ctrl_at(text, i)
+    if ctrl {
       return true
     }
+    i += width
   }
   false
 }
