@@ -207,3 +207,11 @@ test "allows a link to an id that is an object key in JavaScript" {
     )
   }
 }
+
+///|
+test "a task whose name runs into %% keeps it" {
+  let tasks = scheduled_tasks(
+    "gantt\ndateFormat YYYY-MM-DD\nA%% label : 2026-10-24, 1d",
+  )
+  inspect(tasks.map(task => task.task).join("|"), content="A%% label ")
+}

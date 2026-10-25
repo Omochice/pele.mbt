@@ -265,7 +265,12 @@ test "reports the end of input as 1" {
 
 ///|
 test "stops at a directive" {
-  inspect(calls("gantt\n%%{init: {}}%%\n"), content="")
+  inspect(
+    calls("gantt\n%%{init: {}}%%\n"),
+    content=(
+      #|error: Parse error on line 2: / %%{init: {}}%% / ^ / Expecting 'EOF', 'SPACE', 'NL', 'weekday_monday', 'weekday_tuesday', 'weekday_wednesday', 'weekday_thursday', 'weekday_friday', 'weekday_saturday', 'weekday_sunday', 'weekend_friday', 'weekend_saturday', 'dateFormat', 'inclusiveEndDates', 'topAxis', 'axisFormat', 'tickInterval', 'excludes', 'includes', 'todayMarker', 'title', 'acc_title', 'acc_descr', 'acc_descr_multiline_value', 'section', 'taskTxt', 'click', got 'open_directive'
+    ),
+  )
 }
 
 ///|

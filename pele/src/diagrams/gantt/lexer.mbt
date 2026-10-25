@@ -373,9 +373,6 @@ pub fn tokenize(src : String) -> Tokens {
           } else {
             p = until("\n", p + 2)
           }
-        } else if c != 125 && d == 37 {
-          // Any character but `}` followed by `%` starts a comment that runs to the end of the line.
-          p = until("\n", p + 2)
         } else if c == 10 {
           let mut e = p + 1
           while @util.code_at(src, e) == 10 {
