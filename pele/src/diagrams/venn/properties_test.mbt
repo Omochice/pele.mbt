@@ -201,6 +201,14 @@ test "what Mermaid rejects is rejected with its message" {
     content="error: unknown set identifier: B",
   )
   inspect(
+    render_svg("venn-beta\nset A\nunion A,\"B#35;x\""),
+    content="error: unknown set identifier: B#x",
+  )
+  inspect(
+    render_svg("venn-beta\nset \"B#x\"\nset A\nunion A,\"B#35;x\""),
+    content="error: unknown set identifier: B#x",
+  )
+  inspect(
     render_svg("venn-beta\nset A,B"),
     content="error: Parse error on line 2:\nset A,B\n-----^\nExpecting 'EOF', 'NEWLINE', 'TITLE', 'SET', 'UNION', 'TEXT', 'INDENT_TEXT', 'STYLE', got 'COMMA'",
   )
