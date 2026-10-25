@@ -27,7 +27,7 @@ fn band(y : Double, line_height : Double) -> Double {
 }
 
 ///|
-/// Two 32-bit hashes, so that different gradients practically never share an id.
+/// Two 32-bit hashes, so different gradients practically never share an id.
 fn content_id(text : String) -> String {
   let mut a = 0x811c9dc5U.reinterpret_as_int()
   let mut b = 5381
@@ -56,26 +56,29 @@ fn is_id_prefix(prefix : String) -> Bool {
 }
 
 ///|
-/// The colour of the first `fill:` in the escaped style attribute `attr` that is followed by
-/// anything but a semicolon or a quote, up to the next of either.
-fn first_fill(attr : String) -> String? {
-  let mut at = @util.index_of(attr, "fill:")
-  while at != -1 {
-    let from = at + 5
-    let mut end = from
-    while end < attr.length() {
-      let c = @util.code_at(attr, end)
-      if c == ';'.to_int() || c == '"'.to_int() {
-        break
-      }
-      end += 1
-    }
-    if end > from {
-      return Some(@util.slice(attr, from, end~))
-    }
-    at = @util.index_of(attr, "fill:", from=at + 1)
+/// The colour of the escaped style attribute `attr` when it sets nothing but the fill.
+/// The whole fill is taken, so that a semicolon ending an escaped entity stays in it.
+fn whole_fill(attr : String) -> String? {
+  let head = " style=\"fill:"
+  let tail = ";\""
+  guard attr.has_prefix(head) &&
+    attr.has_suffix(tail) &&
+    attr.length() >= head.length() + tail.length() else {
+    return None
   }
-  None
+  let color = @util.slice(
+    attr,
+    head.length(),
+    end=attr.length() - tail.length(),
+  )
+  // A JavaScript `.` matches no line terminator.
+  for i in 0..<color.length() {
+    match @util.code_at(color, i) {
+      '\n' | '\r' | '\u{2028}' | '\u{2029}' => return None
+      _ => ()
+    }
+  }
+  Some(color)
 }
 
 ///|
@@ -198,7 +201,7 @@ fn draw(
   let node_color = (i : Int32) => {
     let css = node_style(i)
     let attr = if css == "" { "" } else { " style=\"\{@svg.esc(css)}\"" }
-    match first_fill(attr) {
+    match whole_fill(attr) {
       Some(color) => color
       None => @svg.series_color(i)
     }
@@ -389,9 +392,9 @@ fn draw(
   } else {
     fill_css(link_color)
   }
-  // A gradient needs an id. Without an idPrefix every diagram on a page shares one, and Chrome
-  // then draws the first copy's gradient even when that copy is hidden or themed differently.
-  // A prefix with other characters could end the url() and void the whole fill.
+  // Without an idPrefix diagrams share gradient ids, and Chrome then uses a hidden or differently
+  // themed copy's gradient.
+  // Other characters would end the url() and void the whole fill.
   let id_prefix = options.id_prefix.unwrap_or("")
   let gradient = link_color == "gradient" && is_id_prefix(id_prefix)
   let gradients : Map[String, String] = Map([])
@@ -408,8 +411,7 @@ fn draw(
     let top_target = @svg.num(link.target_y - half)
     let bottom_target = @svg.num(link.target_y + half)
     let bottom_source = @svg.num(link.source_y + half)
-    // The id comes from what the gradient draws, so diagrams that share a prefix draw the same
-    // gradient for it.
+    // Ids come from the gradient itself, so diagrams sharing a prefix agree on them.
     let paint = if gradient {
       let stops = "x1=\"\{@svg.num(x0)}\" x2=\"\{@svg.num(x1)}\"><stop offset=\"0\" stop-color=\"\{node_color(link.source)}\"/><stop offset=\"1\" stop-color=\"\{node_color(link.target)}\"/>"
       let id = "\{id_prefix}-sankey-\{content_id(stops)}"
@@ -426,7 +428,7 @@ fn draw(
       "\" d=\"M\{@svg.num(x0)},\{top_source}C\{mid},\{top_source} \{mid},\{top_target} \{@svg.num(x1)},\{top_target}L\{@svg.num(x1)},\{bottom_target}C\{mid},\{bottom_target} \{mid},\{bottom_source} \{@svg.num(x0)},\{bottom_source}Z\"",
     )
     match paint {
-      // The colour after the url is used where the gradient is missing.
+      // The colour after the url() is the fallback.
       Some(id) =>
         links_out.write(" fill=\"url(#\{id}) \{node_color(link.source)}\"")
       None => {

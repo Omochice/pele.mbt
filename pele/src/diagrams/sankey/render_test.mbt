@@ -261,6 +261,25 @@ test "gradient colours come from nodeColors" {
 }
 
 ///|
+test "escaped nodeColors stay whole in gradients" {
+  let svg = render(
+      configured("nodeColors:\n  a: 'red&blue'\n  b: 'x\"y'"),
+      id_prefix="p1",
+    ).svg
+  assert_true(
+    svg.contains(
+      "<stop offset=\"0\" stop-color=\"red&amp;blue\"/><stop offset=\"1\" stop-color=\"x&quot;y\"/>",
+    ),
+  )
+  inspect(
+    link_tag(svg, "a", "b"),
+    content=(
+      #|class="pele-sankey-link" data-id="a-&gt;b" d="M10,10.13C152.5,10.13 152.5,0 295,0L295,233.13C152.5,233.13 152.5,243.25 10,243.25Z" fill="url(#p1-sankey-s71to11x5awcr) red&amp;blue"
+    ),
+  )
+}
+
+///|
 test "links stay flat when the idPrefix could not appear in a url()" {
   for id_prefix in ["p\"1", "p)1", "p 1", ""] {
     let svg = render(basic, id_prefix~).svg
