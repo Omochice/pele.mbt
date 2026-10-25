@@ -1,5 +1,5 @@
 ///|
-/// Mermaid style declarations split as `resolve_style` splits them, with `shape`, `line` and
+/// Mermaid style declarations split by what they apply to, with `shape`, `line` and
 /// `text` kept as the CSS of a `style` attribute before it is escaped, or empty.
 /// The CSS is escaped only as it is written, a piece at a time, because a value of tens of
 /// millions of `&` escapes to more than a doubling StringBuilder holds.
@@ -14,7 +14,8 @@ pub(all) struct RawStyle {
 }
 
 ///|
-/// The declarations split as `resolve_style` splits them, before any of them is escaped.
+/// Splits Mermaid style declarations into what applies to a shape and what applies to its text.
+/// Declarations that could escape the attribute or load something are dropped.
 pub fn resolve_raw_style(declarations : Array[String]) -> RawStyle {
   let shape = Properties::new()
   let text = Properties::new()

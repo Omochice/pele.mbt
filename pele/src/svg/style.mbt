@@ -161,59 +161,16 @@ fn attribute(css : String) -> String {
 }
 
 ///|
-/// Splits Mermaid style declarations into what applies to a shape and what applies to its text.
-/// Declarations that could escape the attribute or load something are dropped.
+/// Mermaid style declarations split as `resolve_raw_style` splits them, with the CSS of each part made into a `style` attribute.
 pub fn resolve_style(declarations : Array[String]) -> ResolvedStyle {
-  let shape = Properties::new()
-  let text = Properties::new()
-  for declaration in declarations {
-    let at = @util.index_of(declaration, ":")
-    if at <= 0 {
-      continue
-    }
-    let name = lower_ascii(
-      @util.trim(@util.slice(declaration, 0, end=at)),
-      kelvin=true,
-    )
-    let value = @util.trim(remove_important(@util.slice(declaration, at + 1)))
-    if value == "" || is_unsafe(value) || has_invalid_xml(value) {
-      continue
-    }
-    if shape_props.contains(name) {
-      shape.set(name, value)
-    }
-    if text_props.contains(name) {
-      text.set(if name == "color" { "fill" } else { name }, value)
-    }
-  }
-  let weight = text.get("font-weight")
-  let size = text.get("font-size")
-  let font_size = match size {
-    Some(size) if size != "" && is_pixel_size(size) => {
-      let px = @util.parse_float(size)
-      if px > 0 && px <= 200 {
-        Some(px)
-      } else {
-        None
-      }
-    }
-    _ => None
-  }
+  let raw = resolve_raw_style(declarations)
   {
-    shape: attribute(declarations_css(shape)),
-    line: attribute(
-      declarations_css(shape, skip=name => {
-        name == "fill" || name == "fill-opacity"
-      }),
-    ),
-    text: attribute(declarations_css(text)),
-    stroke: shape.get("stroke"),
-    bold: match weight {
-      Some(weight) =>
-        weight == "bold" || weight == "bolder" || @util.to_number(weight) >= 600
-      None => false
-    },
-    italic: text.get("font-style") is Some("italic"),
-    font_size,
+    shape: attribute(raw.shape),
+    line: attribute(raw.line),
+    text: attribute(raw.text),
+    stroke: raw.stroke,
+    bold: raw.bold,
+    italic: raw.italic,
+    font_size: raw.font_size,
   }
 }
