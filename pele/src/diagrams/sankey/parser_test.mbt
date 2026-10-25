@@ -112,10 +112,60 @@ test "quoted fields keep commas and unescape doubled quotes" {
 }
 
 ///|
-test "amounts are read as parseFloat reads them" {
+test "amounts are read as numbers, and anything else is refused" {
+  let shown = []
+  for
+    value in [
+      "1e3", "-2.5", "+.5", "7.", "-2.5x", "abc", "", "\"1\n2\"", "Infinity", "1e400",
+      "-", "0x10", "1e", " 3 ",
+    ] {
+    shown.push(value.escape() + " " + rows("sankey\na,b,\{value}"))
+  }
   inspect(
-    rows("sankey\na,b,1e3\na,c,-2.5x\na,d,abc\na,e,\"1\n2\""),
-    content="nodes=\"a\",\"b\",\"c\",\"d\",\"e\" links=\"a\">\"b\"=1000,\"a\">\"c\"=-2.5,\"a\">\"d\"=NaN,\"a\">\"e\"=1",
+    shown.join("\n"),
+    content=(
+      #|"1e3" nodes="a","b" links="a">"b"=1000
+      #|"-2.5" nodes="a","b" links="a">"b"=-2.5
+      #|"+.5" nodes="a","b" links="a">"b"=0.5
+      #|"7." nodes="a","b" links="a">"b"=7
+      #|"-2.5x" Parse error on line 2:
+      #|a,b,-2.5x
+      #|----^
+      #|Expecting a finite decimal number
+      #|"abc" Parse error on line 2:
+      #|a,b,abc
+      #|----^
+      #|Expecting a finite decimal number
+      #|"" Parse error on line 2:
+      #|a,b,
+      #|----^
+      #|Expecting 'DQUOTE', 'NON_ESCAPED_TEXT', got 'EOF'
+      #|"\"1\n2\"" Parse error on line 2:
+      #|a,b,"1
+      #|----^
+      #|Expecting a finite decimal number
+      #|"Infinity" Parse error on line 2:
+      #|a,b,Infinity
+      #|----^
+      #|Expecting a finite decimal number
+      #|"1e400" Parse error on line 2:
+      #|a,b,1e400
+      #|----^
+      #|Expecting a finite decimal number
+      #|"-" Parse error on line 2:
+      #|a,b,-
+      #|----^
+      #|Expecting a finite decimal number
+      #|"0x10" Parse error on line 2:
+      #|a,b,0x10
+      #|----^
+      #|Expecting a finite decimal number
+      #|"1e" Parse error on line 2:
+      #|a,b,1e
+      #|----^
+      #|Expecting a finite decimal number
+      #|" 3 " nodes="a","b" links="a">"b"=3
+    ),
   )
 }
 

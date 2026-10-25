@@ -133,12 +133,59 @@ fn Reader::field(self : Reader) -> String raise @errors.PeleError {
 }
 
 ///|
-fn Reader::name(self : Reader) -> String raise @errors.PeleError {
-  let start = if self.i < self.tokens.starts.length() {
+fn Reader::start(self : Reader) -> Int32 {
+  if self.i < self.tokens.starts.length() {
     self.tokens.starts[self.i]
   } else {
     self.src.length()
   }
+}
+
+///|
+/// Whether `text` is a whole decimal number, as `/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/`
+/// matches it.
+fn is_decimal(text : String) -> Bool {
+  let n = text.length()
+  let digit = (i : Int32) => {
+    i < n && text.unsafe_get(i) >= '0' && text.unsafe_get(i) <= '9'
+  }
+  let mut i = 0
+  if i < n && (text.unsafe_get(i) == '+' || text.unsafe_get(i) == '-') {
+    i += 1
+  }
+  let mut digits = 0
+  while digit(i) {
+    i += 1
+    digits += 1
+  }
+  if i < n && text.unsafe_get(i) == '.' {
+    i += 1
+    while digit(i) {
+      i += 1
+      digits += 1
+    }
+  }
+  if digits == 0 {
+    return false
+  }
+  if i < n && (text.unsafe_get(i) == 'e' || text.unsafe_get(i) == 'E') {
+    i += 1
+    if i < n && (text.unsafe_get(i) == '+' || text.unsafe_get(i) == '-') {
+      i += 1
+    }
+    if !digit(i) {
+      return false
+    }
+    while digit(i) {
+      i += 1
+    }
+  }
+  i == n
+}
+
+///|
+fn Reader::name(self : Reader) -> String raise @errors.PeleError {
+  let start = self.start()
   let text = @util.trim(self.field()).replace_all(old="\"\"", new="\"")
   // Entity codes can encode characters excluded by the lexer.
   if has_invalid_xml(@text.decode_entities(text)) {
@@ -193,10 +240,21 @@ pub fn parse_sankey(
     r.expect(Comma, also=", 'NEWLINE', 'EOF'")
     let to = r.name()
     r.expect(Comma, also=", 'NEWLINE', 'EOF'")
-    let amount = r.field()
+    let start = r.start()
+    let amount = @util.trim(r.field())
+    let value = @util.to_number(amount)
+    // Mermaid accepts non-numeric values and numeric prefixes here.
+    if !is_decimal(amount) || value.is_nan() || value.is_inf() {
+      raise @errors.syntax_error(
+        "sankey",
+        r.src,
+        start,
+        "Expecting a finite decimal number",
+      )
+    }
     let source = db.find_or_create_node(from)
     let target = db.find_or_create_node(to)
-    db.add_link(source, target, @util.parse_float(@util.trim(amount)))
+    db.add_link(source, target, value)
     if !(r.kind() is Newline) {
       break
     }

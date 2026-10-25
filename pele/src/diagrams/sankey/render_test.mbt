@@ -482,15 +482,12 @@ test "what Mermaid rejects is rejected" {
 }
 
 ///|
-test "values that are not usable numbers are drawn as empty flows" {
-  let svg = render("sankey\na,b,abc\na,c,-3\nb,d,0\nc,d,2\n").svg
+test "non-positive values are drawn as empty flows" {
+  let svg = render("sankey\na,b,0\na,c,-3\nb,d,0\nc,d,2\n").svg
   assert_true(!svg.contains("NaN"))
   inspect(count(svg, "class=\"pele-sankey-link\""), content="4")
   assert_true(svg.contains("<title>a → b: 0</title>"))
-  inspect(
-    render("sankey\na,b,abc\na,c,-3\nb,d,0\nc,d,2\n").height,
-    content="427",
-  )
+  inspect(render("sankey\na,b,0\na,c,-3\nb,d,0\nc,d,2\n").height, content="427")
 }
 
 ///|
