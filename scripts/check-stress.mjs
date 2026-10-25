@@ -333,5 +333,5 @@ for (const size of stackSizes) {
 
 console.log(`\ntotal ${totals.pass}/${inputs.length} passed, ${totals.fail} failed, ${totals.trap} trapped`);
 if (stackSizes.length > 0) console.log(`${dependent} outcomes of pele depend on the stack size`);
-process.exit(totals.fail + totals.trap > 0 ? 1 : 0);
+process.exitCode = totals.fail + totals.trap > 0 ? 1 : 0;
 
