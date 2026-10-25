@@ -210,6 +210,10 @@ test "model errors surface as render errors" {
     content="Missing entry for axis Alpha",
   )
   inspect(
+    svg("radar-beta\n axis a[\"#35;x &amp;y\"], b\n curve c{ b: 1 }"),
+    content="Missing entry for axis #x &y",
+  )
+  inspect(
     svg("radar-beta\n curve c{ B: 2 }"),
     content="Axes must be populated before curves for reference entries",
   )
