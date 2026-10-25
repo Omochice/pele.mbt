@@ -57,13 +57,14 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - run: nix develop --command moon check --target wasm --deny-warn 2>&1 | tee "$RUNNER_TEMP/moon-check.log"
-      - run: nix develop --command moon test --target wasm 2>&1 | tee "$RUNNER_TEMP/moon-test.log"
+
       - run: nix develop --command moon build --target wasm --release
-      - run: nix develop --command moon test --target wasm --enable-coverage
-      - run: mkdir -p _build/coverage
-      - run: nix develop --command moon coverage report -f cobertura -o _build/coverage/cobertura.xml
-      - name: Drop files without instrumented lines from the report
-        run: perl -0pi -e 's/ *<class [^>]*line-rate="-?nan">\s*<lines>\s*<\/lines>\s*<\/class>\n//g' _build/coverage/cobertura.xml
+      - run: nix develop --command moon test --target wasm --enable-coverage 2>&1 | tee "$RUNNER_TEMP/moon-test.log"
+      - name: Write the coverage report without files that have no instrumented lines
+        run: |
+          mkdir -p _build/coverage
+          nix develop --command moon coverage report -f cobertura -o _build/coverage/cobertura.xml
+          perl -0pi -e 's/ *<class [^>]*line-rate="-?nan">\s*<lines>\s*<\/lines>\s*<\/class>\n//g' _build/coverage/cobertura.xml
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: coverage
