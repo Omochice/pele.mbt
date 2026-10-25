@@ -5,8 +5,9 @@ pub(all) struct BoxDrawing {
   /// Output line number to original line number, both from 1.
   /// Empty when the text is unchanged.
   line_map : Map[Int32, Int32]
-  /// Per output line, where an index of the rewritten line comes from in the original one.
-  columns : Map[Int32, (Int32) -> Int32]
+  /// Per output line rewritten from a branch, where its content starts in the original line with
+  /// tabs expanded, and the length of the indentation that replaced the prefix.
+  columns : Map[Int32, (Int32, Int32)]
 }
 
 ///|
@@ -193,6 +194,24 @@ pub fn line_start(text : String, line : Int32) -> Int32 {
 }
 
 ///|
+/// Where index `at` of an output line rewritten from a branch with `prefix` comes from in line
+/// `original`, from 1, of `input`.
+fn original_column(
+  input : String,
+  original : Int32,
+  prefix : (Int32, Int32),
+  at : Int32,
+) -> Int32 {
+  let (pos, indent) = prefix
+  let start = line_start(input, original)
+  let end = @util.index_of(input, "\n", from=start)
+  before_tabs(
+    @util.slice(input, start, end=if end == -1 { input.length() } else { end }),
+    pos + (if at > indent { at - indent } else { 0 }),
+  )
+}
+
+///|
 /// Where index `at` of `line` with its tabs expanded to four spaces is in `line` itself.
 fn before_tabs(line : String, at : Int32) -> Int32 {
   let mut i = 0
@@ -228,7 +247,7 @@ pub fn preprocess_box_drawing(
   input : String,
 ) -> BoxDrawing raise @errors.PeleError {
   let line_map : Map[Int32, Int32] = Map([])
-  let columns : Map[Int32, (Int32) -> Int32] = Map([])
+  let columns : Map[Int32, (Int32, Int32)] = Map([])
   let unchanged = { text: input, line_map, columns, }
   if !has_char(input, is_box_char) {
     return unchanged
@@ -263,11 +282,11 @@ pub fn preprocess_box_drawing(
   }
   let segment_width = infer_segment_width(content_lines)
   let out = []
-  let keep = (text : String, index : Int32, column : ((Int32) -> Int32)?) => {
+  let keep = (text : String, index : Int32, prefix : (Int32, Int32)?) => {
     out.push(text)
     line_map[out.length()] = index + 1
-    if column is Some(column) {
-      columns[out.length()] = column
+    if prefix is Some(prefix) {
+      columns[out.length()] = prefix
     }
   }
   for i in 0..<=keyword_index {
@@ -305,16 +324,7 @@ pub fn preprocess_box_drawing(
         )
       }
       let indent = "    ".repeat(depth)
-      keep(
-        indent + content,
-        i,
-        Some(at => {
-          before_tabs(
-            line,
-            pos + (if at > indent.length() { at - indent.length() } else { 0 }),
-          )
-        }),
-      )
+      keep(indent + content, i, Some((pos, indent.length())))
     } else if all_chars(normalized, c => is_box_char(c) || @util.is_space(c)) {
       continue
     } else if has_char(normalized, is_box_char) {

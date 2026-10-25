@@ -137,7 +137,8 @@ pub fn read_treeview(source : String) -> TreeViewAst raise @errors.PeleError {
       guard line_map.get(failure.line) is Some(line) else { raise error }
       let at = if failure.column > 0 {
         match columns.get(failure.line) {
-          Some(column) => column(failure.column - 1)
+          Some(prefix) =>
+            original_column(source, line, prefix, failure.column - 1)
           None => failure.column - 1
         }
       } else {
