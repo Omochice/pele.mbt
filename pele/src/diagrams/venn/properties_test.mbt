@@ -202,11 +202,11 @@ test "what Mermaid rejects is rejected with its message" {
   )
   inspect(
     render_svg("venn-beta\nset A\nunion A,\"B#35;x\""),
-    content="error: unknown set identifier: B#x",
+    content="error: unknown set identifier: B#35;x",
   )
   inspect(
     render_svg("venn-beta\nset \"B#x\"\nset A\nunion A,\"B#35;x\""),
-    content="error: unknown set identifier: B#x",
+    content="error: unknown set identifier: B#35;x",
   )
   inspect(
     render_svg("venn-beta\nset A,B"),

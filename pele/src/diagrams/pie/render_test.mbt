@@ -73,7 +73,7 @@ test "a chart that does not fit maxWidth stacks its legend" {
 test "a negative value's error names the slice as it is shown" {
   assert_true(
     svg("pie\n \"#35;x &amp;y\" : -1").has_prefix(
-      "\"#x &y\" has invalid value: -1.",
+      "\"#35;x &amp;y\" has invalid value: -1.",
     ),
   )
 }

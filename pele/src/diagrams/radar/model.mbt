@@ -92,10 +92,7 @@ fn entries_of(
   for axis in axes {
     match by_axis.get(axis.name) {
       Some(value) => entries.push(value)
-      None =>
-        raise invalid(
-          "Missing entry for axis \{@text.decode_entities(axis.label)}",
-        )
+      None => raise invalid("Missing entry for axis \{axis.label}")
     }
   }
   entries

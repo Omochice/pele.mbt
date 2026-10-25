@@ -133,7 +133,7 @@ pub fn VennDb::validate_union_identifiers(
   let unknown = ids.map(normalize_text).filter(id => !self.known.contains(id))
   if !unknown.is_empty() {
     raise @errors.pele_error(
-      "unknown set identifier: \{unknown.map(@text.decode_entities).join(", ")}",
+      "unknown set identifier: \{unknown.join(", ")}",
       code=Semantic,
       kind="venn",
     )
