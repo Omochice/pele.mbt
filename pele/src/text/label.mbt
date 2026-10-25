@@ -83,6 +83,17 @@ fn is_open(c : Int32) -> Bool {
 }
 
 ///|
+/// A break hint: a zero-width space, or a soft hyphen, which shows as `-` where a line breaks.
+fn is_hint(c : Int32) -> Bool {
+  c == 0x200b || c == 0xad
+}
+
+///|
+fn has_hint(text : String) -> Bool {
+  text.contains_code_unit(0x200b) || text.contains_code_unit(0xad)
+}
+
+///|
 fn skip_space(text : String, from : Int32) -> Int32 {
   let mut i = from
   while @util.is_space(@util.code_at(text, i)) {
@@ -93,7 +104,7 @@ fn skip_space(text : String, from : Int32) -> Int32 {
 
 ///|
 /// The end of the wrapping piece at `i`, as
-/// `\s*(?:[OPEN]*[CJK][CLOSE]*|[^\s CJK]+[CLOSE]*)\s*|\s+` matches it, or -1.
+/// `\s*(?:[OPEN]*[CJK][CLOSE]*|[^\s CJK HINT]+[HINT]*[CLOSE]*|[HINT]+)\s*|\s+` matches it, or -1.
 fn piece_end(text : String, i : Int32) -> Int32 {
   let j = skip_space(text, i)
   let mut k = j
@@ -110,14 +121,25 @@ fn piece_end(text : String, i : Int32) -> Int32 {
     }
   }
   let c = @util.code_at(text, j)
-  if c != -1 && !@util.is_space(c) && !is_cjk(c) {
+  if c != -1 && !@util.is_space(c) && !is_cjk(c) && !is_hint(c) {
     let mut e = j
     while e < text.length() &&
           !@util.is_space(@util.code_at(text, e)) &&
-          !is_cjk(@util.code_at(text, e)) {
+          !is_cjk(@util.code_at(text, e)) &&
+          !is_hint(@util.code_at(text, e)) {
+      e += 1
+    }
+    while is_hint(@util.code_at(text, e)) {
       e += 1
     }
     while is_close(@util.code_at(text, e)) {
+      e += 1
+    }
+    return skip_space(text, e)
+  }
+  if is_hint(c) {
+    let mut e = j
+    while is_hint(@util.code_at(text, e)) {
       e += 1
     }
     return skip_space(text, e)
@@ -559,9 +581,12 @@ fn wrap(
 ) -> Unit {
   let mut current : Array[Span] = []
   let mut width = 0.0
-  let commit = () => {
+  let commit = (hyphen : Bool) => {
     if current.last() is Some(last) && plain(last) {
-      let trimmed = @util.trim_end(last.text)
+      let mut trimmed = @util.trim_end(last.text)
+      if hyphen && last.text.has_suffix("\u{ad}") {
+        trimmed = @util.slice(trimmed, 0, end=trimmed.length() - 1) + "-"
+      }
       if trimmed != last.text {
         last.text = trimmed
         let w = measurer.width(trimmed, size, last.style)
@@ -574,33 +599,86 @@ fn wrap(
     current = []
     width = 0
   }
-  for span in line {
+  for at, span in line {
     if !plain(span) {
       let w = match span.math {
         Some(math) => math.width
         None => size * ICON_WIDTH
       }
       if width > 0 && width + w > max {
-        commit()
+        commit(false)
       }
       current.push({ ..span, width: w, })
       width += w
       continue
     }
-    for piece in pieces(span.text) {
+    let pieces = pieces(span.text)
+    // A piece ending in a soft hyphen fits if its `-` does, or if the rest of the word does, which
+    // hides the hyphen.
+    // The line only grows along a word, so no later hyphen in it fits either, and the remaining
+    // width of each word makes this one check.
+    let soft = span.text.contains_code_unit(0xad)
+    let n = if soft { pieces.length() } else { 0 }
+    let own = FixedArray::make(n, 0.0)
+    let rest = FixedArray::make(n + 1, 0.0)
+    for q = n - 1; q >= 0; q = q - 1 {
+      // A soft hyphen before a space is no break of its own: the space is.
+      let shy = pieces[q].has_suffix("\u{ad}")
+      let end = @util.trim_end(pieces[q])
+      own[q] = measurer.width(
+        if shy {
+          @util.slice(end, 0, end=end.length() - 1)
+        } else {
+          end
+        },
+        size,
+        span.style,
+      )
+      // Word width beyond this span is unknown.
+      rest[q] = if !shy {
+        own[q]
+      } else if q == n - 1 {
+        if at == line.length() - 1 {
+          own[q]
+        } else {
+          @double.infinity
+        }
+      } else {
+        own[q] + rest[q + 1]
+      }
+    }
+    for p, piece in pieces {
       let mut part = piece
-      if width > 0 &&
-        width + measurer.width(@util.trim_end(part), size, span.style) > max {
-        commit()
+      let part_width = if soft {
+        own[p]
+      } else {
+        measurer.width(@util.trim_end(part), size, span.style)
+      }
+      let fits = if !soft || !part.has_suffix("\u{ad}") {
+        width + part_width <= max
+      } else {
+        width +
+        measurer.width(
+          @util.slice(part, 0, end=part.length() - 1) + "-",
+          size,
+          span.style,
+        ) <=
+        max ||
+        width + rest[p] <= max
+      }
+      if width > 0 && !fits {
+        // Breaking at whitespace leaves a preceding soft hyphen hidden.
+        commit(@util.trim_start(part) == part)
         part = @util.trim_start(part)
       }
       match current.last() {
         Some(last) if plain(last) && last.style == span.style => {
           last.text = last.text + part
-          last.width = measurer.width(last.text, size, last.style)
-          width = 0
-          for s in current {
-            width += s.width
+          // Remeasuring for each zero-width piece would take quadratic time.
+          if part_width > 0 || @util.trim_end(part) != part {
+            let before = last.width
+            last.width = measurer.width(last.text, size, last.style)
+            width += last.width - before
           }
         }
         _ => {
@@ -618,7 +696,7 @@ fn wrap(
     }
   }
   if current.length() > 0 || out.length() == 0 {
-    commit()
+    commit(false)
   }
 }
 
@@ -787,7 +865,8 @@ pub fn layout_label(
   if !has_markup(raw) && !raw.contains("&") && !raw.contains("\u{fb02}") {
     let text = @util.trim(raw)
     let width = measurer.width(text, size, base)
-    if width <= max_width || !(text.contains(" ") || has_cjk(text)) {
+    if width <= max_width ||
+      !(text.contains(" ") || has_cjk(text) || has_hint(text)) {
       return {
         lines: [[{ text, style: base, icon: None, width, math: None, }]],
         widths: [width],

@@ -1442,3 +1442,29 @@ test "fits a wide diagram to a narrow host" {
     ),
   )
 }
+
+///|
+test "a hinted message splits at its hints on a narrow screen" {
+  let svg = svg_of(
+    "sequenceDiagram\n  participant UE\n  participant gNB\n  participant AMF\n  gNB->>UE: RRCConnection\u{200b}Reconfiguration\u{200b}Complete\n  UE->>gNB: ok",
+    max_width=360,
+  )
+  let spans = []
+  let mut at = @util.index_of(svg, "<tspan")
+  while at != -1 {
+    let open = @util.index_of(svg, ">", from=at) + 1
+    spans.push(
+      @util.slice(svg, open, end=@util.index_of(svg, "<", from=open)).replace_all(
+        old="\u{200b}",
+        new="",
+      ),
+    )
+    at = @util.index_of(svg, "<tspan", from=open)
+  }
+  inspect(
+    spans.join(" | "),
+    content=(
+      #|RRCConnection | Reconfiguration | Complete
+    ),
+  )
+}

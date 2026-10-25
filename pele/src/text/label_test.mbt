@@ -222,3 +222,98 @@ test "markdown labels read emphasis markers" {
     content="\"em\"/2/22.224 \" and \"/0/35.584 \"strong\"/1/49.776 \" a_b_c\"/0/48.032 widths=[155.61599999999999] width=155.61599999999999 height=24 size=16 line=24",
   )
 }
+
+///|
+/// The text of each line `raw` wraps to, joined, with a soft hyphen shown as `~` and a zero-width
+/// space as `^`, and the widest line.
+fn hinted(raw : String, max : Double) -> String {
+  let label = @text.layout_label(
+    Some(raw),
+    false,
+    @text.metrics_measurer,
+    16,
+    max,
+  )
+  let lines = label.lines.map(line => {
+    line
+    .map(span => span.text)
+    .join("")
+    .replace_all(old="\u{ad}", new="~")
+    .replace_all(old="\u{200b}", new="^")
+  })
+  "\{lines.join(" | ")} widest=\{label.width}"
+}
+
+///|
+test "a zero-width space is a place to break" {
+  inspect(
+    hinted("RRCConnection\u{200b}Reconfiguration\u{200b}Complete", 140),
+    content=(
+      #|RRCConnection^ | Reconfiguration^ | Complete widest=115.584
+    ),
+  )
+}
+
+///|
+test "a soft hyphen shows as a hyphen only where the line breaks" {
+  inspect(
+    [
+      hinted("RRCConnection\u{ad}Reconfiguration\u{ad}Complete", 140),
+      hinted("Re\u{ad}con\u{ad}fig", 200),
+      hinted("RRCConnection&shy;Reconfiguration&shy;Complete", 140),
+    ].join("\n"),
+    content=(
+      #|RRCConnection- | Reconfiguration- | Complete widest=120.912
+      #|Re~con~fig widest=63.136
+      #|RRCConnection- | Reconfiguration- | Complete widest=120.912
+    ),
+  )
+}
+
+///|
+test "a soft-hyphenated word stays on the line when the rest of it fits there" {
+  inspect(
+    [
+      hinted("a uni\u{ad}t test", 39.2),
+      hinted("a uni\u{ad}t\u{ad}ed", 39.2),
+      hinted("a uni\u{ad}<b>t</b> test", 39.2),
+    ].join("\n"),
+    content=(
+      #|a uni~t | test widest=39.136
+      #|a | uni~t- | ed widest=31.12
+      #|a | uni~t | test widest=26.672
+    ),
+  )
+}
+
+///|
+test "a break at a space after a soft hyphen shows no hyphen" {
+  inspect(
+    [hinted("a uni\u{ad} t test", 39.2), hinted("ab\u{ad}<i> cd</i>", 25)].join(
+      "\n",
+    ),
+    content=(
+      #|a uni~ | t test widest=34.688
+      #|ab~ | cd widest=17.792
+    ),
+  )
+}
+
+///|
+test "many pieces without width are wrapped" {
+  for hint in ["\u{ad}", "\u{200b}"] {
+    let label = @text.layout_label(
+      Some("a".repeat(22) + ("\u{300}" + hint).repeat(24000) + "i xx"),
+      false,
+      @text.metrics_measurer,
+      16,
+      200,
+    )
+    inspect(
+      label.widths.length(),
+      content=(
+        #|2
+      ),
+    )
+  }
+}

@@ -65,3 +65,8 @@ test "subscript and superscript text is measured at the smaller size CSS draws i
     ),
   )
 }
+
+///|
+test "a soft hyphen takes no width" {
+  assert_eq(width("ab\u{ad}c", 16, 0), width("abc", 16, 0))
+}
