@@ -1,6 +1,6 @@
 coverage:
   paths:
-    - _build/coverage/cobertura.xml
+    - ../_build/coverage/cobertura.xml
 comment:
   if: is_pull_request
   updatePrevious: true
