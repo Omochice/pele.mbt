@@ -41,6 +41,12 @@ pub fn is_space(c : Int32) -> Bool {
 }
 
 ///|
+/// Whitespace other than a line feed or a carriage return, as `[^\S\r\n]` matches it.
+pub fn is_inline_space(c : Int32) -> Bool {
+  c != 10 && c != 13 && is_space(c)
+}
+
+///|
 /// A space or a tab.
 pub fn is_blank(c : Int32) -> Bool {
   c == 32 || c == 9

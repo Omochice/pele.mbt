@@ -1,10 +1,4 @@
 ///|
-/// A blank as Mermaid's reference regex `[^\S\n\r]` sees it: whitespace other than a line break.
-fn is_blank(c : Int32) -> Bool {
-  c != 10 && c != 13 && @util.is_space(c)
-}
-
-///|
 /// Strips blanks at both ends of the text and collapses runs of line breaks, so that no row is empty.
 /// Mermaid's first step is a regex that rescans every run of blanks; this does the same in one pass.
 /// The edits are appended to `steps`, as three passes, when it is given.
@@ -14,10 +8,10 @@ pub fn prepare_text_for_parsing(
 ) -> String {
   let mut start = 0
   let mut end = text.length()
-  while start < end && is_blank(@util.code_at(text, start)) {
+  while start < end && @util.is_inline_space(@util.code_at(text, start)) {
     start += 1
   }
-  while end > start && is_blank(@util.code_at(text, end - 1)) {
+  while end > start && @util.is_inline_space(@util.code_at(text, end - 1)) {
     end -= 1
   }
   // The text is measured before it is copied, and trimmed only when it has to be, because a

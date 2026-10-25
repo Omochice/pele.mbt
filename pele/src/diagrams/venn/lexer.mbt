@@ -256,7 +256,7 @@ fn VennLexer::next(self : VennLexer) -> Int32 {
     }
     if ((c | 32) >= 97 && (c | 32) <= 122) || c == 95 {
       let sep = @util.code_at(src, i + 5)
-      if self.word(i, "title") && @util.is_space(sep) && sep != 10 && sep != 13 {
+      if self.word(i, "title") && @util.is_inline_space(sep) {
         let mut end = i + 6
         while end < n {
           let ch = @util.code_at(src, end)

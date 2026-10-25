@@ -93,12 +93,6 @@ fn valued_keyword(
 }
 
 ///|
-/// Whether `c` is whitespace other than a line break, as `[^\S\r\n]` matches it.
-fn is_inline_space(c : Int32) -> Bool {
-  c != 10 && c != 13 && @util.is_space(c)
-}
-
-///|
 fn skip_spaces(src : String, from : Int32) -> Int32 {
   let mut e = from
   while @util.is_space(@util.code_at(src, e)) {
@@ -245,7 +239,7 @@ pub fn tokenize(src : String) -> Tokens {
     } else if lower == 116 && caseless_at(src, p, "title") {
       // Unlike Mermaid, a title with nothing after it on its line is no title.
       let mut e = p + 5
-      while is_inline_space(@util.code_at(src, e)) {
+      while @util.is_inline_space(@util.code_at(src, e)) {
         e += 1
       }
       let c = @util.code_at(src, e)
@@ -320,7 +314,7 @@ pub fn tokenize(src : String) -> Tokens {
             if e >= 0 {
               Some((TodayMarker, e))
             } else {
-              let e = if is_inline_space(@util.code_at(src, p + 5)) {
+              let e = if @util.is_inline_space(@util.code_at(src, p + 5)) {
                 valued_keyword(src, p, "title", false, false)
               } else {
                 -1

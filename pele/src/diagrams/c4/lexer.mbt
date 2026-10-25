@@ -182,10 +182,7 @@ pub fn tokenize(src : String) -> C4Tokens {
         // Unlike Mermaid, a title with nothing after it on its line is no title.
         // The line breaks after it go too, since the grammar refuses a blank statement.
         let mut e = p + 5
-        while e < n &&
-              @util.is_space(@util.code_at(src, e)) &&
-              @util.code_at(src, e) != 10 &&
-              @util.code_at(src, e) != 13 {
+        while e < n && @util.is_inline_space(@util.code_at(src, e)) {
           e += 1
         }
         if e >= n || @util.code_at(src, e) == 10 || @util.code_at(src, e) == 13 {
