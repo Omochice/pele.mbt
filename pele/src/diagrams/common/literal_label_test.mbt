@@ -240,7 +240,7 @@ test "write_left_label anchors every line at its start and keeps its spaces" {
       )
     }),
     content=(
-      #|<text class="lbl" x="4" y="26.1" text-anchor="start" xml:space="preserve"><tspan font-weight="var(--_w)">bold</tspan> and <tspan font-style="italic">it</tspan></text><text class="lbl" x="4" y="47.1" text-anchor="start" xml:space="preserve">line 2 &amp; </text>
+      #|<text class="lbl" x="4" y="26.1" text-anchor="start" xml:space="preserve"><tspan font-weight="var(--_w)">bold</tspan> and <tspan font-style="italic">it</tspan></text><text class="lbl" x="4" y="47.1" text-anchor="start" xml:space="preserve">line 2 &amp; &lt;more&gt;</text>
     ),
   )
   inspect(

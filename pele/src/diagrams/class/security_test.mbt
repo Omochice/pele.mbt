@@ -94,13 +94,13 @@ let hostile_payloads : Array[String] = [
 ///|
 /// The hash of the outcomes of each template with every payload.
 let hostile_outcomes : Array[String] = [
-  "43b7ac39", "305db57f", "42bbedcf", "1ccee52f", "12d4c507", "981e611f", "c27d454d",
-  "b5ebd899", "e7f2ddf0", "d232d954", "752f15ba", "d870c79e", "7559bbbc", "1241efa5",
-  "a6e67922", "89b03ff9", "acb62d21", "3b4dfedc", "6b51ae94", "1ac7bfc3", "2979ab56",
-  "c61c51e9", "a5ae0cb7", "d48810b0", "c674f65f", "47aeaab6", "e3835ccd", "95008e5f",
+  "43b7ac39", "630245e1", "b9cdec51", "1ccee52f", "12d4c507", "981e611f", "c27d454d",
+  "b5ebd899", "e7f2ddf0", "d232d954", "752f15ba", "d870c79e", "7559bbbc", "8f60c1a5",
+  "a572c8be", "59a0eb4f", "e23d98f5", "3b4dfedc", "9328db46", "023adbe1", "6fa6f64e",
+  "c61c51e9", "a5ae0cb7", "92c97d5a", "888ab963", "47aeaab6", "e3835ccd", "95008e5f",
   "66eb1a1f", "6c775837", "c8c1ad87", "702f99b3", "949e93ce", "31f0d09f", "b72421c1",
   "60e87359", "19651c67", "06d65eff", "58c92ca5", "ea09a1ed", "f75b5035", "febea0f9",
-  "8050909f", "2b326b97", "8ec861cc", "69d64e9d", "73050da3", "38391f9d", "21ecdaad",
+  "8050909f", "2b326b97", "8ec861cc", "69d64e9d", "73050da3", "ab420e19", "21ecdaad",
 ]
 
 ///|

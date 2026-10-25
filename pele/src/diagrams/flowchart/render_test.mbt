@@ -300,6 +300,24 @@ test "writes the monospace family once when a whole label is code" {
 }
 
 ///|
+test "keeps text shaped like a tag that is not HTML, and drops HTML tags" {
+  inspect(
+    [
+      "List<T>", "<T>", "<span title=x>red</span> and <small>print</small><img src=x>",
+      "<b>bold</b> and <T>",
+    ]
+    .map(label => node_text(svg("flowchart LR\n  A[\"\{label}\"]"), "A"))
+    .join("\n"),
+    content=(
+      #|<text class="pele-label" x="0" y="5.6" text-anchor="middle">List&lt;T&gt;</text>
+      #|<text class="pele-label" x="0" y="5.6" text-anchor="middle">&lt;T&gt;</text>
+      #|<text class="pele-label" x="0" y="5.6" text-anchor="middle">red and print</text>
+      #|<text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="5.6" font-weight="var(--_w)">bold</tspan><tspan> and &lt;T&gt;</tspan></text>
+    ),
+  )
+}
+
+///|
 /// A host that has exactly the icons in `pairs`, by name.
 fn host(pairs : Array[(String, String)]) -> @types.IconResolver {
   let icons = Map::from_array(pairs)

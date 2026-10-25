@@ -441,6 +441,20 @@ fn tag_style(tag : String) -> Int32 {
 }
 
 ///|
+/// The HTML elements whose tags a label drops, keeping their text.
+let html_tags : Set[String] = Set::from_array(
+  ("a abbr address article aside audio b bdi bdo big blockquote body br button caption center cite code col " +
+  "colgroup data dd del details dfn dialog div dl dt em embed fieldset figcaption figure font footer form h1 h2 " +
+  "h3 h4 h5 h6 head header hr html i iframe img input ins kbd label legend li link main map mark meta meter nav " +
+  "noscript object ol optgroup option output p picture pre progress q rp rt ruby s samp script section select " +
+  "small source span strike strong style sub summary sup table tbody td template textarea tfoot th thead time " +
+  "title tr track tt u ul var video wbr")
+  .split(" ")
+  .map(name => name.to_owned())
+  .to_array(),
+)
+
+///|
 /// Splits inline HTML and, for markdown labels, emphasis markers into styled spans.
 fn inline(
   line : Array[Span],
@@ -480,39 +494,43 @@ fn inline(
     if ch == '<'.to_int() {
       if tag_at(source, i) is Some((end, name)) {
         let tag = name.to_lower()
-        let closing = @util.code_at(source, i + 1) == '/'.to_int()
         let bit = tag_style(tag)
-        if (bit & (STYLE_SUB | STYLE_SUP)) != 0 {
-          flush(i)
-          if !closing {
-            open.shifts.push(bit)
-          } else {
-            for at = open.shifts.length() - 1; at >= 0; at = at - 1 {
-              if open.shifts[at] == bit {
-                open.shifts.remove(at) |> ignore
-                break
+        // Other HTML tags are dropped and their text kept.
+        // Anything else shaped like a tag, such as the type in List<T>, is text.
+        if bit != 0 || html_tags.contains(tag) {
+          let closing = @util.code_at(source, i + 1) == '/'.to_int()
+          if (bit & (STYLE_SUB | STYLE_SUP)) != 0 {
+            flush(i)
+            if !closing {
+              open.shifts.push(bit)
+            } else {
+              for at = open.shifts.length() - 1; at >= 0; at = at - 1 {
+                if open.shifts[at] == bit {
+                  open.shifts.remove(at) |> ignore
+                  break
+                }
               }
             }
-          }
-        } else if bit != 0 {
-          flush(i)
-          open.style = if closing {
-            (open.style & bit.lnot()) | (base & bit)
+          } else if bit != 0 {
+            flush(i)
+            open.style = if closing {
+              (open.style & bit.lnot()) | (base & bit)
+            } else {
+              open.style | bit
+            }
+            style = if closing {
+              (style & bit.lnot()) | (base & bit)
+            } else {
+              style | bit
+            }
           } else {
-            open.style | bit
+            @util.write_range(text, source, run, i)
+            joined = true
           }
-          style = if closing {
-            (style & bit.lnot()) | (base & bit)
-          } else {
-            style | bit
-          }
-        } else {
-          @util.write_range(text, source, run, i)
-          joined = true
+          run = end
+          i = end
+          continue
         }
-        run = end
-        i = end
-        continue
       }
     } else if markdown && (ch == '*'.to_int() || ch == '_'.to_int()) {
       let double = @util.code_at(source, i + 1) == ch
