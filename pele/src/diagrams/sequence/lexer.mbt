@@ -365,7 +365,17 @@ pub fn tokenize(src : String) -> Tokens {
     if legacy {
       q += 1
     }
-    if !@util.is_space(code(q)) || q + 1 >= n || !has(q + 1, LINE) {
+    // Unlike Mermaid, a title with nothing after it on its line is no title.
+    let mut e = q
+    while e < n && code(e) != 10 && @util.is_space(code(e)) {
+      e += 1
+    }
+    if e == n || code(e) == 10 {
+      p = e
+      return true
+    }
+    let sep = code(q)
+    if !@util.is_space(sep) || sep == 13 || !has(q + 1, LINE) {
       return false
     }
     emit(if legacy { LegacyTitle } else { Title }, p, line_run(q + 1))
