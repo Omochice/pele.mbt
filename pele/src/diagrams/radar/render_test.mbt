@@ -310,3 +310,21 @@ fn round_curve(points : Array[@radar.Point], tension : Double) -> String {
   })
   d.to_string()
 }
+
+///|
+test "values near the largest double are scaled like small ones" {
+  let curve = (values : String) => {
+    let drawn = svg(
+      "radar-beta\n axis A, B, C\n curve c{\{values}}\n graticule polygon",
+    )
+    let at = @util.index_of(drawn, "<polygon class=\"pele-curve\"")
+    let from = @util.index_of(drawn, " points=\"", from=at) + 9
+    @util.slice(drawn, from, end=@util.index_of(drawn, "\"", from~))
+  }
+  let huge = [
+    "1" + "0".repeat(308),
+    "5" + "0".repeat(307),
+    "25" + "0".repeat(306),
+  ].join(",")
+  assert_eq(curve(huge), curve("4,2,1"))
+}
