@@ -432,11 +432,11 @@ priv struct Open {
 fn tag_style(tag : String) -> Int32 {
   match tag {
     "b" | "strong" => STYLE_BOLD
-    "i" | "em" => STYLE_ITALIC
-    "code" => STYLE_MONO
+    "i" | "em" | "cite" | "dfn" | "var" => STYLE_ITALIC
+    "code" | "kbd" | "samp" | "tt" => STYLE_MONO
     "sub" => STYLE_SUB
     "sup" => STYLE_SUP
-    "u" => STYLE_UNDERLINE
+    "u" | "ins" => STYLE_UNDERLINE
     _ => 0
   }
 }

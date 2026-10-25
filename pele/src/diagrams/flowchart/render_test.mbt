@@ -332,6 +332,29 @@ test "underlines <u> text" {
 }
 
 ///|
+test "styles other inline tags as browsers do" {
+  inspect(
+    ["cite", "dfn", "var", "kbd", "samp", "tt", "ins"]
+    .map(tag => {
+      node_text(
+        svg("flowchart LR\n  A[\"plain <\{tag}>tagged</\{tag}> plain\"]"),
+        "A",
+      )
+    })
+    .join("\n"),
+    content=(
+      #|<text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="5.6">plain </tspan><tspan font-style="italic">tagged</tspan><tspan> plain</tspan></text>
+      #|<text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="5.6">plain </tspan><tspan font-style="italic">tagged</tspan><tspan> plain</tspan></text>
+      #|<text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="5.6">plain </tspan><tspan font-style="italic">tagged</tspan><tspan> plain</tspan></text>
+      #|<text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="5.6">plain </tspan><tspan font-family="var(--_fm)">tagged</tspan><tspan> plain</tspan></text>
+      #|<text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="5.6">plain </tspan><tspan font-family="var(--_fm)">tagged</tspan><tspan> plain</tspan></text>
+      #|<text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="5.6">plain </tspan><tspan font-family="var(--_fm)">tagged</tspan><tspan> plain</tspan></text>
+      #|<text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="5.6">plain </tspan><tspan text-decoration="underline">tagged</tspan><tspan> plain</tspan></text>
+    ),
+  )
+}
+
+///|
 /// A host that has exactly the icons in `pairs`, by name.
 fn host(pairs : Array[(String, String)]) -> @types.IconResolver {
   let icons = Map::from_array(pairs)
