@@ -72,7 +72,12 @@ test "comments, blank lines and a task before any section" {
 test "a keyword needs a space after it, and a bare one is a task name" {
   inspect(
     read("journey\ntitle\nsection\n"),
-    content="title=\"section\" accTitle=- accDescr=- sections= tasks=",
+    content=(
+      #|syntax: Parse error on line 3:
+      #|section
+      #|-------^
+      #|Expecting 'taskData', got 'NEWLINE'
+    ),
   )
   inspect(
     read("journey\ntitles: 3\n"),
@@ -122,6 +127,22 @@ test "the character before a comment is kept" {
     read("journey\nA%% label: 5: Me"),
     content=(
       #|title=- accTitle=- accDescr=- sections= tasks="A%% label":5:"Me"@""
+    ),
+  )
+}
+
+///|
+test "a bare title is no title" {
+  inspect(
+    read("journey\ntitle\nsection Work\nTask: 5: Me"),
+    content=(
+      #|title=- accTitle=- accDescr=- sections="Work" tasks="Task":5:"Me"@"Work"
+    ),
+  )
+  inspect(
+    read("journey\n  title\u{a0}Kept\n  Task: 5: Me"),
+    content=(
+      #|title="Kept" accTitle=- accDescr=- sections= tasks="Task":5:"Me"@""
     ),
   )
 }

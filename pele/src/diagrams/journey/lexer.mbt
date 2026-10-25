@@ -97,14 +97,24 @@ fn tokenize(src : String) -> @common.Tokens {
       p += 7
       continue
     }
-    // `\s` after a keyword also takes a line break, so `title` alone on a line takes the next line as its text.
-    if @common.word_at(src, p, "title") &&
-      @util.is_space(@util.code_at(src, p + 5)) {
-      let e = text_end(src, p + 6, false)
-      if e > p + 6 {
-        emit(out, TITLE, p, e)
+    if @common.word_at(src, p, "title") {
+      // Unlike Mermaid, a title with nothing after it on its line is no title.
+      let mut e = p + 5
+      while @util.code_at(src, e) != 10 && @util.is_space(@util.code_at(src, e)) {
+        e += 1
+      }
+      if e >= src.length() || @util.code_at(src, e) == 10 {
         p = e
         continue
+      }
+      let sep = @util.code_at(src, p + 5)
+      if sep != 13 && @util.is_space(sep) {
+        let e = text_end(src, p + 6, false)
+        if e > p + 6 {
+          emit(out, TITLE, p, e)
+          p = e
+          continue
+        }
       }
     }
     let after = @common.accessibility(out, p, ACC_TITLE)
@@ -112,6 +122,7 @@ fn tokenize(src : String) -> @common.Tokens {
       p = after
       continue
     }
+    // Like Mermaid, a bare section uses the next line as its name.
     if @common.word_at(src, p, "section") &&
       @util.is_space(@util.code_at(src, p + 7)) {
       let e = text_end(src, p + 8, true)
