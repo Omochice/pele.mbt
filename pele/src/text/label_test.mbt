@@ -69,6 +69,40 @@ test "inline HTML sets emphasis and entities are decoded" {
 }
 
 ///|
+test "sub and sup shift text by the innermost tag open, across line breaks" {
+  inspect(
+    layout("H<sub>2</sub>O x<SUP>2</SUP>", 16, 4000),
+    content=(
+      #|"H"/0/11.552 "2"/8/7.413333333333334 "O x"/0/24.896 "2"/16/7.413333333333334 widths=[51.27466666666667] width=51.27466666666667 height=24 size=16 line=24
+    ),
+  )
+  inspect(
+    layout("<b>a<sup>b<sub>c</sub>d</sup></b>", 16, 4000),
+    content=(
+      #|"a"/1/8.896 "b"/17/8.146666666666667 "c"/9/7.413333333333334 "d"/17/8.146666666666667 widths=[32.60266666666667] width=32.60266666666667 height=24 size=16 line=24
+    ),
+  )
+  inspect(
+    layout("<sup>a<sub>b<sup>c</sup>d</sub>e</sup>", 16, 4000),
+    content=(
+      #|"a"/16/7.413333333333334 "b"/8/7.413333333333334 "c"/16/6.666666666666667 "d"/8/7.413333333333334 "e"/16/7.413333333333334 widths=[36.32000000000001] width=36.32000000000001 height=24 size=16 line=24
+    ),
+  )
+  inspect(
+    layout("<sup>a<sub>b<br/>c</sub>d</sup>", 16, 4000),
+    content=(
+      #|"a"/16/7.413333333333334 "b"/8/7.413333333333334 | "c"/8/6.666666666666667 "d"/16/7.413333333333334 widths=[14.826666666666668, 14.080000000000002] width=14.826666666666668 height=48 size=16 line=24
+    ),
+  )
+  inspect(
+    layout("a</sub>b<sub>c", 16, 4000),
+    content=(
+      #|"ab"/0/17.792 "c"/8/6.666666666666667 widths=[24.45866666666667] width=24.45866666666667 height=24 size=16 line=24
+    ),
+  )
+}
+
+///|
 test "icons the host does not have leave no gap" {
   inspect(
     layout("fa:fa-car Cars", 16, 4000),

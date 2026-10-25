@@ -385,17 +385,34 @@ fn tag_at(source : String, at : Int32) -> (Int32, String)? {
 }
 
 ///|
+/// The HTML tags open at the end of a line, as they can span explicit breaks.
+priv struct Open {
+  mut style : Int32
+  /// Only the innermost `<sub>` or `<sup>` shifts text.
+  shifts : Array[Int32]
+}
+
+///|
+fn tag_style(tag : String) -> Int32 {
+  match tag {
+    "b" | "strong" => STYLE_BOLD
+    "i" | "em" => STYLE_ITALIC
+    "sub" => STYLE_SUB
+    "sup" => STYLE_SUP
+    _ => 0
+  }
+}
+
+///|
 /// Splits inline HTML and, for markdown labels, emphasis markers into styled spans.
-/// Returns the HTML emphasis open at the end, as tags can span explicit breaks.
 fn inline(
   line : Array[Span],
   source : String,
   markdown : Bool,
   base : Int32,
-  open_style : Int32,
-) -> Int32 {
-  let mut html_style = open_style
-  let mut style = html_style
+  open : Open,
+) -> Unit {
+  let mut style = open.style
   let mut marked = 0
   // The text between tags is taken as slices of the source, joined only across a tag that sets no
   // emphasis, because copying a long line a code unit at a time into a doubling builder outgrows
@@ -413,7 +430,11 @@ fn inline(
       @util.slice(source, run, end=at)
     }
     joined = false
-    push_icons(line, piece, style)
+    let shift = match open.shifts.last() {
+      Some(bit) => bit
+      None => 0
+    }
+    push_icons(line, piece, style | shift)
   }
   let n = source.length()
   let mut i = 0
@@ -423,19 +444,25 @@ fn inline(
       if tag_at(source, i) is Some((end, name)) {
         let tag = name.to_lower()
         let closing = @util.code_at(source, i + 1) == '/'.to_int()
-        let bit = if tag == "b" || tag == "strong" {
-          STYLE_BOLD
-        } else if tag == "i" || tag == "em" {
-          STYLE_ITALIC
-        } else {
-          0
-        }
-        if bit != 0 {
+        let bit = tag_style(tag)
+        if (bit & (STYLE_SUB | STYLE_SUP)) != 0 {
           flush(i)
-          html_style = if closing {
-            (html_style & bit.lnot()) | (base & bit)
+          if !closing {
+            open.shifts.push(bit)
           } else {
-            html_style | bit
+            for at = open.shifts.length() - 1; at >= 0; at = at - 1 {
+              if open.shifts[at] == bit {
+                open.shifts.remove(at) |> ignore
+                break
+              }
+            }
+          }
+        } else if bit != 0 {
+          flush(i)
+          open.style = if closing {
+            (open.style & bit.lnot()) | (base & bit)
+          } else {
+            open.style | bit
           }
           style = if closing {
             (style & bit.lnot()) | (base & bit)
@@ -485,7 +512,6 @@ fn inline(
     i += 1
   }
   flush(n)
-  html_style
 }
 
 ///|
@@ -637,10 +663,10 @@ fn layout_lines(
   }
   let lines : Array[Array[Span]] = []
   let widths : Array[Double] = []
-  let mut html_style = base
+  let open = { style: base, shifts: [], }
   for part in split_breaks(source) {
     let line = []
-    html_style = inline(line, @util.trim(part), markdown, base, html_style)
+    inline(line, @util.trim(part), markdown, base, open)
     let w = measure_spans(line, measurer, size)
     if w > max_width {
       wrap(line, measurer, size, max_width, lines, widths)

@@ -8,6 +8,10 @@ pub const STYLE_ITALIC : Int32 = 2
 
 pub const STYLE_MONO : Int32 = 4
 
+pub const STYLE_SUB : Int32 = 8
+
+pub const STYLE_SUP : Int32 = 16
+
 pub fn decode_entities(String) -> String
 
 pub fn has_math(Array[Span]) -> Bool

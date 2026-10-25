@@ -135,7 +135,10 @@ fn text_block(
   let out = @svg.Markup::new()
   for i, line in label.lines {
     let cy = y + @text.line_middle(label, i)
-    if line.length() == 1 && line[0].icon is None && line[0].math is None {
+    if line.length() == 1 &&
+      line[0].icon is None &&
+      line[0].math is None &&
+      (line[0].style & (@text.STYLE_SUB | @text.STYLE_SUP)) == 0 {
       let anchor = if end { " text-anchor=\"end\"" } else { "" }
       out.write(
         "<text\{@svg.text_style(attrs, line[0].style)} x=\"\{@svg.num(x)}\" y=\"\{@svg.num(cy + label.size * 0.35)}\"\{anchor}>",

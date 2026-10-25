@@ -80,10 +80,23 @@ const BOLD_ATTR : String = " font-weight=\"var(--_w)\""
 const ITALIC_ATTR : String = " font-style=\"italic\""
 
 ///|
+const SUB_ATTR : String = " baseline-shift=\"sub\" font-size=\"smaller\""
+
+///|
+const SUP_ATTR : String = " baseline-shift=\"super\" font-size=\"smaller\""
+
+///|
 /// The attributes of a span's own emphasis.
 pub fn span_style(style : Int32) -> String {
   (if (style & @text.STYLE_BOLD) != 0 { BOLD_ATTR } else { "" }) +
-  (if (style & @text.STYLE_ITALIC) != 0 { ITALIC_ATTR } else { "" })
+  (if (style & @text.STYLE_ITALIC) != 0 { ITALIC_ATTR } else { "" }) +
+  (if (style & @text.STYLE_SUB) != 0 {
+    SUB_ATTR
+  } else if (style & @text.STYLE_SUP) != 0 {
+    SUP_ATTR
+  } else {
+    ""
+  })
 }
 
 ///|

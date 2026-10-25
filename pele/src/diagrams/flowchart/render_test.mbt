@@ -209,6 +209,56 @@ test "renders markdown labels" {
 }
 
 ///|
+test "renders <sub> and <sup> in labels with baseline shift and smaller text" {
+  inspect(
+    svg("flowchart LR\n  A[\"H<sub>2</sub>O\"] --> B[\"x<sup>2</sup>\"]"),
+    content=(
+      #|183x64 <svg xmlns="http://www.w3.org/2000/svg" class="pele pele-flowchart" viewBox="0 0 183 64" width="183" height="64" style="max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)" fill="var(--_fg)" role="graphics-document document" aria-roledescription="flowchart"><g class="pele-edges" fill="none" stroke="var(--_l)" stroke-linecap="round"><g class="pele-edge" data-id="L_A_B_0"><path d="M75.41,32L116.41,32"/><path class="pele-marker" d="M123.41,32L115.41,35.36L115.41,28.64Z" fill="var(--_l)" stroke="none"/></g></g><g class="pele-nodes"><g class="pele-node pele-shape-rect" data-id="A" transform="translate(41.71,32)"><rect x="-33.71" y="-24" width="67.41" height="48" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/><text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="5.6">H</tspan><tspan baseline-shift="sub" font-size="smaller">2</tspan><tspan>O</tspan></text></g><g class="pele-node pele-shape-rect" data-id="B" transform="translate(149.12,32)"><rect x="-25.71" y="-24" width="51.41" height="48" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/><text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="5.6">x</tspan><tspan baseline-shift="super" font-size="smaller">2</tspan></text></g></g></svg>
+    ),
+  )
+}
+
+///|
+test "nesting sub/sup inside other emphasis keeps each style on its own span" {
+  inspect(
+    svg("flowchart LR\n  A[\"<b>H<sub>2</sub>O</b>\"]"),
+    content=(
+      #|84x64 <svg xmlns="http://www.w3.org/2000/svg" class="pele pele-flowchart" viewBox="0 0 84 64" width="84" height="64" style="max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_w:var(--pele-bold-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)" fill="var(--_fg)" role="graphics-document document" aria-roledescription="flowchart"><g class="pele-nodes"><g class="pele-node pele-shape-rect" data-id="A" transform="translate(41.71,32)"><rect x="-33.71" y="-24" width="67.41" height="48" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/><text class="pele-label" font-weight="var(--_w)" text-anchor="middle" xml:space="preserve"><tspan x="0" y="5.6">H</tspan><tspan baseline-shift="sub" font-size="smaller">2</tspan><tspan>O</tspan></text></g></g></svg>
+    ),
+  )
+}
+
+///|
+test "shifts text inside both <sup> and <sub> by the inner tag" {
+  inspect(
+    svg("flowchart LR\n  A[\"x<sup>a<sub>b</sub>c</sup>\"]"),
+    content=(
+      #|82x64 <svg xmlns="http://www.w3.org/2000/svg" class="pele pele-flowchart" viewBox="0 0 82 64" width="82" height="64" style="max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)" fill="var(--_fg)" role="graphics-document document" aria-roledescription="flowchart"><g class="pele-nodes"><g class="pele-node pele-shape-rect" data-id="A" transform="translate(40.75,32)"><rect x="-32.75" y="-24" width="65.49" height="48" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/><text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="5.6">x</tspan><tspan baseline-shift="super" font-size="smaller">a</tspan><tspan baseline-shift="sub" font-size="smaller">b</tspan><tspan baseline-shift="super" font-size="smaller">c</tspan></text></g></g></svg>
+    ),
+  )
+}
+
+///|
+test "restores the outer <sup> when a nested <sup> closes" {
+  inspect(
+    svg("flowchart LR\n  A[\"<sup>a<sub>b<sup>c</sup>d</sub>e</sup>\"]"),
+    content=(
+      #|89x64 <svg xmlns="http://www.w3.org/2000/svg" class="pele pele-flowchart" viewBox="0 0 89 64" width="89" height="64" style="max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)" fill="var(--_fg)" role="graphics-document document" aria-roledescription="flowchart"><g class="pele-nodes"><g class="pele-node pele-shape-rect" data-id="A" transform="translate(44.16,32)"><rect x="-36.16" y="-24" width="72.32" height="48" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/><text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="5.6" baseline-shift="super" font-size="smaller">a</tspan><tspan baseline-shift="sub" font-size="smaller">b</tspan><tspan baseline-shift="super" font-size="smaller">c</tspan><tspan baseline-shift="sub" font-size="smaller">d</tspan><tspan baseline-shift="super" font-size="smaller">e</tspan></text></g></g></svg>
+    ),
+  )
+}
+
+///|
+test "keeps the inner of <sup> and <sub> across a line break" {
+  inspect(
+    svg("flowchart LR\n  A[\"<sup>a<sub>b<br/>c</sub>d</sup>\"]"),
+    content=(
+      #|67x88 <svg xmlns="http://www.w3.org/2000/svg" class="pele pele-flowchart" viewBox="0 0 67 88" width="67" height="88" style="max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)" fill="var(--_fg)" role="graphics-document document" aria-roledescription="flowchart"><g class="pele-nodes"><g class="pele-node pele-shape-rect" data-id="A" transform="translate(33.41,44)"><rect x="-25.41" y="-36" width="50.83" height="72" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/><text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-6.4" baseline-shift="super" font-size="smaller">a</tspan><tspan baseline-shift="sub" font-size="smaller">b</tspan><tspan x="0" y="17.6" baseline-shift="sub" font-size="smaller">c</tspan><tspan baseline-shift="super" font-size="smaller">d</tspan></text></g></g></svg>
+    ),
+  )
+}
+
+///|
 /// A host that has exactly the icons in `pairs`, by name.
 fn host(pairs : Array[(String, String)]) -> @types.IconResolver {
   let icons = Map::from_array(pairs)

@@ -49,3 +49,19 @@ test "text whose advances pass 2^31 font units is measured in full" {
     content="57600000",
   )
 }
+
+///|
+test "subscript and superscript text is measured at the smaller size CSS draws it in" {
+  inspect(
+    width("x2", 12, @text.STYLE_SUB),
+    content=(
+      #|10.56
+    ),
+  )
+  inspect(
+    width("x2", 12, @text.STYLE_SUP | @text.STYLE_BOLD),
+    content=(
+      #|11.12
+    ),
+  )
+}
