@@ -5,6 +5,8 @@ pub(all) struct BoxDrawing {
   /// Output line number to original line number, both from 1.
   /// Empty when the text is unchanged.
   line_map : Map[Int32, Int32]
+  /// Per output line, where an index of the rewritten line comes from in the original one.
+  columns : Map[Int32, (Int32) -> Int32]
 }
 
 ///|
@@ -181,7 +183,35 @@ pub fn remap_error_lines(
 }
 
 ///|
-fn fail(line : Int32, message : String) -> Unit raise @errors.PeleError {
+/// Where line `line`, from 1, starts in `text`.
+pub fn line_start(text : String, line : Int32) -> Int32 {
+  let mut at = 0
+  for _ in 1..<line {
+    at = @util.index_of(text, "\n", from=at) + 1
+  }
+  at
+}
+
+///|
+/// Where index `at` of `line` with its tabs expanded to four spaces is in `line` itself.
+fn before_tabs(line : String, at : Int32) -> Int32 {
+  let mut i = 0
+  let mut n = 0
+  while i < line.length() && n < at {
+    n += if @util.code_at(line, i) == '\t'.to_int() { 4 } else { 1 }
+    i += 1
+  }
+  i
+}
+
+///|
+/// Raises an error at line `index`, from 0, of `input`, numbered as the source was written.
+fn fail(
+  input : String,
+  index : Int32,
+  message : String,
+) -> Unit raise @errors.PeleError {
+  let (line, _, _) = @errors.locate(input, line_start(input, index + 1))
   raise @errors.pele_error(
     "Line \{line}: \{message}",
     code=Syntax,
@@ -198,7 +228,8 @@ pub fn preprocess_box_drawing(
   input : String,
 ) -> BoxDrawing raise @errors.PeleError {
   let line_map : Map[Int32, Int32] = Map([])
-  let unchanged = { text: input, line_map, }
+  let columns : Map[Int32, (Int32) -> Int32] = Map([])
+  let unchanged = { text: input, line_map, columns, }
   if !has_char(input, is_box_char) {
     return unchanged
   }
@@ -232,17 +263,20 @@ pub fn preprocess_box_drawing(
   }
   let segment_width = infer_segment_width(content_lines)
   let out = []
-  let keep = (text : String, index : Int32) => {
+  let keep = (text : String, index : Int32, column : ((Int32) -> Int32)?) => {
     out.push(text)
     line_map[out.length()] = index + 1
+    if column is Some(column) {
+      columns[out.length()] = column
+    }
   }
   for i in 0..<=keyword_index {
-    keep(lines[i], i)
+    keep(lines[i], i, None)
   }
   for i in (keyword_index + 1)..<lines.length() {
     let line = lines[i]
     if passes(line) {
-      keep(line, i)
+      keep(line, i, None)
       continue
     }
     if is_decoration(line) {
@@ -267,24 +301,32 @@ pub fn preprocess_box_drawing(
       let content = @util.trim_end(@util.slice(normalized, pos))
       if content == "" {
         fail(
-          i + 1,
-          "Empty node — expected a filename or directory name after the box-drawing prefix",
+          input, i, "Empty node — expected a filename or directory name after the box-drawing prefix",
         )
       }
-      keep("    ".repeat(depth) + content, i)
+      let indent = "    ".repeat(depth)
+      keep(
+        indent + content,
+        i,
+        Some(at => {
+          before_tabs(
+            line,
+            pos + (if at > indent.length() { at - indent.length() } else { 0 }),
+          )
+        }),
+      )
     } else if all_chars(normalized, c => is_box_char(c) || @util.is_space(c)) {
       continue
     } else if has_char(normalized, is_box_char) {
       // A name that happens to contain a box character, such as "Section ─ A.txt", is a root item.
-      keep(line, i)
+      keep(line, i, None)
     } else if @util.is_space(@util.code_at(normalized, 0)) {
       fail(
-        i + 1,
-        "Unexpected indentation without box-drawing characters. In box-drawing format, use ├── or └── prefixes for indented nodes.",
+        input, i, "Unexpected indentation without box-drawing characters. In box-drawing format, use ├── or └── prefixes for indented nodes.",
       )
     } else {
-      keep(line, i)
+      keep(line, i, None)
     }
   }
-  { text: out.join("\n"), line_map, }
+  { text: out.join("\n"), line_map, columns, }
 }

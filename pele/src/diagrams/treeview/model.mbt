@@ -127,23 +127,54 @@ pub fn populate(ast : TreeViewAst, db : TreeViewDb) -> Unit {
 /// Reads the source to a syntax tree, accepting box-drawing input.
 /// Errors name lines of the original text.
 pub fn read_treeview(source : String) -> TreeViewAst raise @errors.PeleError {
-  let { text, line_map, } = preprocess_box_drawing(source)
+  let { text, line_map, columns, } = preprocess_box_drawing(source)
   parse_treeview(text) catch {
     @errors.PeleError(failure) as error => {
-      if line_map.is_empty() {
+      // The parser already located errors in unchanged text.
+      if text == source {
         raise error
       }
-      let head = @util.index_of(failure.message, "\n")
-      let message = if head == -1 {
-        remap_error_lines(failure.message, line_map)
+      guard line_map.get(failure.line) is Some(line) else { raise error }
+      let at = if failure.column > 0 {
+        match columns.get(failure.line) {
+          Some(column) => column(failure.column - 1)
+          None => failure.column - 1
+        }
       } else {
-        remap_error_lines(@util.slice(failure.message, 0, end=head), line_map) +
-        @util.slice(failure.message, head)
+        0
       }
+      let (written_line, written_column, written_snippet) = @errors.locate(
+        source,
+        line_start(source, line) + at,
+      )
+      let head = match failure.message.find("\n") {
+        Some(head) => head
+        None => failure.message.length()
+      }
+      let rest = @util.slice(failure.message, head)
+      let message = remap_error_lines(
+          @util.slice(failure.message, 0, end=head),
+          Map([(failure.line, written_line)]),
+        ) +
+        (if failure.snippet != "" {
+          rest.replace(old=failure.snippet, new=written_snippet)
+        } else {
+          rest
+        })
       raise @errors.PeleError({
         ..failure,
         message,
-        line: line_map.get(failure.line).unwrap_or(failure.line),
+        line: written_line,
+        column: if failure.column > 0 {
+          written_column
+        } else {
+          0
+        },
+        snippet: if failure.snippet != "" {
+          written_snippet
+        } else {
+          ""
+        },
       })
     }
   }

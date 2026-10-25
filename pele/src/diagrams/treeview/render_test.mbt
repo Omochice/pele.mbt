@@ -259,3 +259,37 @@ test "an empty drawing from the host replaces a built-in outline" {
     content="<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-treeView\" viewBox=\"0 0 113 72\" width=\"113\" height=\"72\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_hw:var(--pele-heading-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"treeView\"><g class=\"pele-tree-guides\" fill=\"none\" stroke=\"var(--_b)\" stroke-width=\"1\"><path d=\"M15,34V46Q15,50 19,50H23\"/></g><g class=\"pele-node pele-tree-dir\" data-id=\"src\"><svg class=\"pele-icon\" data-icon=\"mermaid-treeview:folder\" x=\"8\" y=\"14\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 6.5A1.5 1.5 0 0 1 4.5 5h4.6l2.4 2.5h8A1.5 1.5 0 0 1 21 9v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18z\" stroke=\"var(--_m)\" stroke-width=\"1.5\"/></svg><text class=\"pele-label\" x=\"30\" y=\"27.6\" font-weight=\"var(--_hw)\" xml:space=\"preserve\">src</text></g><g class=\"pele-node pele-tree-file\" data-id=\"index.js\"><svg class=\"pele-icon\" data-icon=\"mermaid-treeview:file\" x=\"28\" y=\"42\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></svg><text class=\"pele-label\" x=\"50\" y=\"55.6\" xml:space=\"preserve\">index.js</text></g></svg>",
   )
 }
+
+///|
+/// The line, column, snippet and message of the error `source` fails with.
+fn located(source : String) -> String {
+  let _ = @core.render(
+    [@treeview.treeview],
+    source,
+    @types.RenderOptions::default(),
+  ) catch {
+    @errors.PeleError(failure) =>
+      return "\{failure.line}:\{failure.column} \{failure.snippet.escape()} \{failure.message.escape()}"
+  }
+  "rendered"
+}
+
+///|
+test "box-drawing errors are located in the source as written" {
+  inspect(
+    [
+      located("---\ntitle: T\n---\ntreeView-beta\n└─ \"bad"),
+      located("---\ntitle: T\n---\ntreeView-beta\n├── \n"),
+      located("treeView-beta\n└─ \"ok\"\t\"bad"),
+      located("treeView-beta\n└── \"ok\"\t\t\"bad"),
+      located("---\ntitle: T\n---\ntreeView-beta\n\"bad\nhello ─ world\nx\ny"),
+    ].join("\n"),
+    content=(
+      #|5:4 "└─ \"bad\n---^" "Lexical error on line 5. Unrecognized text.\n└─ \"bad\n---^"
+      #|5:0 "" "Line 5: Empty node — expected a filename or directory name after the box-drawing prefix"
+      #|2:9 "└─ \"ok\"\t\"bad\n--------^" "Lexical error on line 2. Unrecognized text.\n└─ \"ok\"\t\"bad\n--------^"
+      #|2:11 "└── \"ok\"\t\t\"bad\n----------^" "Lexical error on line 2. Unrecognized text.\n└── \"ok\"\t\t\"bad\n----------^"
+      #|5:1 "\"bad\n^" "Lexical error on line 5. Unrecognized text.\n\"bad\n^"
+    ),
+  )
+}

@@ -167,7 +167,7 @@ fn failure_of(source : String) -> @errors.Failure {
 }
 
 ///|
-test "box-drawing errors name the lines of the original text" {
+test "box-drawing errors name the lines of the original text and quote them" {
   let unclosed = failure_of(
     "treeView-beta\n│\n├── src/\n│\n│   └── \"a\n",
   )
@@ -176,7 +176,7 @@ test "box-drawing errors name the lines of the original text" {
     unclosed.message,
     content=(
       #|Lexical error on line 5. Unrecognized text.
-      #|        "a
+      #|│   └── "a
       #|--------^
     ),
   )
