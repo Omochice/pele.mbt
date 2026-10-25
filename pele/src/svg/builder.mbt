@@ -56,11 +56,22 @@ fn invalid_xml_at(text : String, i : Int32) -> (Bool, Int32) {
 }
 
 ///|
+/// Whether the code unit `c` is a character XML allows on its own.
+/// Most characters are, and testing for that first saves decoding a code point for each.
+fn is_plain_xml(c : Int32) -> Bool {
+  c < 0xd800 && !is_xml_forbidden(c)
+}
+
+///|
 /// Whether `text` holds a character XML does not allow, or DEL.
 /// Escaping drops them, which could join what is left of a checked value into something unsafe.
 pub fn has_invalid_xml(text : String) -> Bool {
   let mut i = 0
   while i < text.length() {
+    if is_plain_xml(text.unsafe_get(i).to_int()) {
+      i += 1
+      continue
+    }
     let (invalid, width) = invalid_xml_at(text, i)
     if invalid {
       return true
@@ -76,6 +87,11 @@ pub fn without_invalid_xml(text : String) -> String {
   let out = StringBuilder()
   let mut i = 0
   while i < text.length() {
+    if is_plain_xml(text.unsafe_get(i).to_int()) {
+      @util.write_range(out, text, i, i + 1)
+      i += 1
+      continue
+    }
     let (invalid, width) = invalid_xml_at(text, i)
     if !invalid {
       @util.write_range(out, text, i, i + width)
@@ -92,11 +108,16 @@ pub fn esc(text : String) -> String {
   let mut last = 0
   let mut i = 0
   while i < text.length() {
-    let replacement = match @util.code_at(text, i) {
+    let c = text.unsafe_get(i).to_int()
+    let replacement = match c {
       0x26 => "&amp;"
       0x3c => "&lt;"
       0x3e => "&gt;"
       0x22 => "&quot;"
+      _ if is_plain_xml(c) => {
+        i += 1
+        continue
+      }
       _ => {
         let (invalid, width) = invalid_xml_at(text, i)
         if !invalid {
