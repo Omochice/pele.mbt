@@ -59,7 +59,6 @@ jobs:
       - run: |
           mkdir -p "$RUNNER_TEMP/checks"
           nix develop --command moon check --target wasm --deny-warn 2>&1 | tee "$RUNNER_TEMP/checks/moon-check.log"
-
       - run: nix develop --command moon build --target wasm --release
       - run: nix develop --command moon test --target wasm --enable-coverage 2>&1 | tee "$RUNNER_TEMP/checks/moon-test.log"
       - name: Write the coverage report without files that have no instrumented lines
@@ -91,7 +90,6 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - run: nix develop --command moon build --target wasm --release
-
       - run: |
           mkdir -p "$RUNNER_TEMP/checks"
           nix develop --command node scripts/check-golden.mjs 2>&1 | tee "$RUNNER_TEMP/checks/golden.log"
@@ -115,7 +113,6 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - run: nix develop --command moon build --target wasm --release
-
       - run: |
           mkdir -p "$RUNNER_TEMP/checks"
           nix develop --command node scripts/check-stress.mjs 2>&1 | tee "$RUNNER_TEMP/checks/stress.log"
@@ -139,7 +136,6 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - run: nix develop --command moon build --target wasm --release
-
       - run: |
           mkdir -p "$RUNNER_TEMP/checks"
           nix develop --command node scripts/fuzz.mjs --count 500 2>&1 | tee "$RUNNER_TEMP/checks/fuzz.log"
@@ -163,7 +159,6 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - run: nix develop --command node scripts/build-typst.mjs
-
       - run: |
           mkdir -p "$RUNNER_TEMP/checks"
           nix develop --command node scripts/check-typst.mjs 2>&1 | tee "$RUNNER_TEMP/checks/typst.log"
