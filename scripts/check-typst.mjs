@@ -73,4 +73,4 @@ try {
   rmSync(out, { recursive: true, force: true });
 }
 console.log(`\n${documents.length - failed}/${documents.length} passed`);
-process.exit(failed > 0 ? 1 : 0);
+process.exitCode = failed > 0 ? 1 : 0;

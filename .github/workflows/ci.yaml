@@ -8,6 +8,11 @@ on:
 permissions:
   contents: read
 
+defaults:
+  run:
+    # Adds pipefail, so a check whose output is copied to a log with tee still fails its step.
+    shell: bash
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -40,8 +45,26 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - run: nix develop --command moon check --target wasm --deny-warn
-      - run: nix develop --command moon test --target wasm
       - run: nix develop --command moon build --target wasm --release
+      - name: Run the tests with coverage
+        run: |
+          mkdir -p "$RUNNER_TEMP/checks"
+          nix develop --command moon test --target wasm --enable-coverage 2>&1 | tee "$RUNNER_TEMP/checks/moon-test.log"
+      - name: Write the coverage report without files that have no instrumented lines
+        run: |
+          mkdir -p _build/coverage
+          nix develop --command moon coverage report -f cobertura -o _build/coverage/cobertura.xml
+          perl -0pi -e 's/ *<class [^>]*line-rate="-?nan">\s*<lines>\s*<\/lines>\s*<\/class>\n//g' _build/coverage/cobertura.xml
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage
+          path: _build/coverage/cobertura.xml
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ !cancelled() }}
+        with:
+          name: checks-moon
+          path: ${{ runner.temp }}/checks/
+          if-no-files-found: ignore
 
   golden:
     runs-on: ubuntu-latest
@@ -56,7 +79,15 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - run: nix develop --command moon build --target wasm --release
-      - run: nix develop --command node scripts/check-golden.mjs
+      - run: |
+          mkdir -p "$RUNNER_TEMP/checks"
+          nix develop --command node scripts/check-golden.mjs 2>&1 | tee "$RUNNER_TEMP/checks/golden.log"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ !cancelled() }}
+        with:
+          name: checks-golden
+          path: ${{ runner.temp }}/checks/
+          if-no-files-found: ignore
 
   stress:
     runs-on: ubuntu-latest
@@ -71,7 +102,15 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - run: nix develop --command moon build --target wasm --release
-      - run: nix develop --command node scripts/check-stress.mjs
+      - run: |
+          mkdir -p "$RUNNER_TEMP/checks"
+          nix develop --command node scripts/check-stress.mjs 2>&1 | tee "$RUNNER_TEMP/checks/stress.log"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ !cancelled() }}
+        with:
+          name: checks-stress
+          path: ${{ runner.temp }}/checks/
+          if-no-files-found: ignore
 
   fuzz:
     runs-on: ubuntu-latest
@@ -86,7 +125,15 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - run: nix develop --command moon build --target wasm --release
-      - run: nix develop --command node scripts/fuzz.mjs --count 500
+      - run: |
+          mkdir -p "$RUNNER_TEMP/checks"
+          nix develop --command node scripts/fuzz.mjs --count 500 2>&1 | tee "$RUNNER_TEMP/checks/fuzz.log"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ !cancelled() }}
+        with:
+          name: checks-fuzz
+          path: ${{ runner.temp }}/checks/
+          if-no-files-found: ignore
 
   typst:
     runs-on: ubuntu-latest
@@ -126,6 +173,57 @@ jobs:
           git diff --exit-code
           test -z "$(git status --porcelain)"
 
+  report:
+    needs:
+      # keep-sorted start
+      - fuzz
+      - golden
+      - moon
+      - stress
+      # keep-sorted end
+    # Runs after a failed check too, so the comment shows which check failed; status-check still fails.
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write
+      actions: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: $/.github/actions/setup-nix
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          # A pattern, unlike a name, matches nothing without failing when the moon job uploaded no report.
+          pattern: coverage
+          path: _build/coverage
+          merge-multiple: true
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: checks-*
+          path: _build/checks
+          merge-multiple: true
+      - name: Table the checks for octocov
+        run: nix develop --command node scripts/merge-checks.mjs _build/checks _build/checks.json
+      - name: Expose Nix-provided octocov on PATH
+        run: |
+          nix develop --command bash <<'EOF' >> "$GITHUB_PATH"
+          set -euo pipefail
+          octocov_path="$(command -v octocov)"
+          dirname "$octocov_path"
+          EOF
+      - name: Report coverage and the checks
+        env:
+          OCTOCOV_CUSTOM_METRICS_CHECKS: _build/checks.json
+        uses: k1LoW/octocov-action@a167dc0dee441b7ffc45e1b862ab55ec0d87f278 # v1.5.2
+        with:
+          config: .github/octocov.yaml
+          check-existence: true
+
   status-check:
     timeout-minutes: 5
     runs-on: ubuntu-latest
@@ -136,6 +234,7 @@ jobs:
       - generated
       - golden
       - moon
+      - report
       - stress
       - typst
       # keep-sorted end

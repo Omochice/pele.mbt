@@ -1,0 +1,18 @@
+coverage:
+  paths:
+    - ../_build/coverage/cobertura.xml
+testExecutionTime:
+  steps:
+    - Run the tests with coverage
+comment:
+  if: is_pull_request
+  updatePrevious: true
+summary:
+  if: true
+report:
+  if: is_default_branch
+  datastores:
+    - artifact://${GITHUB_REPOSITORY}
+diff:
+  datastores:
+    - artifact://${GITHUB_REPOSITORY}

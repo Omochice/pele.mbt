@@ -143,4 +143,4 @@ for (const { label, pass, total } of perProfile) console.log(`${label} ${pass}/$
 console.log(`\ndeepest call ${deepest.depth} of the ${TYPST_CALL_DEPTH} frames typst allows, in ${deepest.label}`);
 const total = totals.pass + totals.fail + totals.trap;
 console.log(`\ntotal ${totals.pass}/${total} passed, ${totals.fail} failed, ${totals.trap} trapped`);
-process.exit(totals.fail + totals.trap > 0 ? 1 : 0);
+process.exitCode = totals.fail + totals.trap > 0 ? 1 : 0;
