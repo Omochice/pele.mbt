@@ -99,35 +99,6 @@ fn call_at(text : String, word : String, at : Int32) -> Bool {
 }
 
 ///|
-/// Whether `text` holds a character XML does not allow, or DEL.
-/// Escaping drops them, which could join what is left of a checked value into something unsafe.
-fn has_invalid_xml(text : String) -> Bool {
-  let n = text.length()
-  let mut i = 0
-  while i < n {
-    let c = text.unsafe_get(i).to_int()
-    if c >= 0xd800 && c <= 0xdbff && i + 1 < n {
-      let next = text.unsafe_get(i + 1).to_int()
-      if next >= 0xdc00 && next <= 0xdfff {
-        i += 2
-        continue
-      }
-    }
-    if c <= 8 ||
-      c == 0xb ||
-      c == 0xc ||
-      (c >= 0xe && c <= 0x1f) ||
-      c == 0x7f ||
-      (c >= 0xd800 && c <= 0xdfff) ||
-      c >= 0xfffe {
-      return true
-    }
-    i += 1
-  }
-  false
-}
-
-///|
 /// Does what `/url\s*\(|expression\s*\(|javascript:|[<>{};\\]|@import|image-set|\/\*/i` does.
 fn is_unsafe(value : String) -> Bool {
   let lower = lower_ascii(value)

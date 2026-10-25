@@ -229,6 +229,20 @@ test "never gives an unsafe href to an internal link" {
 }
 
 ///|
+test "never gives an href to an internal link that sanitizing alone would let through" {
+  let options = {
+    ..@types.RenderOptions::default(),
+    link_schemes: Some(["about"]),
+  }
+  let svg = @core.render(
+      [@er.er],
+      "erDiagram\n  \"javascript:alert(1)\":::internal-link",
+      options,
+    ).svg
+  assert_false(svg.contains(" href="))
+}
+
+///|
 test "names that are object keys in pele are plain names" {
   let sources = [
     "erDiagram\n  __proto__ ||--o{ constructor : toString\n  __proto__ {\n    __proto__ __proto__ PK \"__proto__\"\n  }",

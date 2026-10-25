@@ -42,6 +42,52 @@ fn is_xml_forbidden(c : Int32) -> Bool {
 }
 
 ///|
+/// Whether the character at `i` is one XML does not allow, or DEL, as
+/// `/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f\ud800-\udfff\ufffe\uffff]/u` reads it, and how many code units it
+/// takes.
+/// The pattern reads code points, so only a surrogate that is not half of a pair is in it.
+fn invalid_xml_at(text : String, i : Int32) -> (Bool, Int32) {
+  let c = text.unsafe_get(i).to_int()
+  if c >= 0xd800 && c <= 0xdbff && i + 1 < text.length() {
+    let next = text.unsafe_get(i + 1).to_int()
+    if next >= 0xdc00 && next <= 0xdfff {
+      return (false, 2)
+    }
+  }
+  (is_xml_forbidden(c) || (c >= 0xd800 && c <= 0xdfff) || c >= 0xfffe, 1)
+}
+
+///|
+/// Whether `text` holds a character XML does not allow, or DEL.
+/// Escaping drops them, which could join what is left of a checked value into something unsafe.
+pub fn has_invalid_xml(text : String) -> Bool {
+  let mut i = 0
+  while i < text.length() {
+    let (invalid, width) = invalid_xml_at(text, i)
+    if invalid {
+      return true
+    }
+    i += width
+  }
+  false
+}
+
+///|
+/// `text` without the characters `has_invalid_xml` finds.
+pub fn without_invalid_xml(text : String) -> String {
+  let out = StringBuilder()
+  let mut i = 0
+  while i < text.length() {
+    let (invalid, width) = invalid_xml_at(text, i)
+    if !invalid {
+      @util.write_range(out, text, i, i + width)
+    }
+    i += width
+  }
+  out.to_string()
+}
+
+///|
 /// Escapes text for XML and drops the control characters XML does not allow.
 pub fn esc(text : String) -> String {
   let out = StringBuilder()

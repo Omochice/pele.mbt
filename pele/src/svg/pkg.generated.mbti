@@ -51,6 +51,8 @@ pub fn esc_text(String) -> String
 
 pub fn font_style(Double, String?, String?) -> String
 
+pub fn has_invalid_xml(String) -> Bool
+
 pub fn inset_route(Array[Double], Int32, @layout.CNode, shape~ : String, w~ : Double, h~ : Double) -> Unit
 
 pub fn is_held_document(String) -> Bool
@@ -102,6 +104,8 @@ pub fn title_label(String?, @text.TextMeasurer, Double, Double) -> @text.Label
 pub fn too_large_to_hold() -> @errors.PeleError
 
 pub fn with_title(String?, @text.TextMeasurer, Double, Double, Double, Double, Markup) -> Titled raise @errors.PeleError
+
+pub fn without_invalid_xml(String) -> String
 
 pub fn write_edge_label(Markup, String, @text.Label, Double, Double, String, icons? : (String) -> String?) -> Unit raise @errors.PeleError
 

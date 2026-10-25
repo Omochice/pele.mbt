@@ -46,6 +46,8 @@ let payloads : Array[String] = [
   "file:///etc/passwd",
   "//evil.example/share",
   "\\\\evil.example\\share",
+  "#92;#92;nevil.example/share",
+  "\u{9}/#92;nevil.example/share",
   "smb://evil.example/share",
   "obsidian://open?vault=x",
   "\\\"><script>",

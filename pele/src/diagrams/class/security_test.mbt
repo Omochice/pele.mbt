@@ -122,6 +122,8 @@ let hostile_payloads : Array[String] = [
   "file:///etc/passwd",
   "//evil.example/share",
   "\\\\evil.example\\share",
+  "#92;#92;nevil.example/share",
+  "\u{9}/#92;nevil.example/share",
   "smb://evil.example/share",
   "obsidian://open?vault=x",
   "\\\"><script>",
@@ -130,17 +132,17 @@ let hostile_payloads : Array[String] = [
 ///|
 /// The hash of the outcomes of each template with every payload.
 let hostile_outcomes : Array[String] = [
-  "388ba2e9", "a523c579", "f90ebceb", "98e348e5", "c0167407", "66387363", "d2bf9635",
-  "d22cd4d7", "997a2016", "f47957c8", "8319240e", "681c5e1e", "78bacda0", "cc4839d7",
-  "762d6b6e", "f1ef6737", "69663b11", "5a087a64", "1c8978b8", "b479804f", "aa88d194",
-  "c1c891e9", "943f3e07", "945477a0", "5ce509bb", "2a06dc86", "ed73da85", "8473c14b",
-  "1c475047", "5d44d343", "a500ca91", "ceaaf1b3", "201030b6", "f076c12f", "f8c5d8f9",
-  "6119b685", "7f65bf8b", "44ee2ecf", "1d9e78ad", "eb8b32d5", "ed78a305", "a967bc1d",
-  "bbe3edf3", "c5391d8f", "6196d004", "ffe7790d", "facfcd77", "a4250ec5", "b38bcf3d",
+  "33290751", "4ce477b9", "55a023ff", "eca157df", "2aed774d", "c2d2b4dd", "0946c1e3",
+  "36b45573", "61cfa1fc", "1fa485a8", "23f4ad82", "36fd6288", "c877a7ee", "129f902b",
+  "367f9014", "5c6da7cf", "31d94445", "0778db9e", "8954507a", "c0aa7ec3", "57531c0a",
+  "59e751e9", "b55fb7eb", "5ee695dc", "7fbf68ef", "08e82a3e", "f6bdcfa9", "01c5662b",
+  "f82a59d3", "9f3cb541", "76678029", "3827977b", "2dc1e5ee", "e3ba705f", "95865703",
+  "2d917b07", "4eeefce5", "c31b7d2b", "24ca3d0d", "0a0dbdc5", "f183e075", "4756103f",
+  "d92ebd2f", "e9e8d87f", "ef73afd8", "99f7495d", "11b8e5df", "82853cb1", "11afef6d",
 ]
 
 ///|
-let hostile_option_outcomes : Array[String] = ["37c0ec89", "d1ac8a36"]
+let hostile_option_outcomes : Array[String] = ["3245ba43", "d1ac8a36"]
 
 ///|
 /// What rendering gives, written as the generator of `hostile_outcomes` writes pele's.

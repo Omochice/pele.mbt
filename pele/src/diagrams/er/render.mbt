@@ -612,7 +612,7 @@ fn draw(
       options.links != Some(false) {
       name.write("<a class=\"internal-link\"")
       // The name ends up in an href, so it gets the same check as a URL.
-      if @url.link_url(@url.sanitize_url(display), options) is Some(_) {
+      if @url.internal_link(display, options) {
         name.write(" href=\"")
         name.write_esc(display)
         name.write("\"\{@url.rel_attr(options)}")

@@ -9,6 +9,8 @@ import {
 // Values
 pub fn image_url(String, @types.RenderOptions) -> String?
 
+pub fn internal_link(String, @types.RenderOptions) -> Bool
+
 pub fn link_start(String, String, Array[@types.LinkInfo], @types.RenderOptions, attrs? : String) -> String?
 
 pub fn link_url(String, @types.RenderOptions) -> String?

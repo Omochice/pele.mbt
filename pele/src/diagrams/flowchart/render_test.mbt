@@ -355,6 +355,20 @@ test "styles other inline tags as browsers do" {
 }
 
 ///|
+test "an internal link that sanitizing alone would let through gets no href" {
+  let options = {
+    ..@types.RenderOptions::default(),
+    link_schemes: Some(["about"]),
+  }
+  let result = @core.render(
+    [@flowchart.flowchart],
+    "flowchart TD\n  A[\"javascript:alert(1)\"]:::internal-link",
+    options,
+  )
+  assert_false(result.svg.contains(" href="))
+}
+
+///|
 /// A host that has exactly the icons in `pairs`, by name.
 fn host(pairs : Array[(String, String)]) -> @types.IconResolver {
   let icons = Map::from_array(pairs)
