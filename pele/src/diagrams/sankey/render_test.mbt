@@ -598,51 +598,51 @@ test "a name that decodes to a character XML forbids is rejected for every label
     shown.join("\n"),
     content=(
       #|Parse error on line 2:
-      #|aﬂ°°65534¶ß,b,1
+      #|a#65534;,b,1
       #|^
       #|Invalid XML character in node name
       #|Parse error on line 2:
-      #|b,"aﬂ°°65534¶ß",1
+      #|b,"a#65534;",1
       #|--^
       #|Invalid XML character in node name
       #|Parse error on line 2:
-      #|aﬂ°°65535¶ß,b,1
+      #|a#65535;,b,1
       #|^
       #|Invalid XML character in node name
       #|Parse error on line 2:
-      #|b,"aﬂ°°65535¶ß",1
+      #|b,"a#65535;",1
       #|--^
       #|Invalid XML character in node name
       #|Parse error on line 2:
-      #|aﬂ°°1¶ß,b,1
+      #|a#1;,b,1
       #|^
       #|Invalid XML character in node name
       #|Parse error on line 2:
-      #|b,"aﬂ°°1¶ß",1
+      #|b,"a#1;",1
       #|--^
       #|Invalid XML character in node name
       #|Parse error on line 2:
-      #|aﬂ°°65534¶ß,b,1
+      #|a#65534;,b,1
       #|^
       #|Invalid XML character in node name
       #|Parse error on line 2:
-      #|b,"aﬂ°°65534¶ß",1
+      #|b,"a#65534;",1
       #|--^
       #|Invalid XML character in node name
       #|Parse error on line 2:
-      #|aﬂ°°65535¶ß,b,1
+      #|a#65535;,b,1
       #|^
       #|Invalid XML character in node name
       #|Parse error on line 2:
-      #|b,"aﬂ°°65535¶ß",1
+      #|b,"a#65535;",1
       #|--^
       #|Invalid XML character in node name
       #|Parse error on line 2:
-      #|aﬂ°°1¶ß,b,1
+      #|a#1;,b,1
       #|^
       #|Invalid XML character in node name
       #|Parse error on line 2:
-      #|b,"aﬂ°°1¶ß",1
+      #|b,"a#1;",1
       #|--^
       #|Invalid XML character in node name
     ),

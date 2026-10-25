@@ -42,6 +42,8 @@ pub fn[T] with_math(((String, Double) -> Json?)?, () -> T raise?) -> T raise?
 
 pub fn[T] without_math(() -> T raise?) -> T raise?
 
+pub fn written_codes(String) -> String
+
 // Errors
 
 // Types and methods

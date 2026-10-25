@@ -32,6 +32,8 @@ fn[T] tag_errors(
     @errors.PeleError(failure) =>
       raise @errors.PeleError({
         ..failure,
+        message: @text.written_codes(failure.message),
+        snippet: @text.written_codes(failure.snippet),
         kind: if failure.kind is None {
           Some(found.kind)
         } else {

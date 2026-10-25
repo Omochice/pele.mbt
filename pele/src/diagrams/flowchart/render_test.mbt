@@ -369,6 +369,33 @@ test "an internal link that sanitizing alone would let through gets no href" {
 }
 
 ///|
+/// The code and message of the error `source` fails with.
+fn failure_of(source : String) -> String {
+  let _ = @core.render(
+    [@flowchart.flowchart],
+    source,
+    @types.RenderOptions::default(),
+  ) catch {
+    @errors.PeleError(failure) =>
+      return "\{failure.code.to_string()}: \{failure.message}"
+  }
+  "rendered"
+}
+
+///|
+test "entity codes show in errors as they were written" {
+  assert_true(
+    failure_of("flowchart TD\nA[a#35;b] --> -->").has_prefix(
+      "syntax: Parse error on line 2:\nA[a#35;b] --> -->\n",
+    ),
+  )
+  inspect(
+    failure_of("flowchart TD\na@{shape: \"#35;x\"}"),
+    content="semantic: No such shape: #35;x.",
+  )
+}
+
+///|
 /// A host that has exactly the icons in `pairs`, by name.
 fn host(pairs : Array[(String, String)]) -> @types.IconResolver {
   let icons = Map::from_array(pairs)

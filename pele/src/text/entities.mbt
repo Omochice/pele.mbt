@@ -124,6 +124,46 @@ fn restore_placeholders(text : String) -> String {
 }
 
 ///|
+/// `text` with each of Mermaid's placeholders written back as the `#name;` or `#123;` code it hides,
+/// as `/ﬂ°°?(\w+)¶ß/g` finds them.
+pub fn written_codes(text : String) -> String {
+  if !text.contains("\u{b6}\u{df}") {
+    return text
+  }
+  let out = StringBuilder()
+  let mut last = 0
+  let mut from = @util.index_of(text, "\u{fb02}\u{b0}")
+  while from != -1 {
+    let mut start = from + 2
+    if @util.code_at(text, start) == 0xb0 &&
+      @util.is_word(@util.code_at(text, start + 1)) {
+      start += 1
+    }
+    let mut end = start
+    while @util.is_word(@util.code_at(text, end)) {
+      end += 1
+    }
+    if end > start &&
+      @util.code_at(text, end) == 0xb6 &&
+      @util.code_at(text, end + 1) == 0xdf {
+      @util.write_range(out, text, last, from)
+      out.write_string("#")
+      @util.write_range(out, text, start, end)
+      out.write_string(";")
+      last = end + 2
+      from = @util.index_of(text, "\u{fb02}\u{b0}", from=last)
+    } else {
+      from = @util.index_of(text, "\u{fb02}\u{b0}", from=from + 1)
+    }
+  }
+  if last == 0 {
+    return text
+  }
+  @util.write_range(out, text, last, text.length())
+  out.to_string()
+}
+
+///|
 /// Turns Mermaid's hidden `#name;` codes and HTML entities into characters.
 pub fn decode_entities(text : String) -> String {
   let restored = if text.contains("\u{b6}\u{df}") {
