@@ -2,7 +2,7 @@
   "error": {
     "name": "PeleError",
     "code": "syntax",
-    "message": "Parse error on line 2:\n      autonumber 10.001\n-----------------^\nExpecting 'NEWLINE', 'NUM', 'off', got 'ACTOR'",
+    "message": "Parse error on line 3:\n      autonumber 10.001\n-----------------^\nExpecting 'NEWLINE', 'NUM', 'off', got 'ACTOR'",
     "type": "sequence",
     "mermaidType": "sequence"
   }
