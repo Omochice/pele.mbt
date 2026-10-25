@@ -193,18 +193,10 @@ pub fn render_xychart(
   // The value range: as written, or taken from the data, where bars stand on zero and the
   // range grows to whole steps.
   let bars = plots.filter(plot => plot.kind is Bar).length()
-  let mut lo = model.y_axis.min
-  let mut hi = model.y_axis.max
-  let exact = model.has_set_y_axis &&
-    !lo.is_nan() &&
-    !lo.is_inf() &&
-    !hi.is_nan() &&
-    !hi.is_inf() &&
-    lo != hi
-  if exact {
-    lo = finite(Some(lo)).unwrap()
-    hi = finite(Some(hi)).unwrap()
-  } else {
+  let mut lo = finite(Some(model.y_axis.min)).unwrap_or(@double.infinity)
+  let mut hi = finite(Some(model.y_axis.max)).unwrap_or(@double.neg_infinity)
+  let exact = model.has_set_y_axis && !lo.is_inf() && !hi.is_inf() && lo != hi
+  if !exact {
     lo = @double.infinity
     hi = @double.neg_infinity
     for plot in plots {

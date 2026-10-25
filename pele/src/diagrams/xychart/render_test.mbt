@@ -403,3 +403,12 @@ test "names the chart for assistive technology" {
 test "gives the same output for the same input" {
   inspect(svg(CHART) == svg(CHART), content="true")
 }
+
+///|
+test "written y bounds that clamp to the same value fall back to the data range" {
+  let big = (e : Int32) => "1" + "0".repeat(e)
+  for range in ["\{big(301)} --> \{big(302)}", "-\{big(302)} --> -\{big(301)}"] {
+    let svg = svg("xychart\n x-axis [a, b]\n y-axis \{range}\n bar [3, 4]")
+    assert_false(svg.contains("NaN"), msg=range)
+  }
+}
