@@ -146,7 +146,7 @@ test "tokens match pele for every string of up to four lexical pieces" {
     "timeline", " ", "\n", ":", "a", "title", "section", "LR", "td", "#", "%%", "acc",
     "\t",
   ]
-  let expected = ["bd92d544", "7f9c63be", "2bea99dd", "90877d3c", "5a581199"]
+  let expected = ["bd92d544", "7f9c63be", "38df550f", "cef6bd89", "7b2f1ee0"]
   for length in 0..<=4 {
     let outputs = strings_over(pieces, length).map(dump_tokens)
     assert_eq(

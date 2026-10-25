@@ -12,7 +12,7 @@ test "skip_trivia skips comments and whitespace up to a line break" {
     ("%%{init}%%\n", 0, 10),
     ("%{x}\n", 0, 0),
     ("}%%x\ny", 0, 0),
-    ("a%%b\nc", 0, 4),
+    ("a%%b\nc", 0, 0),
     (" \t # c\n x", 0, 6),
     ("%", 0, 1),
     ("  ", 0, 2),
@@ -27,7 +27,7 @@ test "skip_trivia skips comments and whitespace up to a line break" {
 ///|
 test "skip_trivia matches pele from every position of every string of up to six trivia characters" {
   let expected = [
-    "350ca8af", "6e33e0d3", "3ce5f7da", "289bf99d", "a2fceccb", "3a5738d7", "fc146edc",
+    "350ca8af", "6e33e0d3", "3ce5f7da", "78b0d87c", "ffb8907d", "2c656e5d", "91f4c382",
   ]
   for length, hash in expected {
     let outputs = strings_over(["%", "{", "}", "\n", " ", "#", "a"], length).map(src => {

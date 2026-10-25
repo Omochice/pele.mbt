@@ -405,3 +405,10 @@ test "markup is shown as escaped text" {
     content="true",
   )
 }
+
+///|
+test "a comment straight after a task line's last character is no comment" {
+  assert_true(
+    message("journey\n  Task: 5: Me;%% c\n").contains("got 'INVALID'"),
+  )
+}

@@ -115,3 +115,13 @@ test "an accDescr block that is never closed ends the input early" {
     content="syntax: Parse error on line 5:\n\n^\nExpecting 'EOF', 'SPACE', 'NEWLINE', 'title', 'acc_title', 'acc_descr', 'acc_descr_multiline_value', 'section', 'taskName', got '1'",
   )
 }
+
+///|
+test "the character before a comment is kept" {
+  inspect(
+    read("journey\nA%% label: 5: Me"),
+    content=(
+      #|title=- accTitle=- accDescr=- sections= tasks="A%% label":5:"Me"@""
+    ),
+  )
+}

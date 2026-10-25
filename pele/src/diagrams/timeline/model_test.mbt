@@ -76,3 +76,29 @@ test "the direction defaults to LR and can be set" {
   db.set_direction("TD")
   inspect(db.direction, content="TD")
 }
+
+///|
+test "the character before a comment is kept" {
+  let db = @timeline.TimelineDb::new()
+  @timeline.parse_timeline("timeline\nA%% label : event\nB : e2", db) catch {
+    _ => abort("the timeline does not parse")
+  }
+  inspect(
+    dump_model(db),
+    content=(
+      #|sections= periods="A%% label "/"event"/""/-1;"B "/"e2"/""/-1
+    ),
+  )
+  let failed = try {
+    @core.render(
+      [@timeline.timeline],
+      "timeline\n  2024 :%% c\n",
+      @types.RenderOptions::default(),
+    )
+    |> ignore
+    ""
+  } catch {
+    @errors.PeleError(failure) => failure.message
+  }
+  assert_true(failed.contains("got 'INVALID'"))
+}
