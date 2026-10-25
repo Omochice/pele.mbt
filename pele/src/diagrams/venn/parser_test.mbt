@@ -143,8 +143,8 @@ test "a title takes its text from its own line only" {
   inspect(
     dump("venn-beta\ntitle\nNext\nset A"),
     content=(
-      #|syntax: Parse error on line 2:
-      #|title
+      #|syntax: Parse error on line 3:
+      #|Next
       #|^
       #|Expecting 'EOF', 'NEWLINE', 'TITLE', 'SET', 'UNION', 'TEXT', 'INDENT_TEXT', 'STYLE', got 'IDENTIFIER'
     ),
@@ -152,7 +152,17 @@ test "a title takes its text from its own line only" {
   inspect(
     dump("venn-beta\ntitle \r\nset A"),
     content=(
-      #|title="\r" subsets=[A:10:-] texts=[] styles=[]
+      #|title=- subsets=[A:10:-] texts=[] styles=[]
+    ),
+  )
+}
+
+///|
+test "a bare title is no title" {
+  inspect(
+    dump("venn-beta\ntitle\nset A\nset title\ntitle Kept\nset B"),
+    content=(
+      #|title="Kept" subsets=[A:10:-, title:10:-, B:10:-] texts=[] styles=[]
     ),
   )
 }

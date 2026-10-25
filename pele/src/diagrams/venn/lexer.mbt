@@ -143,6 +143,16 @@ fn VennLexer::color(self : VennLexer, at : Int32, parts : Int32) -> Int32 {
 }
 
 ///|
+/// Whether only spaces and tabs stand between `at` and the line feed before it.
+fn VennLexer::after_line_feed(self : VennLexer, at : Int32) -> Bool {
+  let mut k = at - 1
+  while @util.code_at(self.src, k) == 32 || @util.code_at(self.src, k) == 9 {
+    k -= 1
+  }
+  @util.code_at(self.src, k) == 10
+}
+
+///|
 fn VennLexer::line_end(self : VennLexer, from : Int32) -> Int32 {
   let end = @util.index_of(self.src, "\n", from~)
   if end == -1 {
@@ -189,6 +199,18 @@ fn VennLexer::next(self : VennLexer) -> Int32 {
       @util.code_at(src, i + 1) == 37 &&
       @util.code_at(src, i + 2) != 123 {
       self.at = self.line_end(i + 2)
+      continue
+    }
+    if self.line_start &&
+      self.word(i, "title") &&
+      self.after_line_feed(i) &&
+      @util.trim(@util.slice(src, i + 5, end=self.line_end(i + 5))) == "" {
+      // A bare title is skipped like a comment, so that it does not end indented text.
+      let mut j = self.line_end(i + 5)
+      while @util.code_at(src, j) == 10 || @util.code_at(src, j) == 13 {
+        j += 1
+      }
+      self.at = j
       continue
     }
     if self.line_start {
