@@ -80,6 +80,9 @@ const BOLD_ATTR : String = " font-weight=\"var(--_w)\""
 const ITALIC_ATTR : String = " font-style=\"italic\""
 
 ///|
+const MONO_ATTR : String = " font-family=\"var(--_fm)\""
+
+///|
 const SUB_ATTR : String = " baseline-shift=\"sub\" font-size=\"smaller\""
 
 ///|
@@ -90,6 +93,7 @@ const SUP_ATTR : String = " baseline-shift=\"super\" font-size=\"smaller\""
 pub fn span_style(style : Int32) -> String {
   (if (style & @text.STYLE_BOLD) != 0 { BOLD_ATTR } else { "" }) +
   (if (style & @text.STYLE_ITALIC) != 0 { ITALIC_ATTR } else { "" }) +
+  (if (style & @text.STYLE_MONO) != 0 { MONO_ATTR } else { "" }) +
   (if (style & @text.STYLE_SUB) != 0 {
     SUB_ATTR
   } else if (style & @text.STYLE_SUP) != 0 {
@@ -102,7 +106,7 @@ pub fn span_style(style : Int32) -> String {
 ///|
 /// The emphasis every span of a label has, which is written once on the text element.
 pub fn shared_style(label : @text.Label) -> Int32 {
-  let mut shared = @text.STYLE_BOLD | @text.STYLE_ITALIC
+  let mut shared = @text.STYLE_BOLD | @text.STYLE_ITALIC | @text.STYLE_MONO
   let mut any = false
   for line in label.lines {
     for span in line {
@@ -133,6 +137,11 @@ pub fn text_style(attrs : String, shared : Int32) -> String {
     ITALIC_ATTR
   } else {
     ""
+  }) +
+  (if (shared & @text.STYLE_MONO) != 0 && !attrs.contains(" font-family=\"") {
+    MONO_ATTR
+  } else {
+    ""
   })
 }
 
@@ -156,6 +165,7 @@ pub fn write_label(
     out => out.write(attrs),
     () => attrs.contains(" font-weight=\""),
     () => attrs.contains(" font-style=\""),
+    () => attrs.contains(" font-family=\""),
     () => attrs,
     icons?,
   )
@@ -163,8 +173,9 @@ pub fn write_label(
 
 ///|
 /// Writes a measured label to `out` as `write_label` draws it under the attributes `write_attrs`
-/// writes, which hold ` font-weight="` when `weighted` says so and ` font-style="` when `styled`
-/// does, and which `math_attrs` gives as one string to math the label typesets.
+/// writes, which hold ` font-weight="` when `weighted` says so, ` font-style="` when `styled`
+/// does and ` font-family="` when `familied` does, and which `math_attrs` gives as one string to
+/// math the label typesets.
 /// The attributes are asked about only when the label needs them, so that a writer whose
 /// attributes are too long for one string can tell from its parts.
 fn write_label_parts(
@@ -175,6 +186,7 @@ fn write_label_parts(
   write_attrs : (Markup) -> Unit raise @errors.PeleError,
   weighted : () -> Bool,
   styled : () -> Bool,
+  familied : () -> Bool,
   math_attrs : () -> String,
   icons? : @types.IconResolver,
 ) -> Unit raise @errors.PeleError {
@@ -270,6 +282,9 @@ fn write_label_parts(
   }
   if (shared & @text.STYLE_ITALIC) != 0 && !styled() {
     out.write(ITALIC_ATTR)
+  }
+  if (shared & @text.STYLE_MONO) != 0 && !familied() {
+    out.write(MONO_ATTR)
   }
   out.write_group(
     " text-anchor=\"middle\" xml:space=\"preserve\">", body, "</text>",

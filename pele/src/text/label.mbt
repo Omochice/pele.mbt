@@ -411,6 +411,7 @@ fn tag_style(tag : String) -> Int32 {
   match tag {
     "b" | "strong" => STYLE_BOLD
     "i" | "em" => STYLE_ITALIC
+    "code" => STYLE_MONO
     "sub" => STYLE_SUB
     "sup" => STYLE_SUP
     _ => 0

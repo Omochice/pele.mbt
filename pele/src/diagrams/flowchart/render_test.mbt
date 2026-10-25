@@ -261,6 +261,45 @@ test "keeps the inner of <sup> and <sub> across a line break" {
 }
 
 ///|
+/// The label of node `id`, from its `<text` to its `</text>`.
+fn node_text(svg : String, id : String) -> String {
+  let node = @util.index_of(svg, "data-id=\"\{id}\"")
+  let from = @util.index_of(svg, "<text", from=node)
+  @util.slice(svg, from, end=@util.index_of(svg, "</text>", from~) + 7)
+}
+
+///|
+test "draws <code> spans in labels in the monospace font" {
+  inspect(
+    node_text(
+      svg("flowchart TD\n  A[\"Call <code>render()</code> once\"]"),
+      "A",
+    ),
+    content=(
+      #|<text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="5.6">Call </tspan><tspan font-family="var(--_fm)">render()</tspan><tspan> once</tspan></text>
+    ),
+  )
+}
+
+///|
+test "writes the monospace family once when a whole label is code" {
+  let drawn = svg("flowchart TD\n  A[\"<code>render()</code>\"]")
+  inspect(
+    node_text(drawn, "A"),
+    content=(
+      #|<text class="pele-label" font-family="var(--_fm)" text-anchor="middle" xml:space="preserve"><tspan x="0" y="5.6">render()</tspan></text>
+    ),
+  )
+  let mut found = 0
+  let mut at = @util.index_of(drawn, "font-family=\"var(--_fm)\"")
+  while at != -1 {
+    found += 1
+    at = @util.index_of(drawn, "font-family=\"var(--_fm)\"", from=at + 1)
+  }
+  assert_eq(found, 1)
+}
+
+///|
 /// A host that has exactly the icons in `pairs`, by name.
 fn host(pairs : Array[(String, String)]) -> @types.IconResolver {
   let icons = Map::from_array(pairs)
