@@ -27,6 +27,58 @@ fn band(y : Double, line_height : Double) -> Double {
 }
 
 ///|
+/// Two 32-bit hashes, so that different gradients practically never share an id.
+fn content_id(text : String) -> String {
+  let mut a = 0x811c9dc5U.reinterpret_as_int()
+  let mut b = 5381
+  for i in 0..<text.length() {
+    let c = text.unsafe_get(i).to_int()
+    a = (a ^ c) * 0x01000193
+    b = b * 33 + c
+  }
+  a.reinterpret_as_uint().to_string(radix=36) +
+  b.reinterpret_as_uint().to_string(radix=36)
+}
+
+///|
+/// Whether `prefix` is a non-empty run of word characters and hyphens.
+fn is_id_prefix(prefix : String) -> Bool {
+  prefix != "" &&
+  prefix
+  .iter()
+  .all(c => {
+    (c >= 'a' && c <= 'z') ||
+    (c >= 'A' && c <= 'Z') ||
+    (c >= '0' && c <= '9') ||
+    c == '_' ||
+    c == '-'
+  })
+}
+
+///|
+/// The colour of the first `fill:` in the escaped style attribute `attr` that is followed by
+/// anything but a semicolon or a quote, up to the next of either.
+fn first_fill(attr : String) -> String? {
+  let mut at = @util.index_of(attr, "fill:")
+  while at != -1 {
+    let from = at + 5
+    let mut end = from
+    while end < attr.length() {
+      let c = @util.code_at(attr, end)
+      if c == ';'.to_int() || c == '"'.to_int() {
+        break
+      }
+      end += 1
+    }
+    if end > from {
+      return Some(@util.slice(attr, from, end~))
+    }
+    at = @util.index_of(attr, "fill:", from=at + 1)
+  }
+  None
+}
+
+///|
 fn section(config : @types.Config) -> Map[String, Json] {
   match config.get("sankey") {
     Some(Object(conf)) => conf
@@ -143,6 +195,14 @@ fn draw(
     }
   }
   let node_style = (i : Int32) => custom.get(db.nodes[i].id).unwrap_or("")
+  let node_color = (i : Int32) => {
+    let css = node_style(i)
+    let attr = if css == "" { "" } else { " style=\"\{@svg.esc(css)}\"" }
+    match first_fill(attr) {
+      Some(color) => color
+      None => @svg.series_color(i)
+    }
+  }
 
   // Labels sit beside the bars, on the side that faces the middle of the chart unless that
   // side is crowded.
@@ -329,9 +389,14 @@ fn draw(
   } else {
     fill_css(link_color)
   }
+  // A gradient needs an id. Without an idPrefix every diagram on a page shares one, and Chrome
+  // then draws the first copy's gradient even when that copy is hidden or themed differently.
+  // A prefix with other characters could end the url() and void the whole fill.
+  let id_prefix = options.id_prefix.unwrap_or("")
+  let gradient = link_color == "gradient" && is_id_prefix(id_prefix)
+  let gradients : Map[String, String] = Map([])
   let links_out = @svg.Markup::new()
   for link in layout.links {
-    // Without definitions there are no gradients, so a gradient link takes its source's colour.
     let end = if link_color == "target" { link.target } else { link.source }
     let half = @cmp.maximum(link.thickness, 1.0) / 2
     let x0 = nodes[link.source].x + node_width
@@ -343,15 +408,39 @@ fn draw(
     let top_target = @svg.num(link.target_y - half)
     let bottom_target = @svg.num(link.target_y + half)
     let bottom_source = @svg.num(link.source_y + half)
-    let style = if fixed != "" { fixed } else { node_style(end) }
+    // The id comes from what the gradient draws, so diagrams that share a prefix draw the same
+    // gradient for it.
+    let paint = if gradient {
+      let stops = "x1=\"\{@svg.num(x0)}\" x2=\"\{@svg.num(x1)}\"><stop offset=\"0\" stop-color=\"\{node_color(link.source)}\"/><stop offset=\"1\" stop-color=\"\{node_color(link.target)}\"/>"
+      let id = "\{id_prefix}-sankey-\{content_id(stops)}"
+      gradients[id] = "<linearGradient id=\"\{id}\" gradientUnits=\"userSpaceOnUse\" \{stops}</linearGradient>"
+      Some(id)
+    } else {
+      None
+    }
     links_out.write("<path class=\"pele-sankey-link\" data-id=\"")
     links_out.write_esc_text(from)
     links_out.write("-&gt;")
     links_out.write_esc_text(to)
     links_out.write(
-      "\" d=\"M\{@svg.num(x0)},\{top_source}C\{mid},\{top_source} \{mid},\{top_target} \{@svg.num(x1)},\{top_target}L\{@svg.num(x1)},\{bottom_target}C\{mid},\{bottom_target} \{mid},\{bottom_source} \{@svg.num(x0)},\{bottom_source}Z\" fill=\"\{@svg.series_color(end)}\"",
+      "\" d=\"M\{@svg.num(x0)},\{top_source}C\{mid},\{top_source} \{mid},\{top_target} \{@svg.num(x1)},\{top_target}L\{@svg.num(x1)},\{bottom_target}C\{mid},\{bottom_target} \{mid},\{bottom_source} \{@svg.num(x0)},\{bottom_source}Z\"",
     )
-    @svg.write_style(links_out, style)
+    match paint {
+      // The colour after the url is used where the gradient is missing.
+      Some(id) =>
+        links_out.write(" fill=\"url(#\{id}) \{node_color(link.source)}\"")
+      None => {
+        links_out.write(" fill=\"\{@svg.series_color(end)}\"")
+        @svg.write_style(
+          links_out,
+          if fixed != "" {
+            fixed
+          } else {
+            node_style(end)
+          },
+        )
+      }
+    }
     links_out.write("><title>")
     links_out.write_esc_text(from)
     links_out.write(" → ")
@@ -386,6 +475,13 @@ fn draw(
     " class=\"pele-title\" font-weight=\"var(--_tw)\"",
   )
   content.write("<g transform=\"translate(\{@svg.num(ox)},\{@svg.num(oy)})\">")
+  if !gradients.is_empty() {
+    content.write("<defs>")
+    for _, definition in gradients {
+      content.write(definition)
+    }
+    content.write("</defs>")
+  }
   content.write_group(
     "<g class=\"pele-sankey-links\" fill-opacity=\"0.4\">", links_out, "</g>",
   )

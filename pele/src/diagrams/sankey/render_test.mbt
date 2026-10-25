@@ -6,8 +6,14 @@ fn render(
   source : String,
   max_width? : Double,
   font_size? : Double,
+  id_prefix? : String,
 ) -> @types.RenderResult raise @errors.PeleError {
-  let options = { ..@types.RenderOptions::default(), max_width, font_size, }
+  let options = {
+    ..@types.RenderOptions::default(),
+    max_width,
+    font_size,
+    id_prefix,
+  }
   @core.render([@sankey.sankey], source, options)
 }
 
@@ -186,6 +192,83 @@ test "linkColor picks the band color" {
   assert_true(
     plain.contains("class=\"pele-sankey-links\" fill-opacity=\"0.4\""),
   )
+}
+
+///|
+/// The opening tag of the band from `from` to `to`.
+fn link_tag(svg : String, from : String, to : String) -> String {
+  let at = @util.index_of(
+    svg,
+    "class=\"pele-sankey-link\" data-id=\"\{from}-&gt;\{to}\"",
+  )
+  @util.slice(svg, at, end=@util.index_of(svg, ">", from=at))
+}
+
+///|
+/// The ids of the gradients `svg` defines, in order.
+fn gradient_ids(svg : String) -> Array[String] {
+  let ids = []
+  let head = "<linearGradient id=\""
+  let mut at = @util.index_of(svg, head)
+  while at != -1 {
+    let from = at + head.length()
+    ids.push(@util.slice(svg, from, end=@util.index_of(svg, "\"", from~)))
+    at = @util.index_of(svg, head, from~)
+  }
+  ids
+}
+
+///|
+test "links are filled with gradients when there is an idPrefix" {
+  let svg = render(basic, id_prefix="p1").svg
+  assert_eq(count(svg, "<linearGradient "), 4)
+  let id = gradient_ids(svg)[0]
+  inspect(
+    "\{link_tag(svg, "a", "b")}\n\{@util.slice(svg, @util.index_of(svg, "<defs>"), end=@util.index_of(svg, "</linearGradient>") + 17)}",
+    content=(
+      #|class="pele-sankey-link" data-id="a-&gt;b" d="M10,10.13C152.5,10.13 152.5,0 295,0L295,233.13C152.5,233.13 152.5,243.25 10,243.25Z" fill="url(#p1-sankey-qlqzf51b0vo2l) var(--pele-series-1,#4c78a8)"
+      #|<defs><linearGradient id="p1-sankey-qlqzf51b0vo2l" gradientUnits="userSpaceOnUse" x1="10" x2="295"><stop offset="0" stop-color="var(--pele-series-1,#4c78a8)"/><stop offset="1" stop-color="var(--pele-series-2,#f58518)"/></linearGradient>
+    ),
+  )
+  assert_true(link_tag(svg, "a", "b").contains("fill=\"url(#\{id}) "))
+  assert_eq(render(basic, id_prefix="p1").svg, svg)
+  let other = gradient_ids(render("sankey\nx,y,2\n", id_prefix="p1").svg)
+  assert_true(other.iter().all(id => !gradient_ids(svg).contains(id)))
+  for color in ["source", "target", "\"#a1a1a1\""] {
+    let flat = render(configured("linkColor: \{color}"), id_prefix="p1").svg
+    assert_true(!flat.contains("<defs") && !flat.contains("url("))
+  }
+}
+
+///|
+test "gradient colours come from nodeColors" {
+  let svg = render(
+      configured("nodeColors:\n  a: \"#123456\"\n  b: \"url(#x)\""),
+      id_prefix="p_1",
+    ).svg
+  assert_true(
+    svg.contains(
+      "<stop offset=\"0\" stop-color=\"#123456\"/><stop offset=\"1\" stop-color=\"var(--pele-series-2,#f58518)\"/>",
+    ),
+  )
+  inspect(
+    link_tag(svg, "a", "b"),
+    content=(
+      #|class="pele-sankey-link" data-id="a-&gt;b" d="M10,10.13C152.5,10.13 152.5,0 295,0L295,233.13C152.5,233.13 152.5,243.25 10,243.25Z" fill="url(#p_1-sankey-1ogh1b31g8mi0n) #123456"
+    ),
+  )
+  assert_true(!svg.contains("url(#x)"))
+}
+
+///|
+test "links stay flat when the idPrefix could not appear in a url()" {
+  for id_prefix in ["p\"1", "p)1", "p 1", ""] {
+    let svg = render(basic, id_prefix~).svg
+    assert_true(!svg.contains("<defs") && !svg.contains("url("))
+    assert_true(
+      link_tag(svg, "a", "b").contains(" fill=\"var(--pele-series-1,#4c78a8)\""),
+    )
+  }
 }
 
 ///|
