@@ -324,3 +324,33 @@ test "an error after a brace with trailing blanks is placed in the source as wri
   guard failure is Some(failure) else { fail("accepted") }
   inspect("\{failure.line}:\{failure.column}", content="6:8")
 }
+
+///|
+test "a metadata error after a directive is placed in the source as written" {
+  let metadata = "%%{init:\n{}\n}%%\nagentflow-beta\na[\"#35;\"] --> b@{shape: "
+  let shown = []
+  for tail in ["bad}", "[bad}"] {
+    let failure = try {
+      @core.render(
+        [@agentflow.agentflow],
+        metadata + tail,
+        @types.RenderOptions::default(),
+      )
+      |> ignore
+      None
+    } catch {
+      @errors.PeleError(failure) => Some(failure)
+    }
+    guard failure is Some(failure) else { fail("accepted") }
+    shown.push(
+      "\{failure.code.to_string()} \{failure.line}:\{failure.column} \{failure.message}",
+    )
+  }
+  inspect(
+    shown.join("\n"),
+    content=(
+      #|semantic 5:16 No such shape: bad.
+      #|syntax 5:16 Metadata of "b" is not valid YAML. YAML: unexpected end of the stream within a flow collection (5:16)
+    ),
+  )
+}

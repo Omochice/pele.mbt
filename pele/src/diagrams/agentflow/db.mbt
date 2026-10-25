@@ -18,6 +18,8 @@ pub struct AgentflowDb {
   diagnostics : Array[Diagnostic]
   /// Lines of front matter before the text the parser sees, added to every reported line.
   line_offset : Int32
+  /// The text the parser sees, where errors are located.
+  priv source : String?
   priv subgraph_lookup : Map[String, AgentSubgraph]
   priv global_nodes : Map[String, Unit]
   priv members : Map[String, Unit]
@@ -38,16 +40,19 @@ pub struct AgentflowDb {
 ///|
 /// An empty model.
 /// `max_edges` limits the edges, `inherit_dir` gives flows the diagram's direction, `direction` stands in for a diagram without one, and `line_offset` counts the lines of front matter.
+/// Errors are located in `source`, the text the parser sees, when it is given.
 pub fn AgentflowDb::new(
   max_edges? : Int32,
   inherit_dir~ : Bool = false,
   direction? : String,
   line_offset~ : Int32 = 0,
+  source? : String,
 ) -> AgentflowDb {
   {
     mappings: [],
     diagnostics: [],
     line_offset,
+    source,
     direction: None,
     nodes: Map([]),
     edges: [],
@@ -299,10 +304,16 @@ pub fn AgentflowDb::add_vertex(
 ///|
 /// The line and column pele reports for a metadata block.
 fn AgentflowDb::block_at(self : AgentflowDb, loc : Loc?) -> (Int32, Int32) {
-  match loc {
-    Some(loc) => (loc.first_line + self.line_offset, loc.first_column + 1)
-    None => (0, 0)
+  guard loc is Some(loc) else { return (0, 0) }
+  guard self.source is Some(source) else {
+    return (loc.first_line + self.line_offset, loc.first_column + 1)
   }
+  let mut start = 0
+  for _ in 1..<loc.first_line {
+    start = @util.index_of(source, "\n", from=start) + 1
+  }
+  let (line, column, _) = @errors.locate(source, start + loc.first_column)
+  (line, column)
 }
 
 ///|
