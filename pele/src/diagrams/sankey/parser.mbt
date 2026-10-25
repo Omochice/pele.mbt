@@ -142,48 +142,6 @@ fn Reader::start(self : Reader) -> Int32 {
 }
 
 ///|
-/// Whether `text` is a whole decimal number, as `/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/`
-/// matches it.
-fn is_decimal(text : String) -> Bool {
-  let n = text.length()
-  let digit = (i : Int32) => {
-    i < n && text.unsafe_get(i) >= '0' && text.unsafe_get(i) <= '9'
-  }
-  let mut i = 0
-  if i < n && (text.unsafe_get(i) == '+' || text.unsafe_get(i) == '-') {
-    i += 1
-  }
-  let mut digits = 0
-  while digit(i) {
-    i += 1
-    digits += 1
-  }
-  if i < n && text.unsafe_get(i) == '.' {
-    i += 1
-    while digit(i) {
-      i += 1
-      digits += 1
-    }
-  }
-  if digits == 0 {
-    return false
-  }
-  if i < n && (text.unsafe_get(i) == 'e' || text.unsafe_get(i) == 'E') {
-    i += 1
-    if i < n && (text.unsafe_get(i) == '+' || text.unsafe_get(i) == '-') {
-      i += 1
-    }
-    if !digit(i) {
-      return false
-    }
-    while digit(i) {
-      i += 1
-    }
-  }
-  i == n
-}
-
-///|
 fn Reader::name(self : Reader) -> String raise @errors.PeleError {
   let start = self.start()
   let text = @util.trim(self.field()).replace_all(old="\"\"", new="\"")
@@ -241,16 +199,10 @@ pub fn parse_sankey(
     let to = r.name()
     r.expect(Comma, also=", 'NEWLINE', 'EOF'")
     let start = r.start()
-    let amount = @util.trim(r.field())
-    let value = @util.to_number(amount)
-    // Mermaid accepts non-numeric values and numeric prefixes here.
-    if !is_decimal(amount) || value.is_nan() || value.is_inf() {
-      raise @errors.syntax_error(
-        "sankey",
-        r.src,
-        start,
-        "Expecting a finite decimal number",
-      )
+    // Keep Mermaid's numeric prefixes, but reject non-finite values.
+    let value = @util.parse_float(r.field())
+    if value.is_nan() || value.is_inf() {
+      raise @errors.syntax_error("sankey", r.src, start, "Expecting a number")
     }
     let source = db.find_or_create_node(from)
     let target = db.find_or_create_node(to)

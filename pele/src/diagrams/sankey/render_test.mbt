@@ -482,6 +482,28 @@ test "what Mermaid rejects is rejected" {
 }
 
 ///|
+test "values are read up to where they stop being numbers, and the rest are refused" {
+  assert_true(
+    render("sankey\na,b,50%\nb,c, 2e1 kWh\n").svg.contains(
+      "<title>b → c: 20</title>",
+    ),
+  )
+  for value in ["abc", "", "Infinity", "1e400", "-"] {
+    let failure = try {
+      render("sankey\na,b,1\nb,c,\{value}\n") |> ignore
+      None
+    } catch {
+      @errors.PeleError(failure) => Some(failure)
+    }
+    guard failure is Some(failure) else { fail("accepted \{value}") }
+    inspect(
+      "\{failure.code.to_string()} \{failure.line} \{failure.column}",
+      content="syntax 3 5",
+    )
+  }
+}
+
+///|
 test "non-positive values are drawn as empty flows" {
   let svg = render("sankey\na,b,0\na,c,-3\nb,d,0\nc,d,2\n").svg
   assert_true(!svg.contains("NaN"))
