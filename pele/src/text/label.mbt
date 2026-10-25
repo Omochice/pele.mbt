@@ -27,6 +27,20 @@ pub(all) struct Label {
 const LINE_HEIGHT : Double = 1.5
 
 ///|
+/// Lines of one wrapped label sit closer, so the label reads as one block.
+const WRAPPED_LINE_HEIGHT : Double = 1.3
+
+///|
+/// The line height of a label of `count` lines, given that of a single line.
+fn snug(count : Int32, size : Double, line_height : Double) -> Double {
+  if count > 1 {
+    (size * WRAPPED_LINE_HEIGHT).round()
+  } else {
+    line_height
+  }
+}
+
+///|
 /// The room an icon takes in a line, in multiples of the font size.
 const ICON_WIDTH : Double = 1.25
 
@@ -681,6 +695,7 @@ fn layout_lines(
       width = w
     }
   }
+  let line_height = snug(lines.length(), size, line_height)
   {
     lines,
     widths,
@@ -798,6 +813,7 @@ pub fn layout_label(
         widest = w
       }
     }
+    let line_height = snug(lines.length(), size, line_height)
     return {
       lines,
       widths,

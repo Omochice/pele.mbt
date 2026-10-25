@@ -91,7 +91,7 @@ test "sub and sup shift text by the innermost tag open, across line breaks" {
   inspect(
     layout("<sup>a<sub>b<br/>c</sub>d</sup>", 16, 4000),
     content=(
-      #|"a"/16/7.413333333333334 "b"/8/7.413333333333334 | "c"/8/6.666666666666667 "d"/16/7.413333333333334 widths=[14.826666666666668, 14.080000000000002] width=14.826666666666668 height=48 size=16 line=24
+      #|"a"/16/7.413333333333334 "b"/8/7.413333333333334 | "c"/8/6.666666666666667 "d"/16/7.413333333333334 widths=[14.826666666666668, 14.080000000000002] width=14.826666666666668 height=42 size=16 line=21
     ),
   )
   inspect(
@@ -157,7 +157,9 @@ test "wrapping keeps an icon whole and the space before it" {
   @text.with_icons(Some(car_icons), () => {
     inspect(
       layout("Go fa:fa-car fast and far away", 16, 60),
-      content="\"Go \"/0/25.792 \"\"@fa:fa-car/0/20 | \"fast and\"/0/56.928 | \"far\"/0/18.672 | \"away\"/0/37.344 widths=[45.792, 56.928, 18.672, 37.344] width=56.928 height=96 size=16 line=24",
+      content=(
+        #|"Go "/0/25.792 ""@fa:fa-car/0/20 | "fast and"/0/56.928 | "far"/0/18.672 | "away"/0/37.344 widths=[45.792, 56.928, 18.672, 37.344] width=56.928 height=84 size=16 line=21
+      ),
     )
   })
 }
@@ -175,7 +177,9 @@ test "icons are looked up only while a resolver is installed" {
 test "line breaks split a label into lines" {
   inspect(
     layout("a<br>b<BR/>c\\nd\ne", 14, 4000),
-    content="\"a\"/0/7.784 | \"b\"/0/7.784 | \"c\"/0/7 | \"d\"/0/7.784 | \"e\"/0/7.784 widths=[7.784, 7.784, 7, 7.784, 7.784] width=7.784 height=105 size=14 line=21",
+    content=(
+      #|"a"/0/7.784 | "b"/0/7.784 | "c"/0/7 | "d"/0/7.784 | "e"/0/7.784 widths=[7.784, 7.784, 7, 7.784, 7.784] width=7.784 height=90 size=14 line=18
+    ),
   )
 }
 
@@ -183,11 +187,15 @@ test "line breaks split a label into lines" {
 test "a label wider than the room wraps at spaces" {
   inspect(
     layout("alpha beta gamma", 16, 50),
-    content="\"alpha\"/0/39.136 | \"beta\"/0/31.136 | \"gamma\"/0/53.344 widths=[39.136, 31.136, 53.344] width=53.344 height=72 size=16 line=24",
+    content=(
+      #|"alpha"/0/39.136 | "beta"/0/31.136 | "gamma"/0/53.344 widths=[39.136, 31.136, 53.344] width=53.344 height=63 size=16 line=21
+    ),
   )
   inspect(
     layout("<b>alpha beta</b> gamma delta", 16, 60),
-    content="\"alpha\"/1/41.792 | \"beta\"/1/32.896 | \"gamma\"/0/53.344 | \"delta\"/0/34.688 widths=[41.792, 32.896, 53.344, 34.688] width=53.344 height=96 size=16 line=24",
+    content=(
+      #|"alpha"/1/41.792 | "beta"/1/32.896 | "gamma"/0/53.344 | "delta"/0/34.688 widths=[41.792, 32.896, 53.344, 34.688] width=53.344 height=84 size=16 line=21
+    ),
   )
 }
 
@@ -195,11 +203,15 @@ test "a label wider than the room wraps at spaces" {
 test "Chinese and Japanese wrap between characters, keeping punctuation attached" {
   inspect(
     layout("日本語のテキスト、です。", 16, 40),
-    content="\"日本\"/0/32 | \"語の\"/0/32 | \"テキ\"/0/32 | \"ス\"/0/16 | \"ト、\"/0/32 | \"で\"/0/16 | \"す。\"/0/32 widths=[32, 32, 32, 16, 32, 16, 32] width=32 height=168 size=16 line=24",
+    content=(
+      #|"日本"/0/32 | "語の"/0/32 | "テキ"/0/32 | "ス"/0/16 | "ト、"/0/32 | "で"/0/16 | "す。"/0/32 widths=[32, 32, 32, 16, 32, 16, 32] width=32 height=147 size=16 line=21
+    ),
   )
   inspect(
     layout("（括弧）テスト", 16, 20),
-    content="\"（括\"/0/32 | \"弧）\"/0/32 | \"テ\"/0/16 | \"ス\"/0/16 | \"ト\"/0/16 widths=[32, 32, 16, 16, 16] width=32 height=120 size=16 line=24",
+    content=(
+      #|"（括"/0/32 | "弧）"/0/32 | "テ"/0/16 | "ス"/0/16 | "ト"/0/16 widths=[32, 32, 16, 16, 16] width=32 height=105 size=16 line=21
+    ),
   )
 }
 

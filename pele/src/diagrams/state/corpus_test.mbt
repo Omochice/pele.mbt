@@ -41,7 +41,7 @@ let corpus_cases : Array[(String, String)] = [
   ("stateDiagram-v2\n      state \"as\" as as\n      ", "96668866"),
   (
     "stateDiagram-v2\n        state \"Small State 1\" as namedState1\n        %% Notice that this is named \"Big State 1\" with an \"as\"\n        state \"Big State 1\" as bigState1 {\n            bigState1InternalState\n        }\n        namedState1 --> bigState1: should point to \\nBig State 1 container\n\n        state \"Small State 2\" as namedState2\n        %% Notice that bigState2 does not have a name; no \"as\"\n        state bigState2 {\n            bigState2InternalState\n        }\n        namedState2 --> bigState2: should point to \\nbigState2 container",
-    "fd100ece",
+    "6aeb8e6b",
   ),
   (
     "stateDiagram-v2\n        state \"Big State 1\" as bigState1 {\n            state \"inner state 1\" as inner1\n            inner2: inner state 2\n            inner1 --> inner2\n        }",
@@ -56,11 +56,11 @@ let corpus_cases : Array[(String, String)] = [
   ("\nstateDiagram-v2\n[*] --> ${prop}\n${prop} --> [*]", "dceb988b"),
   (
     "stateDiagram-v2\n      State1\n      note right of State1\n        this sentence contains send note inside the note text\n      end note\n      State1 --> State2",
-    "ea6c69a1",
+    "55273387",
   ),
   (
     "stateDiagram-v2\n      State1\n      note right of State1\n        this sentence contains end note as part of the note text\n      end note\n      State1 --> State2",
-    "d81b8413",
+    "21fd7d31",
   ),
   ("stateDiagram-v2\n classDef exampleClass background:#bbb;", "46d88381"),
   (
@@ -198,7 +198,7 @@ let corpus_cases : Array[(String, String)] = [
   ),
   (
     "stateDiagram-v2\n\n      scale 600 width\n\n      [*] --> State1\n      State1 --> State2 : Succeeded\n      State1 --> [*] : Aborted\n      State2 --> State3 : Succeeded\n      State2 --> [*] : Aborted\n      state State3 {\n        state \"Accumulate Enough Data\nLong State Name\" as long1\n        long1 : Just a test\n        [*] --> long1\n        long1 --> long1 : New Data\n        long1 --> ProcessData : Enough Data\n      }\n      State3 --> State3 : Failed\n      State3 --> [*] : Succeeded / Save Result\n      State3 --> [*] : Aborted\n      ",
-    "9d58fd7a",
+    "1e6b943b",
   ),
   (
     "stateDiagram-v2\n\n      state fork_state <<fork>>\n      [*] --> fork_state\n      fork_state --> State2\n      fork_state --> State3\n\n      state join_state <<join>>\n      State2 --> join_state\n      State3 --> join_state\n      join_state --> State4\n      State4 --> [*]\n      ",
@@ -218,11 +218,11 @@ let corpus_cases : Array[(String, String)] = [
   ),
   (
     "stateDiagram-v2\n\n      [*] --> Active\n      Active --> Inactive\n\n      note left of Active : this is a short<br/>note\n\n      note right of Inactive\n      A note can also\n      be defined on\n      several lines\n      end note\n      ",
-    "7eca54a3",
+    "ba6d1da9",
   ),
   (
     "stateDiagram-v2\n      State1\n      note right of State1\n      Line1<br>Line2<br/>Line3<br />Line4<br\t/>Line5\n      end note\n      ",
-    "4ab3fe70",
+    "4b8a1a6b",
   ),
   (
     "stateDiagram-v2\n      foo: bar\n      note \"This is a floating note\" as N1\n      ",
@@ -313,7 +313,7 @@ let corpus_cases : Array[(String, String)] = [
   ),
   (
     "stateDiagram\n\n        scale 600 width\n\n        [*] --> State1\n        State1 --> State2 : Succeeded\n        State1 --> [*] : Aborted\n        State2 --> State3 : Succeeded\n        State2 --> [*] : Aborted\n        state State3 {\n          state \"Accumulate Enough Data\nLong State Name\" as long1\n          long1 : Just a test\n          [*] --> long1\n          long1 --> long1 : New Data\n          long1 --> ProcessData : Enough Data\n        }\n        State3 --> State3 : Failed\n        State3 --> [*] : Succeeded / Save Result\n        State3 --> [*] : Aborted\n      ",
-    "9d58fd7a",
+    "1e6b943b",
   ),
   (
     "stateDiagram\n\n        state fork_state <<fork>>\n        [*] --> fork_state\n        fork_state --> State2\n        fork_state --> State3\n\n        state join_state <<join>>\n        State2 --> join_state\n        State3 --> join_state\n        join_state --> State4\n        State4 --> [*]\n      ",
@@ -333,11 +333,11 @@ let corpus_cases : Array[(String, String)] = [
   ),
   (
     "stateDiagram\n\n        [*] --> Active\n        Active --> Inactive\n\n        note left of Active : this is a short<br/>note\n\n        note right of Inactive\n          A note can also\n          be defined on\n          several lines\n        end note\n      ",
-    "7eca54a3",
+    "ba6d1da9",
   ),
   (
     "stateDiagram\n        State1\n        note right of State1\n          Line1<br>Line2<br/>Line3<br />Line4<br\t/>Line5\n        end note\n      ",
-    "4ab3fe70",
+    "4b8a1a6b",
   ),
   (
     "stateDiagram\n        foo: bar\n        note \"This is a floating note\" as N1\n      ",
@@ -409,7 +409,7 @@ let corpus_cases : Array[(String, String)] = [
   ),
   (
     "    stateDiagram-v2\n        State1: The state with a note\n        note right of State1\n            Important information! You can write\n            notes.\n        end note\n        State1 --> State2\n        note left of State2 : This is the note to the left.\n",
-    "fff4bcfc",
+    "22abb447",
   ),
   (
     "stateDiagram-v2\n    [*] --> Active\n\n    state Active {\n        [*] --> NumLockOff\n        NumLockOff --> NumLockOn : EvNumLockPressed\n        NumLockOn --> NumLockOff : EvNumLockPressed\n        --\n        [*] --> CapsLockOff\n        CapsLockOff --> CapsLockOn : EvCapsLockPressed\n        CapsLockOn --> CapsLockOff : EvCapsLockPressed\n        --\n        [*] --> ScrollLockOff\n        ScrollLockOff --> ScrollLockOn : EvScrollLockPressed\n        ScrollLockOn --> ScrollLockOff : EvScrollLockPressed\n    }\n",
@@ -433,6 +433,6 @@ let corpus_cases : Array[(String, String)] = [
   ),
   (
     "stateDiagram\n    classDef yourState font-style:italic,font-weight:bold,fill:white\n\n    yswsii: Your state with spaces in it\n    [*] --> yswsii:::yourState\n    [*] --> SomeOtherState\n    SomeOtherState --> YetAnotherState\n    yswsii --> YetAnotherState\n    YetAnotherState --> [*]\n",
-    "1c78883c",
+    "d749319e",
   ),
 ]

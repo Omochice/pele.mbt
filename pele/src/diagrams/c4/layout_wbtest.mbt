@@ -70,7 +70,7 @@ test "gives each kind of element its shape and stretches a row to its tallest" {
       #|  node sq h-cyl at 0,204 size 216x90 textH=42 labels=88.62/18,23.12/24,0/0,0/0
       #|  node ce rect at 336,204 size 216x90 textH=62 labels=109.296/18,22.224/24,24.57/20,0/0
       #|  node cde cyl at 672,204 size 216x90 textH=42 labels=125.976/18,33.776/24,0/0,0/0
-      #|  node cqe h-cyl at 1008,204 size 216x90 textH=60 labels=112.344/36,34.672/24,0/0,0/0
+      #|  node cqe h-cyl at 1008,204 size 216x90 textH=56 labels=112.344/32,34.672/24,0/0,0/0
       #|boxes=8
     ),
   )
@@ -105,10 +105,10 @@ test "wraps long text and widens for a word that cannot wrap" {
       36,
     ),
     content=(
-      #|group global at 0,0 size 1304.1599999999999x150 head=28 headW=0 labels=
-      #|  node a rect at 0,0 size 216x150 textH=126 labels=51.924/18,11.552/24,0/0,187.096/80
-      #|  node b rect at 336,0 size 632.16x150 textH=42 labels=51.924/18,604.16/24,0/0,0/0
-      #|  node c rect at 1088.1599999999999,0 size 216x150 textH=106 labels=63.276/18,11.552/24,51.298/20,98.25399999999999/40
+      #|group global at 0,0 size 1304.1599999999999x138 head=28 headW=0 labels=
+      #|  node a rect at 0,0 size 216x138 textH=114 labels=51.924/18,11.552/24,0/0,187.096/68
+      #|  node b rect at 336,0 size 632.16x138 textH=42 labels=51.924/18,604.16/24,0/0,0/0
+      #|  node c rect at 1088.1599999999999,0 size 216x138 textH=100 labels=63.276/18,11.552/24,51.298/20,98.25399999999999/34
       #|boxes=3
     ),
   )
@@ -224,13 +224,13 @@ test "narrows shapes and headings in little room" {
       60,
     ),
     content=(
-      #|group global at 0,0 size 264x708 head=12 headW=0 labels=
-      #|  node p person at 0,0 size 216x116 textH=66 labels=50.604/18,169.808/48,0/0,0/0
-      #|group outer at 0,164 size 264x544 head=124 headW=135.136 labels=48,20,20
-      #|group inner at 12,288 size 240x202 head=80 headW=39.12 labels=24,20,0
-      #|  node app rect at 24,368 size 216x110 textH=86 labels=63.276/18,31.104/24,24.57/20,163.293/20
-      #|group left at 12,538 size 240x158 head=80 headW=36.14 labels=24,20,0
-      #|  node other rect at 24,618 size 216x66 textH=42 labels=63.276/18,42.672/24,0/0,0/0
+      #|group global at 0,0 size 264x696 head=12 headW=0 labels=
+      #|  node p person at 0,0 size 216x110 textH=60 labels=50.604/18,169.808/42,0/0,0/0
+      #|group outer at 0,158 size 264x538 head=118 headW=135.136 labels=42,20,20
+      #|group inner at 12,276 size 240x202 head=80 headW=39.12 labels=24,20,0
+      #|  node app rect at 24,356 size 216x110 textH=86 labels=63.276/18,31.104/24,24.57/20,163.293/20
+      #|group left at 12,526 size 240x158 head=80 headW=36.14 labels=24,20,0
+      #|  node other rect at 24,606 size 216x66 textH=42 labels=63.276/18,42.672/24,0/0,0/0
       #|boxes=6
     ),
   )

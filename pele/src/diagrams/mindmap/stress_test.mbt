@@ -103,7 +103,9 @@ test "1,400 shaped nodes with icons and classes" {
 test "a 50,000 character label and a 50,000 character word" {
   inspect(
     outcome("mindmap\nroot[" + "word ".repeat(N / 5) + "]"),
-    content="drawn nodes=1 edges=0 244x48040",
+    content=(
+      #|drawn nodes=1 edges=0 244x42040
+    ),
   )
   inspect(
     outcome("mindmap\nroot[" + "w".repeat(N) + "]"),
@@ -115,11 +117,15 @@ test "a 50,000 character label and a 50,000 character word" {
 test "labels of markers, line breaks and entities" {
   inspect(
     outcome("mindmap\nroot[\"`" + "*a _b ".repeat(N / 6) + "`\"]"),
-    content="drawn nodes=1 edges=0 251x44488",
+    content=(
+      #|drawn nodes=1 edges=0 251x38932
+    ),
   )
   inspect(
     outcome("mindmap\nroot[" + "#35;&amp;<br>".repeat(N / 13) + "]"),
-    content="drawn nodes=1 edges=0 72x92368",
+    content=(
+      #|drawn nodes=1 edges=0 72x80827
+    ),
   )
 }
 

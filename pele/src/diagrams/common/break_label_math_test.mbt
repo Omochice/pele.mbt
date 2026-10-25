@@ -38,14 +38,20 @@ fn broken_math_label(raw : String, room : Double) -> String {
 test "break_label keeps math whole and recounts line heights" {
   inspect(
     broken_math_label("abcdefgh$$tall$$ij", 40),
-    content="\"abcd\"/0/34.688 | \"efgh\"/0/31.136 | [math 20x40]/0/20 \"ij\"/0/7.104 widths=[34.688, 31.136, 27.104] width=34.688 height=92 size=16 line=24 heights=[24, 24, 44]",
+    content=(
+      #|"abcd"/0/34.688 | "efgh"/0/31.136 | [math 20x40]/0/20 "ij"/0/7.104 widths=[34.688, 31.136, 27.104] width=34.688 height=86 size=16 line=21 heights=[21, 21, 44]
+    ),
   )
   inspect(
     broken_math_label("abcdefgh$$w$$ij", 40),
-    content="\"abcd\"/0/34.688 | \"efgh\"/0/31.136 | [math 30x10]/0/30 \"ij\"/0/7.104 widths=[34.688, 31.136, 37.104] width=37.104 height=72 size=16 line=24",
+    content=(
+      #|"abcd"/0/34.688 | "efgh"/0/31.136 | [math 30x10]/0/30 "ij"/0/7.104 widths=[34.688, 31.136, 37.104] width=37.104 height=63 size=16 line=21
+    ),
   )
   inspect(
     broken_math_label("abcdefghijk<br>$$tall$$", 40),
-    content="\"abcd\"/0/34.688 | \"efghij\"/0/38.24 | \"k\"/0/8 | [math 20x40]/0/20 widths=[34.688, 38.24, 8, 20] width=38.24 height=116 size=16 line=24 heights=[24, 24, 24, 44]",
+    content=(
+      #|"abcd"/0/34.688 | "efghij"/0/38.24 | "k"/0/8 | [math 20x40]/0/20 widths=[34.688, 38.24, 8, 20] width=38.24 height=107 size=16 line=21 heights=[21, 21, 21, 44]
+    ),
   )
 }

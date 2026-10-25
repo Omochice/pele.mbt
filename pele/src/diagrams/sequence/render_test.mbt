@@ -1347,82 +1347,82 @@ test "fits a wide diagram to a narrow host" {
       max_width=400,
     ),
     content=(
-      #|273x495
+      #|273x459
       #|<g transform="translate(33.34,8)">
       #|<g class="pele-lifelines" fill="none" stroke="var(--_b)">
-      #|<path class="pele-lifeline" data-id="Alice" d="M0,44V435"/>
-      #|<path class="pele-lifeline" data-id="Bob" d="M102,44V435"/>
-      #|<path class="pele-lifeline" data-id="Carol" d="M204,44V435"/>
+      #|<path class="pele-lifeline" data-id="Alice" d="M0,44V399"/>
+      #|<path class="pele-lifeline" data-id="Bob" d="M102,44V399"/>
+      #|<path class="pele-lifeline" data-id="Carol" d="M204,44V399"/>
       #|</g>
       #|<g class="pele-frames" font-size="14" stroke="var(--_b)">
       #|<g class="pele-frame pele-frame-loop">
-      #|<rect x="-12" y="322" width="228" height="93" fill="none" style="rx:var(--_r)"/>
-      #|<rect x="-12" y="322" width="39.33" height="20" fill="var(--_s)" style="rx:var(--_r)"/>
-      #|<text class="pele-frame-kind" x="7.67" y="336.2" text-anchor="middle" font-size="12" font-weight="var(--_hw)" fill="var(--_m)" stroke="none">loop</text>
-      #|<rect x="32.33" y="324" width="135.95" height="38" rx="3" fill="var(--_bg)" stroke="none"/>
+      #|<rect x="-12" y="292" width="228" height="87" fill="none" style="rx:var(--_r)"/>
+      #|<rect x="-12" y="292" width="39.33" height="20" fill="var(--_s)" style="rx:var(--_r)"/>
+      #|<text class="pele-frame-kind" x="7.67" y="306.2" text-anchor="middle" font-size="12" font-weight="var(--_hw)" fill="var(--_m)" stroke="none">loop</text>
+      #|<rect x="32.33" y="294" width="135.95" height="32" rx="3" fill="var(--_bg)" stroke="none"/>
       #|<text class="pele-frame-label" fill="var(--_m)" stroke="none" text-anchor="middle" xml:space="preserve">
-      #|<tspan x="100.31" y="337.4">[retry the whole thing</tspan>
-      #|<tspan x="100.31" y="358.4">again]</tspan>
+      #|<tspan x="100.31" y="305.9">[retry the whole thing</tspan>
+      #|<tspan x="100.31" y="323.9">again]</tspan>
       #|</text>
       #|</g>
       #|</g>
       #|<g class="pele-edges" fill="none" stroke="var(--_l)" stroke-linecap="round">
       #|<g class="pele-edge pele-message" data-id="i0">
-      #|<path d="M0,150H95"/>
-      #|<path class="pele-marker" d="M102,150L94,153.36L94,146.64Z" fill="var(--_l)" stroke="none"/>
+      #|<path d="M0,138H95"/>
+      #|<path class="pele-marker" d="M102,138L94,141.36L94,134.64Z" fill="var(--_l)" stroke="none"/>
       #|</g>
       #|<g class="pele-edge pele-message" data-id="i1">
-      #|<path d="M102,250H197"/>
-      #|<path class="pele-marker" d="M204,250L196,253.36L196,246.64Z" fill="var(--_l)" stroke="none"/>
+      #|<path d="M102,226H197"/>
+      #|<path class="pele-marker" d="M204,226L196,229.36L196,222.64Z" fill="var(--_l)" stroke="none"/>
       #|</g>
       #|<g class="pele-edge pele-message" data-id="i4">
-      #|<path d="M204,403H7" stroke-dasharray="4 4"/>
-      #|<path class="pele-marker" d="M0,403L8,399.64L8,406.36Z" fill="var(--_l)" stroke="none"/>
+      #|<path d="M204,367H7" stroke-dasharray="4 4"/>
+      #|<path class="pele-marker" d="M0,367L8,363.64L8,370.36Z" fill="var(--_l)" stroke="none"/>
       #|</g>
       #|</g>
       #|<g class="pele-edge-labels" font-size="14">
       #|<g class="pele-edge-label" data-id="i0">
       #|<text text-anchor="middle" xml:space="preserve">
-      #|<tspan x="51" y="77.4">a message that</tspan>
-      #|<tspan x="51" y="98.4">is far too long</tspan>
-      #|<tspan x="51" y="119.4">to fit the</tspan>
-      #|<tspan x="51" y="140.4">narrow width</tspan>
+      #|<tspan x="51" y="75.9">a message that</tspan>
+      #|<tspan x="51" y="93.9">is far too long</tspan>
+      #|<tspan x="51" y="111.9">to fit the</tspan>
+      #|<tspan x="51" y="129.9">narrow width</tspan>
       #|</text>
       #|</g>
       #|<g class="pele-edge-label" data-id="i1">
       #|<text text-anchor="middle" xml:space="preserve">
-      #|<tspan x="153" y="177.4">another long</tspan>
-      #|<tspan x="153" y="198.4">message that</tspan>
-      #|<tspan x="153" y="219.4">wraps in the</tspan>
-      #|<tspan x="153" y="240.4">narrow profile</tspan>
+      #|<tspan x="153" y="163.9">another long</tspan>
+      #|<tspan x="153" y="181.9">message that</tspan>
+      #|<tspan x="153" y="199.9">wraps in the</tspan>
+      #|<tspan x="153" y="217.9">narrow profile</tspan>
       #|</text>
       #|</g>
       #|<g class="pele-edge-label" data-id="i4">
-      #|<rect x="83.43" y="380" width="37.14" height="17" rx="3" fill="var(--_bg)" stroke="none"/>
-      #|<text x="102" y="393.4" text-anchor="middle">done</text>
+      #|<rect x="83.43" y="344" width="37.14" height="17" rx="3" fill="var(--_bg)" stroke="none"/>
+      #|<text x="102" y="357.4" text-anchor="middle">done</text>
       #|</g>
       #|</g>
       #|<g class="pele-notes" font-size="14" fill="var(--_a)" stroke="var(--_b)">
       #|<g class="pele-note" data-id="i2">
-      #|<rect x="-8" y="260" width="220" height="50" style="rx:var(--_r)"/>
+      #|<rect x="-8" y="236" width="220" height="44" style="rx:var(--_r)"/>
       #|<text class="pele-label" stroke="none" fill="var(--_fg)" text-anchor="middle" xml:space="preserve">
-      #|<tspan x="102" y="279.4">a note across all of them that is</tspan>
-      #|<tspan x="102" y="300.4">also long</tspan>
+      #|<tspan x="102" y="253.9">a note across all of them that is</tspan>
+      #|<tspan x="102" y="271.9">also long</tspan>
       #|</text>
       #|</g>
       #|</g>
       #|<g class="pele-nodes">
       #|<g class="pele-node pele-actor pele-actor-participant pele-actor-footer" data-id="Alice">
-      #|<rect x="-25.34" y="435" width="50.67" height="44" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/>
-      #|<text class="pele-label" x="0" y="462.6" text-anchor="middle">Alice</text>
+      #|<rect x="-25.34" y="399" width="50.67" height="44" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/>
+      #|<text class="pele-label" x="0" y="426.6" text-anchor="middle">Alice</text>
       #|</g>
       #|<g class="pele-node pele-actor pele-actor-participant pele-actor-footer" data-id="Bob">
-      #|<rect x="78" y="435" width="48" height="44" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/>
-      #|<text class="pele-label" x="102" y="462.6" text-anchor="middle">Bob</text>
+      #|<rect x="78" y="399" width="48" height="44" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/>
+      #|<text class="pele-label" x="102" y="426.6" text-anchor="middle">Bob</text>
       #|</g>
       #|<g class="pele-node pele-actor pele-actor-participant pele-actor-footer" data-id="Carol">
-      #|<rect x="176.89" y="435" width="54.22" height="44" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/>
-      #|<text class="pele-label" x="204" y="462.6" text-anchor="middle">Carol</text>
+      #|<rect x="176.89" y="399" width="54.22" height="44" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/>
+      #|<text class="pele-label" x="204" y="426.6" text-anchor="middle">Carol</text>
       #|</g>
       #|<g class="pele-node pele-actor pele-actor-participant" data-id="Alice">
       #|<rect x="-25.34" y="0" width="50.67" height="44" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/>

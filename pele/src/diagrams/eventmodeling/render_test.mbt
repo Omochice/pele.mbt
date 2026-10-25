@@ -268,5 +268,10 @@ test "data is wrapped to the card and notes follow the cards" {
 test "a width that leaves no room for a card is exceeded rather than squeezed" {
   let result = drawn(NARROW, max_width=100)
   inspect(result.width, content="176")
-  inspect(result.height, content="727")
+  inspect(
+    result.height,
+    content=(
+      #|697
+    ),
+  )
 }

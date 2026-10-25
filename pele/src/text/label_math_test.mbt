@@ -114,11 +114,15 @@ test "tall math makes its line taller" {
   let label = math_layout("one $$tall$$<br>two", 16, 4000)
   inspect(
     show_label(label),
-    content="\"one \"/0/31.136 [math 20x40]/0/20 | \"two\"/0/24.896 widths=[51.135999999999996, 24.896] width=51.135999999999996 height=68 size=16 line=24 heights=[44, 24]",
+    content=(
+      #|"one "/0/31.136 [math 20x40]/0/20 | "two"/0/24.896 widths=[51.135999999999996, 24.896] width=51.135999999999996 height=65 size=16 line=21 heights=[44, 21]
+    ),
   )
   inspect(
     "\{@text.line_middle(label, 0)}, \{@text.line_middle(label, 1)}",
-    content="22, 56",
+    content=(
+      #|22, 54.5
+    ),
   )
   inspect(
     label.lines.map(line => @text.has_math(line).to_string()).join(","),
@@ -126,11 +130,15 @@ test "tall math makes its line taller" {
   )
   inspect(
     show_label(@text.label_line(label, 0)),
-    content="\"one \"/0/31.136 [math 20x40]/0/20 widths=[51.135999999999996] width=51.135999999999996 height=44 size=16 line=24 heights=[44]",
+    content=(
+      #|"one "/0/31.136 [math 20x40]/0/20 widths=[51.135999999999996] width=51.135999999999996 height=44 size=16 line=21 heights=[44]
+    ),
   )
   inspect(
     show_label(@text.label_line(label, 1)),
-    content="\"two\"/0/24.896 widths=[24.896] width=24.896 height=24 size=16 line=24",
+    content=(
+      #|"two"/0/24.896 widths=[24.896] width=24.896 height=21 size=16 line=21
+    ),
   )
 }
 
@@ -139,11 +147,15 @@ test "math is kept whole when a line wraps" {
   let label = math_layout("aaa bbb $$w$$ ccc ddd", 16, 60)
   inspect(
     show_label(label),
-    content="\"aaa bbb\"/0/57.824 | [math 50x30]/0/50 | \"ccc ddd\"/0/55.136 widths=[57.824, 50, 55.136] width=57.824 height=82 size=16 line=24 heights=[24, 34, 24]",
+    content=(
+      #|"aaa bbb"/0/57.824 | [math 50x30]/0/50 | "ccc ddd"/0/55.136 widths=[57.824, 50, 55.136] width=57.824 height=76 size=16 line=21 heights=[21, 34, 21]
+    ),
   )
   inspect(
     "\{@text.line_middle(label, 0)}, \{@text.line_middle(label, 1)}, \{@text.line_middle(label, 2)}",
-    content="12, 41, 70",
+    content=(
+      #|10.5, 38, 65.5
+    ),
   )
 }
 
@@ -158,7 +170,9 @@ test "a label without math has no line heights" {
   )
   inspect(
     "\{@text.line_middle(label, 0)}, \{@text.line_middle(label, 1)}",
-    content="12, 36",
+    content=(
+      #|10.5, 31.5
+    ),
   )
   inspect(@text.with_heights(label).heights is None, content="true")
 }
@@ -169,6 +183,8 @@ test "line heights are dropped once no line needs them" {
   let rest = { ..label, lines: [label.lines[1]], widths: [label.widths[1]], }
   inspect(
     show_label(@text.with_heights(rest)),
-    content="\"two\"/0/24.896 widths=[24.896] width=51.135999999999996 height=24 size=16 line=24",
+    content=(
+      #|"two"/0/24.896 widths=[24.896] width=51.135999999999996 height=21 size=16 line=21
+    ),
   )
 }
