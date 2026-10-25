@@ -58,6 +58,7 @@ fn is_wide(c : Int32) -> Bool {
 
 ///|
 fn is_zero_width(c : Int32) -> Bool {
+  c == 0xad ||
   (c >= 0x300 && c <= 0x36f) ||
   (c >= 0x200b && c <= 0x200f) ||
   (c >= 0xdc00 && c <= 0xdfff) ||
@@ -88,9 +89,7 @@ fn metrics_width(text : String, size : Double, style : Int32) -> Double {
     }
     if c < 127 {
       units += if mono { 600 } else { table[c - 32].to_int64() }
-    } else if c == 0xad || is_zero_width(c) {
-      // Only pele's own metrics give the soft hyphen no width; a table measurer reads its data as
-      // scripts/plugin-options.mjs does, which still gives it the default advance.
+    } else if is_zero_width(c) {
       continue
     } else if is_wide(c) {
       units += if mono { 1200 } else { 1000 }
