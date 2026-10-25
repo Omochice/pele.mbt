@@ -203,18 +203,22 @@ pub fn style_contains(css : String, needle : String) -> Bool {
   if feed(" style=\"") {
     return true
   }
-  for i in 0..<css.length() {
-    let c = @util.code_at(css, i)
-    let hit = match c {
-      0x26 => feed("&amp;")
-      0x3c => feed("&lt;")
-      0x3e => feed("&gt;")
-      0x22 => feed("&quot;")
-      _ => if is_xml_forbidden(c) { false } else { found(c) }
+  let mut i = 0
+  while i < css.length() {
+    let (hit, width) = match @util.code_at(css, i) {
+      0x26 => (feed("&amp;"), 1)
+      0x3c => (feed("&lt;"), 1)
+      0x3e => (feed("&gt;"), 1)
+      0x22 => (feed("&quot;"), 1)
+      _ => {
+        let (invalid, width) = invalid_xml_at(css, i)
+        (!invalid && feed(@util.slice(css, i, end=i + width)), width)
+      }
     }
     if hit {
       return true
     }
+    i += width
   }
   feed("\"")
 }

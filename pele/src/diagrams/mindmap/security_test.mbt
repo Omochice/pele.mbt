@@ -59,6 +59,9 @@ fn unsafe_value(name : String, value : String) -> Bool {
 ///|
 /// The first thing about the markup that is not inert, or `None` when there is none.
 fn inert_problem(svg : String) -> String? {
+  if @svg.has_invalid_xml(svg) {
+    return Some("a character XML does not allow")
+  }
   let n = svg.length()
   let mut i = 0
   while i < n {
@@ -156,6 +159,11 @@ let payloads : Array[String] = [
   "]]><script>alert(1)</script>",
   "--><script>alert(1)</script>",
   "\u{0}\u{1}\u{8}\u{b}\u{1f}",
+  "a￾b￿c" +
+  String::from_array([(0xd800).unsafe_to_char()]) +
+  "d" +
+  String::from_array([(0xdc00).unsafe_to_char()]) +
+  "e#65534;f",
   "u\u{1}rl(//evil.example/x)",
   "u￾RL(//evil.example/x)",
   "u" + String::from_array([(0xd800).unsafe_to_char()]) + "rl(//evil.example/x)",

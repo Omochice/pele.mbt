@@ -81,6 +81,9 @@ fn unsafe_value(name : String, value : String) -> Bool {
 ///|
 /// The first thing about the markup that is not inert, or `None` when there is none.
 fn inert_problem(svg : String) -> String? {
+  if @svg.has_invalid_xml(svg) {
+    return Some("a character XML does not allow")
+  }
   let n = svg.length()
   let mut i = 0
   while i < n {

@@ -88,22 +88,30 @@ pub fn without_invalid_xml(text : String) -> String {
 }
 
 ///|
-/// Escapes text for XML and drops the control characters XML does not allow.
+/// Escapes text for XML and drops the characters XML does not allow, and DEL.
 pub fn esc(text : String) -> String {
   let out = StringBuilder()
   let mut last = 0
-  for i in 0..<text.length() {
-    let c = @util.code_at(text, i)
-    let replacement = match c {
+  let mut i = 0
+  while i < text.length() {
+    let replacement = match @util.code_at(text, i) {
       0x26 => "&amp;"
       0x3c => "&lt;"
       0x3e => "&gt;"
       0x22 => "&quot;"
-      _ => if is_xml_forbidden(c) { "" } else { continue }
+      _ => {
+        let (invalid, width) = invalid_xml_at(text, i)
+        if !invalid {
+          i += width
+          continue
+        }
+        ""
+      }
     }
     @util.write_range(out, text, last, i)
     out.write_string(replacement)
-    last = i + 1
+    i += 1
+    last = i
   }
   if last == 0 {
     return text

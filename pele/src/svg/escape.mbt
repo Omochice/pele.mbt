@@ -15,7 +15,14 @@ pub fn Markup::write_esc(self : Markup, text : String) -> Unit {
   let mut from = 0
   let mut carry = ""
   while from < text.length() {
-    let to = from + CHUNK_LENGTH
+    let mut to = from + CHUNK_LENGTH
+    // A surrogate pair split between two pieces would read as two lone surrogates, which escaping
+    // drops.
+    if to < text.length() &&
+      (text.unsafe_get(to - 1).to_int() & 0xfc00) == 0xd800 &&
+      (text.unsafe_get(to).to_int() & 0xfc00) == 0xdc00 {
+      to += 1
+    }
     let piece = esc(@util.slice(text, from, end=to))
     self.lengthen(piece.length().to_int64())
     // Escaping drops control characters, so an alias can be split by one in `text` and whole in

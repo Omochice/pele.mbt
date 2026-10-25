@@ -48,6 +48,17 @@ test "text escaped in pieces is written as it is escaped whole, with the aliases
 }
 
 ///|
+test "text escaped in pieces keeps a surrogate pair across the end of a piece whole" {
+  for at in [65534, 65535, 65536] {
+    let text = "a".repeat(at) + "\u{1f600}".repeat(3) + "&"
+    let pieces = @svg.Markup::new()
+    pieces.write_esc(text)
+    assert_eq(pieces.to_string(), @svg.esc(text))
+    assert_true(pieces.to_string().contains("\u{1f600}\u{1f600}\u{1f600}&amp;"))
+  }
+}
+
+///|
 test "text escaped in pieces keeps a heading weight alias whole" {
   let text = "&".repeat(1048568) + "var(--_hw)" + "<\u{1}\"".repeat(400000)
   let whole = @svg.Markup::new()

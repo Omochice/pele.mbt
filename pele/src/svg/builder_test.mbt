@@ -58,6 +58,18 @@ test "esc escapes markup and drops control characters" {
 }
 
 ///|
+test "esc drops lone surrogates and U+FFFE and U+FFFF, and keeps surrogate pairs" {
+  let lone = (c : Int32) => String::from_array([c.unsafe_to_char()])
+  inspect(
+    @svg.esc(
+      "a\u{fffe}b\u{ffff}c" + lone(0xd800) + "d" + lone(0xdc00) + "e\u{1f600}&",
+    ),
+    content="abcde\u{1f600}&amp;",
+  )
+  inspect(@svg.esc(lone(0xdc00) + lone(0xd800)), content="")
+}
+
+///|
 fn label(text : String, size : Double, base : Int32) -> @text.Label {
   @text.layout_label(
     Some(text),

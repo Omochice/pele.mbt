@@ -106,6 +106,11 @@ let hostile_payloads : Array[String] = [
   "]]><script>alert(1)</script>",
   "--><script>alert(1)</script>",
   "\u{0}\u{1}\u{8}\u{b}\u{1f}",
+  "a￾b￿c" +
+  String::from_array([(0xd800).unsafe_to_char()]) +
+  "d" +
+  String::from_array([(0xdc00).unsafe_to_char()]) +
+  "e#65534;f",
   "u\u{1}rl(//evil.example/x)",
   "u￾RL(//evil.example/x)",
   "u" + String::from_array([(0xd800).unsafe_to_char()]) + "rl(//evil.example/x)",
@@ -132,17 +137,17 @@ let hostile_payloads : Array[String] = [
 ///|
 /// The hash of the outcomes of each template with every payload.
 let hostile_outcomes : Array[String] = [
-  "33290751", "4ce477b9", "55a023ff", "eca157df", "2aed774d", "c2d2b4dd", "0946c1e3",
-  "36b45573", "61cfa1fc", "1fa485a8", "23f4ad82", "36fd6288", "c877a7ee", "129f902b",
-  "367f9014", "5c6da7cf", "31d94445", "0778db9e", "8954507a", "c0aa7ec3", "57531c0a",
-  "59e751e9", "b55fb7eb", "5ee695dc", "7fbf68ef", "08e82a3e", "f6bdcfa9", "01c5662b",
-  "f82a59d3", "9f3cb541", "76678029", "3827977b", "2dc1e5ee", "e3ba705f", "95865703",
-  "2d917b07", "4eeefce5", "c31b7d2b", "24ca3d0d", "0a0dbdc5", "f183e075", "4756103f",
-  "d92ebd2f", "e9e8d87f", "ef73afd8", "99f7495d", "11b8e5df", "82853cb1", "11afef6d",
+  "cd098537", "86925e3b", "12f38479", "02e4ab1f", "b282fc95", "28c1d1fd", "efe26523",
+  "49bdd2d9", "6e9d3414", "66aabfaa", "8a43efa2", "47e8f552", "cd74f5ee", "13e96bc3",
+  "4c276994", "3a53bccb", "ff44dc41", "c0aabcae", "c0ba0440", "008541d9", "591bacbe",
+  "0b31b1e9", "d9a88e91", "b67828da", "17276f89", "69f81bc6", "afe5520b", "28768e73",
+  "a5b5f2fd", "72baffcb", "25b15615", "c4b8de71", "7a1b79cc", "4ae5ea17", "0c7659c1",
+  "e082c377", "4eb1d069", "fc7bad3b", "a3e51def", "9c9f340d", "f494737d", "0ed37445",
+  "005e847d", "43e33895", "51d7dbb4", "6b8ee925", "fd265437", "f97254d9", "a9b29165",
 ]
 
 ///|
-let hostile_option_outcomes : Array[String] = ["3245ba43", "d1ac8a36"]
+let hostile_option_outcomes : Array[String] = ["3b7176fe", "d1ac8a36"]
 
 ///|
 /// What rendering gives, written as the generator of `hostile_outcomes` writes pele's.
