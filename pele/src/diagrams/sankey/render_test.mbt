@@ -393,6 +393,28 @@ test "a moved label stays nearer its own bar than any other in the column" {
 }
 
 ///|
+test "labels shrink in narrow or crowded charts, down to 10px" {
+  let label_size = (svg : String) => {
+    let head = "class=\"pele-labels\" font-size=\""
+    let from = @util.index_of(svg, head) + head.length()
+    @util.slice(svg, from, end=@util.index_of(svg, "\"", from~))
+  }
+  let fan = (n : Int32) => {
+    "sankey\n" + Array::makei(n, i => "s\{i},t,1\n").join("")
+  }
+  inspect(
+    [
+      label_size(render(basic).svg),
+      label_size(render(fan(20)).svg),
+      label_size(render(fan(60)).svg),
+      label_size(render(basic, max_width=320).svg),
+      label_size(render(fan(20), font_size=32).svg),
+    ].join(" "),
+    content="14 11 10 10 20",
+  )
+}
+
+///|
 test "the picture grows to hold labels that reach outside the chart" {
   let result = render(
     configured(

@@ -5,6 +5,10 @@ const LABEL_GAP : Double = 6
 const VALUE_GAP : Double = 15
 
 ///|
+/// About how many lines of label each node of the most crowded column keeps.
+const LABEL_ROOM : Double = 1.8
+
+///|
 /// The most nodes whose labels are moved apart, as each move compares a label with every bar.
 const CAREFUL : Int32 = 300
 
@@ -138,10 +142,10 @@ pub fn render_sankey(
   options : @types.RenderOptions,
 ) -> @types.Rendered raise @errors.PeleError {
   let conf = section(config)
-  @common.fit_width(options, number_option(conf, "width", 600, 1, 10000), 160, (
-    chart_width,
-    _,
-  ) => draw(db, conf, options, chart_width))
+  let natural = number_option(conf, "width", 600, 1, 10000)
+  @common.fit_width(options, natural, 160, (chart_width, _) => {
+    draw(db, conf, options, chart_width, natural)
+  })
 }
 
 ///|
@@ -150,10 +154,15 @@ fn draw(
   conf : Map[String, Json],
   options : @types.RenderOptions,
   chart_width : Double,
+  natural : Double,
 ) -> @types.Rendered raise @errors.PeleError {
   let size = options.font_size.unwrap_or(16)
-  let small = (size * 0.875).round()
-  let line_height = small * 1.5
+  let least = (size * 0.625).round()
+  // Labels shrink with a chart narrowed to fit, as they would if the whole picture were scaled down.
+  let mut small = @util.js_max(
+    least,
+    (size * 0.875 * @util.js_min(1, chart_width / natural)).round(),
+  )
   let measurer = options.text_measurer()
   let pad = options.padding.unwrap_or(8)
   let chart_height = number_option(conf, "height", 400, 1, 10000)
@@ -175,15 +184,37 @@ fn draw(
     Some(String(text)) => text
     _ => "gradient"
   }
-  let layout = layout_sankey(db, {
-    width: chart_width,
-    height: chart_height,
-    node_width,
-    node_padding: number_option(conf, "nodePadding", 12, 0, 200) +
-    (if show_values { VALUE_GAP } else { 0 }),
-    label_height: small * 1.15,
-    alignment,
-  })
+  let lay = (label_size : Double) => {
+    layout_sankey(db, {
+      width: chart_width,
+      height: chart_height,
+      node_width,
+      node_padding: number_option(conf, "nodePadding", 12, 0, 200) +
+      (if show_values { VALUE_GAP } else { 0 }),
+      label_height: label_size * 1.15,
+      alignment,
+    })
+  }
+  let mut layout = lay(small)
+  // Labels also shrink with the most crowded column, so each keeps about LABEL_ROOM lines.
+  let rows : Map[Int32, Int32] = Map([])
+  let mut fullest = 1
+  for node in layout.nodes {
+    let count = rows.get(node.layer).unwrap_or(0) + 1
+    rows[node.layer] = count
+    if count > fullest {
+      fullest = count
+    }
+  }
+  let crowded = @util.js_max(
+    least,
+    (chart_height / fullest.to_double() / LABEL_ROOM).round(),
+  )
+  if crowded < small {
+    small = crowded
+    layout = lay(small)
+  }
+  let line_height = small * 1.5
   let nodes = layout.nodes
 
   let custom : Map[String, String] = Map([])
