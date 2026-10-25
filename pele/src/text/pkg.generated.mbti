@@ -12,6 +12,8 @@ pub const STYLE_SUB : Int32 = 8
 
 pub const STYLE_SUP : Int32 = 16
 
+pub const STYLE_UNDERLINE : Int32 = 32
+
 pub fn decode_entities(String) -> String
 
 pub fn has_math(Array[Span]) -> Bool

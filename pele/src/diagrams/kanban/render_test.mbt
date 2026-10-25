@@ -289,3 +289,15 @@ test "a card line that is all subscript is shifted on its tspan" {
     ),
   )
 }
+
+///|
+test "an underlined card line is drawn on its tspan" {
+  let drawn = svg("kanban\n  todo[Todo]\n    t1[<u>card</u>]")
+  let at = @util.index_of(drawn, ">card<")
+  inspect(
+    @util.slice(drawn, @util.last_index_of(drawn, "<text", from=at), end=at + 6),
+    content=(
+      #|<text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="23.62" y="25.4" text-decoration="underline">card<
+    ),
+  )
+}

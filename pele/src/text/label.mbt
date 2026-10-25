@@ -436,6 +436,7 @@ fn tag_style(tag : String) -> Int32 {
     "code" => STYLE_MONO
     "sub" => STYLE_SUB
     "sup" => STYLE_SUP
+    "u" => STYLE_UNDERLINE
     _ => 0
   }
 }

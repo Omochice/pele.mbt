@@ -19,6 +19,10 @@ pub const STYLE_SUB : Int32 = 8
 pub const STYLE_SUP : Int32 = 16
 
 ///|
+/// Emphasis bit of a text span, set for underlined text.
+pub const STYLE_UNDERLINE : Int32 = 32
+
+///|
 /// Approximately how much smaller CSS draws text under `font-size="smaller"`.
 const SMALLER : Double = 1.2
 

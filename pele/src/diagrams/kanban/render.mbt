@@ -138,7 +138,11 @@ fn text_block(
     if line.length() == 1 &&
       line[0].icon is None &&
       line[0].math is None &&
-      (line[0].style & (@text.STYLE_SUB | @text.STYLE_SUP)) == 0 {
+      (
+        line[0].style &
+        (@text.STYLE_SUB | @text.STYLE_SUP | @text.STYLE_UNDERLINE)
+      ) ==
+      0 {
       let anchor = if end { " text-anchor=\"end\"" } else { "" }
       out.write(
         "<text\{@svg.text_style(attrs, line[0].style)} x=\"\{@svg.num(x)}\" y=\"\{@svg.num(cy + label.size * 0.35)}\"\{anchor}>",

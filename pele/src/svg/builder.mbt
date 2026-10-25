@@ -80,6 +80,9 @@ const BOLD_ATTR : String = " font-weight=\"var(--_w)\""
 const ITALIC_ATTR : String = " font-style=\"italic\""
 
 ///|
+const UNDERLINE_ATTR : String = " text-decoration=\"underline\""
+
+///|
 const MONO_ATTR : String = " font-family=\"var(--_fm)\""
 
 ///|
@@ -94,6 +97,7 @@ pub fn span_style(style : Int32) -> String {
   (if (style & @text.STYLE_BOLD) != 0 { BOLD_ATTR } else { "" }) +
   (if (style & @text.STYLE_ITALIC) != 0 { ITALIC_ATTR } else { "" }) +
   (if (style & @text.STYLE_MONO) != 0 { MONO_ATTR } else { "" }) +
+  (if (style & @text.STYLE_UNDERLINE) != 0 { UNDERLINE_ATTR } else { "" }) +
   (if (style & @text.STYLE_SUB) != 0 {
     SUB_ATTR
   } else if (style & @text.STYLE_SUP) != 0 {

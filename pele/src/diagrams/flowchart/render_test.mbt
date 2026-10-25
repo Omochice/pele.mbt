@@ -318,6 +318,20 @@ test "keeps text shaped like a tag that is not HTML, and drops HTML tags" {
 }
 
 ///|
+test "underlines <u> text" {
+  let drawn = svg(
+    "flowchart LR\n  A[\"a <u>underlined</u> word\"]\n  B[\"<u>all of it</u>\"]",
+  )
+  inspect(
+    node_text(drawn, "A") + "\n" + node_text(drawn, "B"),
+    content=(
+      #|<text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="5.6">a </tspan><tspan text-decoration="underline">underlined</tspan><tspan> word</tspan></text>
+      #|<text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="5.6" text-decoration="underline">all of it</tspan></text>
+    ),
+  )
+}
+
+///|
 /// A host that has exactly the icons in `pairs`, by name.
 fn host(pairs : Array[(String, String)]) -> @types.IconResolver {
   let icons = Map::from_array(pairs)
