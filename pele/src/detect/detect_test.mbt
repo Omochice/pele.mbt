@@ -34,9 +34,22 @@ test "the first detector in Mermaid's order wins" {
 }
 
 ///|
-test "C4 keywords other than C4Context match anywhere, as Mermaid's regex does" {
-  inspect(detected("x C4Container"), content="c4 c4")
-  inspect(detected("x C4Context"), content="none")
+test "every C4 keyword must start the text" {
+  for
+    keyword in [
+      "C4Context", "C4Container", "C4Component", "C4Dynamic", "C4Deployment",
+    ] {
+    inspect(detected("  \{keyword}"), content="c4 c4")
+    inspect(detected("x \{keyword}"), content="none")
+    inspect(
+      detected("flowchart LR\n  a[Web app] --> b[\{keyword} view]"),
+      content="flowchart flowchart-v2",
+    )
+    inspect(
+      detected("sequenceDiagram\n  Alice->>Bob: \{keyword} view"),
+      content="sequence sequence",
+    )
+  }
 }
 
 ///|
