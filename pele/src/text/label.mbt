@@ -600,7 +600,19 @@ fn wrap(
 ) -> Unit {
   let mut current : Array[Span] = []
   let mut width = 0.0
+  // Text joined to the last span of `current` and not yet copied into it, because copying the
+  // span for each zero-width piece would take quadratic time.
+  let pending = StringBuilder()
+  let settle = () => {
+    if !pending.is_empty() {
+      if current.last() is Some(last) {
+        last.text = last.text + pending.to_string()
+      }
+      pending.reset()
+    }
+  }
   let commit = (hyphen : Bool) => {
+    settle()
     if current.last() is Some(last) && plain(last) {
       let mut trimmed = @util.trim_end(last.text)
       if hyphen && last.text.has_suffix("\u{ad}") {
@@ -627,6 +639,7 @@ fn wrap(
       if width > 0 && width + w > max {
         commit(false)
       }
+      settle()
       current.push({ ..span, width: w, })
       width += w
       continue
@@ -692,15 +705,17 @@ fn wrap(
       }
       match current.last() {
         Some(last) if plain(last) && last.style == span.style => {
-          last.text = last.text + part
+          pending.write_string(part)
           // Remeasuring for each zero-width piece would take quadratic time.
           if part_width > 0 || @util.trim_end(part) != part {
+            settle()
             let before = last.width
             last.width = measurer.width(last.text, size, last.style)
             width += last.width - before
           }
         }
         _ => {
+          settle()
           let w = measurer.width(part, size, span.style)
           current.push({
             text: part,
