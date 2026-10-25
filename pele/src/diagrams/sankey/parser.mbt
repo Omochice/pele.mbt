@@ -7,7 +7,11 @@ fn is_blank(c : Int32) -> Bool {
 ///|
 /// Strips blanks at both ends of the text and collapses runs of line breaks, so that no row is empty.
 /// Mermaid's first step is a regex that rescans every run of blanks; this does the same in one pass.
-pub fn prepare_text_for_parsing(text : String) -> String {
+/// The edits are appended to `steps`, as three passes, when it is given.
+pub fn prepare_text_for_parsing(
+  text : String,
+  steps? : Array[Array[@errors.Edit]],
+) -> String {
   let mut start = 0
   let mut end = text.length()
   while start < end && is_blank(@util.code_at(text, start)) {
@@ -33,6 +37,9 @@ pub fn prepare_text_for_parsing(text : String) -> String {
       length += 1
     }
   }
+  let recording = steps is Some(_)
+  let collapsing = []
+  let mut run = start
   let out = StringBuilder(size_hint=length * 2)
   in_break = false
   for i in start..<end {
@@ -40,14 +47,28 @@ pub fn prepare_text_for_parsing(text : String) -> String {
     if c == 10 || c == 13 {
       if !in_break {
         out.write_char('\n')
+        run = i
       }
       in_break = true
     } else {
+      if recording && in_break {
+        collapsing.push((run - start, i - start, 1))
+      }
       in_break = false
       @util.write_range(out, text, i, i + 1)
     }
   }
   let out = out.to_string()
+  if steps is Some(steps) {
+    if in_break {
+      collapsing.push((run - start, end - start, 1))
+    }
+    let lead = out.length() - @util.trim_start(out).length()
+    let trimmed = @util.trim(out).length()
+    steps.push([(0, start, 0), (end, text.length(), 0)])
+    steps.push(collapsing)
+    steps.push([(0, lead, 0), (lead + trimmed, out.length(), 0)])
+  }
   if out.length() > 0 &&
     !@util.is_space(@util.code_at(out, 0)) &&
     !@util.is_space(@util.code_at(out, out.length() - 1)) {
@@ -55,47 +76,6 @@ pub fn prepare_text_for_parsing(text : String) -> String {
   } else {
     @util.trim(out)
   }
-}
-
-///|
-/// The passes `prepare_text_for_parsing` makes over `text`, as the edits each pass makes: the
-/// blanks trimmed at both ends, each run of line breaks collapsed to one, and the whitespace then
-/// trimmed at both ends.
-fn preparation_steps(text : String) -> Array[Array[@errors.Edit]] {
-  let mut start = 0
-  let mut end = text.length()
-  while start < end && is_blank(@util.code_at(text, start)) {
-    start += 1
-  }
-  while end > start && is_blank(@util.code_at(text, end - 1)) {
-    end -= 1
-  }
-  let collapsing = []
-  let collapsed = StringBuilder()
-  let mut i = start
-  while i < end {
-    let c = @util.code_at(text, i)
-    if c == 10 || c == 13 {
-      let run = i
-      while i < end &&
-            (@util.code_at(text, i) == 10 || @util.code_at(text, i) == 13) {
-        i += 1
-      }
-      collapsing.push((run - start, i - start, 1))
-      collapsed.write_char('\n')
-    } else {
-      @util.write_range(collapsed, text, i, i + 1)
-      i += 1
-    }
-  }
-  let collapsed = collapsed.to_string()
-  let lead = collapsed.length() - @util.trim_start(collapsed).length()
-  let trimmed = @util.trim(collapsed).length()
-  [
-    [(0, start, 0), (end, text.length(), 0)],
-    collapsing,
-    [(0, lead, 0), (lead + trimmed, collapsed.length(), 0)],
-  ]
 }
 
 ///|
@@ -113,10 +93,9 @@ fn Reader::error(
   at : Int32,
   detail : String,
 ) -> @errors.PeleError {
-  let steps = if self.source != self.src {
-    preparation_steps(self.source)
-  } else {
-    []
+  let steps = []
+  if self.source != self.src {
+    prepare_text_for_parsing(self.source, steps~) |> ignore
   }
   // The end of the text is mapped from before the trailing blanks that were trimmed.
   let offset = if at > 0 && at >= self.src.length() {
