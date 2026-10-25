@@ -173,3 +173,25 @@ test "render_usecase: json tables and notes draw the host's icons" {
     ),
   )
 }
+
+///|
+test "a JSON error after an entity code is reported in the text as written" {
+  let failure = try {
+    @core.render(
+      [@usecase.usecase],
+      "usecase-beta\njson P@{\"a\":\"#35;\", \"b\":}",
+      @types.RenderOptions::default(),
+    )
+    |> ignore
+    None
+  } catch {
+    @errors.PeleError(failure) => Some(failure)
+  }
+  guard failure is Some(failure) else { fail("accepted") }
+  inspect(
+    "\{failure.line}:\{failure.column} \{failure.message}",
+    content=(
+      #|2:25 Invalid JSON: Unexpected token '}', "{"a":"#35;", "b":}" is not valid JSON (line 2, column 25)
+    ),
+  )
+}
