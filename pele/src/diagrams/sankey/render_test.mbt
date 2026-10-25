@@ -597,54 +597,67 @@ test "a name that decodes to a character XML forbids is rejected for every label
   inspect(
     shown.join("\n"),
     content=(
-      #|Parse error on line 2:
+      #|Parse error on line 7:
       #|a#65534;,b,1
       #|^
       #|Invalid XML character in node name
-      #|Parse error on line 2:
+      #|Parse error on line 7:
       #|b,"a#65534;",1
       #|--^
       #|Invalid XML character in node name
-      #|Parse error on line 2:
+      #|Parse error on line 7:
       #|a#65535;,b,1
       #|^
       #|Invalid XML character in node name
-      #|Parse error on line 2:
+      #|Parse error on line 7:
       #|b,"a#65535;",1
       #|--^
       #|Invalid XML character in node name
-      #|Parse error on line 2:
+      #|Parse error on line 7:
       #|a#1;,b,1
       #|^
       #|Invalid XML character in node name
-      #|Parse error on line 2:
+      #|Parse error on line 7:
       #|b,"a#1;",1
       #|--^
       #|Invalid XML character in node name
-      #|Parse error on line 2:
+      #|Parse error on line 7:
       #|a#65534;,b,1
       #|^
       #|Invalid XML character in node name
-      #|Parse error on line 2:
+      #|Parse error on line 7:
       #|b,"a#65534;",1
       #|--^
       #|Invalid XML character in node name
-      #|Parse error on line 2:
+      #|Parse error on line 7:
       #|a#65535;,b,1
       #|^
       #|Invalid XML character in node name
-      #|Parse error on line 2:
+      #|Parse error on line 7:
       #|b,"a#65535;",1
       #|--^
       #|Invalid XML character in node name
-      #|Parse error on line 2:
+      #|Parse error on line 7:
       #|a#1;,b,1
       #|^
       #|Invalid XML character in node name
-      #|Parse error on line 2:
+      #|Parse error on line 7:
       #|b,"a#1;",1
       #|--^
       #|Invalid XML character in node name
     ),
   )
+}
+
+///|
+test "an error after blank lines reports its line in the source as written" {
+  let failure = try {
+    render("sankey\n\na,b,1\n\nb,c,abc") |> ignore
+    None
+  } catch {
+    @errors.PeleError(failure) => Some(failure)
+  }
+  guard failure is Some(failure) else { fail("accepted") }
+  inspect("\{failure.line}:\{failure.column}", content="5:5")
+  assert_true(failure.message.has_prefix("Parse error on line 5:\nb,c,abc\n"))
 }

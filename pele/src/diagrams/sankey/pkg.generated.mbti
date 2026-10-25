@@ -9,7 +9,7 @@ import {
 // Values
 pub fn layout_sankey(SankeyDb, LayoutOptions) -> SankeyLayout raise @errors.PeleError
 
-pub fn parse_sankey(String, SankeyDb) -> Unit raise @errors.PeleError
+pub fn parse_sankey(String, SankeyDb, source? : String) -> Unit raise @errors.PeleError
 
 pub fn prepare_text_for_parsing(String) -> String
 

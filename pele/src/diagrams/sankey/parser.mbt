@@ -58,10 +58,73 @@ pub fn prepare_text_for_parsing(text : String) -> String {
 }
 
 ///|
+/// The passes `prepare_text_for_parsing` makes over `text`, as the edits each pass makes: the
+/// blanks trimmed at both ends, each run of line breaks collapsed to one, and the whitespace then
+/// trimmed at both ends.
+fn preparation_steps(text : String) -> Array[Array[@errors.Edit]] {
+  let mut start = 0
+  let mut end = text.length()
+  while start < end && is_blank(@util.code_at(text, start)) {
+    start += 1
+  }
+  while end > start && is_blank(@util.code_at(text, end - 1)) {
+    end -= 1
+  }
+  let collapsing = []
+  let collapsed = StringBuilder()
+  let mut i = start
+  while i < end {
+    let c = @util.code_at(text, i)
+    if c == 10 || c == 13 {
+      let run = i
+      while i < end &&
+            (@util.code_at(text, i) == 10 || @util.code_at(text, i) == 13) {
+        i += 1
+      }
+      collapsing.push((run - start, i - start, 1))
+      collapsed.write_char('\n')
+    } else {
+      @util.write_range(collapsed, text, i, i + 1)
+      i += 1
+    }
+  }
+  let collapsed = collapsed.to_string()
+  let lead = collapsed.length() - @util.trim_start(collapsed).length()
+  let trimmed = @util.trim(collapsed).length()
+  [
+    [(0, start, 0), (end, text.length(), 0)],
+    collapsing,
+    [(0, lead, 0), (lead + trimmed, collapsed.length(), 0)],
+  ]
+}
+
+///|
 priv struct Reader {
   src : String
+  /// The text before `prepare_text_for_parsing`, in which errors are reported.
+  source : String
   tokens : Tokens
   mut i : Int32
+}
+
+///|
+fn Reader::error(
+  self : Reader,
+  at : Int32,
+  detail : String,
+) -> @errors.PeleError {
+  let steps = if self.source != self.src {
+    preparation_steps(self.source)
+  } else {
+    []
+  }
+  // The end of the text is mapped from before the trailing blanks that were trimmed.
+  let offset = if at > 0 && at >= self.src.length() {
+    @errors.input_offset(steps, self.src.length() - 1) + 1
+  } else {
+    @errors.input_offset(steps, at)
+  }
+  @errors.syntax_error("sankey", self.source, offset, detail)
 }
 
 ///|
@@ -92,12 +155,7 @@ fn Reader::fail(
   } else {
     self.src.length()
   }
-  raise @errors.syntax_error(
-    "sankey",
-    self.src,
-    offset,
-    "Expecting \{expected}, got '\{got}'",
-  )
+  raise self.error(offset, "Expecting \{expected}, got '\{got}'")
 }
 
 ///|
@@ -147,12 +205,7 @@ fn Reader::name(self : Reader) -> String raise @errors.PeleError {
   let text = @util.trim(self.field()).replace_all(old="\"\"", new="\"")
   // Entity codes can encode characters excluded by the lexer.
   if has_invalid_xml(@text.decode_entities(text)) {
-    raise @errors.syntax_error(
-      "sankey",
-      self.src,
-      start,
-      "Invalid XML character in node name",
-    )
+    raise self.error(start, "Invalid XML character in node name")
   }
   text
 }
@@ -185,12 +238,14 @@ fn has_invalid_xml(text : String) -> Bool {
 
 ///|
 /// Reads the rows of a sankey diagram into `db`.
+/// Errors are reported in `source`, the text before `prepare_text_for_parsing` made `src` of it.
 /// Raises a syntax `PeleError` with Mermaid's message on invalid text.
 pub fn parse_sankey(
   src : String,
   db : SankeyDb,
+  source? : String,
 ) -> Unit raise @errors.PeleError {
-  let r = { src, tokens: tokenize(src), i: 0, }
+  let r = { src, source: source.unwrap_or(src), tokens: tokenize(src), i: 0, }
   r.expect(Sankey)
   r.expect(Newline)
   while true {
@@ -202,7 +257,7 @@ pub fn parse_sankey(
     // Keep Mermaid's numeric prefixes, but reject non-finite values.
     let value = @util.parse_float(r.field())
     if value.is_nan() || value.is_inf() {
-      raise @errors.syntax_error("sankey", r.src, start, "Expecting a number")
+      raise r.error(start, "Expecting a number")
     }
     let source = db.find_or_create_node(from)
     let target = db.find_or_create_node(to)
