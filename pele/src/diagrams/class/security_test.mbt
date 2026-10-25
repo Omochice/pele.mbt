@@ -86,25 +86,26 @@ let hostile_payloads : Array[String] = [
   "&lt;script&gt;alert(1)&lt;/script&gt;", "&#60;script&#62;", "url(javascript:alert(1))",
   "expression(alert(1))", "red;background:url(//evil.example/x)", "red\" onload=\"alert(1)",
   "]]><script>alert(1)</script>", "--><script>alert(1)</script>", "\u{0}\u{1}\u{8}\u{b}\u{1f}",
-  "__proto__", "constructor", "toString", "hasOwnProperty", "{{7*7}}", "${alert(1)}",
-  "%0ajavascript:alert(1)", "file:///etc/passwd", "//evil.example/share", "\\\\evil.example\\share",
-  "smb://evil.example/share", "obsidian://open?vault=x", "\\\"><script>",
+  "u\u{1}rl(//evil.example/x)", "__proto__", "constructor", "toString", "hasOwnProperty",
+  "{{7*7}}", "${alert(1)}", "%0ajavascript:alert(1)", "file:///etc/passwd", "//evil.example/share",
+  "\\\\evil.example\\share", "smb://evil.example/share", "obsidian://open?vault=x",
+  "\\\"><script>",
 ]
 
 ///|
 /// The hash of the outcomes of each template with every payload.
 let hostile_outcomes : Array[String] = [
-  "43b7ac39", "630245e1", "b9cdec51", "1ccee52f", "12d4c507", "981e611f", "c27d454d",
-  "b5ebd899", "e7f2ddf0", "d232d954", "752f15ba", "d870c79e", "7559bbbc", "8f60c1a5",
-  "a572c8be", "59a0eb4f", "e23d98f5", "3b4dfedc", "9328db46", "023adbe1", "6fa6f64e",
-  "c61c51e9", "a5ae0cb7", "92c97d5a", "888ab963", "47aeaab6", "e3835ccd", "95008e5f",
-  "66eb1a1f", "6c775837", "c8c1ad87", "702f99b3", "949e93ce", "31f0d09f", "b72421c1",
-  "60e87359", "19651c67", "06d65eff", "58c92ca5", "ea09a1ed", "f75b5035", "febea0f9",
-  "8050909f", "2b326b97", "8ec861cc", "69d64e9d", "73050da3", "ab420e19", "21ecdaad",
+  "4b3c7afb", "75468cd3", "72c5739f", "164125f7", "f82b004f", "a59fce4f", "50b7eadd",
+  "f8a7cabd", "01d96dae", "13e8c5d4", "38b712f6", "2f6e554e", "7482f3c8", "21ae2ee1",
+  "897533de", "587dc84b", "f09db055", "c6ee7180", "a9291e66", "e16e32f5", "0a94ee04",
+  "be56b1e9", "5abd2821", "de5c204c", "b9cf6bd3", "6f3e55da", "3fcbe159", "30ff4d73",
+  "390c0423", "685743c3", "18290a89", "ca727517", "3d77b536", "b300ebd7", "5598ff4b",
+  "1bb35695", "5294610f", "55c3663f", "5c6938c3", "774ac6ed", "95d2213d", "bc6034e3",
+  "4ab6f2d9", "96a3f807", "d69d0c38", "d8697165", "ae1a6def", "be1c8c3f", "53a83ca5",
 ]
 
 ///|
-let hostile_option_outcomes : Array[String] = ["6263db63", "d1ac8a36"]
+let hostile_option_outcomes : Array[String] = ["8fc26bd8", "d1ac8a36"]
 
 ///|
 /// What rendering gives, written as the generator of `hostile_outcomes` writes pele's.

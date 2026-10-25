@@ -138,9 +138,10 @@ let payloads : Array[String] = [
   "&lt;script&gt;alert(1)&lt;/script&gt;", "&#60;script&#62;", "url(javascript:alert(1))",
   "expression(alert(1))", "red;background:url(//evil.example/x)", "red\" onload=\"alert(1)",
   "]]><script>alert(1)</script>", "--><script>alert(1)</script>", "\u{0}\u{1}\u{8}\u{b}\u{1f}",
-  "__proto__", "constructor", "toString", "hasOwnProperty", "{{7*7}}", "${alert(1)}",
-  "%0ajavascript:alert(1)", "file:///etc/passwd", "//evil.example/share", "\\\\evil.example\\share",
-  "smb://evil.example/share", "obsidian://open?vault=x", "\\\"><script>",
+  "u\u{1}rl(//evil.example/x)", "__proto__", "constructor", "toString", "hasOwnProperty",
+  "{{7*7}}", "${alert(1)}", "%0ajavascript:alert(1)", "file:///etc/passwd", "//evil.example/share",
+  "\\\\evil.example\\share", "smb://evil.example/share", "obsidian://open?vault=x",
+  "\\\"><script>",
 ]
 
 ///|
@@ -226,7 +227,7 @@ test "the output is inert with hostile text in every position" {
     }
   }
   // pele v1.8.0 draws exactly this many of these texts and rejects the rest.
-  inspect(rendered, content="776")
+  inspect(rendered, content="801")
 }
 
 ///|

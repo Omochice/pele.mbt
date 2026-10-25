@@ -65,6 +65,27 @@ test "values that could break out or load something are dropped" {
 }
 
 ///|
+test "values holding a character XML does not allow are dropped" {
+  for
+    value in [
+      "u\u{1}rl(//evil.example/x)", "red\u{0}", "a\u{8}b", "a\u{b}b", "a\u{c}b",
+      "a\u{1f}b", "a\u{7f}b",
+    ] {
+    inspect(
+      show(["fill:" + value]),
+      content="shape=[] line=[] text=[] stroke=- bold=false italic=false size=-",
+    )
+    assert_eq(@svg.resolve_raw_style(["fill:" + value]).shape, "")
+  }
+  inspect(
+    show(["fill:a\tb"]),
+    content=(
+      #|shape=[ style="fill:a	b;"] line=[] text=[] stroke=- bold=false italic=false size=-
+    ),
+  )
+}
+
+///|
 test "quotes in a value are escaped" {
   inspect(
     show(["fill:a\"b&c"]),

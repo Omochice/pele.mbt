@@ -28,7 +28,7 @@ pub fn resolve_raw_style(declarations : Array[String]) -> RawStyle {
       kelvin=true,
     )
     let value = @util.trim(remove_important(@util.slice(declaration, at + 1)))
-    if value == "" || is_unsafe(value) {
+    if value == "" || is_unsafe(value) || has_invalid_xml(value) {
       continue
     }
     if shape_props.contains(name) {

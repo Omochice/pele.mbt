@@ -99,6 +99,19 @@ fn call_at(text : String, word : String, at : Int32) -> Bool {
 }
 
 ///|
+/// Whether `text` holds a character XML does not allow, or DEL.
+/// Escaping drops them, which could join what is left of a checked value into something unsafe.
+fn has_invalid_xml(text : String) -> Bool {
+  for i in 0..<text.length() {
+    let c = text.unsafe_get(i).to_int()
+    if c <= 8 || c == 0xb || c == 0xc || (c >= 0xe && c <= 0x1f) || c == 0x7f {
+      return true
+    }
+  }
+  false
+}
+
+///|
 /// Does what `/url\s*\(|expression\s*\(|javascript:|[<>{};\\]|@import|image-set|\/\*/i` does.
 fn is_unsafe(value : String) -> Bool {
   let lower = lower_ascii(value)
@@ -176,7 +189,7 @@ pub fn resolve_style(declarations : Array[String]) -> ResolvedStyle {
       kelvin=true,
     )
     let value = @util.trim(remove_important(@util.slice(declaration, at + 1)))
-    if value == "" || is_unsafe(value) {
+    if value == "" || is_unsafe(value) || has_invalid_xml(value) {
       continue
     }
     if shape_props.contains(name) {
