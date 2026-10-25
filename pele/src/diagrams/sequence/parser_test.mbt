@@ -667,3 +667,19 @@ test "accepts the link keyword as a name" {
     ),
   )
 }
+
+///|
+test "the character before a comment is kept" {
+  inspect(
+    parsed("sequenceDiagram\n  A->>B:%% comment"),
+    content=(
+      #|actor "A" name="A" description="A" wrap=false kind="participant" box=none prev=- next="B" links={} properties={} details=-
+      #|actor "B" name="B" description="B" wrap=false kind="participant" box=none prev="A" next=- links={} properties={} details=-
+      #|message 0 from="A" to="B" kind=0 message="%% comment" wrap=false activate=false placement=- central=0 numbering=-
+      #|title=- accTitle=- accDescr=-
+    ),
+  )
+  assert_true(
+    parsed("sequenceDiagram\n  autonumber 5%% comment").has_prefix("error: "),
+  )
+}

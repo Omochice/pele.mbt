@@ -453,10 +453,6 @@ pub fn tokenize(src : String) -> Tokens {
       p = eol(p)
       return
     }
-    if c != 125 && code(p + 1) == 37 && code(p + 2) == 37 {
-      p = eol(p)
-      return
-    }
     if (@util.is_digit(c) || c == 46) && number() {
       return
     }
