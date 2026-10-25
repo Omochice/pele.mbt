@@ -5,6 +5,28 @@ const LABEL_GAP : Double = 6
 const VALUE_GAP : Double = 15
 
 ///|
+/// The most nodes whose labels are moved apart, as each move compares a label with every bar.
+const CAREFUL : Int32 = 300
+
+///|
+/// A node's label: where it sits, which side of its bar it is on, and the extent of its text.
+priv struct NodeLabel {
+  value : String
+  width : Double
+  mut after : Bool
+  mut left : Double
+  mut y : Double
+}
+
+///|
+/// The band of lines that `y` falls in.
+/// Zero is added because the floor of a small negative quotient is negative zero, which hashes
+/// apart from zero.
+fn band(y : Double, line_height : Double) -> Double {
+  (y / line_height).floor() + 0.0
+}
+
+///|
 fn section(config : @types.Config) -> Map[String, Json] {
   match config.get("sankey") {
     Some(Object(conf)) => conf
@@ -76,6 +98,7 @@ fn draw(
 ) -> @types.Rendered raise @errors.PeleError {
   let size = options.font_size.unwrap_or(16)
   let small = (size * 0.875).round()
+  let line_height = small * 1.5
   let measurer = options.text_measurer()
   let pad = options.padding.unwrap_or(8)
   let chart_height = number_option(conf, "height", 400, 1, 10000)
@@ -121,7 +144,8 @@ fn draw(
   }
   let node_style = (i : Int32) => custom.get(db.nodes[i].id).unwrap_or("")
 
-  // Labels sit beside the bars, on the side that faces the middle of the chart.
+  // Labels sit beside the bars, on the side that faces the middle of the chart unless that
+  // side is crowded.
   let mut central = 0
   let mut most = 0.0
   for node in nodes {
@@ -134,6 +158,54 @@ fn draw(
   let mut max_x = chart_width
   let mut min_y = 0.0
   let mut max_y = chart_height
+  let labels = nodes.mapi((i, node) => {
+    let id = db.nodes[i].id
+    let value = if show_values {
+      "\{prefix}\{rounded(node.value)}\{suffix}"
+    } else {
+      ""
+    }
+    let width = measurer.width(
+      if value != "" {
+        // Joined at its final size, because interpolating a name of hundreds of millions of
+        // characters would need a doubling builder's block past what wasm allocates.
+        [id, " ", value].join("")
+      } else {
+        id
+      },
+      small,
+      0,
+    )
+    let after = if outlined {
+      node.layer >= central
+    } else {
+      node.x < chart_width / 2
+    }
+    let x = if after {
+      node.x + node_width + LABEL_GAP
+    } else {
+      node.x - LABEL_GAP
+    }
+    let y = node.y + node.height / 2
+    min_x = @cmp.minimum(min_x, if after { x } else { x - width })
+    max_x = @cmp.maximum(max_x, if after { x + width } else { x })
+    min_y = @cmp.minimum(min_y, y - small * 0.75)
+    max_y = @cmp.maximum(max_y, y + small * 0.75)
+    { value, width, after, left: if after { x } else { x - width }, y, }
+  })
+  // A label moves at most one line, so each band keeps the labels of the two bands on either side.
+  let bands : Map[Double, Array[Int32]] = Map([])
+  if nodes.length() <= CAREFUL {
+    for i, label in labels {
+      let at = band(label.y, line_height)
+      for key in [at - 2, at - 1, at, at + 1, at + 2] {
+        match bands.get(key) {
+          Some(nearby) => nearby.push(i)
+          None => bands[key] = [i]
+        }
+      }
+    }
+  }
   let labels_out = @svg.Markup::new()
   let nodes_out = @svg.Markup::new()
   for i, node in nodes {
@@ -146,37 +218,82 @@ fn draw(
     )
     @svg.write_style(nodes_out, node_style(i))
     nodes_out.write("/>")
-    let value = if show_values {
-      "\{prefix}\{rounded(node.value)}\{suffix}"
-    } else {
-      ""
+    let label = labels[i]
+    let overlaps_label = (left : Double, y : Double) => {
+      let nearby = bands.get(band(y, line_height)).unwrap_or([])
+      nearby
+      .iter()
+      .any(j => {
+        let other = labels[j]
+        j != i &&
+        (other.y - y).abs() < line_height &&
+        left < other.left + other.width + LABEL_GAP &&
+        left + label.width > other.left - LABEL_GAP
+      })
     }
-    let after = if outlined {
-      node.layer >= central
-    } else {
-      node.x < chart_width / 2
+    let any_other = (hit : (PlacedNode) -> Bool) => {
+      for j, bar in nodes {
+        if j != i && hit(bar) {
+          return true
+        }
+      }
+      false
     }
-    let text_width = measurer.width(
-      if value != "" {
-        // Joined at its final size, because interpolating a name of hundreds of millions of
-        // characters would need a doubling builder's block past what wasm allocates.
-        [id, " ", value].join("")
-      } else {
-        id
-      },
-      small,
-      0,
-    )
+    // Try the other side, then an adjacent line when both sides are crowded.
+    let place = () => {
+      for dy in [0.0, -line_height, line_height] {
+        for after in [label.after, !label.after] {
+          let left = if after {
+            node.x + node_width + LABEL_GAP
+          } else {
+            node.x - LABEL_GAP - label.width
+          }
+          let y = label.y + dy
+          if overlaps_label(left, y) ||
+            left < min_x ||
+            left + label.width > max_x ||
+            y - small * 0.75 < min_y ||
+            y + small * 0.75 > max_y {
+            continue
+          }
+          let blocked = any_other(bar => {
+            left < bar.x + node_width + LABEL_GAP &&
+            left + label.width > bar.x - LABEL_GAP &&
+            y - small * 0.75 < bar.y + bar.height &&
+            y + small * 0.75 > bar.y
+          })
+          if blocked {
+            continue
+          }
+          // A label stays nearer its own bar than any other in the column, so it can't name that one.
+          let own = @util.js_max(
+            0,
+            @util.js_max(node.y - y, y - node.y - node.height),
+          )
+          let nearer = any_other(bar => {
+            bar.x == node.x &&
+            @util.js_max(0, @util.js_max(bar.y - y, y - bar.y - bar.height)) <=
+            own
+          })
+          if nearer {
+            continue
+          }
+          label.left = left
+          label.y = y
+          label.after = after
+          return
+        }
+      }
+    }
+    if nodes.length() <= CAREFUL && overlaps_label(label.left, label.y) {
+      place()
+    }
+    let { value, after, y, .. } = label
     let x = if after {
       node.x + node_width + LABEL_GAP
     } else {
       node.x - LABEL_GAP
     }
-    let y = node.y + node.height / 2
-    min_x = @cmp.minimum(min_x, if after { x } else { x - text_width })
-    max_x = @cmp.maximum(max_x, if after { x + text_width } else { x })
-    min_y = @cmp.minimum(min_y, y - small * 0.75)
-    max_y = @cmp.maximum(max_y, y + small * 0.75)
     let position = " x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y + small * 0.35)}\" text-anchor=\"\{if after { "start" } else { "end" }}\""
     labels_out.write("<g class=\"pele-label\" data-id=\"")
     labels_out.write_esc_text(id)

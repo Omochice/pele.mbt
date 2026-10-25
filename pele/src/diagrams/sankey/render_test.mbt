@@ -5,8 +5,9 @@ let basic : String = "sankey\na,b,5\na,c,3\nb,d,4\nc,d,1.239\n"
 fn render(
   source : String,
   max_width? : Double,
+  font_size? : Double,
 ) -> @types.RenderResult raise @errors.PeleError {
-  let options = { ..@types.RenderOptions::default(), max_width, }
+  let options = { ..@types.RenderOptions::default(), max_width, font_size, }
   @core.render([@sankey.sankey], source, options)
 }
 
@@ -227,6 +228,64 @@ test "a label sits on the side of its bar that faces the middle" {
   assert_true(
     svg.contains(
       "data-id=\"d\"><text x=\"584\" y=\"144.45\" text-anchor=\"end\"",
+    ),
+  )
+}
+
+///|
+/// The position and anchor of the label of node `id`.
+fn label_at(svg : String, id : String) -> String {
+  let head = "data-id=\"\{id}\"><text "
+  let from = @util.index_of(svg, head) + head.length()
+  @util.slice(svg, from, end=@util.index_of(svg, ">", from~))
+}
+
+///|
+let funnel : String = "sankey-beta\nVisitors,Signed up,3200\nVisitors,Bounced,9800\nSigned up,Opened a folder,2100\nSigned up,Never returned,1100\nOpened a folder,Ran Agency,1450\nOpened a folder,Write-only,650\nRan Agency,Upgraded to Pro,380\nRan Agency,Stayed free,1070\nUpgraded to Pro,Upgraded to Team,96\nUpgraded to Pro,Stayed on Pro,284"
+
+///|
+test "labels in adjacent columns are kept apart without moving the bars" {
+  let shown = []
+  for font_size in [14.0, 16.0] {
+    let svg = render(funnel, font_size~, max_width=664).svg
+    let hidden = render(
+        configured("showValues: false", body=funnel),
+        font_size~,
+      ).svg
+    let ids = [
+      "Visitors", "Signed up", "Bounced", "Opened a folder", "Never returned", "Ran Agency",
+      "Write-only", "Upgraded to Pro", "Stayed free", "Upgraded to Team", "Stayed on Pro",
+    ]
+    assert_eq(
+      ids.map(id => attr(svg, id, "x")),
+      ids.map(id => attr(hidden, id, "x")),
+    )
+    assert_true(svg.contains(">1450</tspan>"))
+    shown.push(
+      "\{font_size}: \{label_at(svg, "Opened a folder")} | \{label_at(svg, "Ran Agency")}",
+    )
+  }
+  inspect(
+    shown.join("\n"),
+    content=(
+      #|14: x="252" y="248.66" text-anchor="start" | x="348" y="276.7" text-anchor="end"
+      #|16: x="252" y="246.36" text-anchor="start" | x="348" y="277.4" text-anchor="end"
+    ),
+  )
+}
+
+///|
+test "a moved label stays nearer its own bar than any other in the column" {
+  let svg = render(
+      configured(
+        "showValues: false",
+        body="sankey\nA,B,1\nC,D,200\nE,F,1\nF,G,600\nG,D,200\nB,D,1\n",
+      ),
+    ).svg
+  inspect(
+    "\{label_at(svg, "E")} | E \{attr(svg, "E", "y")}+\{attr(svg, "E", "height")} | C \{attr(svg, "C", "y")}+\{attr(svg, "C", "height")}",
+    content=(
+      #|x="16" y="23.05" text-anchor="start" | E 17.83+1 | C 32.2+127.97
     ),
   )
 }
