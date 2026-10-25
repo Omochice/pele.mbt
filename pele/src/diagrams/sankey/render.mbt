@@ -171,8 +171,8 @@ fn draw(
     chart_width,
   )
   let show_values = !(conf.get("showValues") is Some(False))
-  let prefix = text_option(conf, "prefix")
-  let suffix = text_option(conf, "suffix")
+  let prefix = @text.decode_entities(text_option(conf, "prefix"))
+  let suffix = @text.decode_entities(text_option(conf, "suffix"))
   let outlined = conf.get("labelStyle") is Some(String("outlined"))
   let alignment = match conf.get("nodeAlignment") {
     Some(String("left")) => Left
@@ -479,9 +479,9 @@ fn draw(
     links_out.write(" → ")
     links_out.write_esc_text(to)
     links_out.write(": ")
-    links_out.write_esc_text(prefix)
+    links_out.write_esc(prefix)
     links_out.write(rounded(link.value))
-    links_out.write_esc_text(suffix)
+    links_out.write_esc(suffix)
     links_out.write("</title></path>")
   }
 

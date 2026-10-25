@@ -118,6 +118,13 @@ test "values show two decimals, a prefix and a suffix, unless showValues is off"
   let hidden = render(configured("showValues: false")).svg
   assert_true(!hidden.contains("pele-sankey-value"))
   assert_true(hidden.contains(">a</text>"))
+  let coded = render(
+      configured(
+        "prefix: \"&euro;\"\nsuffix: \" &amp;lt;\"\nlabelStyle: outlined",
+      ),
+    ).svg
+  assert_true(coded.contains(">€8 &amp;lt;</tspan>"))
+  assert_true(coded.contains("<title>a → b: €5 &amp;lt;</title>"))
 }
 
 ///|
