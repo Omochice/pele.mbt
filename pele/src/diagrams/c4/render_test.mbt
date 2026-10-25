@@ -1333,3 +1333,14 @@ test "scales with the font size option" {
     drawn(src, font_size=24).unwrap().height > drawn(src).unwrap().height,
   )
 }
+
+///|
+test "a bare title is no title, and a title after a tab is kept" {
+  let bare = model("C4Context\ntitle\nPerson(a, \"Alice\")\nPerson(b, \"Bob\")")
+  inspect(bare.title is None, content="true")
+  inspect(bare.shapes.map(shape => shape.label).join("|"), content="Alice|Bob")
+  inspect(
+    model("C4Context\ntitle\tOwn\nSystem(a, \"A\")").title.unwrap_or("-"),
+    content="Own",
+  )
+}
