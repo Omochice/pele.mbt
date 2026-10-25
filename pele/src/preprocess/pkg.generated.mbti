@@ -6,11 +6,11 @@ import {
 }
 
 // Values
-pub fn cleanup_comments(String) -> String
+pub fn cleanup_comments(String, steps? : Array[Array[(Int32, Int32, Int32)]]) -> String
 
-pub fn encode_entities(String) -> String
+pub fn encode_entities(String, steps? : Array[Array[(Int32, Int32, Int32)]]) -> String
 
-pub fn preprocess(String) -> Preprocessed raise @errors.PeleError
+pub fn preprocess(String, steps? : Array[Array[(Int32, Int32, Int32)]]) -> Preprocessed raise @errors.PeleError
 
 // Errors
 

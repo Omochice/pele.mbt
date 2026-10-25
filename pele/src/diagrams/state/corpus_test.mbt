@@ -53,7 +53,7 @@ let corpus_cases : Array[(String, String)] = [
   ),
   ("stateDiagram-v2\n        A --> B : info: key: value", "c6279be8"),
   ("stateDiagram-v2\n        myState : status: active", "6b67cd45"),
-  ("\nstateDiagram-v2\n[*] --> ${prop}\n${prop} --> [*]", "dceb988b"),
+  ("\nstateDiagram-v2\n[*] --> ${prop}\n${prop} --> [*]", "37605066"),
   (
     "stateDiagram-v2\n      State1\n      note right of State1\n        this sentence contains send note inside the note text\n      end note\n      State1 --> State2",
     "55273387",

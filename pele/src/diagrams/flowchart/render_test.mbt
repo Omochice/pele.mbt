@@ -396,6 +396,50 @@ test "entity codes show in errors as they were written" {
 }
 
 ///|
+/// The line, column and snippet of the error `source` fails with.
+fn position_of(source : String) -> String {
+  let _ = @core.render(
+    [@flowchart.flowchart],
+    source,
+    @types.RenderOptions::default(),
+  ) catch {
+    @errors.PeleError(failure) =>
+      return "\{failure.line}:\{failure.column}\n\{failure.snippet}\n\{failure.message}"
+  }
+  "rendered"
+}
+
+///|
+test "errors report lines and columns in the source as written" {
+  inspect(
+    position_of("flowchart TD\nA[a#35;b] --> -->"),
+    content=(
+      #|2:15
+      #|A[a#35;b] --> -->
+      #|--------------^
+      #|Parse error on line 2:
+      #|A[a#35;b] --> -->
+      #|--------------^
+      #|Expecting 'NODE_STRING', got 'LINK'
+    ),
+  )
+  inspect(
+    position_of(
+      "---\ntitle: T\n---\n\n%% A comment\nflowchart TD\n  A --> B\n  C --> --> D",
+    ),
+    content=(
+      #|8:9
+      #|  C --> --> D
+      #|--------^
+      #|Parse error on line 8:
+      #|  C --> --> D
+      #|--------^
+      #|Expecting 'NODE_STRING', got 'LINK'
+    ),
+  )
+}
+
+///|
 /// A host that has exactly the icons in `pairs`, by name.
 fn host(pairs : Array[(String, String)]) -> @types.IconResolver {
   let icons = Map::from_array(pairs)
