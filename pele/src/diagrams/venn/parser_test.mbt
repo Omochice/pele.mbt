@@ -139,6 +139,25 @@ test "the character before a comment is kept" {
 }
 
 ///|
+test "a title takes its text from its own line only" {
+  inspect(
+    dump("venn-beta\ntitle\nNext\nset A"),
+    content=(
+      #|syntax: Parse error on line 2:
+      #|title
+      #|^
+      #|Expecting 'EOF', 'NEWLINE', 'TITLE', 'SET', 'UNION', 'TEXT', 'INDENT_TEXT', 'STYLE', got 'IDENTIFIER'
+    ),
+  )
+  inspect(
+    dump("venn-beta\ntitle \r\nset A"),
+    content=(
+      #|title="\r" subsets=[A:10:-] texts=[] styles=[]
+    ),
+  )
+}
+
+///|
 test "a text after an unindented statement does not continue the set" {
   inspect(
     dump("venn-beta\nset A\ntext A x\n  text y"),
