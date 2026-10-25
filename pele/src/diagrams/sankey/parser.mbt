@@ -134,7 +134,48 @@ fn Reader::field(self : Reader) -> String raise @errors.PeleError {
 
 ///|
 fn Reader::name(self : Reader) -> String raise @errors.PeleError {
-  @util.trim(self.field()).replace_all(old="\"\"", new="\"")
+  let start = if self.i < self.tokens.starts.length() {
+    self.tokens.starts[self.i]
+  } else {
+    self.src.length()
+  }
+  let text = @util.trim(self.field()).replace_all(old="\"\"", new="\"")
+  // Entity codes can encode characters excluded by the lexer.
+  if has_invalid_xml(@text.decode_entities(text)) {
+    raise @errors.syntax_error(
+      "sankey",
+      self.src,
+      start,
+      "Invalid XML character in node name",
+    )
+  }
+  text
+}
+
+///|
+/// Whether `text` holds a control character, a lone surrogate or a noncharacter XML forbids.
+fn has_invalid_xml(text : String) -> Bool {
+  let n = text.length()
+  let mut i = 0
+  while i < n {
+    let c = @util.code_at(text, i)
+    if c <= 8 || c == 0xb || c == 0xc || (c >= 0xe && c <= 0x1f) || c >= 0xfffe {
+      return true
+    }
+    if c >= 0xd800 && c <= 0xdbff {
+      let low = if i + 1 < n { @util.code_at(text, i + 1) } else { 0 }
+      if !(low >= 0xdc00 && low <= 0xdfff) {
+        return true
+      }
+      i += 2
+      continue
+    }
+    if c >= 0xdc00 && c <= 0xdfff {
+      return true
+    }
+    i += 1
+  }
+  false
 }
 
 ///|

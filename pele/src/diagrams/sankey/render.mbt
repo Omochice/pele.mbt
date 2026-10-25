@@ -159,7 +159,7 @@ fn draw(
   let mut min_y = 0.0
   let mut max_y = chart_height
   let labels = nodes.mapi((i, node) => {
-    let id = db.nodes[i].id
+    let name = @text.decode_entities(db.nodes[i].id)
     let value = if show_values {
       "\{prefix}\{rounded(node.value)}\{suffix}"
     } else {
@@ -169,9 +169,9 @@ fn draw(
       if value != "" {
         // Joined at its final size, because interpolating a name of hundreds of millions of
         // characters would need a doubling builder's block past what wasm allocates.
-        [id, " ", value].join("")
+        [name, " ", value].join("")
       } else {
-        id
+        name
       },
       small,
       0,
@@ -210,6 +210,7 @@ fn draw(
   let nodes_out = @svg.Markup::new()
   for i, node in nodes {
     let id = db.nodes[i].id
+    let name = @text.decode_entities(id)
     let height = @cmp.maximum(node.height, 1.0)
     nodes_out.write("<rect class=\"pele-sankey-node\" data-id=\"")
     nodes_out.write_esc_text(id)
@@ -302,7 +303,7 @@ fn draw(
       labels_out.write(
         "<text\{position} fill=\"none\" stroke=\"var(--_bg)\" stroke-width=\"3\" stroke-linejoin=\"round\">",
       )
-      labels_out.write_esc(id)
+      labels_out.write_esc(name)
       if value != "" {
         labels_out.write(" ")
         labels_out.write_esc(value)
@@ -310,7 +311,7 @@ fn draw(
       labels_out.write("</text>")
     }
     labels_out.write("<text\{position}>")
-    labels_out.write_esc(id)
+    labels_out.write_esc(name)
     if value != "" {
       labels_out.write(
         " <tspan class=\"pele-sankey-value\" fill=\"var(--_m)\">",
