@@ -1,10 +1,7 @@
-// Reads the logs every CI job uploaded into one octocov custom metric set, so the coverage
-// comment shows the checks as a single table.
-// A check whose log is missing or holds no summary still gets a row, because a job that failed
-// before its check printed a summary is what the table most needs to show, and octocov's custom
-// metrics take only numbers, so the row carries 0 and says in its unit that there was no result.
-//
 // Usage: node scripts/merge-checks.mjs <logs dir> <out>
+//
+// A check without a summary still gets a row, since a failed job is what the table most needs to show.
+// octocov's custom metrics take only numbers, so that row carries 0 and says in its unit that there was no result.
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';

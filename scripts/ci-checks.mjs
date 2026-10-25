@@ -1,4 +1,3 @@
-// The CI checks whose results the coverage comment tables, in the order of its rows.
 // octocov's custom metrics hold a number per row, so each check reads the number that tells
 // whether it passed from its log, and puts the rest of its summary into the unit printed after it.
 
@@ -23,8 +22,8 @@ function fuzz(log) {
 }
 
 /**
- * Each check's metric key, which also names its log, the row name, and how its log is read.
- * `parse` returns null when the log holds no summary, as when the check stopped early.
+ * The coverage comment's rows, in order; `key` also names the check's log, `<key>.log`.
+ * `parse` returns null when the log holds no summary.
  */
 export const CHECKS = [
   { key: 'moon-test', name: 'moon test', parse: moonTest },
