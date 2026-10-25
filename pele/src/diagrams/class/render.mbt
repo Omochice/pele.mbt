@@ -86,8 +86,12 @@ priv struct End {
 priv struct Card {
   text : String
   math : @text.Label?
-  x : Double
-  y : Double
+  mut x : Double
+  mut y : Double
+  w : Double
+  h : Double
+  /// The node the card belongs to, which it stays beside when disconnected parts are moved.
+  parent : Int32
 }
 
 ///|
@@ -757,6 +761,7 @@ fn draw(
   let mut max_y = layout.height
   let cards : Array[Card] = []
   let card = (
+    parent : Int32,
     raw : String,
     width : Double,
     x : Double,
@@ -781,7 +786,15 @@ fn draw(
       cx += (if after { 1.0 } else { -1.0 }) * (9 + width / 2)
       cy += (if side == 0 { -1.0 } else { 1.0 }) * (3 + h / 2)
     }
-    cards.push({ text: @text.decode_entities(raw), math, x: cx, y: cy, })
+    cards.push({
+      text: @text.decode_entities(raw),
+      math,
+      x: cx,
+      y: cy,
+      w: width,
+      h,
+      parent,
+    })
     min_x = @util.js_min(min_x, cx - width / 2)
     max_x = @util.js_max(max_x, cx + width / 2)
     min_y = @util.js_min(min_y, cy - h / 2)
@@ -800,8 +813,23 @@ fn draw(
       let view = views[ce.src]
       let x = c.x + view.w / 2
       let spread = @util.js_min(view.h / 2 - 4, 8 + k.to_double() * 6)
-      card(edge.start_label_right, start_room[i], x, c.y - spread, 1, false)
-      card(edge.end_label_left, end_room[i], x, c.y + spread, 1, true)
+      card(
+        ce.src,
+        edge.start_label_right,
+        start_room[i],
+        x,
+        c.y - spread,
+        1,
+        false,
+      )
+      card(ce.dst, edge.end_label_left, end_room[i], x, c.y + spread, 1, true)
+      ce.label_x = c.x +
+        view.w / 2 +
+        LOOP +
+        k.to_double() * 8 +
+        4 +
+        ce.label_w / 2
+      ce.label_y = c.y
     } else if route.length() >= 6 {
       let last = route.length() - 3
       let (from_side, from_after) = match starts[i] {
@@ -813,6 +841,7 @@ fn draw(
         None => (0, true)
       }
       card(
+        ce.src,
         edge.start_label_right,
         start_room[i],
         route[0],
@@ -821,6 +850,7 @@ fn draw(
         from_after,
       )
       card(
+        ce.dst,
         edge.end_label_left,
         end_room[i],
         route[last],
@@ -828,6 +858,31 @@ fn draw(
         to_side,
         to_after,
       )
+    }
+  }
+  if options.max_width is Some(available) &&
+    available > 0 &&
+    max_x - min_x + 2 * pad > available {
+    let card_nodes = cards.map(item => {
+      ..@layout.cnode(item.w, item.h, parent=item.parent),
+      x: item.x,
+      y: item.y,
+    })
+    let wrapped = @layout.wrap_components(
+      cnodes + card_nodes,
+      cedges,
+      @util.js_max(1, available - 2 * pad),
+      number_option(conf, "nodeSpacing", NODE_SEP),
+    )
+    if wrapped is Some(size) {
+      for i, item in cards {
+        item.x = card_nodes[i].x
+        item.y = card_nodes[i].y
+      }
+      min_x = 0
+      min_y = 0
+      max_x = size.width
+      max_y = size.height
     }
   }
   let ox = pad - min_x
@@ -955,8 +1010,6 @@ fn draw(
       let y = c.y + oy
       let spread = @util.js_min(view.h / 2 - 4, 8 + k * 6)
       let reach = LOOP + k * 8
-      ce.label_x = c.x + view.w / 2 + reach + 4 + ce.label_w / 2
-      ce.label_y = c.y
       {
         d: "M\{num(x + start_trim)},\{num(y - spread)}C\{num(x + reach + start_trim)},\{num(y - spread)} \{num(x + reach + end_trim)},\{num(y + spread)} \{num(x + end_trim)},\{num(y + spread)}",
         sx: x,

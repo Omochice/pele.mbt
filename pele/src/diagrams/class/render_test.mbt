@@ -5,8 +5,14 @@ fn drawn(
   source : String,
   max_width? : Double,
   config? : Map[String, Json],
+  auto_direction? : Bool,
 ) -> Result[@types.RenderResult, @errors.Failure] {
-  let options = { ..@types.RenderOptions::default(), max_width, config, }
+  let options = {
+    ..@types.RenderOptions::default(),
+    max_width,
+    config,
+    auto_direction,
+  }
   Ok(@core.render([@class.class], source, options)) catch {
     @errors.PeleError(failure) => Err(failure)
   }
@@ -462,6 +468,143 @@ test "keeps every element inside the picture" {
       ),
     ),
     "216 x 176 []\n<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-class\" viewBox=\"0 0 216 176\" width=\"216\" height=\"176\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_hw:var(--pele-heading-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"class\"><g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\"><g class=\"pele-edge pele-relation\" data-id=\"id_A_B_1\"><path d=\"M132,78L127.5,78C108,78 108,38 88.5,38L72,38\"/><path class=\"pele-marker\" d=\"M144,78L132,84L132,72Z\" stroke-linejoin=\"round\"/></g><g class=\"pele-edge pele-relation\" data-id=\"id_A_C_2\"><path d=\"M144,98L127.5,98C109.44,98 109.44,138 91.39,138L79,138\"/><path class=\"pele-marker\" d=\"M72,138L80,134.64L80,141.36Z\" fill=\"var(--_l)\" stroke=\"none\"/></g></g><g class=\"pele-cardinalities\" font-size=\"13\" fill=\"var(--_m)\"><text class=\"pele-cardinality\" x=\"135.75\" y=\"66.55\" text-anchor=\"middle\">x</text><text class=\"pele-cardinality\" x=\"80.25\" y=\"58.55\" text-anchor=\"middle\">y</text><text class=\"pele-cardinality\" x=\"135.75\" y=\"118.55\" text-anchor=\"middle\">z</text><text class=\"pele-cardinality\" x=\"81.69\" y=\"126.55\" text-anchor=\"middle\">w</text></g><g class=\"pele-nodes\"><g class=\"pele-node pele-class\" data-id=\"A\" transform=\"translate(176,88)\"><rect x=\"-32\" y=\"-30\" width=\"64\" height=\"60\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><path class=\"pele-divider\" d=\"M-32,10H32M-32,20H32\" fill=\"none\" stroke=\"var(--_b)\"/><text class=\"pele-label\" font-weight=\"var(--_hw)\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"0\" y=\"-4.4\">A</tspan></text></g><g class=\"pele-node pele-class\" data-id=\"B\" transform=\"translate(40,38)\"><rect x=\"-32\" y=\"-30\" width=\"64\" height=\"60\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><path class=\"pele-divider\" d=\"M-32,10H32M-32,20H32\" fill=\"none\" stroke=\"var(--_b)\"/><text class=\"pele-label\" font-weight=\"var(--_hw)\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"0\" y=\"-4.4\">B</tspan></text></g><g class=\"pele-node pele-class\" data-id=\"C\" transform=\"translate(40,138)\"><rect x=\"-32\" y=\"-30\" width=\"64\" height=\"60\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><path class=\"pele-divider\" d=\"M-32,10H32M-32,20H32\" fill=\"none\" stroke=\"var(--_b)\"/><text class=\"pele-label\" font-weight=\"var(--_hw)\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"0\" y=\"-4.4\">C</tspan></text></g></g></svg>",
+  )
+}
+
+///|
+fn count_of(svg : String, needle : String) -> Int32 {
+  let mut n = 0
+  let mut at = @util.index_of(svg, needle)
+  while at != -1 {
+    n += 1
+    at = @util.index_of(svg, needle, from=at + needle.length())
+  }
+  n
+}
+
+///|
+/// Where the class `id` is moved to.
+fn place_of(svg : String, id : String) -> (Double, Double) {
+  let head = "data-id=\"\{id}\" transform=\"translate("
+  let from = @util.index_of(svg, head) + head.length()
+  let comma = @util.index_of(svg, ",", from~)
+  let close = @util.index_of(svg, ")", from=comma)
+  (
+    @util.parse_float(@util.slice(svg, from, end=comma)),
+    @util.parse_float(@util.slice(svg, comma + 1, end=close)),
+  )
+}
+
+///|
+fn result_of(
+  source : String,
+  max_width? : Double,
+  auto_direction? : Bool,
+) -> @types.RenderResult {
+  match drawn(source, max_width?, auto_direction?) {
+    Ok(result) => result
+    Err(failure) => abort(failure.message)
+  }
+}
+
+///|
+test "wraps disconnected classes to fit maxWidth, keeping each relation as it was" {
+  let body = "classA <|-- classB\nclassC *-- classD\nclassE o-- classF\nclassG <-- classH\nclassI -- classJ\nclassK <.. classL\nclassM <|.. classN\nclassO .. classP"
+  let wrapped = []
+  for dir in ["TB", "BT", "LR", "RL"] {
+    let source = "classDiagram\ndirection \{dir}\n\{body}"
+    let natural = result_of(source, auto_direction=false)
+    for max_width in [320.0, 600.0] {
+      let narrow = result_of(source, max_width~, auto_direction=false)
+      if natural.width <= max_width {
+        assert_eq(narrow.svg, natural.svg)
+        continue
+      }
+      wrapped.push("\{dir} \{max_width}: \{narrow.width}x\{narrow.height}")
+      assert_true(narrow.width <= max_width)
+      assert_true(narrow.height > natural.height)
+      assert_eq(count_of(narrow.svg, "class=\"pele-node pele-class"), 16)
+      assert_eq(count_of(narrow.svg, "class=\"pele-edge pele-relation"), 8)
+      for pair in ["AB", "CD", "EF", "GH", "IJ", "KL", "MN", "OP"] {
+        let a = "class" + pair.view(end_offset=1).to_owned()
+        let b = "class" + pair.view(start_offset=1).to_owned()
+        let (fx, fy) = place_of(narrow.svg, a)
+        let (tx, ty) = place_of(narrow.svg, b)
+        let (ofx, ofy) = place_of(natural.svg, a)
+        let (otx, oty) = place_of(natural.svg, b)
+        assert_true((tx - fx - (otx - ofx)).abs() < 0.005)
+        assert_true((ty - fy - (oty - ofy)).abs() < 0.005)
+      }
+    }
+    assert_eq(
+      result_of(source, max_width=natural.width, auto_direction=false).svg,
+      natural.svg,
+    )
+  }
+  inspect(
+    wrapped.join("\n"),
+    content=(
+      #|TB 320: 210x840
+      #|TB 600: 552x408
+      #|BT 320: 210x840
+      #|BT 600: 552x408
+    ),
+  )
+}
+
+///|
+test "leaves connected diagrams and diagrams that already fit as they are" {
+  for
+    body in [
+      "A --> B\nB --> C\nC --> A : uses", "A --> B\nclass C", "namespace N {\nclass A\nclass B\n}\nA --> B : calls",
+    ] {
+    let source = "classDiagram\n" + body
+    let natural = snapshot(drawn(source))
+    for max_width in [0.0, -1, @double.not_a_number, @double.infinity, 5000] {
+      assert_eq(snapshot(drawn(source, max_width~)), natural)
+    }
+    if body != "A --> B\nclass C" {
+      assert_eq(snapshot(drawn(source, max_width=1)), natural)
+    }
+  }
+}
+
+///|
+test "keeps the layout when wrapping would not make it narrower" {
+  let source = "classDiagram\nnote \"From Duck till Zebra\"\nAnimal <|-- Duck\nAnimal <|-- Fish\nAnimal <|-- Zebra\nAnimal <|-- Cat\nAnimal <|-- Dog"
+  assert_eq(snapshot(drawn(source, max_width=320)), snapshot(drawn(source)))
+}
+
+///|
+test "moves namespaces, notes, relation labels and loops with their classes" {
+  let parts = []
+  for i in 0..<4 {
+    parts.push(
+      "namespace N\{i} {\nclass A\{i}\nclass B\{i}\n}\nA\{i} \"one\" --> \"many\" B\{i} : uses\nnote for A\{i} \"check\"\nB\{i} --> B\{i} : retry",
+    )
+  }
+  let source = "classDiagram\n" + parts.join("\n")
+  let natural = result_of(source)
+  let narrow = result_of(source, max_width=600)
+  assert_true(narrow.svg != natural.svg)
+  assert_true(narrow.width <= 600)
+  for
+    token in [
+      "pele-class", "pele-namespace", "pele-note", "pele-cardinality", "pele-marker",
+    ] {
+    assert_eq(count_of(narrow.svg, token), count_of(natural.svg, token))
+  }
+  assert_true(
+    !narrow.svg.contains("NaN") &&
+    !narrow.svg.contains("Infinity") &&
+    !narrow.svg.contains("undefined"),
+  )
+  inspect(
+    snapshot(Ok(narrow)),
+    content=(
+      #|528 x 868 []
+      #|<svg xmlns="http://www.w3.org/2000/svg" class="pele pele-class" viewBox="0 0 528 868" width="528" height="868" style="max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_hw:var(--pele-heading-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)" fill="var(--_fg)" role="graphics-document document" aria-roledescription="class"><g class="pele-clusters"><g class="pele-cluster pele-namespace" data-id="N0"><rect x="8" y="117" width="236" height="297" fill="var(--_a)" fill-opacity="0.5" stroke="var(--_b)" style="rx:var(--_r)"/><text class="pele-cluster-label" fill="var(--_m)" x="32.22" y="142.6" text-anchor="middle">N0</text></g><g class="pele-cluster pele-namespace" data-id="N1"><rect x="284" y="117" width="236" height="297" fill="var(--_a)" fill-opacity="0.5" stroke="var(--_b)" style="rx:var(--_r)"/><text class="pele-cluster-label" fill="var(--_m)" x="308.22" y="142.6" text-anchor="middle">N1</text></g><g class="pele-cluster pele-namespace" data-id="N2"><rect x="8" y="563" width="236" height="297" fill="var(--_a)" fill-opacity="0.5" stroke="var(--_b)" style="rx:var(--_r)"/><text class="pele-cluster-label" fill="var(--_m)" x="32.22" y="588.6" text-anchor="middle">N2</text></g><g class="pele-cluster pele-namespace" data-id="N3"><rect x="284" y="563" width="236" height="297" fill="var(--_a)" fill-opacity="0.5" stroke="var(--_b)" style="rx:var(--_r)"/><text class="pele-cluster-label" fill="var(--_m)" x="308.22" y="588.6" text-anchor="middle">N3</text></g></g><g class="pele-edges" fill="none" stroke="var(--_l)" stroke-linecap="round"><g class="pele-edge pele-note-edge" data-id="edgeNote0"><path d="M126,45L126,177" stroke-dasharray="2 4"/></g><g class="pele-edge pele-note-edge" data-id="edgeNote1"><path d="M402,45L402,177" stroke-dasharray="2 4"/></g><g class="pele-edge pele-note-edge" data-id="edgeNote2"><path d="M126,491L126,623" stroke-dasharray="2 4"/></g><g class="pele-edge pele-note-edge" data-id="edgeNote3"><path d="M402,491L402,623" stroke-dasharray="2 4"/></g><g class="pele-edge pele-relation" data-id="id_A0_B0_1"><path d="M126,237L126,327"/><path class="pele-marker" d="M126,334L122.64,326L129.36,326Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-relation" data-id="id_B0_B0_2"><path d="M158,356C184,356 191,372 165,372"/><path class="pele-marker" d="M158,372L166,368.64L166,375.36Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-relation" data-id="id_A1_B1_3"><path d="M402,237L402,327"/><path class="pele-marker" d="M402,334L398.64,326L405.36,326Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-relation" data-id="id_B1_B1_4"><path d="M434,356C460,356 467,372 441,372"/><path class="pele-marker" d="M434,372L442,368.64L442,375.36Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-relation" data-id="id_A2_B2_5"><path d="M126,683L126,773"/><path class="pele-marker" d="M126,780L122.64,772L129.36,772Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-relation" data-id="id_B2_B2_6"><path d="M158,802C184,802 191,818 165,818"/><path class="pele-marker" d="M158,818L166,814.64L166,821.36Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-relation" data-id="id_A3_B3_7"><path d="M402,683L402,773"/><path class="pele-marker" d="M402,780L398.64,772L405.36,772Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge pele-relation" data-id="id_B3_B3_8"><path d="M434,802C460,802 467,818 441,818"/><path class="pele-marker" d="M434,818L442,814.64L442,821.36Z" fill="var(--_l)" stroke="none"/></g></g><g class="pele-edge-labels" font-size="14"><g class="pele-edge-label" data-id="id_A0_B0_1"><rect x="107.22" y="275" width="37.57" height="21" rx="3" fill="var(--_bg)"/><text x="126" y="290.4" text-anchor="middle">uses</text></g><g class="pele-edge-label" data-id="id_B0_B0_2"><rect x="190" y="353.5" width="36" height="21" rx="3" fill="var(--_bg)"/><text x="208" y="368.9" text-anchor="middle">retry</text></g><g class="pele-edge-label" data-id="id_A1_B1_3"><rect x="383.22" y="275" width="37.57" height="21" rx="3" fill="var(--_bg)"/><text x="402" y="290.4" text-anchor="middle">uses</text></g><g class="pele-edge-label" data-id="id_B1_B1_4"><rect x="466" y="353.5" width="36" height="21" rx="3" fill="var(--_bg)"/><text x="484" y="368.9" text-anchor="middle">retry</text></g><g class="pele-edge-label" data-id="id_A2_B2_5"><rect x="107.22" y="721" width="37.57" height="21" rx="3" fill="var(--_bg)"/><text x="126" y="736.4" text-anchor="middle">uses</text></g><g class="pele-edge-label" data-id="id_B2_B2_6"><rect x="190" y="799.5" width="36" height="21" rx="3" fill="var(--_bg)"/><text x="208" y="814.9" text-anchor="middle">retry</text></g><g class="pele-edge-label" data-id="id_A3_B3_7"><rect x="383.22" y="721" width="37.57" height="21" rx="3" fill="var(--_bg)"/><text x="402" y="736.4" text-anchor="middle">uses</text></g><g class="pele-edge-label" data-id="id_B3_B3_8"><rect x="466" y="799.5" width="36" height="21" rx="3" fill="var(--_bg)"/><text x="484" y="814.9" text-anchor="middle">retry</text></g></g><g class="pele-cardinalities" font-size="13" fill="var(--_m)"><text class="pele-cardinality" x="145.84" y="253.55" text-anchor="middle">one</text><text class="pele-cardinality" x="150.89" y="326.55" text-anchor="middle">many</text><text class="pele-cardinality" x="421.84" y="253.55" text-anchor="middle">one</text><text class="pele-cardinality" x="426.89" y="326.55" text-anchor="middle">many</text><text class="pele-cardinality" x="145.84" y="699.55" text-anchor="middle">one</text><text class="pele-cardinality" x="150.89" y="772.55" text-anchor="middle">many</text><text class="pele-cardinality" x="421.84" y="699.55" text-anchor="middle">one</text><text class="pele-cardinality" x="426.89" y="772.55" text-anchor="middle">many</text></g><g class="pele-nodes"><g class="pele-node pele-class" data-id="A0" transform="translate(126,207)"><rect x="-32" y="-30" width="64" height="60" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/><path class="pele-divider" d="M-32,10H32M-32,20H32" fill="none" stroke="var(--_b)"/><text class="pele-label" font-weight="var(--_hw)" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.4">A0</tspan></text></g><g class="pele-node pele-class" data-id="B0" transform="translate(126,364)"><rect x="-32" y="-30" width="64" height="60" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/><path class="pele-divider" d="M-32,10H32M-32,20H32" fill="none" stroke="var(--_b)"/><text class="pele-label" font-weight="var(--_hw)" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.4">B0</tspan></text></g><g class="pele-node pele-class" data-id="A1" transform="translate(402,207)"><rect x="-32" y="-30" width="64" height="60" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/><path class="pele-divider" d="M-32,10H32M-32,20H32" fill="none" stroke="var(--_b)"/><text class="pele-label" font-weight="var(--_hw)" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.4">A1</tspan></text></g><g class="pele-node pele-class" data-id="B1" transform="translate(402,364)"><rect x="-32" y="-30" width="64" height="60" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/><path class="pele-divider" d="M-32,10H32M-32,20H32" fill="none" stroke="var(--_b)"/><text class="pele-label" font-weight="var(--_hw)" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.4">B1</tspan></text></g><g class="pele-node pele-class" data-id="A2" transform="translate(126,653)"><rect x="-32" y="-30" width="64" height="60" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/><path class="pele-divider" d="M-32,10H32M-32,20H32" fill="none" stroke="var(--_b)"/><text class="pele-label" font-weight="var(--_hw)" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.4">A2</tspan></text></g><g class="pele-node pele-class" data-id="B2" transform="translate(126,810)"><rect x="-32" y="-30" width="64" height="60" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/><path class="pele-divider" d="M-32,10H32M-32,20H32" fill="none" stroke="var(--_b)"/><text class="pele-label" font-weight="var(--_hw)" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.4">B2</tspan></text></g><g class="pele-node pele-class" data-id="A3" transform="translate(402,653)"><rect x="-32" y="-30" width="64" height="60" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/><path class="pele-divider" d="M-32,10H32M-32,20H32" fill="none" stroke="var(--_b)"/><text class="pele-label" font-weight="var(--_hw)" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.4">A3</tspan></text></g><g class="pele-node pele-class" data-id="B3" transform="translate(402,810)"><rect x="-32" y="-30" width="64" height="60" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/><path class="pele-divider" d="M-32,10H32M-32,20H32" fill="none" stroke="var(--_b)"/><text class="pele-label" font-weight="var(--_hw)" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.4">B3</tspan></text></g><g class="pele-node pele-note" data-id="note0" transform="translate(126,26.5)"><path d="M-30.28,-18.5H22.28L30.28,-10.5V18.5H-30.28Z" fill="var(--_a)" stroke="var(--_b)" stroke-linejoin="round"/><path d="M22.28,-18.5V-10.5H30.28" fill="none" stroke="var(--_b)" stroke-linejoin="round"/><text class="pele-label" font-size="14" x="0" y="4.9" text-anchor="middle">check</text></g><g class="pele-node pele-note" data-id="note1" transform="translate(402,26.5)"><path d="M-30.28,-18.5H22.28L30.28,-10.5V18.5H-30.28Z" fill="var(--_a)" stroke="var(--_b)" stroke-linejoin="round"/><path d="M22.28,-18.5V-10.5H30.28" fill="none" stroke="var(--_b)" stroke-linejoin="round"/><text class="pele-label" font-size="14" x="0" y="4.9" text-anchor="middle">check</text></g><g class="pele-node pele-note" data-id="note2" transform="translate(126,472.5)"><path d="M-30.28,-18.5H22.28L30.28,-10.5V18.5H-30.28Z" fill="var(--_a)" stroke="var(--_b)" stroke-linejoin="round"/><path d="M22.28,-18.5V-10.5H30.28" fill="none" stroke="var(--_b)" stroke-linejoin="round"/><text class="pele-label" font-size="14" x="0" y="4.9" text-anchor="middle">check</text></g><g class="pele-node pele-note" data-id="note3" transform="translate(402,472.5)"><path d="M-30.28,-18.5H22.28L30.28,-10.5V18.5H-30.28Z" fill="var(--_a)" stroke="var(--_b)" stroke-linejoin="round"/><path d="M22.28,-18.5V-10.5H30.28" fill="none" stroke="var(--_b)" stroke-linejoin="round"/><text class="pele-label" font-size="14" x="0" y="4.9" text-anchor="middle">check</text></g></g></svg>
+    ),
   )
 }
 
