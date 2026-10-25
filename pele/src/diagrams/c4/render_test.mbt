@@ -594,6 +594,24 @@ test "joins neighbours with a straight line between their borders" {
 }
 
 ///|
+test "fits the label of a line between neighbours in the gap between them" {
+  for
+    args in [
+      "\"Sends a fairly long description of the relationship\"", "\"Makes API calls to\", \"JSON/HTTPS\"",
+    ] {
+    let svg = svg_of(
+      "C4Context\nSystem(a, \"A\")\nSystem(b, \"B\")\nRel(a, b, \{args})",
+    )
+    let a = box(svg, "a")
+    let b = box(svg, "b")
+    let label = box(svg, "a-b")
+    assert_eq(b.1, a.1)
+    assert_true(label.0 >= a.0 + a.2)
+    assert_true(label.0 + label.2 <= b.0)
+  }
+}
+
+///|
 test "ends a line on the outline of a person, a database, and a queue" {
   let svg = svg_of(
     (

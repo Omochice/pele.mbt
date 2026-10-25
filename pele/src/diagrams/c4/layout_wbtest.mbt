@@ -36,11 +36,11 @@ test "lays shapes out in rows of four and boundaries in rows of two" {
       36,
     ),
     content=(
-      #|group global at 0,0 size 1164x664 head=28 headW=0 labels=
+      #|group global at 0,0 size 1224x664 head=28 headW=0 labels=
       #|  node s1 rect at 0,0 size 216x66 textH=42 labels=51.924/18,19.568/24,0/0,0/0
-      #|  node s2 rect at 316,0 size 216x66 textH=42 labels=51.924/18,19.568/24,0/0,0/0
-      #|  node s3 rect at 632,0 size 216x66 textH=42 labels=51.924/18,19.568/24,0/0,0/0
-      #|  node s4 rect at 948,0 size 216x66 textH=42 labels=51.924/18,19.568/24,0/0,0/0
+      #|  node s2 rect at 336,0 size 216x66 textH=42 labels=51.924/18,19.568/24,0/0,0/0
+      #|  node s3 rect at 672,0 size 216x66 textH=42 labels=51.924/18,19.568/24,0/0,0/0
+      #|  node s4 rect at 1008,0 size 216x66 textH=42 labels=51.924/18,19.568/24,0/0,0/0
       #|  node s5 rect at 0,154 size 216x66 textH=42 labels=51.924/18,19.568/24,0/0,0/0
       #|group b1 at 0,268 size 272x174 head=80 headW=48.399 labels=24,20,0
       #|  node i1 rect at 28,348 size 216x66 textH=42 labels=51.924/18,13.344/24,0/0,0/0
@@ -62,15 +62,15 @@ test "gives each kind of element its shape and stretches a row to its tallest" {
       36,
     ),
     content=(
-      #|group global at 0,0 size 1164x294 head=28 headW=0 labels=
+      #|group global at 0,0 size 1224x294 head=28 headW=0 labels=
       #|  node p person at 0,0 size 216x116 textH=42 labels=50.604/18,10.672/24,0/0,0/0
-      #|  node pe person at 316,0 size 216x116 textH=66 labels=96.624/18,21.344/24,0/0,97.552/20
-      #|  node s rect at 632,0 size 216x116 textH=42 labels=51.924/18,10.672/24,0/0,0/0
-      #|  node sd cyl at 948,0 size 216x116 textH=42 labels=68.604/18,22.224/24,0/0,0/0
+      #|  node pe person at 336,0 size 216x116 textH=66 labels=96.624/18,21.344/24,0/0,97.552/20
+      #|  node s rect at 672,0 size 216x116 textH=42 labels=51.924/18,10.672/24,0/0,0/0
+      #|  node sd cyl at 1008,0 size 216x116 textH=42 labels=68.604/18,22.224/24,0/0,0/0
       #|  node sq h-cyl at 0,204 size 216x90 textH=42 labels=88.62/18,23.12/24,0/0,0/0
-      #|  node ce rect at 316,204 size 216x90 textH=62 labels=109.296/18,22.224/24,24.57/20,0/0
-      #|  node cde cyl at 632,204 size 216x90 textH=42 labels=125.976/18,33.776/24,0/0,0/0
-      #|  node cqe h-cyl at 948,204 size 216x90 textH=60 labels=112.344/36,34.672/24,0/0,0/0
+      #|  node ce rect at 336,204 size 216x90 textH=62 labels=109.296/18,22.224/24,24.57/20,0/0
+      #|  node cde cyl at 672,204 size 216x90 textH=42 labels=125.976/18,33.776/24,0/0,0/0
+      #|  node cqe h-cyl at 1008,204 size 216x90 textH=60 labels=112.344/36,34.672/24,0/0,0/0
       #|boxes=8
     ),
   )
@@ -85,11 +85,11 @@ test "takes a shape from $shape, $sprite or $tags" {
       36,
     ),
     content=(
-      #|group global at 0,0 size 1164x246 head=28 headW=0 labels=
+      #|group global at 0,0 size 1224x246 head=28 headW=0 labels=
       #|  node a cyl at 0,0 size 216x92 textH=42 labels=51.924/18,11.552/24,0/0,0/0
-      #|  node b h-cyl at 316,0 size 216x92 textH=42 labels=51.924/18,11.552/24,0/0,0/0
-      #|  node c person at 632,0 size 216x92 textH=42 labels=51.924/18,11.552/24,0/0,0/0
-      #|  node d rect at 948,0 size 216x92 textH=42 labels=51.924/18,11.552/24,0/0,0/0
+      #|  node b h-cyl at 336,0 size 216x92 textH=42 labels=51.924/18,11.552/24,0/0,0/0
+      #|  node c person at 672,0 size 216x92 textH=42 labels=51.924/18,11.552/24,0/0,0/0
+      #|  node d rect at 1008,0 size 216x92 textH=42 labels=51.924/18,11.552/24,0/0,0/0
       #|  node e rect at 0,180 size 216x66 textH=42 labels=68.604/18,10.672/24,0/0,0/0
       #|boxes=5
     ),
@@ -105,10 +105,10 @@ test "wraps long text and widens for a word that cannot wrap" {
       36,
     ),
     content=(
-      #|group global at 0,0 size 1264.1599999999999x150 head=28 headW=0 labels=
+      #|group global at 0,0 size 1304.1599999999999x150 head=28 headW=0 labels=
       #|  node a rect at 0,0 size 216x150 textH=126 labels=51.924/18,11.552/24,0/0,187.096/80
-      #|  node b rect at 316,0 size 632.16x150 textH=42 labels=51.924/18,604.16/24,0/0,0/0
-      #|  node c rect at 1048.1599999999999,0 size 216x150 textH=106 labels=63.276/18,11.552/24,51.298/20,98.25399999999999/40
+      #|  node b rect at 336,0 size 632.16x150 textH=42 labels=51.924/18,604.16/24,0/0,0/0
+      #|  node c rect at 1088.1599999999999,0 size 216x150 textH=106 labels=63.276/18,11.552/24,51.298/20,98.25399999999999/40
       #|boxes=3
     ),
   )
@@ -245,9 +245,9 @@ test "puts named shapes in the top level" {
       36,
     ),
     content=(
-      #|group global at 0,0 size 532x288 head=28 headW=0 labels=
+      #|group global at 0,0 size 552x288 head=28 headW=0 labels=
       #|  node  rect at 0,0 size 216x66 textH=42 labels=51.924/18,92.448/24,0/0,0/0
-      #|  node global rect at 316,0 size 216x66 textH=42 labels=51.924/18,12.448/24,0/0,0/0
+      #|  node global rect at 336,0 size 216x66 textH=42 labels=51.924/18,12.448/24,0/0,0/0
       #|group global at 0,114 size 272x174 head=80 headW=82.688 labels=24,20,0
       #|  node a rect at 28,194 size 216x66 textH=42 labels=51.924/18,11.552/24,0/0,0/0
       #|boxes=4

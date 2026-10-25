@@ -11,7 +11,9 @@ const PAD_X : Double = 14
 const PAD_Y : Double = 12
 
 ///|
-const GAP_X : Double = 100
+/// Room between two columns for the label of a line across them, clear of an arrowhead on either side,
+/// with an arrowhead's length to spare for a word a little wider than the label room.
+const GAP_X : Double = NARROW + LABEL_PAD + 3 * @svg.ARROW
 
 ///|
 const GAP_Y : Double = 88
