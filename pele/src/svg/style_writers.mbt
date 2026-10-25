@@ -213,7 +213,12 @@ pub fn style_contains(css : String, needle : String) -> Bool {
       0x22 => (feed("&quot;"), 1)
       _ => {
         let (invalid, width) = invalid_xml_at(css, i)
-        (!invalid && feed(@util.slice(css, i, end=i + width)), width)
+        let matched = !invalid &&
+          (
+            found(css.unsafe_get(i).to_int()) ||
+            (width == 2 && found(css.unsafe_get(i + 1).to_int()))
+          )
+        (matched, width)
       }
     }
     if hit {
