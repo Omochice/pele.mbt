@@ -105,6 +105,15 @@ fn merge(target : @types.Config, source : @types.Config) -> @types.Config {
 }
 
 ///|
+/// A new pass appended to `steps`, or `None` when nothing is recorded.
+fn recording(steps : Array[Array[@errors.Edit]]?) -> Array[@errors.Edit]? {
+  guard steps is Some(steps) else { return None }
+  let edits = []
+  steps.push(edits)
+  Some(edits)
+}
+
+///|
 /// Removes `%%` comment lines, keeping directives, and leading whitespace.
 /// The edits are appended to `steps`, as two passes, when it is given.
 pub fn cleanup_comments(
@@ -112,11 +121,7 @@ pub fn cleanup_comments(
   steps? : Array[Array[@errors.Edit]],
 ) -> String {
   let cleaned = if text.contains("%%") {
-    let edits = []
-    if steps is Some(steps) {
-      steps.push(edits)
-    }
-    remove_comment_lines(text, edits)
+    remove_comment_lines(text, recording(steps))
   } else {
     text
   }
@@ -129,7 +134,7 @@ pub fn cleanup_comments(
 
 ///|
 /// Does what `text.replace(/^\s*%%(?!{)[^\n]+\n?/gm, '')` does, listing what it removes in `edits`.
-fn remove_comment_lines(text : String, edits : Array[@errors.Edit]) -> String {
+fn remove_comment_lines(text : String, edits : Array[@errors.Edit]?) -> String {
   let out = StringBuilder()
   let mut last = 0
   let mut p = 0
@@ -155,7 +160,9 @@ fn remove_comment_lines(text : String, edits : Array[@errors.Edit]) -> String {
         end += 1
       }
       @util.write_range(out, text, last, p)
-      edits.push((p, end, 0))
+      if edits is Some(edits) {
+        edits.push((p, end, 0))
+      }
       last = end
       p = end
     } else {
@@ -418,10 +425,7 @@ fn directives(
       None => at = @util.index_of(normalized, "%%{", from=at + 1)
     }
   }
-  let edits = []
-  if steps is Some(steps) {
-    steps.push(edits)
-  }
+  let edits = recording(steps)
   let out = StringBuilder()
   let mut last = 0
   let mut found = @util.index_of(text, "%%{")
@@ -429,7 +433,9 @@ fn directives(
     match match_directive(text, found) {
       Some((end, _, _)) => {
         @util.write_range(out, text, last, found)
-        edits.push((found, end, 0))
+        if edits is Some(edits) {
+          edits.push((found, end, 0))
+        }
         last = end
         found = @util.index_of(text, "%%{", from=end)
       }
@@ -525,10 +531,7 @@ fn drop_color_semicolons(
   keyword : String,
   steps : Array[Array[@errors.Edit]]?,
 ) -> String {
-  let edits = []
-  if steps is Some(steps) {
-    steps.push(edits)
-  }
+  let edits = recording(steps)
   let mut from = @util.index_of(text, keyword)
   if from == -1 {
     return text
@@ -559,7 +562,9 @@ fn drop_color_semicolons(
     if hash != -1 {
       let semi = @util.last_index_of(text, ";", from=line_end - 1)
       if semi > hash {
-        edits.push((semi, semi + 1, 0))
+        if edits is Some(edits) {
+          edits.push((semi, semi + 1, 0))
+        }
         @util.write_range(out, text, last, semi)
         last = semi + 1
       }
@@ -592,10 +597,7 @@ pub fn encode_entities(
     "classDef",
     steps,
   )
-  let edits = []
-  if steps is Some(steps) {
-    steps.push(edits)
-  }
+  let edits = recording(steps)
   let out = StringBuilder()
   let mut last = 0
   let mut i = @util.index_of(source, "#")
@@ -607,7 +609,9 @@ pub fn encode_entities(
     if end > i + 1 && @util.code_at(source, end) == ';'.to_int() {
       let inner = @util.slice(source, i + 1, end~)
       let numeric = inner.iter().all(c => c >= '0' && c <= '9')
-      edits.push((i, end + 1, inner.length() + (if numeric { 5 } else { 4 })))
+      if edits is Some(edits) {
+        edits.push((i, end + 1, inner.length() + (if numeric { 5 } else { 4 })))
+      }
       @util.write_range(out, source, last, i)
       out.write_string(
         if numeric {
