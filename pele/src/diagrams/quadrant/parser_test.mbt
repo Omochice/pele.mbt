@@ -625,7 +625,9 @@ test "comments run to the end of the line" {
   )
   inspect(
     read("quadrantChart\nquadrant-1 a%%x\n"),
-    content="syntax: Parse error on line 2:\nquadrant-1 a%%x\n---------------^\nExpecting 'STR', 'MD_STR', 'ALPHA', 'NUM', 'UNICODE_TEXT', 'PUNCTUATION', got 'NEWLINE'",
+    content=(
+      #|title=- accTitle=- accDescr=- quadrants="a",-,-,- x=-|- y=-|- points= classes=
+    ),
   )
   inspect(
     read("quadrantChart\n%%\n%%%%\nquadrant-1 a"),
@@ -779,7 +781,9 @@ test "a string can hold anything up to its closing quote" {
   )
   inspect(
     read("quadrantChart\nquadrant-1 \"%% not a comment\""),
-    content="syntax: Parse error on line 2:\nquadrant-1 \"%% not a comment\"\n-----------------------------^\nExpecting 'STR', 'MD_STR', 'ALPHA', 'NUM', 'UNICODE_TEXT', 'PUNCTUATION', got 'NEWLINE'",
+    content=(
+      #|title=- accTitle=- accDescr=- quadrants="%% not a comment",-,-,- x=-|- y=-|- points= classes=
+    ),
   )
 }
 
@@ -918,5 +922,18 @@ test "repeated statements replace earlier ones" {
   inspect(
     read("quadrantChart\naccTitle: a\naccTitle: b"),
     content="title=- accTitle=\"b\" accDescr=- quadrants=-,-,-,- x=-|- y=-|- points= classes=",
+  )
+}
+
+///|
+test "the character before a comment is kept" {
+  inspect(
+    read("quadrantChart\nquadrant-1 A%% note"),
+    content=(
+      #|title=- accTitle=- accDescr=- quadrants="A",-,-,- x=-|- y=-|- points= classes=
+    ),
+  )
+  assert_true(
+    read("quadrantChart\nquadrant-1 A:%% note").has_prefix("syntax: "),
   )
 }
