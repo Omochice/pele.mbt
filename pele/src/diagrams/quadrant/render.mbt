@@ -290,8 +290,9 @@ fn render_quadrant(
     )
     circles.push(circle)
   }
-  // A label goes below its point, or above, right or left of it when that is the first place
-  // that is inside the chart and free. A second round lets it cross the gaps between quadrants.
+  // A label goes below its point, or above, right or left of it, or below its quadrant's title,
+  // when that is the first place that is inside the chart and free.
+  // A second round lets it cross the gaps between quadrants.
   // Large charts skip the search for a free place.
   let careful = dots.length() <= CAREFUL
   if careful {
@@ -308,6 +309,21 @@ fn render_quadrant(
     let half_w = text.width / 2
     let half_h = text.size * 0.6 + (text.height - text.line_height) / 2
     let away = reach + text_pad
+    let inset = @util.js_min(away, @util.js_max(0, (tile_w - text.width) / 2))
+    let heading = 8 +
+      4 *
+      (if cx < left + w / 2 {
+        if cy < top + h / 2 {
+          1
+        } else {
+          2
+        }
+      } else if cy < top + h / 2 {
+        0
+      } else {
+        3
+      })
+    let below = @util.js_max(cy + away, taken[heading + 3] + text_pad) + half_h
     let spots = [
       cx,
       cy + away + half_h,
@@ -317,16 +333,20 @@ fn render_quadrant(
       cy,
       cx - away - half_w,
       cy,
+      cx,
+      below,
     ]
     let mut tx = cx
     let mut ty = spots[1]
     let mut found = false
-    for k = 0; k < 16; k = k + 2 {
-      let spot = k % 8
-      let x = if spot < 4 && text.width < w {
+    for k = 0; k < 20; k = k + 2 {
+      let spot = k % 10
+      // A label moved below a title keeps clear of the plot's edge.
+      let margin = if spot == 8 { inset } else { 0 }
+      let x = if (spot < 4 || spot == 8) && text.width < w {
         @util.js_min(
-          @util.js_max(spots[spot], left + half_w),
-          left + w - half_w,
+          @util.js_max(spots[spot], left + half_w + margin),
+          left + w - half_w - margin,
         )
       } else {
         spots[spot]
@@ -340,7 +360,7 @@ fn render_quadrant(
       }
       let free = !careful ||
         is_clear(
-          if k < 8 {
+          if k < 10 {
             0
           } else {
             8

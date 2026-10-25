@@ -307,7 +307,13 @@ test "a point label goes where it is inside the chart and free" {
     tags(
       "text", "quadrantChart\n One: [0.5, 0]\n Two: [0.5, 0.02]\n Three: [1, 1]\n Four: [0, 0.5]",
     ),
-    content="500x500\n<text class=\"pele-label\" x=\"250\" y=\"479\" text-anchor=\"middle\">\n<text class=\"pele-label\" x=\"250\" y=\"469.32\" text-anchor=\"middle\">\n<text class=\"pele-label\" x=\"476.33\" y=\"29.4\" text-anchor=\"middle\">\n<text class=\"pele-label\" x=\"30.34\" y=\"254.2\" text-anchor=\"middle\">",
+    content=(
+      #|500x500
+      #|<text class="pele-label" x="250" y="479" text-anchor="middle">
+      #|<text class="pele-label" x="250" y="469.32" text-anchor="middle">
+      #|<text class="pele-label" x="476.33" y="29.4" text-anchor="middle">
+      #|<text class="pele-label" x="30.34" y="273.4" text-anchor="middle">
+    ),
   )
   inspect(
     tags(
@@ -320,6 +326,59 @@ test "a point label goes where it is inside the chart and free" {
       "text", "quadrantChart\n A very long point label that wraps around: [0.5, 0.5]",
     ),
     content="500x500\n<text class=\"pele-label\" text-anchor=\"middle\" xml:space=\"preserve\">",
+  )
+}
+
+///|
+let crowded_chart : String = "quadrantChart\n  title Q4 candidates by effort and impact\n  x-axis Low effort --> High effort\n  y-axis Low impact --> High impact\n  quadrant-1 Plan carefully\n  quadrant-2 Do first\n  quadrant-3 Reconsider\n  quadrant-4 Quick wins\n"
+
+///|
+test "a point label at a quadrant's edge goes below the quadrant's title before crossing a gap" {
+  inspect(
+    tags(
+      "text",
+      crowded_chart +
+      "  Chart gallery editor: [0.72, 0.85]\n  First-run onboarding: [0.35, 0.78]\n  Shared folders: [0.88, 0.70]\n  Export to PDF: [0.30, 0.55]\n  Custom themes: [0.45, 0.20]\n  Calendar sync: [0.65, 0.30]\n  Keyboard shortcut sheet: [0.12, 0.48]",
+    ),
+    content=(
+      #|500x500
+      #|<text class="pele-title" font-weight="var(--_tw)" text-anchor="middle" xml:space="preserve">
+      #|<text class="pele-label" fill="var(--_fg)" stroke="none" x="378.5" y="64.6" text-anchor="middle">
+      #|<text class="pele-label" fill="var(--_fg)" stroke="none" x="147.5" y="64.6" text-anchor="middle">
+      #|<text class="pele-label" fill="var(--_fg)" stroke="none" x="147.5" y="278.6" text-anchor="middle">
+      #|<text class="pele-label" fill="var(--_fg)" stroke="none" x="378.5" y="278.6" text-anchor="middle">
+      #|<text x="148.5" y="486.4" text-anchor="middle">
+      #|<text x="377.5" y="486.4" text-anchor="middle">
+      #|<text x="0" y="4.9" text-anchor="middle">
+      #|<text x="0" y="4.9" text-anchor="middle">
+      #|<text class="pele-label" x="363.76" y="127" text-anchor="middle">
+      #|<text class="pele-label" x="194.3" y="156.68" text-anchor="middle">
+      #|<text class="pele-label" x="437.04" y="190.6" text-anchor="middle">
+      #|<text class="pele-label" x="171.4" y="219.8" text-anchor="middle">
+      #|<text class="pele-label" x="188.09" y="385.4" text-anchor="middle">
+      #|<text class="pele-label" x="331.7" y="360.2" text-anchor="middle">
+      #|<text class="pele-label" x="109.03" y="301.4" text-anchor="middle">
+    ),
+  )
+}
+
+///|
+test "a point label stays beside its point when there is room, before going below the title" {
+  inspect(
+    tags("text", crowded_chart + "  Left edge: [0, 0.5]", max_width=320),
+    content=(
+      #|320x320
+      #|<text class="pele-title" font-weight="var(--_tw)" text-anchor="middle" xml:space="preserve">
+      #|<text class="pele-label" fill="var(--_fg)" stroke="none" x="243.5" y="64.6" text-anchor="middle">
+      #|<text class="pele-label" fill="var(--_fg)" stroke="none" x="102.5" y="64.6" text-anchor="middle">
+      #|<text class="pele-label" fill="var(--_fg)" stroke="none" x="102.5" y="188.6" text-anchor="middle">
+      #|<text class="pele-label" fill="var(--_fg)" stroke="none" x="243.5" y="188.6" text-anchor="middle">
+      #|<text x="103.5" y="306.4" text-anchor="middle">
+      #|<text x="242.5" y="306.4" text-anchor="middle">
+      #|<text x="0" y="4.9" text-anchor="middle">
+      #|<text x="0" y="4.9" text-anchor="middle">
+      #|<text class="pele-label" x="59.02" y="151" text-anchor="middle">
+    ),
   )
 }
 
