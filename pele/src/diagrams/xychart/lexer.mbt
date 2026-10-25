@@ -267,11 +267,6 @@ fn Lexer::step(self : Lexer) -> Bool {
     self.p = self.line_end(p + 2)
     return true
   }
-  // Mermaid's second comment rule takes any character before `%%` with it, a line break included.
-  if c != 125 && next == 37 && @util.code_at(src, p + 2) == 37 {
-    self.p = self.line_end(p + 3)
-    return true
-  }
   if c == 10 || c == 13 {
     // Only a line break that directly follows an axis or a series ends it.
     // One after spaces is skipped with them, and the state carries on to the next line.

@@ -1262,3 +1262,20 @@ test "the position an error is reported at" {
     ),
   )
 }
+
+///|
+test "the character before a comment is kept" {
+  inspect(
+    parsed("xychart-beta\nx-axis [a, b]\nbar [1,2]%% note"),
+    content=(
+      #|title=- accTitle=- accDescr=-
+      #|orientation=-
+      #|x=band("" ["a","b"]) set=true
+      #|y="" 1..2 set=false
+      #|bar "" ["a"=1,"b"=2] labels=-
+    ),
+  )
+  assert_true(
+    parsed("xychart-beta\ntitle Sales:%% note\nbar [1,2]").has_prefix("error: "),
+  )
+}
