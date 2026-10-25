@@ -77,9 +77,8 @@ fn whole_fill(attr : String) -> String? {
   )
   // A JavaScript `.` matches no line terminator.
   for i in 0..<color.length() {
-    match @util.code_at(color, i) {
-      '\n' | '\r' | '\u{2028}' | '\u{2029}' => return None
-      _ => ()
+    if @util.is_line_end(@util.code_at(color, i)) {
+      return None
     }
   }
   Some(color)
@@ -230,9 +229,7 @@ fn draw(
   }
   let node_style = (i : Int32) => custom.get(db.nodes[i].id).unwrap_or("")
   let node_color = (i : Int32) => {
-    let css = node_style(i)
-    let attr = if css == "" { "" } else { " style=\"\{@svg.esc(css)}\"" }
-    match whole_fill(attr) {
+    match whole_fill(@svg.style_attribute(node_style(i))) {
       Some(color) => color
       None => @svg.series_color(i)
     }

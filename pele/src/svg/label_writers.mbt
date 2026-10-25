@@ -26,7 +26,7 @@ pub fn write_label_styled(
     () => attrs.contains(" font-weight=\""),
     () => attrs.contains(" font-style=\""),
     () => attrs.contains(" font-family=\""),
-    () => attrs + attribute(css),
+    () => attrs + style_attribute(css),
     icons?,
   )
 }
@@ -63,7 +63,7 @@ pub fn write_label_with_id(
     () => holds_around_id(before, id, after, " font-weight=\""),
     () => holds_around_id(before, id, after, " font-style=\""),
     () => holds_around_id(before, id, after, " font-family=\""),
-    () => before + esc_text(id) + after + attribute(css),
+    () => before + esc_text(id) + after + style_attribute(css),
     icons?,
   )
 }

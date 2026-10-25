@@ -93,6 +93,8 @@ pub fn shared_style(@text.Label) -> Int32
 
 pub fn span_style(Int32) -> String
 
+pub fn style_attribute(String) -> String
+
 pub fn style_contains(String, String) -> Bool
 
 pub fn text_style(String, Int32) -> String

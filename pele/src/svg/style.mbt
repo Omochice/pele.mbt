@@ -152,7 +152,8 @@ fn declarations_css(
 }
 
 ///|
-fn attribute(css : String) -> String {
+/// The escaped `style` attribute that sets `css`, or nothing when `css` is empty.
+pub fn style_attribute(css : String) -> String {
   if css == "" {
     ""
   } else {
@@ -165,9 +166,9 @@ fn attribute(css : String) -> String {
 pub fn resolve_style(declarations : Array[String]) -> ResolvedStyle {
   let raw = resolve_raw_style(declarations)
   {
-    shape: attribute(raw.shape),
-    line: attribute(raw.line),
-    text: attribute(raw.text),
+    shape: style_attribute(raw.shape),
+    line: style_attribute(raw.line),
+    text: style_attribute(raw.text),
     stroke: raw.stroke,
     bold: raw.bold,
     italic: raw.italic,
