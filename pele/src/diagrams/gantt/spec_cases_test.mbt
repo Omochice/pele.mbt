@@ -207,3 +207,27 @@ test "allows a link to an id that is an object key in JavaScript" {
     )
   }
 }
+
+///|
+test "a task whose name runs into %% keeps it" {
+  let tasks = scheduled_tasks(
+    "gantt\ndateFormat YYYY-MM-DD\nA%% label : 2026-10-24, 1d",
+  )
+  inspect(tasks.map(task => task.task).join("|"), content="A%% label ")
+}
+
+///|
+test "a bare title is no title, and a title after a tab is kept" {
+  let db = model("gantt\ntitle\nsection Work\nTask :2026-01-01, 1d")
+  inspect(db.title is None, content="true")
+  let tasks = scheduled_tasks(
+    "gantt\ntitle\nsection Work\nTask :2026-01-01, 1d",
+  )
+  inspect(
+    tasks.map(task => "\{task.task}/\{task.section}").join("|"),
+    content=(
+      #|Task /Work
+    ),
+  )
+  inspect(model("gantt\ntitle\tPlan\n").title.unwrap_or("-"), content="Plan")
+}

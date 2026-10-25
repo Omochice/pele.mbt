@@ -106,6 +106,8 @@ test "diagrams lay text out with the measurer" {
   inspect(flowchart_size("{\"measurer\":{}}"), content="64x64")
   inspect(
     flowchart_size("{\"measurer\":{\"styles\":{\"0\":{\"default\":2000}}}}"),
-    content="212x88",
+    content=(
+      #|212x82
+    ),
   )
 }

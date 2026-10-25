@@ -170,7 +170,7 @@ fn[T] Parser::fail(self : Parser, detail : String) -> T raise @errors.PeleError 
   let start = self.starts[self.p]
   let (line, column) = line_column(self.src, start)
   raise @errors.pele_error(
-    "Error parsing usecase diagram: \{detail} at line \{line}, column \{column} [\{start},\{self.ends[self.p]})",
+    "Error parsing usecase diagram: \{detail} at \{location_text(self.src, start, self.ends[self.p])}",
     code=Syntax,
     kind="usecase",
     line~,

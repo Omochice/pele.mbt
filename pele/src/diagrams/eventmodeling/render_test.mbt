@@ -268,5 +268,19 @@ test "data is wrapped to the card and notes follow the cards" {
 test "a width that leaves no room for a card is exceeded rather than squeezed" {
   let result = drawn(NARROW, max_width=100)
   inspect(result.width, content="176")
-  inspect(result.height, content="727")
+  inspect(
+    result.height,
+    content=(
+      #|697
+    ),
+  )
+}
+
+///|
+test "long data lines wrap without splitting emoji" {
+  let drawn = svg(
+    "eventmodeling\ntf 01 cmd A {" + "a".repeat(47) + "\u{1f600}Z}",
+  )
+  assert_true(drawn.contains(">" + "a".repeat(47) + "\u{1f600}</tspan>"))
+  assert_true(drawn.contains(">Z</tspan>"))
 }

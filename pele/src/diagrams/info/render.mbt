@@ -1,7 +1,7 @@
 ///|
 /// The version the diagram prints.
 /// pele reads it from package.json at build time, so it must follow the pele release being ported.
-const VERSION : String = "1.8.0"
+const VERSION : String = "1.10.0"
 
 ///|
 fn render_info(

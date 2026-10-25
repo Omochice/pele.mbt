@@ -58,6 +58,18 @@ test "esc escapes markup and drops control characters" {
 }
 
 ///|
+test "esc drops lone surrogates and U+FFFE and U+FFFF, and keeps surrogate pairs" {
+  let lone = (c : Int32) => String::from_array([c.unsafe_to_char()])
+  inspect(
+    @svg.esc(
+      "a\u{fffe}b\u{ffff}c" + lone(0xd800) + "d" + lone(0xdc00) + "e\u{1f600}&",
+    ),
+    content="abcde\u{1f600}&amp;",
+  )
+  inspect(@svg.esc(lone(0xdc00) + lone(0xd800)), content="")
+}
+
+///|
 fn label(text : String, size : Double, base : Int32) -> @text.Label {
   @text.layout_label(
     Some(text),
@@ -95,7 +107,9 @@ test "emphasis shared by every span is written on the text element" {
     written(out => {
       @svg.write_label(out, label("<b>x</b><br><b>y</b>", 14, 0), 50, 50, "")
     }),
-    content="<text font-weight=\"var(--_w)\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"50\" y=\"44.4\">x</tspan><tspan x=\"50\" y=\"65.4\">y</tspan></text>",
+    content=(
+      #|<text font-weight="var(--_w)" text-anchor="middle" xml:space="preserve"><tspan x="50" y="45.9">x</tspan><tspan x="50" y="63.9">y</tspan></text>
+    ),
   )
 }
 
@@ -105,7 +119,9 @@ test "lines and spans become tspans" {
     written(out => {
       @svg.write_label(out, label("a<br>b", 14, 0), 303.89, 135, "")
     }),
-    content="<text text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"303.89\" y=\"129.4\">a</tspan><tspan x=\"303.89\" y=\"150.4\">b</tspan></text>",
+    content=(
+      #|<text text-anchor="middle" xml:space="preserve"><tspan x="303.89" y="130.9">a</tspan><tspan x="303.89" y="148.9">b</tspan></text>
+    ),
   )
   inspect(
     written(out => {
@@ -180,7 +196,9 @@ test "only lines holding an icon place their spans one by one" {
         icons=car_icons,
       )
     }),
-    content="<text class=\"x\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"-22.9\" y=\"-30.4\" text-anchor=\"start\">Go </tspan><tspan x=\"0\" y=\"-6.4\">fast and</tspan><tspan x=\"0\" y=\"17.6\">far</tspan><tspan x=\"0\" y=\"41.6\">away</tspan></text><svg class=\"pele-icon\" data-icon=\"fa:fa-car\" x=\"2.9\" y=\"-44.8\" width=\"17.6\" height=\"17.6\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path/></svg>",
+    content=(
+      #|<text class="x" text-anchor="middle" xml:space="preserve"><tspan x="-22.9" y="-25.9" text-anchor="start">Go </tspan><tspan x="0" y="-4.9">fast and</tspan><tspan x="0" y="16.1">far</tspan><tspan x="0" y="37.1">away</tspan></text><svg class="pele-icon" data-icon="fa:fa-car" x="2.9" y="-40.3" width="17.6" height="17.6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path/></svg>
+    ),
   )
 }
 

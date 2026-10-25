@@ -36,7 +36,9 @@ test "svg math is drawn in a nested svg box centered on its line" {
 test "lines are placed by their own heights" {
   inspect(
     math_label_svg("one $$tall$$<br>two", 16, ""),
-    content="<text text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"-15.57\" y=\"13.6\" text-anchor=\"start\">one </tspan><tspan x=\"10\" y=\"47.6\">two</tspan></text><svg class=\"pele-math\" x=\"15.57\" y=\"-12\" width=\"20\" height=\"40\" overflow=\"visible\"><path/></svg>",
+    content=(
+      #|<text text-anchor="middle" xml:space="preserve"><tspan x="-15.57" y="15.1" text-anchor="start">one </tspan><tspan x="10" y="47.6">two</tspan></text><svg class="pele-math" x="15.57" y="-10.5" width="20" height="40" overflow="visible"><path/></svg>
+    ),
   )
 }
 

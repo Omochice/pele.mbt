@@ -107,7 +107,7 @@ pub fn AgentflowDb::add_vertex(Self, String, text? : @flowchart.FlowText, kind? 
 pub fn AgentflowDb::add_vertex_mapping(Self, String, String?, Loc) -> Unit
 pub fn AgentflowDb::destruct_link(Self, String, start? : String) -> @flowchart.LinkInfo
 pub fn AgentflowDb::extend_vertex_mapping(Self, String, Loc) -> Unit
-pub fn AgentflowDb::new(max_edges? : Int32, inherit_dir? : Bool, direction? : String, line_offset? : Int32) -> Self
+pub fn AgentflowDb::new(max_edges? : Int32, inherit_dir? : Bool, direction? : String, line_offset? : Int32, source? : String) -> Self
 pub fn AgentflowDb::semantic_model(Self) -> SemanticModel
 pub fn AgentflowDb::set_acc_description(Self, String) -> Unit
 pub fn AgentflowDb::set_acc_title(Self, String) -> Unit

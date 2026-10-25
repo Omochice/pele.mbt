@@ -84,12 +84,18 @@ fn hard_wrap(text : String, columns : Int32) -> Array[String] {
       out.push(line)
       continue
     }
-    let mut i = 0
-    while i < line.length() {
-      out.push(
-        @util.slice(line, i, end=@cmp.minimum(i + columns, line.length())),
-      )
-      i += columns
+    // Lines are cut between code points, so an emoji is never split into its surrogates.
+    let mut from = 0
+    while from < line.length() {
+      let mut end = from
+      for _ in 0..<columns {
+        if end >= line.length() {
+          break
+        }
+        end = @util.code_point_at(line, end).1
+      }
+      out.push(@util.slice(line, from, end~))
+      from = end
     }
   }
   out

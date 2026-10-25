@@ -667,3 +667,48 @@ test "accepts the link keyword as a name" {
     ),
   )
 }
+
+///|
+test "the character before a comment is kept" {
+  inspect(
+    parsed("sequenceDiagram\n  A->>B:%% comment"),
+    content=(
+      #|actor "A" name="A" description="A" wrap=false kind="participant" box=none prev=- next="B" links={} properties={} details=-
+      #|actor "B" name="B" description="B" wrap=false kind="participant" box=none prev="A" next=- links={} properties={} details=-
+      #|message 0 from="A" to="B" kind=0 message="%% comment" wrap=false activate=false placement=- central=0 numbering=-
+      #|title=- accTitle=- accDescr=-
+    ),
+  )
+  assert_true(
+    parsed("sequenceDiagram\n  autonumber 5%% comment").has_prefix("error: "),
+  )
+}
+
+///|
+test "a bare title is no title" {
+  inspect(
+    [
+      parsed("sequenceDiagram\ntitle\nA->>B: Hi\nB->>A: Bye"),
+      parsed("sequenceDiagram\ntitle: \nA->>B: Hi\nB->>A: Bye"),
+      parsed("sequenceDiagram\n  title My title\n  A->>B: x"),
+    ].join("\n---\n"),
+    content=(
+      #|actor "A" name="A" description="A" wrap=false kind="participant" box=none prev=- next="B" links={} properties={} details=-
+      #|actor "B" name="B" description="B" wrap=false kind="participant" box=none prev="A" next=- links={} properties={} details=-
+      #|message 0 from="A" to="B" kind=0 message="Hi" wrap=false activate=false placement=- central=0 numbering=-
+      #|message 1 from="B" to="A" kind=0 message="Bye" wrap=false activate=false placement=- central=0 numbering=-
+      #|title=- accTitle=- accDescr=-
+      #|---
+      #|actor "A" name="A" description="A" wrap=false kind="participant" box=none prev=- next="B" links={} properties={} details=-
+      #|actor "B" name="B" description="B" wrap=false kind="participant" box=none prev="A" next=- links={} properties={} details=-
+      #|message 0 from="A" to="B" kind=0 message="Hi" wrap=false activate=false placement=- central=0 numbering=-
+      #|message 1 from="B" to="A" kind=0 message="Bye" wrap=false activate=false placement=- central=0 numbering=-
+      #|title=- accTitle=- accDescr=-
+      #|---
+      #|actor "A" name="A" description="A" wrap=false kind="participant" box=none prev=- next="B" links={} properties={} details=-
+      #|actor "B" name="B" description="B" wrap=false kind="participant" box=none prev="A" next=- links={} properties={} details=-
+      #|message 0 from="A" to="B" kind=0 message="x" wrap=false activate=false placement=- central=0 numbering=-
+      #|title="My title" accTitle=- accDescr=-
+    ),
+  )
+}

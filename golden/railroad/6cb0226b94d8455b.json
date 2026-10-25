@@ -2,7 +2,7 @@
   "error": {
     "name": "PeleError",
     "code": "syntax",
-    "message": "Lexical error on line 2. Unrecognized text.\n        rule = terminal(\"unclosed) ;\n------------------------^",
+    "message": "Lexical error on line 3. Unrecognized text.\n        rule = terminal(\"unclosed) ;\n------------------------^",
     "type": "railroad",
     "mermaidType": "railroad"
   }

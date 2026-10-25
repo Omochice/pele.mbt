@@ -8,6 +8,12 @@ pub const STYLE_ITALIC : Int32 = 2
 
 pub const STYLE_MONO : Int32 = 4
 
+pub const STYLE_SUB : Int32 = 8
+
+pub const STYLE_SUP : Int32 = 16
+
+pub const STYLE_UNDERLINE : Int32 = 32
+
 pub fn decode_entities(String) -> String
 
 pub fn has_math(Array[Span]) -> Bool
@@ -19,6 +25,8 @@ pub fn label_line(Label, Int32) -> Label
 pub fn layout_label(String?, Bool, TextMeasurer, Double, Double, base? : Int32) -> Label
 
 pub fn line_middle(Label, Int32) -> Double
+
+pub fn marker_end(String, Int32) -> Int32
 
 pub fn math_active() -> Bool
 
@@ -35,6 +43,8 @@ pub fn[T] with_icons(((String) -> String?)?, () -> T raise?) -> T raise?
 pub fn[T] with_math(((String, Double) -> Json?)?, () -> T raise?) -> T raise?
 
 pub fn[T] without_math(() -> T raise?) -> T raise?
+
+pub fn written_codes(String) -> String
 
 // Errors
 

@@ -11,6 +11,22 @@ pub const STYLE_ITALIC : Int32 = 2
 pub const STYLE_MONO : Int32 = 4
 
 ///|
+/// Emphasis bit of a text span, set for subscript.
+pub const STYLE_SUB : Int32 = 8
+
+///|
+/// Emphasis bit of a text span, set for superscript.
+pub const STYLE_SUP : Int32 = 16
+
+///|
+/// Emphasis bit of a text span, set for underlined text.
+pub const STYLE_UNDERLINE : Int32 = 32
+
+///|
+/// Approximately how much smaller CSS draws text under `font-size="smaller"`.
+const SMALLER : Double = 1.2
+
+///|
 /// Measures the advance width of text, in pixels.
 pub(all) struct TextMeasurer {
   width_of : (String, Double, Int32) -> Double
@@ -42,6 +58,7 @@ fn is_wide(c : Int32) -> Bool {
 
 ///|
 fn is_zero_width(c : Int32) -> Bool {
+  c == 0xad ||
   (c >= 0x300 && c <= 0x36f) ||
   (c >= 0x200b && c <= 0x200f) ||
   (c >= 0xdc00 && c <= 0xdfff) ||
@@ -52,6 +69,11 @@ fn is_zero_width(c : Int32) -> Bool {
 ///|
 fn metrics_width(text : String, size : Double, style : Int32) -> Double {
   let mono = (style & STYLE_MONO) != 0
+  let size = if (style & (STYLE_SUB | STYLE_SUP)) != 0 {
+    size / SMALLER
+  } else {
+    size
+  }
   let table = if (style & STYLE_BOLD) != 0 {
     bold_advances
   } else {

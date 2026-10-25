@@ -125,8 +125,7 @@ fn Resolver::error(
 
 ///|
 fn Resolver::at(self : Resolver, span : Span) -> String {
-  let (line, column) = line_column(self.src, span.0)
-  "line \{line}, column \{column} [\{span.0},\{span.1})"
+  location_text(self.src, span.0, span.1)
 }
 
 ///|

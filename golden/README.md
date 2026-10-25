@@ -1,6 +1,6 @@
 # Golden fixtures
 
-The files in this directory are the reference outputs of pele v1.8.0, rendered from pele's own test corpus.
+The files in this directory are the reference outputs of pele v1.10.0, rendered from pele's own test corpus.
 A port is correct when it reproduces every file here.
 The directory is generated, so it MUST NOT be edited by hand.
 The port's output ceiling, its known constraints, and how it is tested beyond these fixtures are described under [doc/](../doc/README.md).
@@ -114,7 +114,8 @@ Markup that fails the check counts as unresolved.
 }
 ```
 
-The style is pele's bit set of 1 for bold, 2 for italic, and 4 for monospace, so it runs from 0 to 7, and `styles` is keyed by it as a decimal string.
+The style is pele's bit set of 1 for bold, 2 for italic, 4 for monospace, 8 for subscript, 16 for superscript and 32 for underline, so it runs from 0 to 63, and `styles` is keyed by it as a decimal string.
+pele passes a custom measurer the label's font size even for subscript and superscript text, so a table that wants those smaller has to give them advances of their own.
 A style without an object of its own uses the one under `"0"`, and without that every advance is 0.
 The width of a text is computed one UTF-16 code unit at a time:
 
@@ -128,7 +129,7 @@ The ranges are those of `isZeroWidth` and `isWide` in pele's `src/text/measurer.
 `default` is 0 when it is not a number, and `wide` is `default` when it is not a number.
 The width is the sum of the advances times the font size divided by `unitsPerEm`, in that order, as pele's built-in measurer computes it with 1000.
 `unitsPerEm` is 1000 when it is not a positive number, so a font's own units can be passed without converting them.
-Line height is not part of the measurer: pele always sets lines 1.5 times the font size apart.
+Line height is not part of the measurer: pele sets the line of a one-line label 1.5 times the font size high, and the lines of a label with several lines 1.3 times the font size apart, rounded to a whole pixel.
 Other `measurer` keys are ignored.
 
 ### The generated maps

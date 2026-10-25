@@ -165,3 +165,32 @@ test "a link start is written as link_start makes it, recording the same link" {
     }
   }
 }
+
+///|
+test "internal links keep note names as written" {
+  for
+    name in [
+      "Note", "Folder\\note", "Note%23heading", "\u{1f469}\u{200d}\u{1f4bb}", "Note#heading",
+      "  Note  ",
+    ] {
+    assert_true(
+      @url.internal_link(name, @types.RenderOptions::default()),
+      msg=name,
+    )
+  }
+}
+
+///|
+test "internal links refuse names a browser would read as a script or network address" {
+  let options = {
+    ..@types.RenderOptions::default(),
+    link_schemes: Some(["about"]),
+  }
+  for
+    name in [
+      "javascript:alert(1)", "java\u{fffe}script:alert(1)", "\\\\nevil.example",
+      "\t/\\nevil.example", "/\t/evil.example",
+    ] {
+    assert_false(@url.internal_link(name, options), msg=name.escape())
+  }
+}

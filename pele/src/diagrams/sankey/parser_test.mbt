@@ -51,7 +51,7 @@ test "the keyword is recognised once, wherever it first appears" {
 ///|
 test "a character outside the CSV alphabet stops the lexer" {
   inspect(
-    tokens("sankey\n\u{e9}"),
+    tokens("sankey\n\u{80}"),
     content="SANKEY:\"sankey\"@0 NEWLINE:\"\\n\"@6 NON_ESCAPED_TEXT:\"\"@7 STUCK:\"\"@7",
   )
   inspect(
@@ -112,10 +112,48 @@ test "quoted fields keep commas and unescape doubled quotes" {
 }
 
 ///|
-test "amounts are read as parseFloat reads them" {
+test "amounts are read as far as they are numbers, and a non-finite one is refused" {
+  let shown = []
+  for
+    value in [
+      "1e3", "-2.5", "+.5", "7.", "-2.5x", "abc", "", "\"1\n2\"", "Infinity", "1e400",
+      "-", "0x10", "1e", " 3 ",
+    ] {
+    shown.push(value.escape() + " " + rows("sankey\na,b,\{value}"))
+  }
   inspect(
-    rows("sankey\na,b,1e3\na,c,-2.5x\na,d,abc\na,e,\"1\n2\""),
-    content="nodes=\"a\",\"b\",\"c\",\"d\",\"e\" links=\"a\">\"b\"=1000,\"a\">\"c\"=-2.5,\"a\">\"d\"=NaN,\"a\">\"e\"=1",
+    shown.join("\n"),
+    content=(
+      #|"1e3" nodes="a","b" links="a">"b"=1000
+      #|"-2.5" nodes="a","b" links="a">"b"=-2.5
+      #|"+.5" nodes="a","b" links="a">"b"=0.5
+      #|"7." nodes="a","b" links="a">"b"=7
+      #|"-2.5x" nodes="a","b" links="a">"b"=-2.5
+      #|"abc" Parse error on line 2:
+      #|a,b,abc
+      #|----^
+      #|Expecting a number
+      #|"" Parse error on line 2:
+      #|a,b,
+      #|----^
+      #|Expecting 'DQUOTE', 'NON_ESCAPED_TEXT', got 'EOF'
+      #|"\"1\n2\"" nodes="a","b" links="a">"b"=1
+      #|"Infinity" Parse error on line 2:
+      #|a,b,Infinity
+      #|----^
+      #|Expecting a number
+      #|"1e400" Parse error on line 2:
+      #|a,b,1e400
+      #|----^
+      #|Expecting a number
+      #|"-" Parse error on line 2:
+      #|a,b,-
+      #|----^
+      #|Expecting a number
+      #|"0x10" nodes="a","b" links="a">"b"=0
+      #|"1e" nodes="a","b" links="a">"b"=1
+      #|" 3 " nodes="a","b" links="a">"b"=3
+    ),
   )
 }
 
@@ -186,8 +224,13 @@ test "quoted fields must be well formed" {
 ///|
 test "characters outside the CSV alphabet are reported as the token before them" {
   inspect(
-    rows("sankey\nCafé,Bar,1"),
-    content="Parse error on line 2:\nCafé,Bar,1\n---^\nExpecting 'COMMA', 'NEWLINE', 'EOF', got 'NON_ESCAPED_TEXT'",
+    rows("sankey\nCaf\u{7f},Bar,1"),
+    content=(
+      #|Parse error on line 2:
+      #|Caf,Bar,1
+      #|---^
+      #|Expecting 'COMMA', 'NEWLINE', 'EOF', got 'NON_ESCAPED_TEXT'
+    ),
   )
 }
 
@@ -208,5 +251,191 @@ test "preparing the text trims its ends and collapses line breaks" {
   inspect(
     @sankey.prepare_text_for_parsing("\u{3000}sankey\u{a0}\na\u{a0}\n\u{feff}"),
     content="sankey\u{a0}\na",
+  )
+}
+
+///|
+test "names may hold any Unicode text, quoted or not" {
+  let shown = []
+  for keyword in ["sankey", "sankey-beta"] {
+    for
+      pair in [
+        ("Доход", "Расходы"),
+        ("Café", "München"),
+        ("収入", "支出"),
+        ("☀️", "🏠"),
+        ("Cafe\u{301}", "Cafe\u{300}"),
+      ] {
+      let (from, to) = pair
+      shown.push(rows("\{keyword}\n\{from},\{to},100"))
+      shown.push(rows("\{keyword}\n\"\{from}\",\"\{to}\",100"))
+    }
+    shown.push(
+      rows(
+        "\{keyword}\n\"Доход, \"\"чистый\"\"\",Café,2\nCafé,収入,1",
+      ),
+    )
+  }
+  inspect(
+    shown.join("\n"),
+    content=(
+      #|nodes="Доход","Расходы" links="Доход">"Расходы"=100
+      #|nodes="Доход","Расходы" links="Доход">"Расходы"=100
+      #|nodes="Café","München" links="Café">"München"=100
+      #|nodes="Café","München" links="Café">"München"=100
+      #|nodes="収入","支出" links="収入">"支出"=100
+      #|nodes="収入","支出" links="収入">"支出"=100
+      #|nodes="☀️","🏠" links="☀️">"🏠"=100
+      #|nodes="☀️","🏠" links="☀️">"🏠"=100
+      #|nodes="Café","Cafè" links="Café">"Cafè"=100
+      #|nodes="Café","Cafè" links="Café">"Cafè"=100
+      #|nodes="Доход, \"чистый\"","Café","収入" links="Доход, \"чистый\"">"Café"=2,"Café">"収入"=1
+      #|nodes="Доход","Расходы" links="Доход">"Расходы"=100
+      #|nodes="Доход","Расходы" links="Доход">"Расходы"=100
+      #|nodes="Café","München" links="Café">"München"=100
+      #|nodes="Café","München" links="Café">"München"=100
+      #|nodes="収入","支出" links="収入">"支出"=100
+      #|nodes="収入","支出" links="収入">"支出"=100
+      #|nodes="☀️","🏠" links="☀️">"🏠"=100
+      #|nodes="☀️","🏠" links="☀️">"🏠"=100
+      #|nodes="Café","Cafè" links="Café">"Cafè"=100
+      #|nodes="Café","Cafè" links="Café">"Cafè"=100
+      #|nodes="Доход, \"чистый\"","Café","収入" links="Доход, \"чистый\"">"Café"=2,"Café">"収入"=1
+    ),
+  )
+}
+
+///|
+test "malformed rows with Unicode names are rejected" {
+  let shown = []
+  for
+    row in [
+      "Доход,Расходы", "Доход,Расходы,1,2", "\"Доход,Расходы,1",
+      "\"Доход\"x,Расходы,1", "Доход,,1",
+    ] {
+    shown.push(rows("sankey\n\{row}"))
+  }
+  inspect(
+    shown.join("\n"),
+    content=(
+      #|Parse error on line 2:
+      #|Доход,Расходы
+      #|-------------^
+      #|Expecting 'COMMA', 'NEWLINE', 'EOF', got 'EOF'
+      #|Parse error on line 2:
+      #|Доход,Расходы,1,2
+      #|---------------^
+      #|Expecting 'NEWLINE', 'EOF', got 'COMMA'
+      #|Parse error on line 2:
+      #|"Доход,Расходы,1
+      #|----------------^
+      #|Expecting 'DQUOTE', got 'ESCAPED_TEXT'
+      #|Parse error on line 2:
+      #|"Доход"x,Расходы,1
+      #|-------^
+      #|Expecting 'COMMA', 'NEWLINE', 'EOF', got 'NON_ESCAPED_TEXT'
+      #|Parse error on line 2:
+      #|Доход,,1
+      #|------^
+      #|Expecting 'DQUOTE', 'NON_ESCAPED_TEXT', got 'COMMA'
+    ),
+  )
+}
+
+///|
+test "control characters, lone surrogates and noncharacters end a name" {
+  let shown = []
+  for
+    c in [
+      "\u{0}",
+      "\u{1}",
+      "\t",
+      "\u{1f}",
+      "\u{7f}",
+      "\u{80}",
+      "\u{9f}",
+      @util.slice("\u{10000}", 0, end=1),
+      @util.slice("\u{10ffff}", 1),
+      "\u{fffe}",
+      "\u{ffff}",
+    ] {
+    // The message ends with what was expected, after a snippet of the source holding the character.
+    for source in ["sankey\na\{c}b,c,1", "sankey\n\"a\{c}b\",c,1"] {
+      let message = rows(source)
+      shown.push(@util.slice(message, message.rev_find("\n").unwrap_or(-1) + 1))
+    }
+  }
+  inspect(
+    shown.join("\n"),
+    content=(
+      #|Expecting 'COMMA', 'NEWLINE', 'EOF', got 'NON_ESCAPED_TEXT'
+      #|Expecting 'DQUOTE', got 'ESCAPED_TEXT'
+      #|Expecting 'COMMA', 'NEWLINE', 'EOF', got 'NON_ESCAPED_TEXT'
+      #|Expecting 'DQUOTE', got 'ESCAPED_TEXT'
+      #|Expecting 'COMMA', 'NEWLINE', 'EOF', got 'NON_ESCAPED_TEXT'
+      #|Expecting 'DQUOTE', got 'ESCAPED_TEXT'
+      #|Expecting 'COMMA', 'NEWLINE', 'EOF', got 'NON_ESCAPED_TEXT'
+      #|Expecting 'DQUOTE', got 'ESCAPED_TEXT'
+      #|Expecting 'COMMA', 'NEWLINE', 'EOF', got 'NON_ESCAPED_TEXT'
+      #|Expecting 'DQUOTE', got 'ESCAPED_TEXT'
+      #|Expecting 'COMMA', 'NEWLINE', 'EOF', got 'NON_ESCAPED_TEXT'
+      #|Expecting 'DQUOTE', got 'ESCAPED_TEXT'
+      #|Expecting 'COMMA', 'NEWLINE', 'EOF', got 'NON_ESCAPED_TEXT'
+      #|Expecting 'DQUOTE', got 'ESCAPED_TEXT'
+      #|Expecting 'COMMA', 'NEWLINE', 'EOF', got 'NON_ESCAPED_TEXT'
+      #|Expecting 'DQUOTE', got 'ESCAPED_TEXT'
+      #|Expecting 'COMMA', 'NEWLINE', 'EOF', got 'NON_ESCAPED_TEXT'
+      #|Expecting 'DQUOTE', got 'ESCAPED_TEXT'
+      #|Expecting 'COMMA', 'NEWLINE', 'EOF', got 'NON_ESCAPED_TEXT'
+      #|Expecting 'DQUOTE', got 'ESCAPED_TEXT'
+      #|Expecting 'COMMA', 'NEWLINE', 'EOF', got 'NON_ESCAPED_TEXT'
+      #|Expecting 'DQUOTE', got 'ESCAPED_TEXT'
+    ),
+  )
+}
+
+///|
+test "entity codes for characters XML forbids are rejected in a name" {
+  let shown = []
+  for entity in ["&#65534;", "&#65535;", "&#1;", "&#xFFFE;"] {
+    shown.push(rows("sankey\na\{entity},b,1"))
+    shown.push(rows("sankey\nb,\"a\{entity}\",1"))
+  }
+  inspect(
+    shown.join("\n"),
+    content=(
+      #|Parse error on line 2:
+      #|a&#65534;,b,1
+      #|^
+      #|Invalid XML character in node name
+      #|Parse error on line 2:
+      #|b,"a&#65534;",1
+      #|--^
+      #|Invalid XML character in node name
+      #|Parse error on line 2:
+      #|a&#65535;,b,1
+      #|^
+      #|Invalid XML character in node name
+      #|Parse error on line 2:
+      #|b,"a&#65535;",1
+      #|--^
+      #|Invalid XML character in node name
+      #|Parse error on line 2:
+      #|a&#1;,b,1
+      #|^
+      #|Invalid XML character in node name
+      #|Parse error on line 2:
+      #|b,"a&#1;",1
+      #|--^
+      #|Invalid XML character in node name
+      #|Parse error on line 2:
+      #|a&#xFFFE;,b,1
+      #|^
+      #|Invalid XML character in node name
+      #|Parse error on line 2:
+      #|b,"a&#xFFFE;",1
+      #|--^
+      #|Invalid XML character in node name
+    ),
   )
 }

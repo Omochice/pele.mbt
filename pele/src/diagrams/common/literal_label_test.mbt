@@ -102,7 +102,9 @@ test "break_label cuts lines too wide between characters and keeps their emphasi
         3,
       ),
     ),
-    content="8.896 72 16 24[a/0/8.896=8.896;=0;b/0/8.896=8.896]",
+    content=(
+      #|8.896 63 16 21[a/0/8.896=8.896;=0;b/0/8.896=8.896]
+    ),
   )
 }
 
@@ -200,7 +202,7 @@ test "break_label matches pele on labels of every string of up to four pieces" {
     "*",
     String::from_array([(0xd800).unsafe_to_char()]),
   ]
-  let expected = ["f002259d", "331af199", "e1e78ce5", "d6d4957d", "f8870691"]
+  let expected = ["f002259d", "f163d549", "52e84545", "9d0cafd7", "d4e130cb"]
   let m = @text.metrics_measurer
   for length, hash in expected {
     let outputs = []
@@ -237,7 +239,9 @@ test "write_left_label anchors every line at its start and keeps its spaces" {
         " class=\"lbl\"",
       )
     }),
-    content="<text class=\"lbl\" x=\"4\" y=\"27.6\" text-anchor=\"start\" xml:space=\"preserve\"><tspan font-weight=\"var(--_w)\">bold</tspan> and <tspan font-style=\"italic\">it</tspan></text><text class=\"lbl\" x=\"4\" y=\"51.6\" text-anchor=\"start\" xml:space=\"preserve\">line 2 &amp; </text>",
+    content=(
+      #|<text class="lbl" x="4" y="26.1" text-anchor="start" xml:space="preserve"><tspan font-weight="var(--_w)">bold</tspan> and <tspan font-style="italic">it</tspan></text><text class="lbl" x="4" y="47.1" text-anchor="start" xml:space="preserve">line 2 &amp; &lt;more&gt;</text>
+    ),
   )
   inspect(
     left_written(out => {
@@ -261,7 +265,9 @@ test "write_left_label anchors every line at its start and keeps its spaces" {
         "",
       )
     }),
-    content="<text x=\"1.25\" y=\"13.7\" text-anchor=\"start\" xml:space=\"preserve\">a</text><text x=\"1.25\" y=\"49.7\" text-anchor=\"start\" xml:space=\"preserve\">b</text>",
+    content=(
+      #|<text x="1.25" y="12.7" text-anchor="start" xml:space="preserve">a</text><text x="1.25" y="44.7" text-anchor="start" xml:space="preserve">b</text>
+    ),
   )
   inspect(
     left_written(out => {
@@ -280,7 +286,7 @@ test "write_left_label anchors every line at its start and keeps its spaces" {
 ///|
 test "write_left_label matches pele on labels of every string of up to four pieces" {
   let pieces = ["<b>", "</b>", "<i>", "a&b", " ", "<br>", "\u{1}", "x"]
-  let expected = ["6a00f6a5", "c0addd87", "12e724b4", "ae235f44", "f411a7e3"]
+  let expected = ["6a00f6a5", "c0addd87", "eb112644", "9a946e48", "da15b7ab"]
   let m = @text.metrics_measurer
   for length, hash in expected {
     let outputs = []

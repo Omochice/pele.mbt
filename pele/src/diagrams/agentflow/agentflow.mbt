@@ -21,6 +21,7 @@ pub fn parse_model(
     inherit_dir~,
     direction?,
     line_offset~,
+    source~,
   )
   if title is Some(title) && title != "" {
     db.title = Some(title)

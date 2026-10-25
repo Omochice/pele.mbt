@@ -56,13 +56,10 @@ fn starts_word(word : String, ignore_case~ : Bool = false) -> (String) -> Bool {
 }
 
 ///|
-/// Mermaid's C4 regex anchors only its first alternative, so the others match anywhere.
 fn c4(text : String) -> Bool {
-  keyword_end(text, "C4Context") >= 0 ||
-  text.contains("C4Container") ||
-  text.contains("C4Component") ||
-  text.contains("C4Dynamic") ||
-  text.contains("C4Deployment")
+  ["C4Context", "C4Container", "C4Component", "C4Dynamic", "C4Deployment"]
+  .iter()
+  .any(word => keyword_end(text, word) >= 0)
 }
 
 ///|

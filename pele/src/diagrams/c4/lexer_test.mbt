@@ -209,14 +209,13 @@ test "reads accessibility statements" {
 }
 
 ///|
-test "reads a title through a line break after the keyword" {
+test "skips a bare title with the line breaks after it" {
   inspect(
     lex("C4Context\ntitle\nThe title; and more\ntitle#x\n"),
     content=(
       #|C4_CONTEXT@0 "C4Context"
       #|NEWLINE@9 "\n"
-      #|title@10 "title\nThe title"
-      #|INVALID@25 ""
+      #|INVALID@16 ""
     ),
   )
 }

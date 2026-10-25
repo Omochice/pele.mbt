@@ -1,6 +1,9 @@
 ///|
 /// Whether every tag in the drawing is one the renderer writes, which holds when no payload reached the markup unescaped.
 fn is_inert(svg : String) -> Bool {
+  if @svg.has_invalid_xml(svg) {
+    return false
+  }
   let known = [
     "svg", "g", "path", "rect", "circle", "text", "tspan", "title", "desc", "style",
     "defs",

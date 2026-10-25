@@ -2,11 +2,17 @@
 package "Omochice/pele/errors"
 
 // Values
+pub fn input_offset(Array[Array[(Int32, Int32, Int32)]], Int32) -> Int32
+
 pub fn locate(String, Int32) -> (Int32, Int32, String)
+
+pub fn[T] locating_in(Origin, () -> T raise PeleError) -> T raise PeleError
 
 pub fn pele_error(String, code? : ErrorCode, kind? : String, mermaid_type? : String, line? : Int32, column? : Int32, snippet? : String) -> PeleError
 
 pub fn syntax_error(String, String, Int32, String, lexical? : Bool) -> PeleError
+
+pub fn written(String, Int32) -> (String, Int32)
 
 // Errors
 pub(all) suberror PeleError {
@@ -32,6 +38,12 @@ pub(all) struct Failure {
   snippet : String
 }
 
+pub(all) struct Origin {
+  parsed : String
+  find : (Int32) -> (String, Int32)
+}
+
 // Type aliases
+pub type Edit = (Int32, Int32, Int32)
 
 // Traits

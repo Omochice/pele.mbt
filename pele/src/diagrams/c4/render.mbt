@@ -391,7 +391,7 @@ fn draw(
       r.room,
       base=@text.STYLE_ITALIC,
     )
-    let lw = @util.js_max(label.width, techn.width) + 8
+    let lw = @util.js_max(label.width, techn.width) + LABEL_PAD
     let lh = label.height + techn.height
     if lh == 0 {
       continue

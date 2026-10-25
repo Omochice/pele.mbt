@@ -1,5 +1,5 @@
 ///|
-/// Pairs of a click target and what `sanitizeUrl` makes of it, from pele v1.8.0.
+/// Pairs of a click target and what `sanitizeUrl` makes of it, from pele v1.10.0.
 /// Each answer also agrees with @braintree/sanitize-url, which Mermaid applies to click targets.
 let sanitized : Array[(String, String)] = [
   ("https://example.com", "https://example.com/"),
@@ -143,8 +143,23 @@ test "click targets are sanitized as @braintree/sanitize-url does" {
 }
 
 ///|
-test "a lone surrogate in a path is written as the replacement character" {
-  let url = "http://x/" + String::from_array([(0xd800).unsafe_to_char()])
-  let result = @url.sanitize_url(url)
-  inspect(result == "http://x/%EF%BF%BD", content="true")
+test "lone surrogates, U+FFFE and U+FFFF are stripped before the scheme is checked" {
+  let lone = (c : Int32) => String::from_array([c.unsafe_to_char()])
+  inspect(@url.sanitize_url("http://x/" + lone(0xd800)), content="http://x/")
+  inspect(
+    @url.sanitize_url("java" + lone(0xdc00) + "script:alert(1)"),
+    content="about:blank",
+  )
+  inspect(
+    @url.sanitize_url("java\u{fffe}script:alert(1)"),
+    content="about:blank",
+  )
+  inspect(
+    @url.sanitize_url("file\u{ffff}:///etc/passwd"),
+    content="file:///etc/passwd",
+  )
+  inspect(
+    @url.sanitize_url("http://x/\u{1f600}"),
+    content="http://x/%F0%9F%98%80",
+  )
 }

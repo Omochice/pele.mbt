@@ -204,7 +204,241 @@ test "renders markdown labels" {
     svg(
       "flowchart TD\n  A[\"`This **is** _Markdown_`\"] -->|\"`**bold** edge`\"| B[\"a #quot;b#quot; #35; #9829;<br/>second line\"]",
     ),
-    content="179x209 <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-flowchart\" viewBox=\"0 0 179 209\" width=\"179\" height=\"209\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_w:var(--pele-bold-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"flowchart\"><g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\"><g class=\"pele-edge\" data-id=\"L_A_B_0\"><path d=\"M89.13,56L89.13,122\"/><path class=\"pele-marker\" d=\"M89.13,129L85.77,121L92.49,121Z\" fill=\"var(--_l)\" stroke=\"none\"/></g></g><g class=\"pele-edge-labels\" font-size=\"14\"><g class=\"pele-edge-label\" data-id=\"L_A_B_0\"><rect x=\"52.84\" y=\"78.5\" width=\"72.58\" height=\"21\" rx=\"3\" fill=\"var(--_bg)\"/><text text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"89.13\" y=\"93.9\" font-weight=\"var(--_w)\">bold</tspan><tspan> edge</tspan></text></g></g><g class=\"pele-nodes\"><g class=\"pele-node pele-shape-rect\" data-id=\"A\" transform=\"translate(89.13,32)\"><rect x=\"-81.13\" y=\"-24\" width=\"162.26\" height=\"48\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"0\" y=\"5.6\">This </tspan><tspan font-weight=\"var(--_w)\">is</tspan><tspan> </tspan><tspan font-style=\"italic\">Markdown</tspan></text></g><g class=\"pele-node pele-shape-rect\" data-id=\"B\" transform=\"translate(89.13,165)\"><rect x=\"-58.46\" y=\"-36\" width=\"116.93\" height=\"72\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"0\" y=\"-6.4\">a &quot;b&quot; # ♥</tspan><tspan x=\"0\" y=\"17.6\">second line</tspan></text></g></g></svg>",
+    content=(
+      #|179x203 <svg xmlns="http://www.w3.org/2000/svg" class="pele pele-flowchart" viewBox="0 0 179 203" width="179" height="203" style="max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_w:var(--pele-bold-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)" fill="var(--_fg)" role="graphics-document document" aria-roledescription="flowchart"><g class="pele-edges" fill="none" stroke="var(--_l)" stroke-linecap="round"><g class="pele-edge" data-id="L_A_B_0"><path d="M89.13,56L89.13,122"/><path class="pele-marker" d="M89.13,129L85.77,121L92.49,121Z" fill="var(--_l)" stroke="none"/></g></g><g class="pele-edge-labels" font-size="14"><g class="pele-edge-label" data-id="L_A_B_0"><rect x="52.84" y="78.5" width="72.58" height="21" rx="3" fill="var(--_bg)"/><text text-anchor="middle" xml:space="preserve"><tspan x="89.13" y="93.9" font-weight="var(--_w)">bold</tspan><tspan> edge</tspan></text></g></g><g class="pele-nodes"><g class="pele-node pele-shape-rect" data-id="A" transform="translate(89.13,32)"><rect x="-81.13" y="-24" width="162.26" height="48" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/><text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="5.6">This </tspan><tspan font-weight="var(--_w)">is</tspan><tspan> </tspan><tspan font-style="italic">Markdown</tspan></text></g><g class="pele-node pele-shape-rect" data-id="B" transform="translate(89.13,162)"><rect x="-58.46" y="-33" width="116.93" height="66" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/><text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.9">a &quot;b&quot; # ♥</tspan><tspan x="0" y="16.1">second line</tspan></text></g></g></svg>
+    ),
+  )
+}
+
+///|
+test "renders <sub> and <sup> in labels with baseline shift and smaller text" {
+  inspect(
+    svg("flowchart LR\n  A[\"H<sub>2</sub>O\"] --> B[\"x<sup>2</sup>\"]"),
+    content=(
+      #|183x64 <svg xmlns="http://www.w3.org/2000/svg" class="pele pele-flowchart" viewBox="0 0 183 64" width="183" height="64" style="max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)" fill="var(--_fg)" role="graphics-document document" aria-roledescription="flowchart"><g class="pele-edges" fill="none" stroke="var(--_l)" stroke-linecap="round"><g class="pele-edge" data-id="L_A_B_0"><path d="M75.41,32L116.41,32"/><path class="pele-marker" d="M123.41,32L115.41,35.36L115.41,28.64Z" fill="var(--_l)" stroke="none"/></g></g><g class="pele-nodes"><g class="pele-node pele-shape-rect" data-id="A" transform="translate(41.71,32)"><rect x="-33.71" y="-24" width="67.41" height="48" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/><text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="5.6">H</tspan><tspan baseline-shift="sub" font-size="smaller">2</tspan><tspan>O</tspan></text></g><g class="pele-node pele-shape-rect" data-id="B" transform="translate(149.12,32)"><rect x="-25.71" y="-24" width="51.41" height="48" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/><text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="5.6">x</tspan><tspan baseline-shift="super" font-size="smaller">2</tspan></text></g></g></svg>
+    ),
+  )
+}
+
+///|
+test "nesting sub/sup inside other emphasis keeps each style on its own span" {
+  inspect(
+    svg("flowchart LR\n  A[\"<b>H<sub>2</sub>O</b>\"]"),
+    content=(
+      #|84x64 <svg xmlns="http://www.w3.org/2000/svg" class="pele pele-flowchart" viewBox="0 0 84 64" width="84" height="64" style="max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_w:var(--pele-bold-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)" fill="var(--_fg)" role="graphics-document document" aria-roledescription="flowchart"><g class="pele-nodes"><g class="pele-node pele-shape-rect" data-id="A" transform="translate(41.71,32)"><rect x="-33.71" y="-24" width="67.41" height="48" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/><text class="pele-label" font-weight="var(--_w)" text-anchor="middle" xml:space="preserve"><tspan x="0" y="5.6">H</tspan><tspan baseline-shift="sub" font-size="smaller">2</tspan><tspan>O</tspan></text></g></g></svg>
+    ),
+  )
+}
+
+///|
+test "shifts text inside both <sup> and <sub> by the inner tag" {
+  inspect(
+    svg("flowchart LR\n  A[\"x<sup>a<sub>b</sub>c</sup>\"]"),
+    content=(
+      #|82x64 <svg xmlns="http://www.w3.org/2000/svg" class="pele pele-flowchart" viewBox="0 0 82 64" width="82" height="64" style="max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)" fill="var(--_fg)" role="graphics-document document" aria-roledescription="flowchart"><g class="pele-nodes"><g class="pele-node pele-shape-rect" data-id="A" transform="translate(40.75,32)"><rect x="-32.75" y="-24" width="65.49" height="48" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/><text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="5.6">x</tspan><tspan baseline-shift="super" font-size="smaller">a</tspan><tspan baseline-shift="sub" font-size="smaller">b</tspan><tspan baseline-shift="super" font-size="smaller">c</tspan></text></g></g></svg>
+    ),
+  )
+}
+
+///|
+test "restores the outer <sup> when a nested <sup> closes" {
+  inspect(
+    svg("flowchart LR\n  A[\"<sup>a<sub>b<sup>c</sup>d</sub>e</sup>\"]"),
+    content=(
+      #|89x64 <svg xmlns="http://www.w3.org/2000/svg" class="pele pele-flowchart" viewBox="0 0 89 64" width="89" height="64" style="max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)" fill="var(--_fg)" role="graphics-document document" aria-roledescription="flowchart"><g class="pele-nodes"><g class="pele-node pele-shape-rect" data-id="A" transform="translate(44.16,32)"><rect x="-36.16" y="-24" width="72.32" height="48" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/><text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="5.6" baseline-shift="super" font-size="smaller">a</tspan><tspan baseline-shift="sub" font-size="smaller">b</tspan><tspan baseline-shift="super" font-size="smaller">c</tspan><tspan baseline-shift="sub" font-size="smaller">d</tspan><tspan baseline-shift="super" font-size="smaller">e</tspan></text></g></g></svg>
+    ),
+  )
+}
+
+///|
+test "keeps the inner of <sup> and <sub> across a line break" {
+  inspect(
+    svg("flowchart LR\n  A[\"<sup>a<sub>b<br/>c</sub>d</sup>\"]"),
+    content=(
+      #|67x82 <svg xmlns="http://www.w3.org/2000/svg" class="pele pele-flowchart" viewBox="0 0 67 82" width="67" height="82" style="max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)" fill="var(--_fg)" role="graphics-document document" aria-roledescription="flowchart"><g class="pele-nodes"><g class="pele-node pele-shape-rect" data-id="A" transform="translate(33.41,41)"><rect x="-25.41" y="-33" width="50.83" height="66" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/><text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.9" baseline-shift="super" font-size="smaller">a</tspan><tspan baseline-shift="sub" font-size="smaller">b</tspan><tspan x="0" y="16.1" baseline-shift="sub" font-size="smaller">c</tspan><tspan baseline-shift="super" font-size="smaller">d</tspan></text></g></g></svg>
+    ),
+  )
+}
+
+///|
+/// The label of node `id`, from its `<text` to its `</text>`.
+fn node_text(svg : String, id : String) -> String {
+  let node = @util.index_of(svg, "data-id=\"\{id}\"")
+  let from = @util.index_of(svg, "<text", from=node)
+  @util.slice(svg, from, end=@util.index_of(svg, "</text>", from~) + 7)
+}
+
+///|
+test "draws <code> spans in labels in the monospace font" {
+  inspect(
+    node_text(
+      svg("flowchart TD\n  A[\"Call <code>render()</code> once\"]"),
+      "A",
+    ),
+    content=(
+      #|<text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="5.6">Call </tspan><tspan font-family="var(--_fm)">render()</tspan><tspan> once</tspan></text>
+    ),
+  )
+}
+
+///|
+test "writes the monospace family once when a whole label is code" {
+  let drawn = svg("flowchart TD\n  A[\"<code>render()</code>\"]")
+  inspect(
+    node_text(drawn, "A"),
+    content=(
+      #|<text class="pele-label" font-family="var(--_fm)" text-anchor="middle" xml:space="preserve"><tspan x="0" y="5.6">render()</tspan></text>
+    ),
+  )
+  let mut found = 0
+  let mut at = @util.index_of(drawn, "font-family=\"var(--_fm)\"")
+  while at != -1 {
+    found += 1
+    at = @util.index_of(drawn, "font-family=\"var(--_fm)\"", from=at + 1)
+  }
+  assert_eq(found, 1)
+}
+
+///|
+test "keeps text shaped like a tag that is not HTML, and drops HTML tags" {
+  inspect(
+    [
+      "List<T>", "<T>", "<span title=x>red</span> and <small>print</small><img src=x>",
+      "<b>bold</b> and <T>",
+    ]
+    .map(label => node_text(svg("flowchart LR\n  A[\"\{label}\"]"), "A"))
+    .join("\n"),
+    content=(
+      #|<text class="pele-label" x="0" y="5.6" text-anchor="middle">List&lt;T&gt;</text>
+      #|<text class="pele-label" x="0" y="5.6" text-anchor="middle">&lt;T&gt;</text>
+      #|<text class="pele-label" x="0" y="5.6" text-anchor="middle">red and print</text>
+      #|<text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="5.6" font-weight="var(--_w)">bold</tspan><tspan> and &lt;T&gt;</tspan></text>
+    ),
+  )
+}
+
+///|
+test "underlines <u> text" {
+  let drawn = svg(
+    "flowchart LR\n  A[\"a <u>underlined</u> word\"]\n  B[\"<u>all of it</u>\"]",
+  )
+  inspect(
+    node_text(drawn, "A") + "\n" + node_text(drawn, "B"),
+    content=(
+      #|<text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="5.6">a </tspan><tspan text-decoration="underline">underlined</tspan><tspan> word</tspan></text>
+      #|<text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="5.6" text-decoration="underline">all of it</tspan></text>
+    ),
+  )
+}
+
+///|
+test "styles other inline tags as browsers do" {
+  inspect(
+    ["cite", "dfn", "var", "kbd", "samp", "tt", "ins"]
+    .map(tag => {
+      node_text(
+        svg("flowchart LR\n  A[\"plain <\{tag}>tagged</\{tag}> plain\"]"),
+        "A",
+      )
+    })
+    .join("\n"),
+    content=(
+      #|<text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="5.6">plain </tspan><tspan font-style="italic">tagged</tspan><tspan> plain</tspan></text>
+      #|<text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="5.6">plain </tspan><tspan font-style="italic">tagged</tspan><tspan> plain</tspan></text>
+      #|<text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="5.6">plain </tspan><tspan font-style="italic">tagged</tspan><tspan> plain</tspan></text>
+      #|<text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="5.6">plain </tspan><tspan font-family="var(--_fm)">tagged</tspan><tspan> plain</tspan></text>
+      #|<text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="5.6">plain </tspan><tspan font-family="var(--_fm)">tagged</tspan><tspan> plain</tspan></text>
+      #|<text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="5.6">plain </tspan><tspan font-family="var(--_fm)">tagged</tspan><tspan> plain</tspan></text>
+      #|<text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="0" y="5.6">plain </tspan><tspan text-decoration="underline">tagged</tspan><tspan> plain</tspan></text>
+    ),
+  )
+}
+
+///|
+test "an internal link that sanitizing alone would let through gets no href" {
+  let options = {
+    ..@types.RenderOptions::default(),
+    link_schemes: Some(["about"]),
+  }
+  let result = @core.render(
+    [@flowchart.flowchart],
+    "flowchart TD\n  A[\"javascript:alert(1)\"]:::internal-link",
+    options,
+  )
+  assert_false(result.svg.contains(" href="))
+}
+
+///|
+/// The code and message of the error `source` fails with.
+fn failure_of(source : String) -> String {
+  let _ = @core.render(
+    [@flowchart.flowchart],
+    source,
+    @types.RenderOptions::default(),
+  ) catch {
+    @errors.PeleError(failure) =>
+      return "\{failure.code.to_string()}: \{failure.message}"
+  }
+  "rendered"
+}
+
+///|
+test "entity codes show in errors as they were written" {
+  assert_true(
+    failure_of("flowchart TD\nA[a#35;b] --> -->").has_prefix(
+      "syntax: Parse error on line 2:\nA[a#35;b] --> -->\n",
+    ),
+  )
+  inspect(
+    failure_of("flowchart TD\na@{shape: \"#35;x\"}"),
+    content="semantic: No such shape: #35;x.",
+  )
+}
+
+///|
+/// The line, column and snippet of the error `source` fails with.
+fn position_of(source : String) -> String {
+  let _ = @core.render(
+    [@flowchart.flowchart],
+    source,
+    @types.RenderOptions::default(),
+  ) catch {
+    @errors.PeleError(failure) =>
+      return "\{failure.line}:\{failure.column}\n\{failure.snippet}\n\{failure.message}"
+  }
+  "rendered"
+}
+
+///|
+test "errors report lines and columns in the source as written" {
+  inspect(
+    position_of("flowchart TD\nA[a#35;b] --> -->"),
+    content=(
+      #|2:15
+      #|A[a#35;b] --> -->
+      #|--------------^
+      #|Parse error on line 2:
+      #|A[a#35;b] --> -->
+      #|--------------^
+      #|Expecting 'NODE_STRING', got 'LINK'
+    ),
+  )
+  inspect(
+    position_of(
+      "---\ntitle: T\n---\n\n%% A comment\nflowchart TD\n  A --> B\n  C --> --> D",
+    ),
+    content=(
+      #|8:9
+      #|  C --> --> D
+      #|--------^
+      #|Parse error on line 8:
+      #|  C --> --> D
+      #|--------^
+      #|Expecting 'NODE_STRING', got 'LINK'
+    ),
+  )
+  assert_true(
+    position_of("flowchart TD\n  A{a}  \n\n  C --> --> D").has_prefix("4:9\n"),
   )
 }
 

@@ -108,6 +108,7 @@ fn keyword_at(src : String, at : Int32, c : Int32) -> Int32 {
 ///|
 /// The line and column from 1 of `offset`, where `\r\n`, `\r` and `\n` each end a line.
 fn line_column(src : String, offset : Int32) -> (Int32, Int32) {
+  let (src, offset) = @errors.written(src, offset)
   let mut line = 1
   let mut line_start = 0
   let mut i = 0
@@ -123,6 +124,13 @@ fn line_column(src : String, offset : Int32) -> (Int32, Int32) {
     i += 1
   }
   (line, offset - line_start + 1)
+}
+
+///|
+/// Where the range `[start, end)` of `src` is, as Mermaid writes it, counted in the source as written.
+fn location_text(src : String, start : Int32, end : Int32) -> String {
+  let (line, column) = line_column(src, start)
+  "line \{line}, column \{column} [\{@errors.written(src, start).1},\{@errors.written(src, end).1})"
 }
 
 ///|
@@ -154,8 +162,10 @@ fn starts_token(src : String, at : Int32) -> Bool {
 /// skipped before one did.
 fn lex_error(src : String, offset : Int32, length : Int32) -> @errors.PeleError {
   let (line, column) = line_column(src, offset)
+  let from = @errors.written(src, offset).1
+  let to = @errors.written(src, offset + length).1
   @errors.pele_error(
-    "Error lexing usecase diagram: unexpected character: ->\{@util.slice(src, offset, end=offset + 1)}<- at offset: \{offset}, skipped \{length} characters. at line \{line}, column \{column} [\{offset},\{offset + length})",
+    "Error lexing usecase diagram: unexpected character: ->\{@util.slice(src, offset, end=offset + 1)}<- at offset: \{from}, skipped \{to - from} characters. at line \{line}, column \{column} [\{from},\{to})",
     code=Syntax,
     kind="usecase",
     line~,

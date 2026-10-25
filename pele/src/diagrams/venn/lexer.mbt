@@ -143,6 +143,16 @@ fn VennLexer::color(self : VennLexer, at : Int32, parts : Int32) -> Int32 {
 }
 
 ///|
+/// Whether only spaces and tabs stand between `at` and the line feed before it.
+fn VennLexer::after_line_feed(self : VennLexer, at : Int32) -> Bool {
+  let mut k = at - 1
+  while @util.code_at(self.src, k) == 32 || @util.code_at(self.src, k) == 9 {
+    k -= 1
+  }
+  @util.code_at(self.src, k) == 10
+}
+
+///|
 fn VennLexer::line_end(self : VennLexer, from : Int32) -> Int32 {
   let end = @util.index_of(self.src, "\n", from~)
   if end == -1 {
@@ -150,6 +160,23 @@ fn VennLexer::line_end(self : VennLexer, from : Int32) -> Int32 {
   } else {
     end
   }
+}
+
+///|
+/// The end of the line at `from` when the rest of it is whitespace.
+fn VennLexer::blank_line_end(self : VennLexer, from : Int32) -> Int32? {
+  let mut end = from
+  while end < self.src.length() {
+    let c = @util.code_at(self.src, end)
+    if c == 10 {
+      break
+    }
+    if !@util.is_space(c) {
+      return None
+    }
+    end += 1
+  }
+  Some(end)
 }
 
 ///|
@@ -185,19 +212,22 @@ fn VennLexer::next(self : VennLexer) -> Int32 {
       return T_EOF
     }
     let c = @util.code_at(src, i)
-    // A comment runs to the end of the line. It also takes the character before it along,
-    // whatever that is: a line break, or the last letter of a word.
-    if (
-        c == 37 &&
-        @util.code_at(src, i + 1) == 37 &&
-        @util.code_at(src, i + 2) != 123
-      ) ||
-      (
-        c != 125 &&
-        @util.code_at(src, i + 1) == 37 &&
-        @util.code_at(src, i + 2) == 37
-      ) {
+    if c == 37 &&
+      @util.code_at(src, i + 1) == 37 &&
+      @util.code_at(src, i + 2) != 123 {
       self.at = self.line_end(i + 2)
+      continue
+    }
+    if self.line_start &&
+      self.word(i, "title") &&
+      self.after_line_feed(i) &&
+      self.blank_line_end(i + 5) is Some(end) {
+      // A bare title is skipped like a comment, so that it does not end indented text.
+      let mut j = end
+      while @util.code_at(src, j) == 10 || @util.code_at(src, j) == 13 {
+        j += 1
+      }
+      self.at = j
       continue
     }
     if self.line_start {
@@ -242,7 +272,8 @@ fn VennLexer::next(self : VennLexer) -> Int32 {
       continue
     }
     if ((c | 32) >= 97 && (c | 32) <= 122) || c == 95 {
-      if self.word(i, "title") && @util.is_space(@util.code_at(src, i + 5)) {
+      let sep = @util.code_at(src, i + 5)
+      if self.word(i, "title") && @util.is_inline_space(sep) {
         let mut end = i + 6
         while end < n {
           let ch = @util.code_at(src, end)

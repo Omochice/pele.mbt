@@ -280,11 +280,6 @@ fn Lexer::step(self : Lexer) -> Bool {
     self.at = self.line_end(at + 2)
     return true
   }
-  // Mermaid's second comment rule takes any character before `%%` with it, a line break included.
-  if c != 125 && next == 37 && @util.code_at(src, at + 2) == 37 {
-    self.at = self.line_end(at + 3)
-    return true
-  }
   if c == 10 || c == 13 {
     let mut end = at + 1
     while @util.code_at(src, end) == 10 || @util.code_at(src, end) == 13 {

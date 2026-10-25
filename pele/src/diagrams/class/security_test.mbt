@@ -1,4 +1,4 @@
-// pele's class-security templates and payloads (tests/render/class-security.test.ts, tests/support/inert.ts), with a hash of what pele v1.8.0's render gives each template with every payload, as written and with its quotes as #quot;.
+// pele's class-security templates and payloads (tests/render/class-security.test.ts, tests/support/inert.ts), with a hash of what pele v1.10.0's render gives each template with every payload, as written and with its quotes as #quot;.
 
 ///|
 /// Each template as the text around the places its payload goes.
@@ -76,35 +76,78 @@ let hostile_templates : Array[Array[String]] = [
 
 ///|
 let hostile_payloads : Array[String] = [
-  "<script>alert(1)</script>", "\"><script>alert(1)</script>", "<img src=x onerror=alert(1)>",
-  "<svg onload=alert(1)>", "<a href=\"javascript:alert(1)\">x</a>", "<foreignObject><iframe src=javascript:alert(1)></iframe></foreignObject>",
-  "</text></g></svg><script>alert(1)</script>", "javascript:alert(1)", "JaVaScRiPt:alert(1)",
-  " javascript:alert(1)", "jav&#x09;ascript:alert(1)", "data:text/html,<script>alert(1)</script>",
-  "vbscript:msgbox(1)", "' onload='alert(1)", "\" onmouseover=\"alert(1)", "x\" onclick=\"alert(1)\" y=\"",
-  "#60;script#62;alert(1)#60;/script#62;", "#106;avascript:alert(1)", "#34; onload=#34;alert(1)",
-  "url#40;javascript:alert#40;1#41;#41;", "red#59;background:url#40;//evil.example/x#41;",
-  "&lt;script&gt;alert(1)&lt;/script&gt;", "&#60;script&#62;", "url(javascript:alert(1))",
-  "expression(alert(1))", "red;background:url(//evil.example/x)", "red\" onload=\"alert(1)",
-  "]]><script>alert(1)</script>", "--><script>alert(1)</script>", "\u{0}\u{1}\u{8}\u{b}\u{1f}",
-  "__proto__", "constructor", "toString", "hasOwnProperty", "{{7*7}}", "${alert(1)}",
-  "%0ajavascript:alert(1)", "file:///etc/passwd", "//evil.example/share", "\\\\evil.example\\share",
-  "smb://evil.example/share", "obsidian://open?vault=x", "\\\"><script>",
+  "<script>alert(1)</script>",
+  "\"><script>alert(1)</script>",
+  "<img src=x onerror=alert(1)>",
+  "<svg onload=alert(1)>",
+  "<a href=\"javascript:alert(1)\">x</a>",
+  "<foreignObject><iframe src=javascript:alert(1)></iframe></foreignObject>",
+  "</text></g></svg><script>alert(1)</script>",
+  "javascript:alert(1)",
+  "JaVaScRiPt:alert(1)",
+  " javascript:alert(1)",
+  "jav&#x09;ascript:alert(1)",
+  "data:text/html,<script>alert(1)</script>",
+  "vbscript:msgbox(1)",
+  "' onload='alert(1)",
+  "\" onmouseover=\"alert(1)",
+  "x\" onclick=\"alert(1)\" y=\"",
+  "#60;script#62;alert(1)#60;/script#62;",
+  "#106;avascript:alert(1)",
+  "#34; onload=#34;alert(1)",
+  "url#40;javascript:alert#40;1#41;#41;",
+  "red#59;background:url#40;//evil.example/x#41;",
+  "&lt;script&gt;alert(1)&lt;/script&gt;",
+  "&#60;script&#62;",
+  "url(javascript:alert(1))",
+  "expression(alert(1))",
+  "red;background:url(//evil.example/x)",
+  "red\" onload=\"alert(1)",
+  "]]><script>alert(1)</script>",
+  "--><script>alert(1)</script>",
+  "\u{0}\u{1}\u{8}\u{b}\u{1f}",
+  "a￾b￿c" +
+  String::from_array([(0xd800).unsafe_to_char()]) +
+  "d" +
+  String::from_array([(0xdc00).unsafe_to_char()]) +
+  "e#65534;f",
+  "u\u{1}rl(//evil.example/x)",
+  "u￾RL(//evil.example/x)",
+  "u" + String::from_array([(0xd800).unsafe_to_char()]) + "rl(//evil.example/x)",
+  "java￾script:alert(1)",
+  "java" + String::from_array([(0xdc00).unsafe_to_char()]) + "script:alert(1)",
+  "file￿:///etc/passwd",
+  "__proto__",
+  "constructor",
+  "toString",
+  "hasOwnProperty",
+  "{{7*7}}",
+  "${alert(1)}",
+  "%0ajavascript:alert(1)",
+  "file:///etc/passwd",
+  "//evil.example/share",
+  "\\\\evil.example\\share",
+  "#92;#92;nevil.example/share",
+  "\u{9}/#92;nevil.example/share",
+  "smb://evil.example/share",
+  "obsidian://open?vault=x",
+  "\\\"><script>",
 ]
 
 ///|
 /// The hash of the outcomes of each template with every payload.
 let hostile_outcomes : Array[String] = [
-  "43b7ac39", "305db57f", "42bbedcf", "1ccee52f", "12d4c507", "981e611f", "c27d454d",
-  "b5ebd899", "e7f2ddf0", "d232d954", "752f15ba", "d870c79e", "7559bbbc", "1241efa5",
-  "a6e67922", "89b03ff9", "acb62d21", "3b4dfedc", "6b51ae94", "1ac7bfc3", "2979ab56",
-  "c61c51e9", "a5ae0cb7", "d48810b0", "c674f65f", "47aeaab6", "e3835ccd", "95008e5f",
-  "66eb1a1f", "6c775837", "c8c1ad87", "702f99b3", "949e93ce", "31f0d09f", "b72421c1",
-  "60e87359", "19651c67", "06d65eff", "58c92ca5", "ea09a1ed", "f75b5035", "febea0f9",
-  "8050909f", "2b326b97", "8ec861cc", "69d64e9d", "73050da3", "38391f9d", "21ecdaad",
+  "c7aab731", "86925e3b", "12f38479", "02e4ab1f", "7b1799e7", "905e1987", "0c3c2bbd",
+  "49bdd2d9", "6e9d3414", "66aabfaa", "d2cfa80e", "d9e96208", "82301534", "13e96bc3",
+  "85ef632a", "9305829b", "f9823667", "7bc8fb5c", "c0ba0440", "008541d9", "591bacbe",
+  "0b31b1e9", "1a92d9b1", "b67828da", "17276f89", "69f81bc6", "afe5520b", "626cfd77",
+  "a5b5f2fd", "72baffcb", "f7f78d62", "dbdc3401", "7a1b79cc", "4ae5ea17", "41eb32c9",
+  "e082c377", "0dae2f35", "fc7bad3b", "a3e51def", "768a0f03", "f494737d", "147e622b",
+  "005e847d", "43e33895", "dc1cdc40", "6b8ee925", "6ab72087", "f97254d9", "a9b29165",
 ]
 
 ///|
-let hostile_option_outcomes : Array[String] = ["6263db63", "d1ac8a36"]
+let hostile_option_outcomes : Array[String] = ["3b7176fe", "d1ac8a36"]
 
 ///|
 /// What rendering gives, written as the generator of `hostile_outcomes` writes pele's.

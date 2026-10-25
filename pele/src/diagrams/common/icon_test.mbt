@@ -53,7 +53,7 @@ test "icon_svg matches pele over names, positions and sizes" {
     }
   }
   assert_eq(outputs.length(), 225)
-  assert_eq(fnv1a(outputs.join("\n")), "772371a2")
+  assert_eq(fnv1a(outputs.join("\n")), "260a09f4")
 }
 
 ///|

@@ -32,6 +32,8 @@ fn[T] tag_errors(
     @errors.PeleError(failure) =>
       raise @errors.PeleError({
         ..failure,
+        message: @text.written_codes(failure.message),
+        snippet: @text.written_codes(failure.snippet),
         kind: if failure.kind is None {
           Some(found.kind)
         } else {
@@ -43,6 +45,40 @@ fn[T] tag_errors(
           failure.mermaid_type
         },
       })
+  }
+}
+
+///|
+/// Finds an offset of the parsed text in `text` as written, with its line breaks normalized and the
+/// line break added for parsing.
+/// The preprocessing edits are recorded only once a position is asked for, as errors are rare.
+fn in_source(text : String, keep_comments : Bool) -> (Int32) -> (String, Int32) {
+  let mut steps : Array[Array[@errors.Edit]]? = None
+  let mut source = ""
+  at => {
+    let recorded = match steps {
+      Some(recorded) => recorded
+      None => {
+        let recorded = []
+        // The text was preprocessed once already, so it cannot fail now.
+        let pre = @preprocess.preprocess(text, steps=recorded) catch {
+          _ => abort("preprocessing failed the second time")
+        }
+        @preprocess.encode_entities(
+          if keep_comments {
+            pre.with_comments
+          } else {
+            @preprocess.cleanup_comments(pre.with_comments, steps=recorded)
+          },
+          steps=recorded,
+        )
+        |> ignore
+        source = @util.normalize_line_breaks(text) + "\n"
+        steps = Some(recorded)
+        recorded
+      }
+    }
+    (source, @errors.input_offset(recorded, at))
   }
 }
 
@@ -100,13 +136,15 @@ pub fn render(
   let config = merged_config(options.config, pre.config)
   let text = if diagram.keep_comments { pre.with_comments } else { pre.text }
   let max_edges = options.max_edges.unwrap_or(DEFAULT_MAX_EDGES).to_int()
+  let encoded = @preprocess.encode_entities(text) + "\n"
   let parsed = tag_errors(found, () => {
-    (diagram.parse)(
-      @preprocess.encode_entities(text) + "\n",
-      config,
-      pre.title,
-      pre.line_offset,
-      { max_edges, },
+    @errors.locating_in(
+      { parsed: encoded, find: in_source(source, diagram.keep_comments), },
+      () => {
+        (diagram.parse)(encoded, config, pre.title, pre.line_offset, {
+          max_edges,
+        })
+      },
     )
   })
   let responsive = options.responsive.unwrap_or(

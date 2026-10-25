@@ -28,6 +28,8 @@ pub fn shift_layout(Array[CNode], Array[CEdge], Double, Double) -> Unit
 
 pub fn style_of(LayeredOptions) -> Style
 
+pub fn wrap_components(Array[CNode], Array[CEdge], Double, Double) -> CompoundResult?
+
 // Errors
 
 // Types and methods

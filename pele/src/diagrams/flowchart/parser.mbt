@@ -95,6 +95,8 @@ priv struct Frame {
 ///|
 priv struct Parser {
   src : String
+  /// The text before the spaces after closing braces were trimmed, in which errors are reported.
+  source : String
   tokens : Tokens
   db : FlowDb
   mut i : Int32
@@ -133,13 +135,20 @@ fn[T] Parser::fail(
       self.i,
       self.tokens.starts.length() - 1,
     )]
+  let at = if self.src == self.source {
+    at
+  } else {
+    let edits = []
+    trim_brace_lines(self.source, edits~) |> ignore
+    @errors.input_offset([edits], at)
+  }
   if t == ERROR {
-    raise @errors.syntax_error("flowchart", self.src, at, "", lexical=true)
+    raise @errors.syntax_error("flowchart", self.source, at, "", lexical=true)
   }
   let name = if t >= 0 { token_names[t] } else { "undefined" }
   raise @errors.syntax_error(
     "flowchart",
-    self.src,
+    self.source,
     at,
     "Expecting \{expected}, got '\{name}'",
   )
@@ -767,7 +776,7 @@ fn Parser::document(self : Parser) -> Unit raise @errors.PeleError {
 
 ///|
 /// `source.replace(/}\s*\n/g, '}\n')`: Mermaid trims whitespace between a closing brace and the end of its line before parsing.
-fn trim_brace_lines(source : String) -> String {
+fn trim_brace_lines(source : String, edits? : Array[@errors.Edit]) -> String {
   let out = StringBuilder()
   let n = source.length()
   let mut i = 0
@@ -779,6 +788,9 @@ fn trim_brace_lines(source : String) -> String {
         k -= 1
       }
       if k > i {
+        if edits is Some(edits) {
+          edits.push((i, k + 1, 2))
+        }
         out.write_string("}\n")
         i = k + 1
         continue
@@ -799,6 +811,7 @@ pub fn parse_flowchart(
   let src = if source.contains("}") { trim_brace_lines(source) } else { source }
   let parser : Parser = {
     src,
+    source,
     tokens: tokenize(src),
     db,
     i: 0,

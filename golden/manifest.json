@@ -1,7 +1,7 @@
 {
   "pele": {
-    "version": "1.8.0",
-    "commit": "1dd58b7ebb0ec654fa7dc4304d50cf8fd3a65d7b"
+    "version": "1.10.0",
+    "commit": "4eff76f98c73b6817800a05773517f35832e4e92"
   },
   "timeZone": "UTC",
   "profiles": {
@@ -710,7 +710,7 @@
       "total": 90,
       "ok": 81,
       "error": 9,
-      "narrow": 2,
+      "narrow": 8,
       "icons": 0,
       "math": 2,
       "metrics": 76
@@ -875,7 +875,7 @@
       "narrow": 8,
       "icons": 0,
       "math": 0,
-      "metrics": 1
+      "metrics": 2
     },
     "sequence": {
       "total": 202,

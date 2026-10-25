@@ -538,3 +538,134 @@ test "rejects what Mermaid rejects" {
     content="true",
   )
 }
+
+///|
+test "shifts a label that is all subscript on its tspan" {
+  inspect(
+    draw("  s1\n  note right of s1 : <sub>2</sub>"),
+    content=(
+      #|<svg xmlns="http://www.w3.org/2000/svg" class="pele pele-state" viewBox="0 0 147 60" width="147" height="60" style="max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)" fill="var(--_fg)" role="graphics-document document" aria-roledescription="state"><g class="pele-edges" fill="none" stroke="var(--_l)" stroke-linecap="round"><g class="pele-edge pele-note-edge" stroke="var(--_b)" stroke-dasharray="3 4" data-id="s1-s1----note-0"><path d="M64,30L108,30"/></g></g><g class="pele-nodes"><g class="pele-node pele-state" data-id="s1" transform="translate(36,30)"><rect x="-28" y="-22" width="56" height="44" rx="10" fill="var(--_s)" stroke="var(--_b)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">s1</text></g><g class="pele-note" data-id="s1----note-0" transform="translate(123.24,30)"><path d="M-15.24,-18.5H7.24L15.24,-10.5V18.5H-15.24Z" fill="var(--_bg)" stroke="var(--_b)"/><path d="M7.24,-18.5V-10.5H15.24" fill="none" stroke="var(--_b)"/><text class="pele-label" font-size="14" fill="var(--_m)" text-anchor="middle" xml:space="preserve"><tspan x="0" y="4.9" baseline-shift="sub" font-size="smaller">2</tspan></text></g></g></svg>
+    ),
+  )
+}
+
+///|
+/// The drawing of a diagram with the given body under a flowchart `curve`.
+fn curved(curve : String, body : String) -> String {
+  match
+    drawn(
+      "---\nconfig:\n  flowchart:\n    curve: \{curve}\n---\nstateDiagram-v2\n\{body}",
+    ) {
+    Ok(result) => result.svg
+    Err(failure) => failure.message
+  }
+}
+
+///|
+/// The `d` of every transition's path, in order.
+fn transition_paths(svg : String) -> Array[String] {
+  let paths = []
+  let head = "<g class=\"pele-edge pele-transition\""
+  let mut at = @util.index_of(svg, head)
+  while at != -1 {
+    let open = @util.index_of(svg, "><path d=\"", from=at) + 10
+    paths.push(@util.slice(svg, open, end=@util.index_of(svg, "\"", from=open)))
+    at = @util.index_of(svg, head, from=open)
+  }
+  paths
+}
+
+///|
+test "transitions follow the configured flowchart curve, across composite borders too" {
+  let shown = []
+  for dir in ["TB", "LR"] {
+    let body = "direction \{dir}\n state A {\n a --> b\n a --> c\n }\n out --> a\n A --> out"
+    let smooth = draw(body)
+    assert_true(transition_paths(smooth).iter().any(d => d.contains("C")))
+    for curve in ["linear", "step", "stepBefore", "stepAfter"] {
+      let svg = curved(curve, body)
+      assert_true(svg != smooth)
+      let paths = transition_paths(svg)
+      assert_eq(paths.length(), 4)
+      assert_true(paths.iter().all(d => !d.contains("C")))
+      if curve != "linear" {
+        assert_true(paths.iter().any(d => d.contains("Q")))
+      } else {
+        assert_true(paths.iter().all(d => !d.contains("Q")))
+      }
+      shown.push("\{dir} \{curve}: \{paths.join(" | ")}")
+    }
+  }
+  inspect(
+    shown.join("\n"),
+    content=(
+      #|TB linear: M92,212L56.71,250.82 | M108,212L143.29,250.82 | M100,52L100,161 | M100,96L113.61,58.58
+      #|TB step: M92,212L92,222Q92,234 80,234L63.25,234Q52,234 52,245.25L52,249 | M108,212L108,222Q108,234 120,234L136.75,234Q148,234 148,245.25L148,249 | M100,52L100,161 | M100,96L100,82Q100,74 108,74Q116,74 116,66L116,59
+      #|TB stepBefore: M92,212L92,222Q92,234 80,234L63.25,234Q52,234 52,245.25L52,249 | M108,212L108,222Q108,234 120,234L136.75,234Q148,234 148,245.25L148,249 | M100,52L100,161 | M100,96L100,82Q100,74 108,74Q116,74 116,66L116,59
+      #|TB stepAfter: M92,212L92,222Q92,234 80,234L63.25,234Q52,234 52,245.25L52,249 | M108,212L108,222Q108,234 120,234L136.75,234Q148,234 148,245.25L148,249 | M100,52L100,161 | M100,96L100,82Q100,74 108,74Q116,74 116,66L116,59
+      #|LR linear: M192,104L156.71,142.82 | M208,104L243.29,142.82 | M64,82L165,82 | M108,108L70.83,99.55
+      #|LR step: M192,104L192,114Q192,126 180,126L163.25,126Q152,126 152,137.25L152,141 | M208,104L208,114Q208,126 220,126L236.75,126Q248,126 248,137.25L248,141 | M64,82L165,82 | M108,108L91,108Q86,108 86,103Q86,98 81,98L71,98
+      #|LR stepBefore: M192,104L192,114Q192,126 180,126L163.25,126Q152,126 152,137.25L152,141 | M208,104L208,114Q208,126 220,126L236.75,126Q248,126 248,137.25L248,141 | M64,82L165,82 | M108,108L91,108Q86,108 86,103Q86,98 81,98L71,98
+      #|LR stepAfter: M192,104L192,114Q192,126 180,126L163.25,126Q152,126 152,137.25L152,141 | M208,104L208,114Q208,126 220,126L236.75,126Q248,126 248,137.25L248,141 | M64,82L165,82 | M108,108L91,108Q86,108 86,103Q86,98 81,98L71,98
+    ),
+  )
+}
+
+///|
+test "stepped arrowheads point into their states along the flow" {
+  let shown = []
+  for dir in ["TB", "LR"] {
+    for curve in ["step", "stepBefore", "stepAfter"] {
+      let svg = curved(
+        curve,
+        " direction \{dir}\n A --> B\n A --> C\n A --> D\n B --> E\n C --> E\n D --> E\n E --> F : Yes\n E --> A : No",
+      )
+      assert_eq(count(svg, "class=\"pele-marker\""), 8)
+      shown.push(
+        "\{dir} \{curve}: \{attribute_values(svg, "d").filter(d => d.has_suffix("Z")).join(" ")}",
+      )
+    }
+  }
+  inspect(
+    shown.join("\n"),
+    content=(
+      #|TB step: M36,98L32.64,90L39.36,90Z M132,98L128.64,90L135.36,90Z M228,98L224.64,90L231.36,90Z M164,188L160.64,180L167.36,180Z M174.67,188L171.31,180L178.03,180Z M185.33,188L181.97,180L188.69,180Z M180,301L176.64,293L183.36,293Z M196,52L199.36,60L192.64,60Z
+      #|TB stepBefore: M36,98L32.64,90L39.36,90Z M132,98L128.64,90L135.36,90Z M228,98L224.64,90L231.36,90Z M164,188L160.64,180L167.36,180Z M174.67,188L171.31,180L178.03,180Z M185.33,188L181.97,180L188.69,180Z M180,301L176.64,293L183.36,293Z M196,52L199.36,60L192.64,60Z
+      #|TB stepAfter: M36,98L32.64,90L39.36,90Z M132,98L128.64,90L135.36,90Z M228,98L224.64,90L231.36,90Z M164,188L160.64,180L167.36,180Z M174.67,188L171.31,180L178.03,180Z M185.33,188L181.97,180L188.69,180Z M180,301L176.64,293L183.36,293Z M196,52L199.36,60L192.64,60Z
+      #|LR step: M110,30L102,33.36L102,26.64Z M110,114L102,117.36L102,110.64Z M110,198L102,201.36L102,194.64Z M212,158L204,161.36L204,154.64Z M212,158L204,161.36L204,154.64Z M212,158L204,161.36L204,154.64Z M348.12,164L340.12,167.36L340.12,160.64Z M64,167.75L72,164.39L72,171.11Z
+      #|LR stepBefore: M110,30L102,33.36L102,26.64Z M110,114L102,117.36L102,110.64Z M110,198L102,201.36L102,194.64Z M212,158L204,161.36L204,154.64Z M212,158L204,161.36L204,154.64Z M212,158L204,161.36L204,154.64Z M348.12,164L340.12,167.36L340.12,160.64Z M64,167.75L72,164.39L72,171.11Z
+      #|LR stepAfter: M110,30L102,33.36L102,26.64Z M110,114L102,117.36L102,110.64Z M110,198L102,201.36L102,194.64Z M212,158L204,161.36L204,154.64Z M212,158L204,161.36L204,154.64Z M212,158L204,161.36L204,154.64Z M348.12,164L340.12,167.36L340.12,160.64Z M64,167.75L72,164.39L72,171.11Z
+    ),
+  )
+}
+
+///|
+test "a state curve setting, which Mermaid does not have, is ignored" {
+  let body = "a --> b\n a --> c\n b --> d\n c --> d"
+  let svg = match
+    drawn(
+      "---\nconfig:\n  state:\n    curve: step\n---\nstateDiagram-v2\n\{body}",
+    ) {
+    Ok(result) => result.svg
+    Err(failure) => failure.message
+  }
+  assert_eq(svg, draw(body))
+}
+
+///|
+test "absent, unknown and non-string curves keep the default curve" {
+  let body = "a --> b\n a --> c\n b --> d\n c --> d"
+  for curve in ["basis", "unknown", "stepUnknown", "42", "true", "null", "{}"] {
+    assert_eq(curved(curve, body), draw(body))
+  }
+}
+
+///|
+test "self-transitions stay curved under every curve setting" {
+  let body = "a --> a : again"
+  for curve in ["linear", "basis", "step", "stepBefore", "stepAfter"] {
+    let svg = curved(curve, body)
+    assert_eq(svg, draw(body))
+    assert_eq(count(svg, "class=\"pele-marker\""), 1)
+  }
+}

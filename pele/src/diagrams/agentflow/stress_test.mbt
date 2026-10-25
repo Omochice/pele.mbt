@@ -298,6 +298,20 @@ test "never gives an unsafe href to an internal link" {
 }
 
 ///|
+test "never gives an href to an internal link that sanitizing alone would let through" {
+  let options = {
+    ..@types.RenderOptions::default(),
+    link_schemes: Some(["about"]),
+  }
+  let svg = @core.render(
+      [@agentflow.agentflow],
+      H + "  a[\"javascript:alert(1)\"]:::internal-link",
+      options,
+    ).svg
+  assert_false(svg.contains(" href="))
+}
+
+///|
 test "names that are object keys in pele are plain names" {
   let sources = [
     H +
@@ -321,4 +335,22 @@ test "names that are object keys in pele are plain names" {
   )
   ignore(@agentflow.agent_graph(db, {}))
   inspect(db.diagnostics.map(d => d.id).join(","), content="SHAPE_UNSUPPORTED")
+}
+
+///|
+test "more edges than maxEdges is a limit error that names the limit" {
+  let options = { ..@types.RenderOptions::default(), max_edges: Some(2.0), }
+  let message = try {
+    @core.render(
+      [@agentflow.agentflow],
+      "agentflow-beta TB\n  a --> b\n  b --> c\n  c --> d",
+      options,
+    )
+    |> ignore
+    ""
+  } catch {
+    @errors.PeleError(failure) =>
+      "\{failure.code.to_string()} \{failure.message}"
+  }
+  inspect(message, content="limit Edge limit exceeded. The limit is 2.")
 }

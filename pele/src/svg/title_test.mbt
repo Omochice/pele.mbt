@@ -42,13 +42,15 @@ test "title_label wraps a title wider than the room for it" {
         120,
       ),
     ),
-    content="a title long:1:90.018 / enough to:1:86.994 / wrap across:1:105.048 / lines:1:41.022 | 105.048 x 108 size 18 line 27",
+    content=(
+      #|a title long:1:90.018 / enough to:1:86.994 / wrap across:1:105.048 / lines:1:41.022 | 105.048 x 92 size 18 line 23
+    ),
   )
 }
 
 ///|
 test "with_title puts the title above the content and widens the picture for it" {
-  // The expected documents were taken from pele v1.8.0's withTitle.
+  // The expected documents were taken from pele v1.10.0's withTitle.
   let check = (
     title : String?,
     size : Double,
@@ -96,7 +98,7 @@ test "with_title puts the title above the content and widens the picture for it"
     12,
     200,
     99.5,
-    "200 x 172 <text class=\"pele-title\" font-weight=\"var(--_tw)\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"100\" y=\"34\">Two</tspan><tspan x=\"100\" y=\"64\">lines</tspan></text><g transform=\"translate(0,72)\"><g/></g>",
+    "200 x 164 <text class=\"pele-title\" font-weight=\"var(--_tw)\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"100\" y=\"32\">Two</tspan><tspan x=\"100\" y=\"58\">lines</tspan></text><g transform=\"translate(0,64)\"><g/></g>",
   )
 }
 

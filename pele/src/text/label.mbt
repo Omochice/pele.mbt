@@ -27,6 +27,20 @@ pub(all) struct Label {
 const LINE_HEIGHT : Double = 1.5
 
 ///|
+/// Lines of one wrapped label sit closer, so the label reads as one block.
+const WRAPPED_LINE_HEIGHT : Double = 1.3
+
+///|
+/// The line height of a label of `count` lines, given that of a single line.
+fn snug(count : Int32, size : Double, line_height : Double) -> Double {
+  if count > 1 {
+    (size * WRAPPED_LINE_HEIGHT).round()
+  } else {
+    line_height
+  }
+}
+
+///|
 /// The room an icon takes in a line, in multiples of the font size.
 const ICON_WIDTH : Double = 1.25
 
@@ -69,6 +83,17 @@ fn is_open(c : Int32) -> Bool {
 }
 
 ///|
+/// A break hint: a zero-width space, or a soft hyphen, which shows as `-` where a line breaks.
+fn is_hint(c : Int32) -> Bool {
+  c == 0x200b || c == 0xad
+}
+
+///|
+fn has_hint(text : String) -> Bool {
+  text.contains_code_unit(0x200b) || text.contains_code_unit(0xad)
+}
+
+///|
 fn skip_space(text : String, from : Int32) -> Int32 {
   let mut i = from
   while @util.is_space(@util.code_at(text, i)) {
@@ -79,7 +104,7 @@ fn skip_space(text : String, from : Int32) -> Int32 {
 
 ///|
 /// The end of the wrapping piece at `i`, as
-/// `\s*(?:[OPEN]*[CJK][CLOSE]*|[^\s CJK]+[CLOSE]*)\s*|\s+` matches it, or -1.
+/// `\s*(?:[OPEN]*[CJK][CLOSE]*|[^\s CJK HINT]+[HINT]*[CLOSE]*|[HINT]+)\s*|\s+` matches it, or -1.
 fn piece_end(text : String, i : Int32) -> Int32 {
   let j = skip_space(text, i)
   let mut k = j
@@ -96,14 +121,25 @@ fn piece_end(text : String, i : Int32) -> Int32 {
     }
   }
   let c = @util.code_at(text, j)
-  if c != -1 && !@util.is_space(c) && !is_cjk(c) {
+  if c != -1 && !@util.is_space(c) && !is_cjk(c) && !is_hint(c) {
     let mut e = j
     while e < text.length() &&
           !@util.is_space(@util.code_at(text, e)) &&
-          !is_cjk(@util.code_at(text, e)) {
+          !is_cjk(@util.code_at(text, e)) &&
+          !is_hint(@util.code_at(text, e)) {
+      e += 1
+    }
+    while is_hint(@util.code_at(text, e)) {
       e += 1
     }
     while is_close(@util.code_at(text, e)) {
+      e += 1
+    }
+    return skip_space(text, e)
+  }
+  if is_hint(c) {
+    let mut e = j
+    while is_hint(@util.code_at(text, e)) {
       e += 1
     }
     return skip_space(text, e)
@@ -385,17 +421,50 @@ fn tag_at(source : String, at : Int32) -> (Int32, String)? {
 }
 
 ///|
+/// The HTML tags open at the end of a line, as they can span explicit breaks.
+priv struct Open {
+  mut style : Int32
+  /// Only the innermost `<sub>` or `<sup>` shifts text.
+  shifts : Array[Int32]
+}
+
+///|
+fn tag_style(tag : String) -> Int32 {
+  match tag {
+    "b" | "strong" => STYLE_BOLD
+    "i" | "em" | "cite" | "dfn" | "var" => STYLE_ITALIC
+    "code" | "kbd" | "samp" | "tt" => STYLE_MONO
+    "sub" => STYLE_SUB
+    "sup" => STYLE_SUP
+    "u" | "ins" => STYLE_UNDERLINE
+    _ => 0
+  }
+}
+
+///|
+/// The HTML elements whose tags a label drops, keeping their text.
+let html_tags : Set[String] = Set::from_array(
+  ("a abbr address article aside audio b bdi bdo big blockquote body br button caption center cite code col " +
+  "colgroup data dd del details dfn dialog div dl dt em embed fieldset figcaption figure font footer form h1 h2 " +
+  "h3 h4 h5 h6 head header hr html i iframe img input ins kbd label legend li link main map mark meta meter nav " +
+  "noscript object ol optgroup option output p picture pre progress q rp rt ruby s samp script section select " +
+  "small source span strike strong style sub summary sup table tbody td template textarea tfoot th thead time " +
+  "title tr track tt u ul var video wbr")
+  .split(" ")
+  .map(name => name.to_owned())
+  .to_array(),
+)
+
+///|
 /// Splits inline HTML and, for markdown labels, emphasis markers into styled spans.
-/// Returns the HTML emphasis open at the end, as tags can span explicit breaks.
 fn inline(
   line : Array[Span],
   source : String,
   markdown : Bool,
   base : Int32,
-  open_style : Int32,
-) -> Int32 {
-  let mut html_style = open_style
-  let mut style = html_style
+  open : Open,
+) -> Unit {
+  let mut style = open.style
   let mut marked = 0
   // The text between tags is taken as slices of the source, joined only across a tag that sets no
   // emphasis, because copying a long line a code unit at a time into a doubling builder outgrows
@@ -413,7 +482,11 @@ fn inline(
       @util.slice(source, run, end=at)
     }
     joined = false
-    push_icons(line, piece, style)
+    let shift = match open.shifts.last() {
+      Some(bit) => bit
+      None => 0
+    }
+    push_icons(line, piece, style | shift)
   }
   let n = source.length()
   let mut i = 0
@@ -422,33 +495,43 @@ fn inline(
     if ch == '<'.to_int() {
       if tag_at(source, i) is Some((end, name)) {
         let tag = name.to_lower()
-        let closing = @util.code_at(source, i + 1) == '/'.to_int()
-        let bit = if tag == "b" || tag == "strong" {
-          STYLE_BOLD
-        } else if tag == "i" || tag == "em" {
-          STYLE_ITALIC
-        } else {
-          0
-        }
-        if bit != 0 {
-          flush(i)
-          html_style = if closing {
-            (html_style & bit.lnot()) | (base & bit)
+        let bit = tag_style(tag)
+        // Other HTML tags are dropped and their text kept.
+        // Anything else shaped like a tag, such as the type in List<T>, is text.
+        if bit != 0 || html_tags.contains(tag) {
+          let closing = @util.code_at(source, i + 1) == '/'.to_int()
+          if (bit & (STYLE_SUB | STYLE_SUP)) != 0 {
+            flush(i)
+            if !closing {
+              open.shifts.push(bit)
+            } else {
+              for at = open.shifts.length() - 1; at >= 0; at = at - 1 {
+                if open.shifts[at] == bit {
+                  open.shifts.remove(at) |> ignore
+                  break
+                }
+              }
+            }
+          } else if bit != 0 {
+            flush(i)
+            open.style = if closing {
+              (open.style & bit.lnot()) | (base & bit)
+            } else {
+              open.style | bit
+            }
+            style = if closing {
+              (style & bit.lnot()) | (base & bit)
+            } else {
+              style | bit
+            }
           } else {
-            html_style | bit
+            @util.write_range(text, source, run, i)
+            joined = true
           }
-          style = if closing {
-            (style & bit.lnot()) | (base & bit)
-          } else {
-            style | bit
-          }
-        } else {
-          @util.write_range(text, source, run, i)
-          joined = true
+          run = end
+          i = end
+          continue
         }
-        run = end
-        i = end
-        continue
       }
     } else if markdown && (ch == '*'.to_int() || ch == '_'.to_int()) {
       let double = @util.code_at(source, i + 1) == ch
@@ -485,7 +568,6 @@ fn inline(
     i += 1
   }
   flush(n)
-  html_style
 }
 
 ///|
@@ -518,9 +600,24 @@ fn wrap(
 ) -> Unit {
   let mut current : Array[Span] = []
   let mut width = 0.0
-  let commit = () => {
+  // Text joined to the last span of `current` and not yet copied into it, because copying the
+  // span for each zero-width piece would take quadratic time.
+  let pending = StringBuilder()
+  let settle = () => {
+    if !pending.is_empty() {
+      if current.last() is Some(last) {
+        last.text = last.text + pending.to_string()
+      }
+      pending.reset()
+    }
+  }
+  let commit = (hyphen : Bool) => {
+    settle()
     if current.last() is Some(last) && plain(last) {
-      let trimmed = @util.trim_end(last.text)
+      let mut trimmed = @util.trim_end(last.text)
+      if hyphen && last.text.has_suffix("\u{ad}") {
+        trimmed = @util.slice(trimmed, 0, end=trimmed.length() - 1) + "-"
+      }
       if trimmed != last.text {
         last.text = trimmed
         let w = measurer.width(trimmed, size, last.style)
@@ -533,36 +630,92 @@ fn wrap(
     current = []
     width = 0
   }
-  for span in line {
+  for at, span in line {
     if !plain(span) {
       let w = match span.math {
         Some(math) => math.width
         None => size * ICON_WIDTH
       }
       if width > 0 && width + w > max {
-        commit()
+        commit(false)
       }
+      settle()
       current.push({ ..span, width: w, })
       width += w
       continue
     }
-    for piece in pieces(span.text) {
+    let pieces = pieces(span.text)
+    // A piece ending in a soft hyphen fits if its `-` does, or if the rest of the word does, which
+    // hides the hyphen.
+    // The line only grows along a word, so no later hyphen in it fits either, and the remaining
+    // width of each word makes this one check.
+    let soft = span.text.contains_code_unit(0xad)
+    let n = if soft { pieces.length() } else { 0 }
+    let own = FixedArray::make(n, 0.0)
+    let rest = FixedArray::make(n + 1, 0.0)
+    for q = n - 1; q >= 0; q = q - 1 {
+      // A soft hyphen before a space is no break of its own: the space is.
+      let shy = pieces[q].has_suffix("\u{ad}")
+      let end = @util.trim_end(pieces[q])
+      own[q] = measurer.width(
+        if shy {
+          @util.slice(end, 0, end=end.length() - 1)
+        } else {
+          end
+        },
+        size,
+        span.style,
+      )
+      // Word width beyond this span is unknown.
+      rest[q] = if !shy {
+        own[q]
+      } else if q == n - 1 {
+        if at == line.length() - 1 {
+          own[q]
+        } else {
+          @double.infinity
+        }
+      } else {
+        own[q] + rest[q + 1]
+      }
+    }
+    for p, piece in pieces {
       let mut part = piece
-      if width > 0 &&
-        width + measurer.width(@util.trim_end(part), size, span.style) > max {
-        commit()
+      let part_width = if soft {
+        own[p]
+      } else {
+        measurer.width(@util.trim_end(part), size, span.style)
+      }
+      let fits = if !soft || !part.has_suffix("\u{ad}") {
+        width + part_width <= max
+      } else {
+        width +
+        measurer.width(
+          @util.slice(part, 0, end=part.length() - 1) + "-",
+          size,
+          span.style,
+        ) <=
+        max ||
+        width + rest[p] <= max
+      }
+      if width > 0 && !fits {
+        // Breaking at whitespace leaves a preceding soft hyphen hidden.
+        commit(@util.trim_start(part) == part)
         part = @util.trim_start(part)
       }
       match current.last() {
         Some(last) if plain(last) && last.style == span.style => {
-          last.text = last.text + part
-          last.width = measurer.width(last.text, size, last.style)
-          width = 0
-          for s in current {
-            width += s.width
+          pending.write_string(part)
+          // Remeasuring for each zero-width piece would take quadratic time.
+          if part_width > 0 || @util.trim_end(part) != part {
+            settle()
+            let before = last.width
+            last.width = measurer.width(last.text, size, last.style)
+            width += last.width - before
           }
         }
         _ => {
+          settle()
           let w = measurer.width(part, size, span.style)
           current.push({
             text: part,
@@ -577,7 +730,7 @@ fn wrap(
     }
   }
   if current.length() > 0 || out.length() == 0 {
-    commit()
+    commit(false)
   }
 }
 
@@ -637,10 +790,10 @@ fn layout_lines(
   }
   let lines : Array[Array[Span]] = []
   let widths : Array[Double] = []
-  let mut html_style = base
+  let open = { style: base, shifts: [], }
   for part in split_breaks(source) {
     let line = []
-    html_style = inline(line, @util.trim(part), markdown, base, html_style)
+    inline(line, @util.trim(part), markdown, base, open)
     let w = measure_spans(line, measurer, size)
     if w > max_width {
       wrap(line, measurer, size, max_width, lines, widths)
@@ -655,6 +808,7 @@ fn layout_lines(
       width = w
     }
   }
+  let line_height = snug(lines.length(), size, line_height)
   {
     lines,
     widths,
@@ -745,7 +899,8 @@ pub fn layout_label(
   if !has_markup(raw) && !raw.contains("&") && !raw.contains("\u{fb02}") {
     let text = @util.trim(raw)
     let width = measurer.width(text, size, base)
-    if width <= max_width || !(text.contains(" ") || has_cjk(text)) {
+    if width <= max_width ||
+      !(text.contains(" ") || has_cjk(text) || has_hint(text)) {
       return {
         lines: [[{ text, style: base, icon: None, width, math: None, }]],
         widths: [width],
@@ -772,6 +927,7 @@ pub fn layout_label(
         widest = w
       }
     }
+    let line_height = snug(lines.length(), size, line_height)
     return {
       lines,
       widths,

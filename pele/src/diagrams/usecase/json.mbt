@@ -52,10 +52,23 @@ pub fn parse_ordered_json(
 ) -> Map[String, Json] raise @errors.PeleError {
   let value = @util.parse_json(text) catch {
     @util.JsonError(message, offset) => {
+      // The text is parsed again with its entity codes as written, so that the message and the
+      // place match the source.
+      let shown = @text.written_codes(text)
+      let (message, offset) = if shown == text {
+        (message, offset)
+      } else {
+        try {
+          @util.parse_json(shown) |> ignore
+          (message, offset)
+        } catch {
+          @util.JsonError(again, at) => (again, at)
+        }
+      }
       // pele finds the place from V8's message when it names one, and otherwise where its own walk
       // of the text stops, which is where V8 stopped too.
       let (line, column) = origin()
-      let (line, column) = location_at(text, offset, line, column)
+      let (line, column) = location_at(shown, offset, line, column)
       raise json_error("Invalid JSON: \{message}", line, column)
     }
   }

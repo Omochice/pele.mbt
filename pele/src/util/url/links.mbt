@@ -64,6 +64,31 @@ pub fn link_url(url : String, options : @types.RenderOptions) -> String? {
 }
 
 ///|
+/// Whether a note `name` may be the `href` of an internal link, which keeps the name as written.
+/// Sanitizing alone is not enough, so the name is also checked as a browser reads it once
+/// escaping has dropped the characters XML does not allow.
+pub fn internal_link(name : String, options : @types.RenderOptions) -> Bool {
+  let url = sanitize_url(name)
+  if url == blank || link_url(url, options) is None {
+    return false
+  }
+  let seen = StringBuilder()
+  let kept = @svg.without_invalid_xml(name)
+  for i in 0..<kept.length() {
+    match kept.unsafe_get(i).to_int() {
+      '\t' | '\n' | '\r' => ()
+      _ => @util.write_range(seen, kept, i, i + 1)
+    }
+  }
+  let seen = seen.to_string()
+  let mut start = 0
+  while start < seen.length() && seen.unsafe_get(start).to_int() <= 0x20 {
+    start += 1
+  }
+  link_url(@util.slice(seen, start), options) is Some(_)
+}
+
+///|
 /// The URL an image may load from, or `None` when the host turns images off or does not allow its scheme.
 pub fn image_url(url : String, options : @types.RenderOptions) -> String? {
   if options.images == Some(false) {

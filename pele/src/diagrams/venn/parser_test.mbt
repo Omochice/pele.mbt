@@ -129,6 +129,45 @@ test "keywords ignore case and comments are skipped" {
 }
 
 ///|
+test "the character before a comment is kept" {
+  inspect(
+    dump("venn-beta\nset A%% note\nset B:5%% note\nunion A,B%% note"),
+    content=(
+      #|title=- subsets=[A:10:-, B:5:-, A|B:2.5:-] texts=[] styles=[]
+    ),
+  )
+}
+
+///|
+test "a title takes its text from its own line only" {
+  inspect(
+    dump("venn-beta\ntitle\nNext\nset A"),
+    content=(
+      #|syntax: Parse error on line 3:
+      #|Next
+      #|^
+      #|Expecting 'EOF', 'NEWLINE', 'TITLE', 'SET', 'UNION', 'TEXT', 'INDENT_TEXT', 'STYLE', got 'IDENTIFIER'
+    ),
+  )
+  inspect(
+    dump("venn-beta\ntitle \r\nset A"),
+    content=(
+      #|title=- subsets=[A:10:-] texts=[] styles=[]
+    ),
+  )
+}
+
+///|
+test "a bare title is no title" {
+  inspect(
+    dump("venn-beta\ntitle\nset A\nset title\ntitle Kept\nset B"),
+    content=(
+      #|title="Kept" subsets=[A:10:-, title:10:-, B:10:-] texts=[] styles=[]
+    ),
+  )
+}
+
+///|
 test "a text after an unindented statement does not continue the set" {
   inspect(
     dump("venn-beta\nset A\ntext A x\n  text y"),

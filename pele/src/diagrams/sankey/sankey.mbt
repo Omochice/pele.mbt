@@ -10,7 +10,7 @@ pub let sankey : @types.Diagram = {
     if title is Some(text) && text != "" {
       db.title = title
     }
-    parse_sankey(prepare_text_for_parsing(source), db)
+    parse_sankey(prepare_text_for_parsing(source), db, source~)
     { render: (config, options) => render_sankey(db, config, options), }
   },
 }

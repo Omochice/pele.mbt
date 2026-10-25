@@ -2,7 +2,7 @@
   "error": {
     "name": "PeleError",
     "code": "syntax",
-    "message": "Parse error on line 2:\nrule = \"test\" ;\n-------^\nExpecting an expression but found `\"test\"`.",
+    "message": "Parse error on line 4:\nrule = \"test\" ;\n-------^\nExpecting an expression but found `\"test\"`.",
     "type": "railroad",
     "mermaidType": "railroad"
   }

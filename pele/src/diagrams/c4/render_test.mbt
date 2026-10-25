@@ -594,6 +594,24 @@ test "joins neighbours with a straight line between their borders" {
 }
 
 ///|
+test "fits the label of a line between neighbours in the gap between them" {
+  for
+    args in [
+      "\"Sends a fairly long description of the relationship\"", "\"Makes API calls to\", \"JSON/HTTPS\"",
+    ] {
+    let svg = svg_of(
+      "C4Context\nSystem(a, \"A\")\nSystem(b, \"B\")\nRel(a, b, \{args})",
+    )
+    let a = box(svg, "a")
+    let b = box(svg, "b")
+    let label = box(svg, "a-b")
+    assert_eq(b.1, a.1)
+    assert_true(label.0 >= a.0 + a.2)
+    assert_true(label.0 + label.2 <= b.0)
+  }
+}
+
+///|
 test "ends a line on the outline of a person, a database, and a queue" {
   let svg = svg_of(
     (
@@ -1313,5 +1331,16 @@ test "scales with the font size option" {
   let src = "C4Context\nSystem(a, \"A\", \"Some description text that wraps over lines\")"
   assert_true(
     drawn(src, font_size=24).unwrap().height > drawn(src).unwrap().height,
+  )
+}
+
+///|
+test "a bare title is no title, and a title after a tab is kept" {
+  let bare = model("C4Context\ntitle\nPerson(a, \"Alice\")\nPerson(b, \"Bob\")")
+  inspect(bare.title is None, content="true")
+  inspect(bare.shapes.map(shape => shape.label).join("|"), content="Alice|Bob")
+  inspect(
+    model("C4Context\ntitle\tOwn\nSystem(a, \"A\")").title.unwrap_or("-"),
+    content="Own",
   )
 }

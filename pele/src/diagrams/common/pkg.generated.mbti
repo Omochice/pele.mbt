@@ -43,6 +43,8 @@ pub fn break_label(@text.Label, @text.TextMeasurer, Double) -> @text.Label
 
 pub fn cap_width(@types.RenderOptions, Double, Double, around? : Double) -> Double
 
+pub fn code_point_starts(String) -> Array[Int32]
+
 pub let directive : TokenType
 
 pub fn fit_label(String?, @text.TextMeasurer, Double, Double, base? : Int32) -> @text.Label

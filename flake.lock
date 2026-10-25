@@ -116,17 +116,17 @@
     "pele": {
       "flake": false,
       "locked": {
-        "lastModified": 1792523199,
-        "narHash": "sha256-ZNhkBWTbZh2GPWsEXN5OCvi0XJtgUof2HKI9n93Be5w=",
+        "lastModified": 1792867737,
+        "narHash": "sha256-QUDpvgU3QEXwWE3i4+swv0OVT6JRmUusq/JseCGTRvM=",
         "owner": "obsidianmd",
         "repo": "pele",
-        "rev": "1dd58b7ebb0ec654fa7dc4304d50cf8fd3a65d7b",
+        "rev": "4eff76f98c73b6817800a05773517f35832e4e92",
         "type": "github"
       },
       "original": {
         "owner": "obsidianmd",
+        "ref": "1.10.0",
         "repo": "pele",
-        "rev": "1dd58b7ebb0ec654fa7dc4304d50cf8fd3a65d7b",
         "type": "github"
       }
     },

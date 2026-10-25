@@ -237,7 +237,7 @@ test "wraps long labels" {
     snapshot(
       "agentflow-beta TB\n  a[\"A fairly long label that has to wrap over several lines to fit\"]",
     ),
-    "172x160 []\n<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-agentflow\" viewBox=\"0 0 172 160\" width=\"172\" height=\"160\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"agentflow\"><g class=\"pele-nodes\"><g class=\"pele-node pele-shape-rounded pele-kind-task\" data-id=\"a\" transform=\"translate(86,80)\"><rect x=\"-78\" y=\"-72\" width=\"156\" height=\"144\" rx=\"12\" fill=\"var(--pele-series-2,#f58518)\" fill-opacity=\"0.14\" stroke=\"var(--pele-series-2,#f58518)\"/><text class=\"pele-label\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"0\" y=\"-42.4\">A fairly long</tspan><tspan x=\"0\" y=\"-18.4\">label that has to</tspan><tspan x=\"0\" y=\"5.6\">wrap over</tspan><tspan x=\"0\" y=\"29.6\">several lines to</tspan><tspan x=\"0\" y=\"53.6\">fit</tspan></text></g></g></svg>",
+    "172x145 []\n<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-agentflow\" viewBox=\"0 0 172 145\" width=\"172\" height=\"145\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"agentflow\"><g class=\"pele-nodes\"><g class=\"pele-node pele-shape-rounded pele-kind-task\" data-id=\"a\" transform=\"translate(86,72.5)\"><rect x=\"-78\" y=\"-64.5\" width=\"156\" height=\"129\" rx=\"12\" fill=\"var(--pele-series-2,#f58518)\" fill-opacity=\"0.14\" stroke=\"var(--pele-series-2,#f58518)\"/><text class=\"pele-label\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"0\" y=\"-36.4\">A fairly long</tspan><tspan x=\"0\" y=\"-15.4\">label that has to</tspan><tspan x=\"0\" y=\"5.6\">wrap over</tspan><tspan x=\"0\" y=\"26.6\">several lines to</tspan><tspan x=\"0\" y=\"47.6\">fit</tspan></text></g></g></svg>",
   )
 }
 
@@ -305,5 +305,52 @@ test "turns a diagram that runs across to fit a narrow host" {
       max_width=400,
     ),
     "172x352 []\n<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-agentflow\" viewBox=\"0 0 172 352\" width=\"172\" height=\"352\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"agentflow\"><g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\"><g class=\"pele-edge pele-edge-sequence\" data-id=\"L_a_b_0\"><path d=\"M86,56L86,97\"/><path class=\"pele-marker\" d=\"M86,104L82.64,96L89.36,96Z\" fill=\"var(--_l)\" stroke=\"none\"/></g><g class=\"pele-edge pele-edge-sequence\" data-id=\"L_b_c_0\"><path d=\"M86,152L86,193\"/><path class=\"pele-marker\" d=\"M86,200L82.64,192L89.36,192Z\" fill=\"var(--_l)\" stroke=\"none\"/></g><g class=\"pele-edge pele-edge-sequence\" data-id=\"L_c_d_0\"><path d=\"M86,248L86,289\"/><path class=\"pele-marker\" d=\"M86,296L82.64,288L89.36,288Z\" fill=\"var(--_l)\" stroke=\"none\"/></g></g><g class=\"pele-nodes\"><g class=\"pele-node pele-shape-rounded pele-kind-task\" data-id=\"a\" transform=\"translate(86,32)\"><rect x=\"-78\" y=\"-24\" width=\"156\" height=\"48\" rx=\"12\" fill=\"var(--pele-series-2,#f58518)\" fill-opacity=\"0.14\" stroke=\"var(--pele-series-2,#f58518)\"/><text class=\"pele-label\" x=\"0\" y=\"5.6\" text-anchor=\"middle\">Alpha step</text></g><g class=\"pele-node pele-shape-rounded pele-kind-task\" data-id=\"b\" transform=\"translate(86,128)\"><rect x=\"-78\" y=\"-24\" width=\"156\" height=\"48\" rx=\"12\" fill=\"var(--pele-series-2,#f58518)\" fill-opacity=\"0.14\" stroke=\"var(--pele-series-2,#f58518)\"/><text class=\"pele-label\" x=\"0\" y=\"5.6\" text-anchor=\"middle\">Beta step</text></g><g class=\"pele-node pele-shape-rounded pele-kind-task\" data-id=\"c\" transform=\"translate(86,224)\"><rect x=\"-78\" y=\"-24\" width=\"156\" height=\"48\" rx=\"12\" fill=\"var(--pele-series-2,#f58518)\" fill-opacity=\"0.14\" stroke=\"var(--pele-series-2,#f58518)\"/><text class=\"pele-label\" x=\"0\" y=\"5.6\" text-anchor=\"middle\">Gamma step</text></g><g class=\"pele-node pele-shape-rounded pele-kind-task\" data-id=\"d\" transform=\"translate(86,320)\"><rect x=\"-78\" y=\"-24\" width=\"156\" height=\"48\" rx=\"12\" fill=\"var(--pele-series-2,#f58518)\" fill-opacity=\"0.14\" stroke=\"var(--pele-series-2,#f58518)\"/><text class=\"pele-label\" x=\"0\" y=\"5.6\" text-anchor=\"middle\">Delta step</text></g></g></svg>",
+  )
+}
+
+///|
+test "an error after a brace with trailing blanks is placed in the source as written" {
+  let failure = try {
+    @core.render(
+      [@agentflow.agentflow],
+      "---\ntitle: T\n---\nagentflow-beta TB\n  a@{ shape: rounded }  \n  b -.-> c",
+      @types.RenderOptions::default(),
+    )
+    |> ignore
+    None
+  } catch {
+    @errors.PeleError(failure) => Some(failure)
+  }
+  guard failure is Some(failure) else { fail("accepted") }
+  inspect("\{failure.line}:\{failure.column}", content="6:8")
+}
+
+///|
+test "a metadata error after a directive is placed in the source as written" {
+  let metadata = "%%{init:\n{}\n}%%\nagentflow-beta\na[\"#35;\"] --> b@{shape: "
+  let shown = []
+  for tail in ["bad}", "[bad}"] {
+    let failure = try {
+      @core.render(
+        [@agentflow.agentflow],
+        metadata + tail,
+        @types.RenderOptions::default(),
+      )
+      |> ignore
+      None
+    } catch {
+      @errors.PeleError(failure) => Some(failure)
+    }
+    guard failure is Some(failure) else { fail("accepted") }
+    shown.push(
+      "\{failure.code.to_string()} \{failure.line}:\{failure.column} \{failure.message}",
+    )
+  }
+  inspect(
+    shown.join("\n"),
+    content=(
+      #|semantic 5:16 No such shape: bad.
+      #|syntax 5:16 Metadata of "b" is not valid YAML. YAML: unexpected end of the stream within a flow collection (5:16)
+    ),
   )
 }

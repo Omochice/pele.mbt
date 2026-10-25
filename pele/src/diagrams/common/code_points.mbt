@@ -1,7 +1,7 @@
 ///|
 /// Where each code point of `text` starts, followed by the length of the text, as `Array.from` splits it:
 /// a surrogate pair is one code point and a lone surrogate is one of its own.
-fn code_point_starts(text : String) -> Array[Int32] {
+pub fn code_point_starts(text : String) -> Array[Int32] {
   let starts = []
   let n = text.length()
   let mut i = 0

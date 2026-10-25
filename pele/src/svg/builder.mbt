@@ -42,22 +42,95 @@ fn is_xml_forbidden(c : Int32) -> Bool {
 }
 
 ///|
-/// Escapes text for XML and drops the control characters XML does not allow.
+/// Whether the character at `i` is one XML does not allow, or DEL, as
+/// `/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f\ud800-\udfff\ufffe\uffff]/u` reads it, and how many code units it
+/// takes.
+/// The pattern reads code points, so only a surrogate that is not half of a pair is in it.
+fn invalid_xml_at(text : String, i : Int32) -> (Bool, Int32) {
+  let (c, next) = @util.code_point_at(text, i)
+  let invalid = is_xml_forbidden(c) ||
+    (c >= 0xd800 && c <= 0xdfff) ||
+    c == 0xfffe ||
+    c == 0xffff
+  (invalid, next - i)
+}
+
+///|
+/// Whether the code unit `c` is a character XML allows on its own.
+/// Most characters are, and testing for that first saves decoding a code point for each.
+fn is_plain_xml(c : Int32) -> Bool {
+  c < 0xd800 && !is_xml_forbidden(c)
+}
+
+///|
+/// Whether `text` holds a character XML does not allow, or DEL.
+/// Escaping drops them, which could join what is left of a checked value into something unsafe.
+pub fn has_invalid_xml(text : String) -> Bool {
+  let mut i = 0
+  while i < text.length() {
+    if is_plain_xml(text.unsafe_get(i).to_int()) {
+      i += 1
+      continue
+    }
+    let (invalid, width) = invalid_xml_at(text, i)
+    if invalid {
+      return true
+    }
+    i += width
+  }
+  false
+}
+
+///|
+/// `text` without the characters `has_invalid_xml` finds.
+pub fn without_invalid_xml(text : String) -> String {
+  let out = StringBuilder()
+  let mut i = 0
+  while i < text.length() {
+    if is_plain_xml(text.unsafe_get(i).to_int()) {
+      @util.write_range(out, text, i, i + 1)
+      i += 1
+      continue
+    }
+    let (invalid, width) = invalid_xml_at(text, i)
+    if !invalid {
+      @util.write_range(out, text, i, i + width)
+    }
+    i += width
+  }
+  out.to_string()
+}
+
+///|
+/// Escapes text for XML and drops the characters XML does not allow, and DEL.
 pub fn esc(text : String) -> String {
   let out = StringBuilder()
   let mut last = 0
-  for i in 0..<text.length() {
-    let c = @util.code_at(text, i)
+  let mut i = 0
+  while i < text.length() {
+    let c = text.unsafe_get(i).to_int()
     let replacement = match c {
       0x26 => "&amp;"
       0x3c => "&lt;"
       0x3e => "&gt;"
       0x22 => "&quot;"
-      _ => if is_xml_forbidden(c) { "" } else { continue }
+      _ if is_plain_xml(c) => {
+        i += 1
+        continue
+      }
+      _ => {
+        let (invalid, width) = invalid_xml_at(text, i)
+        if !invalid {
+          i += width
+          continue
+        }
+        ""
+      }
     }
     @util.write_range(out, text, last, i)
     out.write_string(replacement)
-    last = i + 1
+    i += 1
+    last = i
   }
   if last == 0 {
     return text
@@ -80,16 +153,37 @@ const BOLD_ATTR : String = " font-weight=\"var(--_w)\""
 const ITALIC_ATTR : String = " font-style=\"italic\""
 
 ///|
+const UNDERLINE_ATTR : String = " text-decoration=\"underline\""
+
+///|
+const MONO_ATTR : String = " font-family=\"var(--_fm)\""
+
+///|
+const SUB_ATTR : String = " baseline-shift=\"sub\" font-size=\"smaller\""
+
+///|
+const SUP_ATTR : String = " baseline-shift=\"super\" font-size=\"smaller\""
+
+///|
 /// The attributes of a span's own emphasis.
 pub fn span_style(style : Int32) -> String {
   (if (style & @text.STYLE_BOLD) != 0 { BOLD_ATTR } else { "" }) +
-  (if (style & @text.STYLE_ITALIC) != 0 { ITALIC_ATTR } else { "" })
+  (if (style & @text.STYLE_ITALIC) != 0 { ITALIC_ATTR } else { "" }) +
+  (if (style & @text.STYLE_MONO) != 0 { MONO_ATTR } else { "" }) +
+  (if (style & @text.STYLE_UNDERLINE) != 0 { UNDERLINE_ATTR } else { "" }) +
+  (if (style & @text.STYLE_SUB) != 0 {
+    SUB_ATTR
+  } else if (style & @text.STYLE_SUP) != 0 {
+    SUP_ATTR
+  } else {
+    ""
+  })
 }
 
 ///|
 /// The emphasis every span of a label has, which is written once on the text element.
 pub fn shared_style(label : @text.Label) -> Int32 {
-  let mut shared = @text.STYLE_BOLD | @text.STYLE_ITALIC
+  let mut shared = @text.STYLE_BOLD | @text.STYLE_ITALIC | @text.STYLE_MONO
   let mut any = false
   for line in label.lines {
     for span in line {
@@ -120,6 +214,11 @@ pub fn text_style(attrs : String, shared : Int32) -> String {
     ITALIC_ATTR
   } else {
     ""
+  }) +
+  (if (shared & @text.STYLE_MONO) != 0 && !attrs.contains(" font-family=\"") {
+    MONO_ATTR
+  } else {
+    ""
   })
 }
 
@@ -143,6 +242,7 @@ pub fn write_label(
     out => out.write(attrs),
     () => attrs.contains(" font-weight=\""),
     () => attrs.contains(" font-style=\""),
+    () => attrs.contains(" font-family=\""),
     () => attrs,
     icons?,
   )
@@ -150,8 +250,9 @@ pub fn write_label(
 
 ///|
 /// Writes a measured label to `out` as `write_label` draws it under the attributes `write_attrs`
-/// writes, which hold ` font-weight="` when `weighted` says so and ` font-style="` when `styled`
-/// does, and which `math_attrs` gives as one string to math the label typesets.
+/// writes, which hold ` font-weight="` when `weighted` says so, ` font-style="` when `styled`
+/// does and ` font-family="` when `familied` does, and which `math_attrs` gives as one string to
+/// math the label typesets.
 /// The attributes are asked about only when the label needs them, so that a writer whose
 /// attributes are too long for one string can tell from its parts.
 fn write_label_parts(
@@ -162,6 +263,7 @@ fn write_label_parts(
   write_attrs : (Markup) -> Unit raise @errors.PeleError,
   weighted : () -> Bool,
   styled : () -> Bool,
+  familied : () -> Bool,
   math_attrs : () -> String,
   icons? : @types.IconResolver,
 ) -> Unit raise @errors.PeleError {
@@ -257,6 +359,9 @@ fn write_label_parts(
   }
   if (shared & @text.STYLE_ITALIC) != 0 && !styled() {
     out.write(ITALIC_ATTR)
+  }
+  if (shared & @text.STYLE_MONO) != 0 && !familied() {
+    out.write(MONO_ATTR)
   }
   out.write_group(
     " text-anchor=\"middle\" xml:space=\"preserve\">", body, "</text>",

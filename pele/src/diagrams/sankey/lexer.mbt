@@ -50,9 +50,12 @@ priv enum State {
 }
 
 ///|
-/// RFC 4180 TEXTDATA: printable ASCII except the double quote and the comma.
+/// RFC 4180 TEXTDATA extended to Unicode, excluding controls and invalid XML characters.
 fn is_text_data(c : Int32) -> Bool {
-  c >= 32 && c <= 126 && c != 34 && c != 44
+  (c >= 32 && c <= 126 && c != 34 && c != 44) ||
+  (c >= 0xa0 && c <= 0xd7ff) ||
+  (c >= 0xe000 && c <= 0xfffd) ||
+  (c >= 0x10000 && c <= 0x10ffff)
 }
 
 ///|
@@ -113,9 +116,9 @@ pub fn tokenize(src : String) -> Tokens {
         continue
       }
       while q < n {
-        let d = @util.code_at(src, q)
+        let (d, next) = @util.code_point_at(src, q)
         if is_text_data(d) || d == 44 || d == 13 || d == 10 {
-          q += 1
+          q = next
         } else if d == 34 && @util.code_at(src, q + 1) == 34 {
           q += 2
         } else {
@@ -159,8 +162,12 @@ pub fn tokenize(src : String) -> Tokens {
         p += 1
         continue
       }
-      while q < n && is_text_data(@util.code_at(src, q)) {
-        q += 1
+      while q < n {
+        let (d, next) = @util.code_point_at(src, q)
+        if !is_text_data(d) {
+          break
+        }
+        q = next
       }
       push_token(tokens, src, NonEscapedText, p, q)
       p = q

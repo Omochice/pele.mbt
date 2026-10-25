@@ -1,6 +1,6 @@
 # Testing
 
-The port is correct when it answers every input as pele v1.8.0 does, so every check below compares the port with pele's own output rather than with expectations written by hand.
+The port is correct when it answers every input as pele v1.10.0 does, so every check below compares the port with pele's own output rather than with expectations written by hand.
 The checks differ in where the inputs come from and in how far past ordinary sizes they go.
 
 ## Prerequisites

@@ -37,7 +37,13 @@ pub fn relative_radius(
   radius : Double,
 ) -> Double {
   let clipped = @cmp.minimum(@cmp.maximum(value, min), max)
-  radius * (clipped - min) / (max - min)
+  let scaled = radius * (clipped - min)
+  // Keep the original rounding unless multiplication overflows.
+  if scaled.is_nan() || scaled.is_inf() {
+    radius * ((clipped - min) / (max - min))
+  } else {
+    scaled / (max - min)
+  }
 }
 
 ///|

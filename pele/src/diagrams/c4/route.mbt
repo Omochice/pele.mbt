@@ -64,6 +64,10 @@ const NARROW : Double = 88
 const WIDE : Double = 160
 
 ///|
+/// The space a label's background adds to the width of its text.
+const LABEL_PAD : Double = 8
+
+///|
 /// The shared person shape: a head of radius 13 centered 14 below the top, over a body that starts 26 below it.
 pub const HEAD : Double = 26
 

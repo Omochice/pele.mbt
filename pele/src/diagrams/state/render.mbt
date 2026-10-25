@@ -274,6 +274,15 @@ fn draw(
   turned : Bool,
 ) -> @types.Rendered raise @errors.PeleError {
   let graph = db.graph
+  // State diagrams follow the flowchart curve.
+  let curve = match config.get("flowchart") {
+    Some(Object(flowchart)) =>
+      match flowchart.get("curve") {
+        Some(String(name)) => Some(name)
+        _ => None
+      }
+    _ => None
+  }
   let size = options.font_size.unwrap_or(16)
   let small = (size * 0.875).round()
   let measurer = options.text_measurer()
@@ -682,6 +691,8 @@ fn draw(
       edge_sep=EDGE_SEP,
       rank_sep=number_option(config, "rankSpacing", RANK_SEP),
       port_sep=20,
+      tracks=curve is Some("step" | "stepBefore" | "stepAfter"),
+      straight=curve is Some("linear"),
       head_room=@svg.marker_trim("arrow_point"),
     ),
   )
@@ -1126,7 +1137,7 @@ fn draw(
       }
       let path = @svg.route_path(
         route,
-        None,
+        curve,
         0,
         @svg.marker_trim(end_type),
         start_reach=leaves,

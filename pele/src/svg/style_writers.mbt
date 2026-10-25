@@ -1,5 +1,5 @@
 ///|
-/// Mermaid style declarations split as `resolve_style` splits them, with `shape`, `line` and
+/// Mermaid style declarations split by what they apply to, with `shape`, `line` and
 /// `text` kept as the CSS of a `style` attribute before it is escaped, or empty.
 /// The CSS is escaped only as it is written, a piece at a time, because a value of tens of
 /// millions of `&` escapes to more than a doubling StringBuilder holds.
@@ -14,7 +14,8 @@ pub(all) struct RawStyle {
 }
 
 ///|
-/// The declarations split as `resolve_style` splits them, before any of them is escaped.
+/// Splits Mermaid style declarations into what applies to a shape and what applies to its text.
+/// Declarations that could escape the attribute or load something are dropped.
 pub fn resolve_raw_style(declarations : Array[String]) -> RawStyle {
   let shape = Properties::new()
   let text = Properties::new()
@@ -28,7 +29,7 @@ pub fn resolve_raw_style(declarations : Array[String]) -> RawStyle {
       kelvin=true,
     )
     let value = @util.trim(remove_important(@util.slice(declaration, at + 1)))
-    if value == "" || is_unsafe(value) {
+    if value == "" || is_unsafe(value) || has_invalid_xml(value) {
       continue
     }
     if shape_props.contains(name) {
@@ -203,18 +204,27 @@ pub fn style_contains(css : String, needle : String) -> Bool {
   if feed(" style=\"") {
     return true
   }
-  for i in 0..<css.length() {
-    let c = @util.code_at(css, i)
-    let hit = match c {
-      0x26 => feed("&amp;")
-      0x3c => feed("&lt;")
-      0x3e => feed("&gt;")
-      0x22 => feed("&quot;")
-      _ => if is_xml_forbidden(c) { false } else { found(c) }
+  let mut i = 0
+  while i < css.length() {
+    let (hit, width) = match @util.code_at(css, i) {
+      0x26 => (feed("&amp;"), 1)
+      0x3c => (feed("&lt;"), 1)
+      0x3e => (feed("&gt;"), 1)
+      0x22 => (feed("&quot;"), 1)
+      _ => {
+        let (invalid, width) = invalid_xml_at(css, i)
+        let matched = !invalid &&
+          (
+            found(css.unsafe_get(i).to_int()) ||
+            (width == 2 && found(css.unsafe_get(i + 1).to_int()))
+          )
+        (matched, width)
+      }
     }
     if hit {
       return true
     }
+    i += width
   }
   feed("\"")
 }

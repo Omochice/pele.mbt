@@ -21,11 +21,12 @@ pub fn write_label_styled(
       out.write(attrs)
       write_style(out, css)
     },
-    // An escaped style holds no `"`, so it neither holds nor completes ` font-weight="` or
-    // ` font-style="`.
+    // An escaped style holds no `"`, so it neither holds nor completes ` font-weight="`,
+    // ` font-style="` or ` font-family="`.
     () => attrs.contains(" font-weight=\""),
     () => attrs.contains(" font-style=\""),
-    () => attrs + attribute(css),
+    () => attrs.contains(" font-family=\""),
+    () => attrs + style_attribute(css),
     icons?,
   )
 }
@@ -61,7 +62,8 @@ pub fn write_label_with_id(
     // style of their own.
     () => holds_around_id(before, id, after, " font-weight=\""),
     () => holds_around_id(before, id, after, " font-style=\""),
-    () => before + esc_text(id) + after + attribute(css),
+    () => holds_around_id(before, id, after, " font-family=\""),
+    () => before + esc_text(id) + after + style_attribute(css),
     icons?,
   )
 }

@@ -434,11 +434,16 @@ test "a generic type and a long comment that wraps" {
   let result = drawn(
     "erDiagram\n A {\n List~string~ tags \"a comment long enough that it has to wrap onto a second line of the cell\"\n string? alias UK, FK\n }",
   ).unwrap()
-  inspect("\{result.width}x\{result.height}", content="459x139")
+  inspect(
+    "\{result.width}x\{result.height}",
+    content=(
+      #|459x133
+    ),
+  )
   inspect(
     body(result.svg),
     content=(
-      #|<g class="pele-nodes"><g class="pele-node pele-entity" data-id="A" transform="translate(229.09,69.5)"><rect x="-221.09" y="-61.5" width="442.18" height="123" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/><g class="pele-er-stripes" fill="var(--_bg)"><rect x="-221.09" width="442.18" y="-19.5" height="51"/></g><path class="pele-er-divider" d="M-221.09,-19.5H221.09" stroke="var(--_b)"/><rect x="-221.09" y="-61.5" width="442.18" height="123" fill="none" stroke="var(--_b)" style="rx:var(--_r)"/><text class="pele-label" x="0" y="-34.9" text-anchor="middle">A</text><g class="pele-er-attributes" font-size="14"><text class="pele-er-type" fill="var(--_m)" x="-209.09" y="0.4">List&lt;string&gt;</text><text class="pele-er-name" x="-120.72" y="0.4">tags</text><text class="pele-er-comment" fill="var(--_m)" xml:space="preserve"><tspan x="-21.26" y="0.4">a comment long enough that it has to</tspan><tspan x="-21.26" y="21.4">wrap onto a second line of the cell</tspan></text><text class="pele-er-type" fill="var(--_m)" x="-209.09" y="51.4">string?</text><text class="pele-er-name" x="-120.72" y="51.4">alias</text><text class="pele-er-keys" font-size="12" fill="var(--_m)" x="-75.94" y="51.4">UK, FK</text></g></g></g></svg>
+      #|<g class="pele-nodes"><g class="pele-node pele-entity" data-id="A" transform="translate(229.09,66.5)"><rect x="-221.09" y="-58.5" width="442.18" height="117" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/><g class="pele-er-stripes" fill="var(--_bg)"><rect x="-221.09" width="442.18" y="-16.5" height="45"/></g><path class="pele-er-divider" d="M-221.09,-16.5H221.09" stroke="var(--_b)"/><rect x="-221.09" y="-58.5" width="442.18" height="117" fill="none" stroke="var(--_b)" style="rx:var(--_r)"/><text class="pele-label" x="0" y="-31.9" text-anchor="middle">A</text><g class="pele-er-attributes" font-size="14"><text class="pele-er-type" fill="var(--_m)" x="-209.09" y="3.4">List&lt;string&gt;</text><text class="pele-er-name" x="-120.72" y="3.4">tags</text><text class="pele-er-comment" fill="var(--_m)" xml:space="preserve"><tspan x="-21.26" y="3.4">a comment long enough that it has to</tspan><tspan x="-21.26" y="21.4">wrap onto a second line of the cell</tspan></text><text class="pele-er-type" fill="var(--_m)" x="-209.09" y="48.4">string?</text><text class="pele-er-name" x="-120.72" y="48.4">alias</text><text class="pele-er-keys" font-size="12" fill="var(--_m)" x="-75.94" y="48.4">UK, FK</text></g></g></g></svg>
     ),
   )
 }

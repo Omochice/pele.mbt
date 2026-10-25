@@ -189,7 +189,9 @@ test "deep, many, and large groups are drawn as pele draws them" {
 test "long text is drawn as pele draws it" {
   inspect(
     outcome(HEAD + "service a[" + "word ".repeat(N / 5) + "]"),
-    content="drawn nodes=1 groups=0 edges=0 90x120068",
+    content=(
+      #|drawn nodes=1 groups=0 edges=0 90x105068
+    ),
   )
   inspect(
     outcome(HEAD + "service a[" + "w".repeat(N) + "]"),
@@ -212,11 +214,15 @@ test "long text is drawn as pele draws it" {
       "*a _b ".repeat(N / 12) +
       "]- L:b",
     ),
-    content="drawn nodes=2 groups=1 edges=1 576x25993",
+    content=(
+      #|drawn nodes=2 groups=1 edges=1 576x22555
+    ),
   )
   inspect(
     outcome(HEAD + "service a[\"" + "#35;&amp;<br>".repeat(N / 13) + "\"]"),
-    content="drawn nodes=1 groups=0 edges=0 64x92396",
+    content=(
+      #|drawn nodes=1 groups=0 edges=0 64x80855
+    ),
   )
 }
 

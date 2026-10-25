@@ -1,5 +1,5 @@
 // What pele makes of each agentflow input of its reference corpus, its documentation corpus, Mermaid's fixtures and the goldens.
-// Generated from pele 1.8.0: a success is a hash of the dump written as `dump_model` writes it.
+// Generated from pele 1.10.0: a success is a hash of the dump written as `dump_model` writes it.
 
 ///|
 let model_cases : Array[(String, String)] = [
@@ -632,7 +632,7 @@ let model_cases : Array[(String, String)] = [
   ),
   (
     "---\nconfig:\n  layout: elk\n---\nagentflow-beta TB\n  flow tools[\"Tools\"]\n    a[\"a\"]@{ shape: tool }\nF\"]\n  a[\"    b[\"b\"]@{ shape: tool  }\n  end\n  tools@{ algorithm: \"elk.rectpacking\" }\n",
-    "error syntax agentflow agentflow\nLexical error on line 4. Unrecognized text.\nF\"]\n--^",
+    "error syntax agentflow agentflow\nLexical error on line 8. Unrecognized text.\nF\"]\n--^",
   ),
   (
     "agentflow-beta TB\n  file_path[\"file_path\"]\n  file_path@{ shape: i flow f[\"F\"]\n nput, value: \"src/HelloWorld.java\" }",
@@ -733,7 +733,7 @@ let model_cases : Array[(String, String)] = [
   ),
   (
     "---\nconfig:\n  theme: default\n  look: classic\n  layout: dagre\n---\nagentflow-beta TB\n  brief[\"Release brief\"]@{ shape: input }\n  flow writer[\"Drafting Agent\"]\n    draft[\"Draft the notes\"]@{ shape: task }\n    lookup[\"changelog_search\"]@{ shape: tool }\n    guide[\"Tone of voice\"]@{ shape: refdoc }click a href \"https://x.y\"\n\n    draft --> lookup\n    draft -.- guide\n  end\n  flow reviewer[\"Review Agent\"]\n    check[\"Check the claims\"]@{ shape: task }\n    ok[\"Accurate?\"]@{ shape: decision }\n    check --> ok\n  end\n  publish[\"Publi@{ shape: cylinder }sh\"]@{ shape: action }\n  brief --> writer\n  writer --> reviewer\n  ok --> publish\n",
-    "error syntax agentflow agentflow\nParse error on line 6:\n    guide[\"Tone of voice\"]@{ shape: refdoc }click a href \"https://x.y\"\n--------------------------------------------------^\nExpecting 'COMMENT', 'SEMI', 'NEWLINE', 'EOF', got 'CLICK'",
+    "error syntax agentflow agentflow\nParse error on line 12:\n    guide[\"Tone of voice\"]@{ shape: refdoc }click a href \"https://x.y\"\n--------------------------------------------------^\nExpecting 'COMMENT', 'SEMI', 'NEWLINE', 'EOF', got 'CLICK'",
   ),
   (
     "agentflow-beta TB\n  a[\"A\"]@{ shape: rounded }\n\n  b;[\"B\"]@{ shape: rounded }\n\nf  c[\"C\"]\"]\n",

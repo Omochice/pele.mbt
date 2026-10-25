@@ -210,6 +210,10 @@ test "model errors surface as render errors" {
     content="Missing entry for axis Alpha",
   )
   inspect(
+    svg("radar-beta\n axis a[\"#35;x &amp;y\"], b\n curve c{ b: 1 }"),
+    content="Missing entry for axis #35;x &amp;y",
+  )
+  inspect(
     svg("radar-beta\n curve c{ B: 2 }"),
     content="Axes must be populated before curves for reference entries",
   )
@@ -305,4 +309,22 @@ fn round_curve(points : Array[@radar.Point], tension : Double) -> String {
     d.write_string(segment)
   })
   d.to_string()
+}
+
+///|
+test "values near the largest double are scaled like small ones" {
+  let curve = (values : String) => {
+    let drawn = svg(
+      "radar-beta\n axis A, B, C\n curve c{\{values}}\n graticule polygon",
+    )
+    let at = @util.index_of(drawn, "<polygon class=\"pele-curve\"")
+    let from = @util.index_of(drawn, " points=\"", from=at) + 9
+    @util.slice(drawn, from, end=@util.index_of(drawn, "\"", from~))
+  }
+  let huge = [
+    "1" + "0".repeat(308),
+    "5" + "0".repeat(307),
+    "25" + "0".repeat(306),
+  ].join(",")
+  assert_eq(curve(huge), curve("4,2,1"))
 }

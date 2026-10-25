@@ -49,7 +49,7 @@ function isWide(c) {
 }
 
 function isZeroWidth(c) {
-  return (c >= 0x300 && c <= 0x36f) || (c >= 0x200b && c <= 0x200f) || (c >= 0xdc00 && c <= 0xdfff) || (c >= 0xfe00 && c <= 0xfe0f) || c === 0xfeff;
+  return c === 0xad || (c >= 0x300 && c <= 0x36f) || (c >= 0x200b && c <= 0x200f) || (c >= 0xdc00 && c <= 0xdfff) || (c >= 0xfe00 && c <= 0xfe0f) || c === 0xfeff;
 }
 
 const numberOr = (value, fallback) => (typeof value === 'number' ? value : fallback);

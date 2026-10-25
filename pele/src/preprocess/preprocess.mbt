@@ -105,19 +105,36 @@ fn merge(target : @types.Config, source : @types.Config) -> @types.Config {
 }
 
 ///|
-/// Removes `%%` comment lines, keeping directives, and leading whitespace.
-pub fn cleanup_comments(text : String) -> String {
-  let cleaned = if text.contains("%%") {
-    remove_comment_lines(text)
-  } else {
-    text
-  }
-  @util.trim_start(cleaned)
+/// A new pass appended to `steps`, or `None` when nothing is recorded.
+fn recording(steps : Array[Array[@errors.Edit]]?) -> Array[@errors.Edit]? {
+  guard steps is Some(steps) else { return None }
+  let edits = []
+  steps.push(edits)
+  Some(edits)
 }
 
 ///|
-/// Does what `text.replace(/^\s*%%(?!{)[^\n]+\n?/gm, '')` does.
-fn remove_comment_lines(text : String) -> String {
+/// Removes `%%` comment lines, keeping directives, and leading whitespace.
+/// The edits are appended to `steps`, as two passes, when it is given.
+pub fn cleanup_comments(
+  text : String,
+  steps? : Array[Array[@errors.Edit]],
+) -> String {
+  let cleaned = if text.contains("%%") {
+    remove_comment_lines(text, recording(steps))
+  } else {
+    text
+  }
+  let trimmed = @util.trim_start(cleaned)
+  if steps is Some(steps) {
+    steps.push([(0, cleaned.length() - trimmed.length(), 0)])
+  }
+  trimmed
+}
+
+///|
+/// Does what `text.replace(/^\s*%%(?!{)[^\n]+\n?/gm, '')` does, listing what it removes in `edits`.
+fn remove_comment_lines(text : String, edits : Array[@errors.Edit]?) -> String {
   let out = StringBuilder()
   let mut last = 0
   let mut p = 0
@@ -143,6 +160,9 @@ fn remove_comment_lines(text : String) -> String {
         end += 1
       }
       @util.write_range(out, text, last, p)
+      if edits is Some(edits) {
+        edits.push((p, end, 0))
+      }
       last = end
       p = end
     } else {
@@ -373,7 +393,12 @@ fn match_directive(text : String, at : Int32) -> (Int32, String, String?)? {
 
 ///|
 /// Applies `%%{init: ...}%%` and `%%{wrap}%%` directives to the config and removes them.
-fn directives(text : String, config : @types.Config) -> String {
+/// What it removes is appended to `steps`, as one pass, when it is given.
+fn directives(
+  text : String,
+  config : @types.Config,
+  steps : Array[Array[@errors.Edit]]?,
+) -> String {
   if !text.contains("%%{") {
     return text
   }
@@ -400,6 +425,7 @@ fn directives(text : String, config : @types.Config) -> String {
       None => at = @util.index_of(normalized, "%%{", from=at + 1)
     }
   }
+  let edits = recording(steps)
   let out = StringBuilder()
   let mut last = 0
   let mut found = @util.index_of(text, "%%{")
@@ -407,6 +433,9 @@ fn directives(text : String, config : @types.Config) -> String {
     match match_directive(text, found) {
       Some((end, _, _)) => {
         @util.write_range(out, text, last, found)
+        if edits is Some(edits) {
+          edits.push((found, end, 0))
+        }
         last = end
         found = @util.index_of(text, "%%{", from=end)
       }
@@ -419,8 +448,13 @@ fn directives(text : String, config : @types.Config) -> String {
 
 ///|
 /// Reads front matter and directives into a config, as Mermaid does before parsing.
+/// The edits that take the source, with its line breaks normalized, to `with_comments` are appended
+/// to `steps` when it is given.
 /// Raises a syntax `PeleError` when the front matter is not valid YAML.
-pub fn preprocess(source : String) -> Preprocessed raise @errors.PeleError {
+pub fn preprocess(
+  source : String,
+  steps? : Array[Array[@errors.Edit]],
+) -> Preprocessed raise @errors.PeleError {
   let mut text = if source.contains("\r") {
     @util.normalize_line_breaks(source)
   } else {
@@ -473,8 +507,11 @@ pub fn preprocess(source : String) -> Preprocessed raise @errors.PeleError {
       i = @util.index_of(text, "\n", from=i + 1)
     }
     text = @util.slice(text, front.length)
+    if steps is Some(steps) {
+      steps.push([(0, front.length, 0)])
+    }
   }
-  text = directives(text, config)
+  text = directives(text, config, steps)
   {
     text: cleanup_comments(text),
     title,
@@ -488,7 +525,13 @@ pub fn preprocess(source : String) -> Preprocessed raise @errors.PeleError {
 /// Does what Mermaid's `text.replace(/keyword.*:\S*#.*;/g, drop the last character)` does:
 /// on a line where the keyword is followed by a colon, a color-like `#`, and later a semicolon,
 /// the last semicolon goes.
-fn drop_color_semicolons(text : String, keyword : String) -> String {
+/// What it drops is appended to `steps`, as one pass, when it is given.
+fn drop_color_semicolons(
+  text : String,
+  keyword : String,
+  steps : Array[Array[@errors.Edit]]?,
+) -> String {
+  let edits = recording(steps)
   let mut from = @util.index_of(text, keyword)
   if from == -1 {
     return text
@@ -519,6 +562,9 @@ fn drop_color_semicolons(text : String, keyword : String) -> String {
     if hash != -1 {
       let semi = @util.last_index_of(text, ";", from=line_end - 1)
       if semi > hash {
+        if edits is Some(edits) {
+          edits.push((semi, semi + 1, 0))
+        }
         @util.write_range(out, text, last, semi)
         last = semi + 1
       }
@@ -538,14 +584,20 @@ fn drop_color_semicolons(text : String, keyword : String) -> String {
 
 ///|
 /// Hides `#name;` entity codes behind Mermaid's placeholder characters, so `#` and `;` survive parsing.
-pub fn encode_entities(text : String) -> String {
+/// The edits are appended to `steps`, as three passes, when it is given.
+pub fn encode_entities(
+  text : String,
+  steps? : Array[Array[@errors.Edit]],
+) -> String {
   if !text.contains("#") {
     return text
   }
   let source = drop_color_semicolons(
-    drop_color_semicolons(text, "style"),
+    drop_color_semicolons(text, "style", steps),
     "classDef",
+    steps,
   )
+  let edits = recording(steps)
   let out = StringBuilder()
   let mut last = 0
   let mut i = @util.index_of(source, "#")
@@ -557,6 +609,9 @@ pub fn encode_entities(text : String) -> String {
     if end > i + 1 && @util.code_at(source, end) == ';'.to_int() {
       let inner = @util.slice(source, i + 1, end~)
       let numeric = inner.iter().all(c => c >= '0' && c <= '9')
+      if edits is Some(edits) {
+        edits.push((i, end + 1, inner.length() + (if numeric { 5 } else { 4 })))
+      }
       @util.write_range(out, source, last, i)
       out.write_string(
         if numeric {

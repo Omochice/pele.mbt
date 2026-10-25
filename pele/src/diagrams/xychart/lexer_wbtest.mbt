@@ -206,31 +206,43 @@ test "a line break after spaces keeps the state of the line" {
 test "comments run to the end of the line" {
   inspect(
     tokens("%% first\nxychart %% second\n%% third\nline [1] %% fourth"),
-    content="NEWLINE@8\"\\n\" XYCHART@9\"xychart\" NEWLINE@35\"\\n\" LINE@36\"line\" SQUARE_BRACES_START@41\"[\" NUMBER_WITH_DECIMAL@42\"1\" SQUARE_BRACES_END@43\"]\" EOF@54\"\" $end@54\"\"",
+    content=(
+      #|NEWLINE@8"\n" XYCHART@9"xychart" NEWLINE@26"\n" NEWLINE@35"\n" LINE@36"line" SQUARE_BRACES_START@41"[" NUMBER_WITH_DECIMAL@42"1" SQUARE_BRACES_END@43"]" EOF@54"" $end@54""
+    ),
   )
   inspect(
     tokens("xychart\n%%\nline [1]"),
-    content="XYCHART@0\"xychart\" NEWLINE@10\"\\n\" LINE@11\"line\" SQUARE_BRACES_START@16\"[\" NUMBER_WITH_DECIMAL@17\"1\" SQUARE_BRACES_END@18\"]\" EOF@19\"\" $end@19\"\"",
+    content=(
+      #|XYCHART@0"xychart" NEWLINE@7"\n" NEWLINE@10"\n" LINE@11"line" SQUARE_BRACES_START@16"[" NUMBER_WITH_DECIMAL@17"1" SQUARE_BRACES_END@18"]" EOF@19"" $end@19""
+    ),
   )
   inspect(
     tokens("xychart\nline [1]%%x\nbar [2]"),
-    content="XYCHART@0\"xychart\" NEWLINE@7\"\\n\" LINE@8\"line\" SQUARE_BRACES_START@13\"[\" NUMBER_WITH_DECIMAL@14\"1\" NEWLINE@19\"\\n\" BAR@20\"bar\" SQUARE_BRACES_START@24\"[\" NUMBER_WITH_DECIMAL@25\"2\" SQUARE_BRACES_END@26\"]\" EOF@27\"\" $end@27\"\"",
+    content=(
+      #|XYCHART@0"xychart" NEWLINE@7"\n" LINE@8"line" SQUARE_BRACES_START@13"[" NUMBER_WITH_DECIMAL@14"1" SQUARE_BRACES_END@15"]" NEWLINE@19"\n" BAR@20"bar" SQUARE_BRACES_START@24"[" NUMBER_WITH_DECIMAL@25"2" SQUARE_BRACES_END@26"]" EOF@27"" $end@27""
+    ),
   )
   inspect(
     tokens("xychart\ntitle a%%b\nbar [1]"),
-    content="XYCHART@0\"xychart\" NEWLINE@7\"\\n\" title@8\"title\" NEWLINE@18\"\\n\" BAR@19\"bar\" SQUARE_BRACES_START@23\"[\" NUMBER_WITH_DECIMAL@24\"1\" SQUARE_BRACES_END@25\"]\" EOF@26\"\" $end@26\"\"",
+    content=(
+      #|XYCHART@0"xychart" NEWLINE@7"\n" title@8"title" ALPHA@14"a" NEWLINE@18"\n" BAR@19"bar" SQUARE_BRACES_START@23"[" NUMBER_WITH_DECIMAL@24"1" SQUARE_BRACES_END@25"]" EOF@26"" $end@26""
+    ),
   )
 }
 
 ///|
-test "a comment marker takes the character before it" {
+test "a comment marker keeps the character before it" {
   inspect(
     tokens("xychart\ntitle a%% c\ntitle b"),
-    content="XYCHART@0\"xychart\" NEWLINE@7\"\\n\" title@8\"title\" NEWLINE@19\"\\n\" title@20\"title\" ALPHA@26\"b\" EOF@27\"\" $end@27\"\"",
+    content=(
+      #|XYCHART@0"xychart" NEWLINE@7"\n" title@8"title" ALPHA@14"a" NEWLINE@19"\n" title@20"title" ALPHA@26"b" EOF@27"" $end@27""
+    ),
   )
   inspect(
     tokens("xychart\nline [1,%%\n2]"),
-    content="XYCHART@0\"xychart\" NEWLINE@7\"\\n\" LINE@8\"line\" SQUARE_BRACES_START@13\"[\" NUMBER_WITH_DECIMAL@14\"1\" NEWLINE@18\"\\n\" NUMBER_WITH_DECIMAL@19\"2\" SQUARE_BRACES_END@20\"]\" EOF@21\"\" $end@21\"\"",
+    content=(
+      #|XYCHART@0"xychart" NEWLINE@7"\n" LINE@8"line" SQUARE_BRACES_START@13"[" NUMBER_WITH_DECIMAL@14"1" COMMA@15"," NEWLINE@18"\n" NUMBER_WITH_DECIMAL@19"2" SQUARE_BRACES_END@20"]" EOF@21"" $end@21""
+    ),
   )
   inspect(
     tokens("xychart\n}%%x"),

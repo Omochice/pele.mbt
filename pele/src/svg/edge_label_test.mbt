@@ -28,6 +28,8 @@ test "write_edge_label decodes and escapes the id and passes the text attributes
         out, "e&amp;1\"<x>", label, 0, 0, " fill=\"var(--_m)\"",
       )
     }),
-    content="<g class=\"pele-edge-label\" data-id=\"e&amp;1&quot;&lt;x&gt;\"><rect x=\"-40.96\" y=\"-21\" width=\"81.92\" height=\"42\" rx=\"3\" fill=\"var(--_bg)\"/><text fill=\"var(--_m)\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"0\" y=\"-5.6\">a long label</tspan><tspan x=\"0\" y=\"15.4\">on two lines</tspan></text></g>",
+    content=(
+      #|<g class="pele-edge-label" data-id="e&amp;1&quot;&lt;x&gt;"><rect x="-40.96" y="-18" width="81.92" height="36" rx="3" fill="var(--_bg)"/><text fill="var(--_m)" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.1">a long label</tspan><tspan x="0" y="13.9">on two lines</tspan></text></g>
+    ),
   )
 }

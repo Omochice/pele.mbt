@@ -15,18 +15,13 @@ pub fn line_end(src : String, from : Int32) -> Int32 {
 ///|
 /// Skips comments and whitespace from `from`, stopping at a line break, which starts a NEWLINE token.
 pub fn skip_trivia(src : String, from : Int32) -> Int32 {
-  // Jison compiles `\%%` to a single `%`, so one percent sign starts a comment, and the second
-  // comment rule takes any character before `%%` with it, a line break included.
+  // Jison compiles `\%%` to `%`, so a single `%` starts a comment.
   let n = src.length()
   let mut p = from
   while p < n {
     let c = @util.code_at(src, p)
     if c == '%' && @util.code_at(src, p + 1) != '{' {
       p = line_end(src, p)
-    } else if c != '}' &&
-      @util.code_at(src, p + 1) == '%' &&
-      @util.code_at(src, p + 2) == '%' {
-      p = line_end(src, p + 3)
     } else if c == '\n' {
       return p
     } else if @util.is_space(c) {

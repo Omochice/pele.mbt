@@ -69,27 +69,6 @@ pub fn plain_label(
 }
 
 ///|
-/// The end of `ﬂ°°?\w+¶ß` at `i`, or -1.
-fn marker_end(text : String, i : Int32) -> Int32 {
-  if @util.code_at(text, i) != 0xfb02 || @util.code_at(text, i + 1) != '°' {
-    return -1
-  }
-  let mut k = i + 2
-  if @util.code_at(text, k) == '°' {
-    k += 1
-  }
-  let word = k
-  while @util.is_word(@util.code_at(text, k)) {
-    k += 1
-  }
-  if k > word && @util.starts_with_at(text, "¶ß", k) {
-    k + 2
-  } else {
-    -1
-  }
-}
-
-///|
 /// The end of `&#?\w+;` at `i`, or -1.
 fn entity_end(text : String, i : Int32) -> Int32 {
   if @util.code_at(text, i) != '&' {
@@ -117,7 +96,7 @@ fn unit_end(text : String, i : Int32) -> Int32 {
   if br != -1 {
     return br
   }
-  let marker = marker_end(text, i)
+  let marker = @text.marker_end(text, i)
   if marker != -1 {
     return marker
   }

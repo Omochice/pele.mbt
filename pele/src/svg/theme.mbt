@@ -32,19 +32,6 @@ pub fn rounded(attrs : String) -> String {
 pub const CRITICAL : String = "var(--pele-critical,#e45756)"
 
 ///|
-/// The code point at `i` and where the next one starts, reading surrogate pairs as the `u` flag does.
-fn code_point_at(text : String, i : Int32) -> (Int32, Int32) {
-  let c = @util.code_at(text, i)
-  if c >= 0xd800 && c <= 0xdbff {
-    let low = @util.code_at(text, i + 1)
-    if low >= 0xdc00 && low <= 0xdfff {
-      return (0x10000 + ((c - 0xd800) << 10) + (low - 0xdc00), i + 2)
-    }
-  }
-  (c, i + 1)
-}
-
-///|
 fn is_family_char(c : Int32, first : Bool) -> Bool {
   @util.is_letter_or_number(c) ||
   c == '_'.to_int() ||
@@ -66,17 +53,17 @@ fn family_end(list : String, at : Int32) -> Int32 {
       if "\"'\\\n<>{}();:@".contains_code_unit(c.to_uint16()) {
         break
       }
-      i = code_point_at(list, i).1
+      i = @util.code_point_at(list, i).1
     }
     return -1
   }
-  let (first, next) = code_point_at(list, at)
+  let (first, next) = @util.code_point_at(list, at)
   if !is_family_char(first, true) {
     return -1
   }
   let mut i = next
   while i < list.length() {
-    let (c, after) = code_point_at(list, i)
+    let (c, after) = @util.code_point_at(list, i)
     if !is_family_char(c, false) {
       break
     }

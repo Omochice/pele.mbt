@@ -86,7 +86,9 @@ test "a chart narrower than its natural width is drawn narrower" {
       "quadrantChart\n  title Reach and engagement\n  x-axis Low Reach --> High Reach\n  y-axis Low Engagement --> High Engagement\n  quadrant-1 Expand\n  quadrant-2 Promote\n  quadrant-3 Re-evaluate\n  quadrant-4 Improve\n  Campaign A: [0.25, 0.75]\n  Campaign B: [0.75, 0.25]",
       max_width=200,
     ),
-    content="280x280 <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-quadrantChart\" viewBox=\"0 0 280 280\" width=\"280\" height=\"280\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_tw:var(--pele-title-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"quadrantChart\"><text class=\"pele-title\" font-weight=\"var(--_tw)\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"140\" y=\"22.6\">Reach and engagement</tspan></text><g class=\"pele-quadrants\" fill=\"var(--_s)\" stroke=\"var(--_b)\"><g class=\"pele-quadrant\" data-id=\"1\"><rect x=\"165.5\" y=\"42\" width=\"106.5\" height=\"100\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" fill=\"var(--_fg)\" stroke=\"none\" x=\"218.75\" y=\"64.6\" text-anchor=\"middle\">Expand</text></g><g class=\"pele-quadrant\" data-id=\"2\"><rect x=\"55\" y=\"42\" width=\"106.5\" height=\"100\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" fill=\"var(--_fg)\" stroke=\"none\" x=\"108.25\" y=\"64.6\" text-anchor=\"middle\">Promote</text></g><g class=\"pele-quadrant\" data-id=\"3\"><rect x=\"55\" y=\"146\" width=\"106.5\" height=\"100\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" fill=\"var(--_fg)\" stroke=\"none\" x=\"108.25\" y=\"168.6\" text-anchor=\"middle\">Re-evaluate</text></g><g class=\"pele-quadrant\" data-id=\"4\"><rect x=\"165.5\" y=\"146\" width=\"106.5\" height=\"100\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" fill=\"var(--_fg)\" stroke=\"none\" x=\"218.75\" y=\"168.6\" text-anchor=\"middle\">Improve</text></g></g><g class=\"pele-axis-labels\" font-size=\"14\" fill=\"var(--_m)\"><text x=\"109.25\" y=\"266.4\" text-anchor=\"middle\">Low Reach</text><text x=\"217.75\" y=\"266.4\" text-anchor=\"middle\">High Reach</text><g transform=\"translate(29,195) rotate(-90)\"><text text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"0\" y=\"-5.6\">Low</tspan><tspan x=\"0\" y=\"15.4\">Engagement</tspan></text></g><g transform=\"translate(29,93) rotate(-90)\"><text text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"0\" y=\"-5.6\">High</tspan><tspan x=\"0\" y=\"15.4\">Engagement</tspan></text></g></g><g class=\"pele-points\" fill=\"var(--pele-series-1,#4c78a8)\"><circle class=\"pele-point\" data-id=\"Campaign B\" cx=\"217.75\" cy=\"195\" r=\"5\"/><circle class=\"pele-point\" data-id=\"Campaign A\" cx=\"109.25\" cy=\"93\" r=\"5\"/></g><g class=\"pele-point-labels\" font-size=\"12\"><text class=\"pele-label\" x=\"109.25\" y=\"114.4\" text-anchor=\"middle\">Campaign A</text><text class=\"pele-label\" x=\"217.75\" y=\"216.4\" text-anchor=\"middle\">Campaign B</text></g></svg>",
+    content=(
+      #|280x280 <svg xmlns="http://www.w3.org/2000/svg" class="pele pele-quadrantChart" viewBox="0 0 280 280" width="280" height="280" style="max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_tw:var(--pele-title-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)" fill="var(--_fg)" role="graphics-document document" aria-roledescription="quadrantChart"><text class="pele-title" font-weight="var(--_tw)" text-anchor="middle" xml:space="preserve"><tspan x="140" y="22.6">Reach and engagement</tspan></text><g class="pele-quadrants" fill="var(--_s)" stroke="var(--_b)"><g class="pele-quadrant" data-id="1"><rect x="162.5" y="42" width="109.5" height="100" style="rx:var(--_r)"/><text class="pele-label" fill="var(--_fg)" stroke="none" x="217.25" y="64.6" text-anchor="middle">Expand</text></g><g class="pele-quadrant" data-id="2"><rect x="49" y="42" width="109.5" height="100" style="rx:var(--_r)"/><text class="pele-label" fill="var(--_fg)" stroke="none" x="103.75" y="64.6" text-anchor="middle">Promote</text></g><g class="pele-quadrant" data-id="3"><rect x="49" y="146" width="109.5" height="100" style="rx:var(--_r)"/><text class="pele-label" fill="var(--_fg)" stroke="none" x="103.75" y="168.6" text-anchor="middle">Re-evaluate</text></g><g class="pele-quadrant" data-id="4"><rect x="162.5" y="146" width="109.5" height="100" style="rx:var(--_r)"/><text class="pele-label" fill="var(--_fg)" stroke="none" x="217.25" y="168.6" text-anchor="middle">Improve</text></g></g><g class="pele-axis-labels" font-size="14" fill="var(--_m)"><text x="104.75" y="266.4" text-anchor="middle">Low Reach</text><text x="216.25" y="266.4" text-anchor="middle">High Reach</text><g transform="translate(26,195) rotate(-90)"><text text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.1">Low</tspan><tspan x="0" y="13.9">Engagement</tspan></text></g><g transform="translate(26,93) rotate(-90)"><text text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.1">High</tspan><tspan x="0" y="13.9">Engagement</tspan></text></g></g><g class="pele-points" fill="var(--pele-series-1,#4c78a8)"><circle class="pele-point" data-id="Campaign B" cx="216.25" cy="195" r="5"/><circle class="pele-point" data-id="Campaign A" cx="104.75" cy="93" r="5"/></g><g class="pele-point-labels" font-size="12"><text class="pele-label" x="104.75" y="114.4" text-anchor="middle">Campaign A</text><text class="pele-label" x="216.25" y="216.4" text-anchor="middle">Campaign B</text></g></svg>
+    ),
   )
   inspect(
     svg(
@@ -307,7 +309,13 @@ test "a point label goes where it is inside the chart and free" {
     tags(
       "text", "quadrantChart\n One: [0.5, 0]\n Two: [0.5, 0.02]\n Three: [1, 1]\n Four: [0, 0.5]",
     ),
-    content="500x500\n<text class=\"pele-label\" x=\"250\" y=\"479\" text-anchor=\"middle\">\n<text class=\"pele-label\" x=\"250\" y=\"469.32\" text-anchor=\"middle\">\n<text class=\"pele-label\" x=\"476.33\" y=\"29.4\" text-anchor=\"middle\">\n<text class=\"pele-label\" x=\"30.34\" y=\"254.2\" text-anchor=\"middle\">",
+    content=(
+      #|500x500
+      #|<text class="pele-label" x="250" y="479" text-anchor="middle">
+      #|<text class="pele-label" x="250" y="469.32" text-anchor="middle">
+      #|<text class="pele-label" x="476.33" y="29.4" text-anchor="middle">
+      #|<text class="pele-label" x="30.34" y="273.4" text-anchor="middle">
+    ),
   )
   inspect(
     tags(
@@ -324,12 +332,67 @@ test "a point label goes where it is inside the chart and free" {
 }
 
 ///|
+let crowded_chart : String = "quadrantChart\n  title Q4 candidates by effort and impact\n  x-axis Low effort --> High effort\n  y-axis Low impact --> High impact\n  quadrant-1 Plan carefully\n  quadrant-2 Do first\n  quadrant-3 Reconsider\n  quadrant-4 Quick wins\n"
+
+///|
+test "a point label at a quadrant's edge goes below the quadrant's title before crossing a gap" {
+  inspect(
+    tags(
+      "text",
+      crowded_chart +
+      "  Chart gallery editor: [0.72, 0.85]\n  First-run onboarding: [0.35, 0.78]\n  Shared folders: [0.88, 0.70]\n  Export to PDF: [0.30, 0.55]\n  Custom themes: [0.45, 0.20]\n  Calendar sync: [0.65, 0.30]\n  Keyboard shortcut sheet: [0.12, 0.48]",
+    ),
+    content=(
+      #|500x500
+      #|<text class="pele-title" font-weight="var(--_tw)" text-anchor="middle" xml:space="preserve">
+      #|<text class="pele-label" fill="var(--_fg)" stroke="none" x="378.5" y="64.6" text-anchor="middle">
+      #|<text class="pele-label" fill="var(--_fg)" stroke="none" x="147.5" y="64.6" text-anchor="middle">
+      #|<text class="pele-label" fill="var(--_fg)" stroke="none" x="147.5" y="278.6" text-anchor="middle">
+      #|<text class="pele-label" fill="var(--_fg)" stroke="none" x="378.5" y="278.6" text-anchor="middle">
+      #|<text x="148.5" y="486.4" text-anchor="middle">
+      #|<text x="377.5" y="486.4" text-anchor="middle">
+      #|<text x="0" y="4.9" text-anchor="middle">
+      #|<text x="0" y="4.9" text-anchor="middle">
+      #|<text class="pele-label" x="363.76" y="127" text-anchor="middle">
+      #|<text class="pele-label" x="194.3" y="156.68" text-anchor="middle">
+      #|<text class="pele-label" x="437.04" y="190.6" text-anchor="middle">
+      #|<text class="pele-label" x="171.4" y="219.8" text-anchor="middle">
+      #|<text class="pele-label" x="188.09" y="385.4" text-anchor="middle">
+      #|<text class="pele-label" x="331.7" y="360.2" text-anchor="middle">
+      #|<text class="pele-label" x="109.03" y="301.4" text-anchor="middle">
+    ),
+  )
+}
+
+///|
+test "a point label stays beside its point when there is room, before going below the title" {
+  inspect(
+    tags("text", crowded_chart + "  Left edge: [0, 0.5]", max_width=320),
+    content=(
+      #|320x320
+      #|<text class="pele-title" font-weight="var(--_tw)" text-anchor="middle" xml:space="preserve">
+      #|<text class="pele-label" fill="var(--_fg)" stroke="none" x="243.5" y="64.6" text-anchor="middle">
+      #|<text class="pele-label" fill="var(--_fg)" stroke="none" x="102.5" y="64.6" text-anchor="middle">
+      #|<text class="pele-label" fill="var(--_fg)" stroke="none" x="102.5" y="188.6" text-anchor="middle">
+      #|<text class="pele-label" fill="var(--_fg)" stroke="none" x="243.5" y="188.6" text-anchor="middle">
+      #|<text x="103.5" y="306.4" text-anchor="middle">
+      #|<text x="242.5" y="306.4" text-anchor="middle">
+      #|<text x="0" y="4.9" text-anchor="middle">
+      #|<text x="0" y="4.9" text-anchor="middle">
+      #|<text class="pele-label" x="59.02" y="151" text-anchor="middle">
+    ),
+  )
+}
+
+///|
 test "labels read markdown strings and line breaks" {
   inspect(
     svg(
       "quadrantChart\n quadrant-1 \"`**Bold** text`\"\n \"two<br>lines\": [0.5, 0.5]",
     ),
-    content="500x500 <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-quadrantChart\" viewBox=\"0 0 500 500\" width=\"500\" height=\"500\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_w:var(--pele-bold-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"quadrantChart\"><g class=\"pele-quadrants\" fill=\"var(--_s)\" stroke=\"var(--_b)\"><g class=\"pele-quadrant\" data-id=\"1\"><rect x=\"252\" y=\"8\" width=\"240\" height=\"240\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" fill=\"var(--_fg)\" stroke=\"none\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"372\" y=\"30.6\" font-weight=\"var(--_w)\">Bold</tspan><tspan> text</tspan></text></g><g class=\"pele-quadrant\" data-id=\"2\"><rect x=\"8\" y=\"8\" width=\"240\" height=\"240\" style=\"rx:var(--_r)\"/></g><g class=\"pele-quadrant\" data-id=\"3\"><rect x=\"8\" y=\"252\" width=\"240\" height=\"240\" style=\"rx:var(--_r)\"/></g><g class=\"pele-quadrant\" data-id=\"4\"><rect x=\"252\" y=\"252\" width=\"240\" height=\"240\" style=\"rx:var(--_r)\"/></g></g><g class=\"pele-points\" fill=\"var(--pele-series-1,#4c78a8)\"><circle class=\"pele-point\" data-id=\"two&lt;br&gt;lines\" cx=\"250\" cy=\"250\" r=\"5\"/></g><g class=\"pele-point-labels\" font-size=\"12\"><text class=\"pele-label\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"250\" y=\"271.4\">two</tspan><tspan x=\"250\" y=\"289.4\">lines</tspan></text></g></svg>",
+    content=(
+      #|500x500 <svg xmlns="http://www.w3.org/2000/svg" class="pele pele-quadrantChart" viewBox="0 0 500 500" width="500" height="500" style="max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_w:var(--pele-bold-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)" fill="var(--_fg)" role="graphics-document document" aria-roledescription="quadrantChart"><g class="pele-quadrants" fill="var(--_s)" stroke="var(--_b)"><g class="pele-quadrant" data-id="1"><rect x="252" y="8" width="240" height="240" style="rx:var(--_r)"/><text class="pele-label" fill="var(--_fg)" stroke="none" text-anchor="middle" xml:space="preserve"><tspan x="372" y="30.6" font-weight="var(--_w)">Bold</tspan><tspan> text</tspan></text></g><g class="pele-quadrant" data-id="2"><rect x="8" y="8" width="240" height="240" style="rx:var(--_r)"/></g><g class="pele-quadrant" data-id="3"><rect x="8" y="252" width="240" height="240" style="rx:var(--_r)"/></g><g class="pele-quadrant" data-id="4"><rect x="252" y="252" width="240" height="240" style="rx:var(--_r)"/></g></g><g class="pele-points" fill="var(--pele-series-1,#4c78a8)"><circle class="pele-point" data-id="two&lt;br&gt;lines" cx="250" cy="250" r="5"/></g><g class="pele-point-labels" font-size="12"><text class="pele-label" text-anchor="middle" xml:space="preserve"><tspan x="250" y="271.4">two</tspan><tspan x="250" y="287.4">lines</tspan></text></g></svg>
+    ),
   )
 }
 

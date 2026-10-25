@@ -62,11 +62,20 @@ test "subgraphs take the chart's direction only when inheritDir is true" {
 test "more edges than maxEdges is a limit error" {
   inspect(
     entry("graph TD\nA-->B-->C-->D\n", {}, None, 2),
-    content="error limit flowchart Edge limit exceeded. 2 edges found, but the limit is 2.",
+    content="error limit flowchart Edge limit exceeded. The limit is 2.",
   )
   inspect(
     entry("graph TD\nA & B --> C & D & E\n", {}, None, 4),
-    content="error limit flowchart Edge limit exceeded. 4 edges found, but the limit is 4.",
+    content="error limit flowchart Edge limit exceeded. The limit is 4.",
+  )
+  let chain = StringBuilder()
+  chain.write_string("flowchart LR\n")
+  for i in 0..<11 {
+    chain.write_string("N\{i} --> N\{i + 1}\n")
+  }
+  inspect(
+    entry(chain.to_string(), {}, None, 10),
+    content="error limit flowchart Edge limit exceeded. The limit is 10.",
   )
 }
 

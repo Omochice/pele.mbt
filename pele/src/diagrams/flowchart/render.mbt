@@ -456,7 +456,7 @@ fn draw(
       // The label is a note name, but it still ends up in an href, so it gets the same check as a URL.
       let name = @text.decode_entities(note)
       body.write("<a class=\"internal-link\"")
-      if @url.link_url(@url.sanitize_url(name), options) is Some(_) {
+      if @url.internal_link(name, options) {
         body.write(" href=\"")
         body.write_esc(name)
         body.write("\"\{@url.rel_attr(options)}")

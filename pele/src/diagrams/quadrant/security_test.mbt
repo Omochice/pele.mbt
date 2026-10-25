@@ -1,18 +1,61 @@
 ///|
 let payloads : Array[String] = [
-  "<script>alert(1)</script>", "\"><script>alert(1)</script>", "<img src=x onerror=alert(1)>",
-  "<svg onload=alert(1)>", "<a href=\"javascript:alert(1)\">x</a>", "<foreignObject><iframe src=javascript:alert(1)></iframe></foreignObject>",
-  "</text></g></svg><script>alert(1)</script>", "javascript:alert(1)", "JaVaScRiPt:alert(1)",
-  " javascript:alert(1)", "jav&#x09;ascript:alert(1)", "data:text/html,<script>alert(1)</script>",
-  "vbscript:msgbox(1)", "' onload='alert(1)", "\" onmouseover=\"alert(1)", "x\" onclick=\"alert(1)\" y=\"",
-  "#60;script#62;alert(1)#60;/script#62;", "#106;avascript:alert(1)", "#34; onload=#34;alert(1)",
-  "url#40;javascript:alert#40;1#41;#41;", "red#59;background:url#40;//evil.example/x#41;",
-  "&lt;script&gt;alert(1)&lt;/script&gt;", "&#60;script&#62;", "url(javascript:alert(1))",
-  "expression(alert(1))", "red;background:url(//evil.example/x)", "red\" onload=\"alert(1)",
-  "]]><script>alert(1)</script>", "--><script>alert(1)</script>", "\u{0}\u{1}\u{8}\u{b}\u{1f}",
-  "__proto__", "constructor", "toString", "hasOwnProperty", "{{7*7}}", "${alert(1)}",
-  "%0ajavascript:alert(1)", "file:///etc/passwd", "//evil.example/share", "\\\\evil.example\\share",
-  "smb://evil.example/share", "obsidian://open?vault=x", "\\\"><script>",
+  "<script>alert(1)</script>",
+  "\"><script>alert(1)</script>",
+  "<img src=x onerror=alert(1)>",
+  "<svg onload=alert(1)>",
+  "<a href=\"javascript:alert(1)\">x</a>",
+  "<foreignObject><iframe src=javascript:alert(1)></iframe></foreignObject>",
+  "</text></g></svg><script>alert(1)</script>",
+  "javascript:alert(1)",
+  "JaVaScRiPt:alert(1)",
+  " javascript:alert(1)",
+  "jav&#x09;ascript:alert(1)",
+  "data:text/html,<script>alert(1)</script>",
+  "vbscript:msgbox(1)",
+  "' onload='alert(1)",
+  "\" onmouseover=\"alert(1)",
+  "x\" onclick=\"alert(1)\" y=\"",
+  "#60;script#62;alert(1)#60;/script#62;",
+  "#106;avascript:alert(1)",
+  "#34; onload=#34;alert(1)",
+  "url#40;javascript:alert#40;1#41;#41;",
+  "red#59;background:url#40;//evil.example/x#41;",
+  "&lt;script&gt;alert(1)&lt;/script&gt;",
+  "&#60;script&#62;",
+  "url(javascript:alert(1))",
+  "expression(alert(1))",
+  "red;background:url(//evil.example/x)",
+  "red\" onload=\"alert(1)",
+  "]]><script>alert(1)</script>",
+  "--><script>alert(1)</script>",
+  "\u{0}\u{1}\u{8}\u{b}\u{1f}",
+  "a￾b￿c" +
+  String::from_array([(0xd800).unsafe_to_char()]) +
+  "d" +
+  String::from_array([(0xdc00).unsafe_to_char()]) +
+  "e#65534;f",
+  "u\u{1}rl(//evil.example/x)",
+  "u￾RL(//evil.example/x)",
+  "u" + String::from_array([(0xd800).unsafe_to_char()]) + "rl(//evil.example/x)",
+  "java￾script:alert(1)",
+  "java" + String::from_array([(0xdc00).unsafe_to_char()]) + "script:alert(1)",
+  "file￿:///etc/passwd",
+  "__proto__",
+  "constructor",
+  "toString",
+  "hasOwnProperty",
+  "{{7*7}}",
+  "${alert(1)}",
+  "%0ajavascript:alert(1)",
+  "file:///etc/passwd",
+  "//evil.example/share",
+  "\\\\evil.example\\share",
+  "#92;#92;nevil.example/share",
+  "\u{9}/#92;nevil.example/share",
+  "smb://evil.example/share",
+  "obsidian://open?vault=x",
+  "\\\"><script>",
 ]
 
 ///|
@@ -32,6 +75,9 @@ let attributes : Array[String] = [
 /// The first thing about the markup that is not inert, or `None`.
 /// Only drawing elements and presentation attributes may appear, and no value may hold markup or a way to load anything.
 fn inert_problem(svg : String) -> String? {
+  if @svg.has_invalid_xml(svg) {
+    return Some("a character XML does not allow")
+  }
   let mut at = 0
   while true {
     let open = @util.index_of(svg, "<", from=at)

@@ -1,4 +1,4 @@
-// Mermaid's documentation examples in pele's corpus (tests/corpus/swimlane-docs.json), with a hash of what pele v1.8.0's render gives each at its natural width and at a host width of 480.
+// Mermaid's documentation examples in pele's corpus (tests/corpus/swimlane-docs.json), with a hash of what pele v1.10.0's render gives each at its natural width and at a host width of 480.
 
 ///|
 let docs_examples : Array[(String, String, String)] = [
@@ -23,7 +23,7 @@ let docs_examples : Array[(String, String, String)] = [
       #|
     ),
     "197ea4bf",
-    "510933c9",
+    "38e6124d",
   ),
   (
     (
@@ -51,7 +51,7 @@ let docs_examples : Array[(String, String, String)] = [
       #|
     ),
     "197ea4bf",
-    "510933c9",
+    "38e6124d",
   ),
   (
     (
@@ -79,7 +79,7 @@ let docs_examples : Array[(String, String, String)] = [
       #|
     ),
     "1b17a88d",
-    "52cb034f",
+    "b4d0fe72",
   ),
   (
     (
@@ -205,7 +205,7 @@ let docs_examples : Array[(String, String, String)] = [
       #|
     ),
     "73394154",
-    "052c68bc",
+    "e4c1d4b0",
   ),
   (
     (
@@ -232,7 +232,7 @@ let docs_examples : Array[(String, String, String)] = [
       #|
     ),
     "0f1c9920",
-    "2e6473f5",
+    "d5d58d3e",
   ),
   (
     (
@@ -258,7 +258,7 @@ let docs_examples : Array[(String, String, String)] = [
       #|
     ),
     "0304566b",
-    "bc7b02ea",
+    "fa6f9bd5",
   ),
   (
     (
@@ -279,7 +279,7 @@ let docs_examples : Array[(String, String, String)] = [
       #|
     ),
     "dc85892b",
-    "e8514204",
+    "4e41c704",
   ),
   (
     (
@@ -302,6 +302,6 @@ let docs_examples : Array[(String, String, String)] = [
       #|
     ),
     "11e66e5d",
-    "a486b30b",
+    "0a3560e9",
   ),
 ]

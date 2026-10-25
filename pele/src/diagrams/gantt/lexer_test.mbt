@@ -138,10 +138,9 @@ test "stops at a directive it cannot enter" {
     lex("gantt\n%%{init: {}}%%\nx"),
     content=(
       #|gantt@0 "gantt"
-      #|NL@20 "\n"
-      #|taskTxt@21 "x"
-      #|EOF@22 ""
-      #|$end@22 ""
+      #|NL@5 "\n"
+      #|open_directive@6 "%%{"
+      #|INVALID@9 ""
     ),
   )
 }
@@ -152,10 +151,13 @@ test "skips comments that start with a percent sign" {
     lex("gantt\n% comment\n%%  c\nA%B :x\n}%y\n%\n\n\nq"),
     content=(
       #|gantt@0 "gantt"
+      #|NL@5 "\n"
       #|NL@21 "\n"
+      #|taskTxt@22 "A%B "
+      #|taskData@26 ":x"
       #|NL@28 "\n"
       #|taskTxt@29 "}%y"
-      #|NL@34 "\n\n\n"
+      #|NL@32 "\n"
       #|taskTxt@37 "q"
       #|EOF@38 ""
       #|$end@38 ""
@@ -235,9 +237,10 @@ test "reads keywords whose value starts on the next line" {
     content=(
       #|gantt@0 "gantt"
       #|NL@5 "\n"
-      #|title@6 "title\nsection"
-      #|NL@19 "\n"
-      #|dateFormat@20 "dateFormat\nx"
+      #|NL@11 "\n"
+      #|section@12 "section\ndateFormat"
+      #|NL@30 "\n"
+      #|taskTxt@31 "x"
       #|EOF@32 ""
       #|$end@32 ""
     ),

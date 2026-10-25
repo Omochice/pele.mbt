@@ -76,3 +76,49 @@ test "the direction defaults to LR and can be set" {
   db.set_direction("TD")
   inspect(db.direction, content="TD")
 }
+
+///|
+test "the character before a comment is kept" {
+  let db = @timeline.TimelineDb::new()
+  @timeline.parse_timeline("timeline\nA%% label : event\nB : e2", db) catch {
+    _ => abort("the timeline does not parse")
+  }
+  inspect(
+    dump_model(db),
+    content=(
+      #|sections= periods="A%% label "/"event"/""/-1;"B "/"e2"/""/-1
+    ),
+  )
+  let failed = try {
+    @core.render(
+      [@timeline.timeline],
+      "timeline\n  2024 :%% c\n",
+      @types.RenderOptions::default(),
+    )
+    |> ignore
+    ""
+  } catch {
+    @errors.PeleError(failure) => failure.message
+  }
+  assert_true(failed.contains("got 'INVALID'"))
+}
+
+///|
+test "a bare title is no title" {
+  let db = @timeline.TimelineDb::new()
+  @timeline.parse_timeline("timeline\ntitle\n2024 : Event\n2025 : Next", db) catch {
+    _ => abort("the timeline does not parse")
+  }
+  inspect(db.title.unwrap_or("-"), content="-")
+  inspect(
+    dump_model(db),
+    content=(
+      #|sections= periods="2024 "/"Event"/""/-1;"2025 "/"Next"/""/-1
+    ),
+  )
+  let kept = @timeline.TimelineDb::new()
+  @timeline.parse_timeline("timeline\n  title\u{a0}Kept\n  2024 : Event", kept) catch {
+    _ => abort("the timeline does not parse")
+  }
+  inspect(kept.title.unwrap_or("-"), content="Kept")
+}
