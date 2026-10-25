@@ -336,3 +336,21 @@ test "names that are object keys in pele are plain names" {
   ignore(@agentflow.agent_graph(db, {}))
   inspect(db.diagnostics.map(d => d.id).join(","), content="SHAPE_UNSUPPORTED")
 }
+
+///|
+test "more edges than maxEdges is a limit error that names the limit" {
+  let options = { ..@types.RenderOptions::default(), max_edges: Some(2.0), }
+  let message = try {
+    @core.render(
+      [@agentflow.agentflow],
+      "agentflow-beta TB\n  a --> b\n  b --> c\n  c --> d",
+      options,
+    )
+    |> ignore
+    ""
+  } catch {
+    @errors.PeleError(failure) =>
+      "\{failure.code.to_string()} \{failure.message}"
+  }
+  inspect(message, content="limit Edge limit exceeded. The limit is 2.")
+}

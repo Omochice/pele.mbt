@@ -410,10 +410,7 @@ pub fn FlowDb::add_single_link(
     }
   }
   if self.max_edges is Some(max) && self.edges.length() >= max {
-    raise flowchart_error(
-      "Edge limit exceeded. \{self.edges.length()} edges found, but the limit is \{max}.",
-      Limit,
-    )
+    raise flowchart_error("Edge limit exceeded. The limit is \{max}.", Limit)
   }
   self.edges.push(edge)
   self.pair_count[pair] = count + 1
