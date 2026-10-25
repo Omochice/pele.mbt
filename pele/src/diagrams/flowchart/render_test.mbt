@@ -437,6 +437,9 @@ test "errors report lines and columns in the source as written" {
       #|Expecting 'NODE_STRING', got 'LINK'
     ),
   )
+  assert_true(
+    position_of("flowchart TD\n  A{a}  \n\n  C --> --> D").has_prefix("4:9\n"),
+  )
 }
 
 ///|

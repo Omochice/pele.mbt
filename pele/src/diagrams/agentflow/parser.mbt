@@ -105,6 +105,8 @@ priv struct Frame {
 ///|
 priv struct Parser {
   src : String
+  /// The text before the spaces after closing braces were trimmed, in which errors are reported.
+  source : String
   tokens : Tokens
   db : AgentflowDb
   mut i : Int32
@@ -137,13 +139,20 @@ fn[T] Parser::fail(
   let t = self.kind()
   let last = self.tokens.starts.length() - 1
   let at = self.tokens.starts[if self.i < last { self.i } else { last }]
+  let at = if self.src == self.source {
+    at
+  } else {
+    let edits = []
+    trim_brace_lines(self.source, edits~) |> ignore
+    @errors.input_offset([edits], at)
+  }
   if t == ERROR {
-    raise @errors.syntax_error("agentflow", self.src, at, "", lexical=true)
+    raise @errors.syntax_error("agentflow", self.source, at, "", lexical=true)
   }
   let name = if t >= 0 { token_names[t] } else { "undefined" }
   raise @errors.syntax_error(
     "agentflow",
-    self.src,
+    self.source,
     at,
     "Expecting \{expected}, got '\{name}'",
   )
@@ -884,7 +893,7 @@ fn Parser::document(self : Parser) -> Unit raise @errors.PeleError {
 
 ///|
 /// `source.replace(/}[^\S\n]*\n/g, '}\n')`: Mermaid trims spaces and tabs between a closing brace and the end of its line before parsing.
-fn trim_brace_lines(source : String) -> String {
+fn trim_brace_lines(source : String, edits? : Array[@errors.Edit]) -> String {
   let out = StringBuilder()
   let n = source.length()
   let mut i = 0
@@ -896,6 +905,9 @@ fn trim_brace_lines(source : String) -> String {
         j += 1
       }
       if @util.code_at(source, j) == '\n' {
+        if edits is Some(edits) {
+          edits.push((i, j + 1, 2))
+        }
         out.write_string("}\n")
         i = j + 1
         continue
@@ -922,6 +934,7 @@ pub fn parse_agentflow(
   }
   let parser : Parser = {
     src,
+    source,
     tokens: tokenize(src),
     db,
     i: 0,
