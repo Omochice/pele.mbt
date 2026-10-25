@@ -163,6 +163,23 @@ fn VennLexer::line_end(self : VennLexer, from : Int32) -> Int32 {
 }
 
 ///|
+/// The end of the line at `from` when the rest of it is whitespace.
+fn VennLexer::blank_line_end(self : VennLexer, from : Int32) -> Int32? {
+  let mut end = from
+  while end < self.src.length() {
+    let c = @util.code_at(self.src, end)
+    if c == 10 {
+      break
+    }
+    if !@util.is_space(c) {
+      return None
+    }
+    end += 1
+  }
+  Some(end)
+}
+
+///|
 fn VennLexer::token(self : VennLexer, type_ : Int32, end : Int32) -> Int32 {
   self.text = @util.slice(self.src, self.at, end~)
   self.at = end
@@ -204,9 +221,9 @@ fn VennLexer::next(self : VennLexer) -> Int32 {
     if self.line_start &&
       self.word(i, "title") &&
       self.after_line_feed(i) &&
-      @util.trim(@util.slice(src, i + 5, end=self.line_end(i + 5))) == "" {
+      self.blank_line_end(i + 5) is Some(end) {
       // A bare title is skipped like a comment, so that it does not end indented text.
-      let mut j = self.line_end(i + 5)
+      let mut j = end
       while @util.code_at(src, j) == 10 || @util.code_at(src, j) == 13 {
         j += 1
       }
