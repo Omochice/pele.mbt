@@ -15,6 +15,7 @@ const CAREFUL : Int32 = 300
 ///|
 /// A node's label: where it sits, which side of its bar it is on, and the extent of its text.
 priv struct NodeLabel {
+  name : String
   value : String
   width : Double
   mut after : Bool
@@ -282,7 +283,7 @@ fn draw(
     max_x = @cmp.maximum(max_x, if after { x + width } else { x })
     min_y = @cmp.minimum(min_y, y - small * 0.75)
     max_y = @cmp.maximum(max_y, y + small * 0.75)
-    { value, width, after, left: if after { x } else { x - width }, y, }
+    { name, value, width, after, left: if after { x } else { x - width }, y, }
   })
   // A label moves at most one line, so each band keeps the labels of the two bands on either side.
   let bands : Map[Double, Array[Int32]] = Map([])
@@ -301,7 +302,6 @@ fn draw(
   let nodes_out = @svg.Markup::new()
   for i, node in nodes {
     let id = db.nodes[i].id
-    let name = @text.decode_entities(id)
     let height = @cmp.maximum(node.height, 1.0)
     nodes_out.write("<rect class=\"pele-sankey-node\" data-id=\"")
     nodes_out.write_esc_text(id)
@@ -380,7 +380,7 @@ fn draw(
     if nodes.length() <= CAREFUL && overlaps_label(label.left, label.y) {
       place()
     }
-    let { value, after, y, .. } = label
+    let { name, value, after, y, .. } = label
     let x = if after {
       node.x + node_width + LABEL_GAP
     } else {
@@ -425,6 +425,11 @@ fn draw(
   // Other characters would end the url() and void the whole fill.
   let id_prefix = options.id_prefix.unwrap_or("")
   let gradient = link_color == "gradient" && is_id_prefix(id_prefix)
+  let colors = if gradient {
+    Array::makei(nodes.length(), node_color)
+  } else {
+    []
+  }
   let gradients : Map[String, String] = Map([])
   let links_out = @svg.Markup::new()
   for link in layout.links {
@@ -441,9 +446,11 @@ fn draw(
     let bottom_source = @svg.num(link.source_y + half)
     // Ids come from the gradient itself, so diagrams sharing a prefix agree on them.
     let paint = if gradient {
-      let stops = "x1=\"\{@svg.num(x0)}\" x2=\"\{@svg.num(x1)}\"><stop offset=\"0\" stop-color=\"\{node_color(link.source)}\"/><stop offset=\"1\" stop-color=\"\{node_color(link.target)}\"/>"
+      let stops = "x1=\"\{@svg.num(x0)}\" x2=\"\{@svg.num(x1)}\"><stop offset=\"0\" stop-color=\"\{colors[link.source]}\"/><stop offset=\"1\" stop-color=\"\{colors[link.target]}\"/>"
       let id = "\{id_prefix}-sankey-\{content_id(stops)}"
-      gradients[id] = "<linearGradient id=\"\{id}\" gradientUnits=\"userSpaceOnUse\" \{stops}</linearGradient>"
+      if !gradients.contains(id) {
+        gradients[id] = "<linearGradient id=\"\{id}\" gradientUnits=\"userSpaceOnUse\" \{stops}</linearGradient>"
+      }
       Some(id)
     } else {
       None
@@ -458,7 +465,7 @@ fn draw(
     match paint {
       // The colour after the url() is the fallback.
       Some(id) =>
-        links_out.write(" fill=\"url(#\{id}) \{node_color(link.source)}\"")
+        links_out.write(" fill=\"url(#\{id}) \{colors[link.source]}\"")
       None => {
         links_out.write(" fill=\"\{@svg.series_color(end)}\"")
         @svg.write_style(
