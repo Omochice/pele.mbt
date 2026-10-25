@@ -207,7 +207,7 @@ jobs:
           path: _build/checks
           merge-multiple: true
       - name: Table the checks for octocov
-        run: node scripts/merge-checks.mjs _build/checks _build/checks.json
+        run: nix develop --command node scripts/merge-checks.mjs _build/checks _build/checks.json
       - name: Expose Nix-provided octocov on PATH
         run: |
           nix develop --command bash <<'EOF' >> "$GITHUB_PATH"
