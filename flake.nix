@@ -21,7 +21,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     pele = {
-      url = "github:obsidianmd/pele/1dd58b7ebb0ec654fa7dc4304d50cf8fd3a65d7b";
+      url = "github:obsidianmd/pele/1.10.0";
       flake = false;
     };
   };
@@ -54,7 +54,7 @@
           version = (pkgs.lib.importJSON "${pele}/package.json").version;
           src = pele;
           nodejs = pkgs.nodejs_24;
-          npmDepsHash = "sha256-7EKcDBKHikfWMsrxujgLfmRGJozhcw81+viN2iMUpNY=";
+          npmDepsHash = "sha256-TgHDxDjgTsV0C7XkXda2aOx/M8j98kjbmIuFSRGbktE=";
           installPhase = ''
             runHook preInstall
             rm -rf node_modules
