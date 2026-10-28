@@ -211,6 +211,6 @@ test "coordinates outside both ranges are rejected with Mermaid's messages" {
 test "building matches pele on the corpus and its mutations" {
   inspect(
     fnv1a(corpus_sources().map(src => model(src, None)).join("\n\n")),
-    content="6f7aaa8a",
+    content="82fa97d0",
   )
 }

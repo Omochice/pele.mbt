@@ -218,6 +218,14 @@ test "malformed statements are parse errors" {
 }
 
 ///|
+test "the end of input is reported before a trailing comment" {
+  inspect(
+    ast("radar-beta\ncurve a{1 %% c\n"),
+    content="Parse error on line 2:\ncurve a{1 %% c\n---------^\nExpecting token of type '}' but found end of input.",
+  )
+}
+
+///|
 test "a name that starts with a digit lexes as a number first" {
   inspect(
     ast("radar-beta\naxis 1a"),

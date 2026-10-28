@@ -293,6 +293,14 @@ test "a source needs a frame number" {
 }
 
 ///|
+test "the end of input is reported before trailing comments and blank lines" {
+  inspect(
+    message_of("eventmodeling\ntf 01 cmd\n%% a comment line\n\n"),
+    content="syntax 2:10 Parse error on line 2:\ntf 01 cmd\n---------^\nExpecting token of type 'EM_ID' but found end of input.",
+  )
+}
+
+///|
 test "comments are skipped wherever whitespace is" {
   inspect(
     frames_of("eventmodeling\ntf 01 evt A /* c */ // d\n%% e"),

@@ -60,7 +60,7 @@ test "ABNF rejects what the grammar rejects" {
   )
   inspect(
     failure("railroad-abnf-beta\nr = a ; \n"),
-    content="Parse error on line 2:\nr = a ; \n-------^\nExpecting token of type ';' but found end of input.",
+    content="Parse error on line 2:\nr = a ; \n-----^\nExpecting token of type ';' but found end of input.",
   )
   inspect(
     failure("railroad-abnf-beta\nr = ( a ;"),

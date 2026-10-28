@@ -130,5 +130,5 @@ test "the mutated corpus is the one pele makes" {
 
 ///|
 test "parsing matches pele on the corpus and its mutations" {
-  inspect(fnv1a(corpus_sources().map(ast).join("\n\n")), content="1f24c9f2")
+  inspect(fnv1a(corpus_sources().map(ast).join("\n\n")), content="68a666f0")
 }

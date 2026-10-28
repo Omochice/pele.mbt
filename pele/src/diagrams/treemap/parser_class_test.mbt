@@ -105,7 +105,7 @@ test "text that is not a row is reported with the token that was expected" {
 test "a comment after a row leaves blanks that no row follows" {
   inspect(
     parse("treemap\n\"a\": 1 %% note"),
-    content="error: Parse error on line 2:\n\"a\": 1 %% note\n--------------^\nExpecting token of type 'STRING2' but found end of input.",
+    content="error: Parse error on line 2:\n\"a\": 1 %% note\n------^\nExpecting token of type 'STRING2' but found end of input.",
   )
 }
 

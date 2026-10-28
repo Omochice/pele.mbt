@@ -490,6 +490,16 @@ pub fn TokenReader::expect(
 }
 
 ///|
+fn is_only_space(src : String, from : Int32, to : Int32) -> Bool {
+  for i in from..<to {
+    if !@util.is_space(src.unsafe_get(i).to_int()) {
+      return false
+    }
+  }
+  true
+}
+
+///|
 /// Raises a parse error saying what was expected at the current token.
 pub fn[T] TokenReader::fail(
   self : TokenReader,
@@ -500,10 +510,23 @@ pub fn[T] TokenReader::fail(
   } else {
     "`\{self.text()}`"
   }
+  let { src, starts, ends, .. } = self.tokens
+  let mut at = starts[self.i]
+  if self.kind() == -1 {
+    // Hidden comments leave no token, so the end of input is placed after the last token with
+    // content rather than at the end of the text.
+    let mut k = self.i
+    while k > 0 && is_only_space(src, starts[k - 1], ends[k - 1]) {
+      k -= 1
+    }
+    if k > 0 {
+      at = ends[k - 1]
+    }
+  }
   raise @errors.syntax_error(
     self.diagram,
-    self.tokens.src,
-    self.tokens.starts[self.i],
+    src,
+    at,
     "Expecting \{expected} but found \{found}.",
   )
 }
