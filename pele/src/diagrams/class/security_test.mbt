@@ -1,4 +1,4 @@
-// pele's class-security templates and payloads (tests/render/class-security.test.ts, tests/support/inert.ts), with a hash of what pele v1.10.0's render gives each template with every payload, as written and with its quotes as #quot;.
+// pele's class-security templates and payloads (tests/render/class-security.test.ts, tests/support/inert.ts), with a hash of what pele's render gives each template with every payload, as written and with its quotes as #quot;, taken from pele v1.10.0 and retaken where a later pele draws it differently.
 
 ///|
 /// Each template as the text around the places its payload goes.
@@ -142,7 +142,7 @@ let hostile_outcomes : Array[String] = [
   "85ef632a", "9305829b", "f9823667", "7bc8fb5c", "282af766", "008541d9", "591bacbe",
   "0b31b1e9", "1a92d9b1", "b67828da", "17276f89", "69f81bc6", "afe5520b", "2e70d6ee",
   "a5b5f2fd", "72baffcb", "f7f78d62", "dbdc3401", "7a1b79cc", "4ae5ea17", "41eb32c9",
-  "e082c377", "0dae2f35", "fc7bad3b", "a3e51def", "768a0f03", "f494737d", "147e622b",
+  "e082c377", "0dae2f35", "fc7bad3b", "a3e51def", "b52ba16d", "f494737d", "147e622b",
   "005e847d", "43e33895", "cd882d2f", "6b8ee925", "6ab72087", "f97254d9", "a9b29165",
 ]
 

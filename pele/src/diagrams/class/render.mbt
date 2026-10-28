@@ -1180,6 +1180,8 @@ fn write_class(
   )
   @svg.write_rounded_style(body, style.shape)
   body.write("/>")
+  let ink = @svg.raw_ink_fill(style)
+  let muted = @svg.raw_ink_fill(style, fallback="var(--_m)")
   let first = top + view.title_h
   let second = first + view.attributes_h
   if h > view.title_h {
@@ -1198,7 +1200,7 @@ fn write_class(
     match annotation {
       Literal(text) => {
         body.write(
-          "<text class=\"pele-annotation\" x=\"0\" y=\"\{num(y + tiny_height / 2 + tiny * 0.35)}\" text-anchor=\"middle\" font-size=\"\{tiny}\" fill=\"var(--_m)\">",
+          "<text class=\"pele-annotation\" x=\"0\" y=\"\{num(y + tiny_height / 2 + tiny * 0.35)}\" text-anchor=\"middle\" font-size=\"\{tiny}\"\{muted}>",
         )
         body.write_esc(text)
         body.write("</text>")
@@ -1211,7 +1213,7 @@ fn write_class(
           math,
           0,
           y + h / 2,
-          " class=\"pele-annotation\" font-size=\"\{tiny}\" fill=\"var(--_m)\"",
+          " class=\"pele-annotation\" font-size=\"\{tiny}\"\{muted}",
           icons?=options.icons,
         )
         y += h
@@ -1228,7 +1230,7 @@ fn write_class(
     view.label,
     0,
     (y + first - TITLE_PAD) / 2,
-    " class=\"pele-label\"\{title_size} font-weight=\"var(--_hw)\"",
+    " class=\"pele-label\"\{title_size} font-weight=\"var(--_hw)\"\{ink}",
     style.text,
     icons?=options.icons,
   )
@@ -1261,7 +1263,7 @@ fn write_class(
     }
   }
   if view.attributes.length() > 0 || view.methods.length() > 0 {
-    body.write("<g class=\"pele-members\" font-size=\"\{member_size}\"")
+    body.write("<g class=\"pele-members\" font-size=\"\{member_size}\"\{ink}")
     if mono_members(options, style) {
       body.write(" font-family=\"\{FONT_MONO}\"")
     }
