@@ -140,6 +140,41 @@ fn path_points(d : String) -> Array[Double] {
 }
 
 ///|
+/// Whether any segment between the `points` of a path enters the box from (`l`, `t`) to (`r`, `b`).
+fn enters(
+  points : Array[Double],
+  l : Double,
+  t : Double,
+  r : Double,
+  b : Double,
+) -> Bool {
+  for k = 0; k + 2 < points.length(); k = k + 2 {
+    let x = points[k]
+    let y = points[k + 1]
+    let dx = points[k + 2] - x
+    let dy = points[k + 3] - y
+    let mut lo = 0.0
+    let mut hi = 1.0
+    for side in [(-dx, x - l), (dx, r - x), (-dy, y - t), (dy, b - y)] {
+      let (p, q) = side
+      if p == 0 {
+        if q < 0 {
+          hi = -1
+        }
+      } else if p < 0 {
+        lo = @util.js_max(lo, q / p)
+      } else {
+        hi = @util.js_min(hi, q / p)
+      }
+    }
+    if lo < hi {
+      return true
+    }
+  }
+  false
+}
+
+///|
 /// Whether a path runs inside any of the boxes, given four numbers each as left, top, right and
 /// bottom.
 /// A path along a border does not count.
@@ -149,32 +184,14 @@ pub fn runs_inside(d : String, boxes : Array[Double]) -> Bool {
   }
   let points = path_points(d)
   for b = 0; b < boxes.length(); b = b + 4 {
-    let l = boxes[b] + 0.5
-    let t = boxes[b + 1] + 0.5
-    let r = boxes[b + 2] - 0.5
-    let bottom = boxes[b + 3] - 0.5
-    for k = 0; k + 2 < points.length(); k = k + 2 {
-      let x = points[k]
-      let y = points[k + 1]
-      let dx = points[k + 2] - x
-      let dy = points[k + 3] - y
-      let mut lo = 0.0
-      let mut hi = 1.0
-      for side in [(-dx, x - l), (dx, r - x), (-dy, y - t), (dy, bottom - y)] {
-        let (p, q) = side
-        if p == 0 {
-          if q < 0 {
-            hi = -1
-          }
-        } else if p < 0 {
-          lo = @util.js_max(lo, q / p)
-        } else {
-          hi = @util.js_min(hi, q / p)
-        }
-      }
-      if lo < hi {
-        return true
-      }
+    if enters(
+        points,
+        boxes[b] + 0.5,
+        boxes[b + 1] + 0.5,
+        boxes[b + 2] - 0.5,
+        boxes[b + 3] - 0.5,
+      ) {
+      return true
     }
   }
   false

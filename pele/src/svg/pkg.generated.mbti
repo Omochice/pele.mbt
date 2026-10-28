@@ -51,15 +51,21 @@ pub fn draw_shape(String, Double, Double, String, String) -> String
 
 pub fn edge_casing(EdgePath, String, String, line? : String, thick? : Bool) -> String
 
+pub fn edge_ink(Fill, line? : String) -> String
+
 pub fn end_side(Array[Double], Int32, @layout.CNode) -> Int32
 
 pub fn esc(String) -> String
 
 pub fn esc_text(String) -> String
 
+pub fn fill_under(String, Array[Double], Array[Fill]) -> FillUnder
+
 pub fn font_style(Double, String?, String?) -> String
 
 pub fn has_invalid_xml(String) -> Bool
+
+pub fn hollow_on(String, Fill) -> String
 
 pub fn ink(String, text? : String) -> String?
 
@@ -83,15 +89,21 @@ pub fn node_class_names(String) -> String
 
 pub fn num(Double) -> String
 
+pub fn over_fills(String, Array[Double], Array[Fill], line? : String) -> String?
+
 pub fn paints(String) -> Bool
 
 pub fn raw_casing(String, String, css~ : String, thick? : Bool) -> String
 
 pub fn raw_edge_casing(EdgePath, String, String, css~ : String, thick? : Bool) -> String
 
+pub fn raw_edge_ink(Fill, css~ : String) -> String
+
 pub fn raw_ink(String, text? : String) -> String?
 
 pub fn raw_ink_fill(RawStyle, fallback? : String) -> String
+
+pub fn raw_over_fills(String, Array[Double], Array[Fill], css~ : String) -> String?
 
 pub fn raw_paints(String) -> Bool
 
@@ -182,6 +194,20 @@ pub(all) struct EdgePath {
   ey : Double
   edx : Double
   edy : Double
+}
+
+pub(all) struct Fill {
+  box : Array[Double]
+  ink : String?
+  color : String?
+}
+pub fn Fill::new(Array[Double], String) -> Self
+pub fn Fill::raw(Array[Double], String) -> Self
+
+pub(all) enum FillUnder {
+  Off
+  Across
+  On(Fill)
 }
 
 type Markup
