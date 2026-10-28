@@ -29,6 +29,7 @@ pub(all) struct Box {
   mut value : Double
   children : Array[Box]
   mut headed : Bool
+  mut header : Double
   mut x : Double
   mut y : Double
   mut w : Double
@@ -38,6 +39,7 @@ pub(all) struct Box {
 pub(all) struct Insets {
   gap : Double
   header : Double
+  short : Double
   side : Double
 }
 

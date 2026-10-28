@@ -211,6 +211,102 @@ test "a section drawn without a header is named in the tooltips of what covers i
 }
 
 ///|
+test "a crowded treemap is spaced more tightly, with one gap throughout" {
+  let boxes = drawn_boxes(drawn(deep_tree()).svg)
+  let named = (prefix : String) => boxes.filter(b => b.id.has_prefix(prefix))
+  let top = named("top 0")[0]
+  let mut left = @double.infinity
+  for b in named("mid 0.") {
+    left = @util.js_min(left, b.x)
+  }
+  inspect(left - top.x, content="3")
+  let gaps = [smallest_gap(named("top "))]
+  for i in 0..<6 {
+    gaps.push(smallest_gap(named("mid \{i}.")))
+    for j in 0..<8 {
+      gaps.push(smallest_gap(named("leaf \{i}.\{j}.")))
+    }
+  }
+  let finite = gaps.filter(gap => !gap.is_inf())
+  inspect(finite.length() > 0, content="true")
+  for gap in finite {
+    inspect(gap, content="2")
+  }
+}
+
+///|
+test "a roomy treemap keeps its spacing" {
+  let boxes = drawn_boxes(drawn(budget).svg)
+  let id = (name : String) => boxes.filter(b => b.id == name)[0]
+  inspect(id("Operations").x - id("Budget").x, content="6")
+  inspect(id("Operations").y - id("Budget").y, content="28")
+  inspect(
+    smallest_gap(["Salaries", "Equipment", "Supplies"].map(id)),
+    content="4",
+  )
+  inspect(smallest_gap(["Operations", "Marketing"].map(id)), content="4")
+}
+
+///|
+test "the padding an author sets is the gap" {
+  let crowded = drawn_boxes(
+    drawn(with_config("    padding: 6", deep_tree())).svg,
+  )
+  inspect(
+    smallest_gap(crowded.filter(b => b.id.has_prefix("top "))),
+    content="6",
+  )
+  let roomy = drawn_boxes(drawn(with_config("    padding: 1", budget)).svg)
+  inspect(
+    smallest_gap(
+      roomy.filter(b => ["Salaries", "Equipment", "Supplies"].contains(b.id)),
+    ),
+    content="1",
+  )
+}
+
+///|
+test "a section without a header draws no box" {
+  let svg = drawn(
+      with_config("    nodeHeight: 3", "treemap\n\"Section\"\n  \"Leaf\": 1"),
+    ).svg
+  inspect(
+    svg.contains(
+      "data-id=\"Section\"><title>Section</title><rect x=\"8\" y=\"8\" width=\"640\" height=\"30\" fill=\"none\"/></g>",
+    ),
+    content="true",
+  )
+}
+
+///|
+test "a small section gets a short header" {
+  let svg = drawn(
+      with_config("    nodeHeight: 4", "treemap\n\"Section\"\n  \"Leaf\": 1"),
+    ).svg
+  inspect(svg.contains("font-size=\"12\">Section<"), content="true")
+  let (_, leaf_y, _, _) = box_of(svg, "Leaf")
+  let (_, section_y, _, _) = box_of(svg, "Section")
+  inspect(leaf_y - section_y, content="18")
+  let tall = drawn(
+      with_config(
+        "    nodeHeight: 4", "treemap\n\"Section\":::big\n  \"Leaf\": 1\nclassDef big font-size:14.4px",
+      ),
+    ).svg
+  inspect(tall.contains("\">Section<"), content="false")
+}
+
+///|
+test "the corners of a small box stay within a quarter of its shorter side" {
+  let svg = drawn("treemap\n\"big\": 1000\n\"small\": 4").svg
+  let (_, _, w, h) = box_of(svg, "small")
+  inspect(
+    attr_of(svg, "small", "style"),
+    content="rx:min(var(--_r),\{@svg.num(@util.js_min(w, h) / 4)}px)",
+  )
+  inspect(attr_of(svg, "big", "style"), content="rx:var(--_r)")
+}
+
+///|
 test "every node of a large, deep tree is drawn" {
   let source = StringBuilder()
   source.write_string("treemap\n")

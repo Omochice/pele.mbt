@@ -2,6 +2,9 @@
 const HEADER : Double = 28
 
 ///|
+const SHORT_HEADER : Double = 18
+
+///|
 const SIDE : Double = 6
 
 ///|
@@ -85,6 +88,39 @@ fn write_tooltip(
 }
 
 ///|
+/// How many leaves have a value to size them by.
+fn leaf_count(roots : Array[TreemapNode]) -> Int32 {
+  let mut count = 0
+  let stack = roots.copy()
+  while stack.pop() is Some(node) {
+    match (node.children, node.value) {
+      (Some(children), _) => stack.push_iter(children.iter())
+      (None, Some(v)) if !v.is_nan() && !v.is_inf() && v > 0 => count += 1
+      _ => ()
+    }
+  }
+  count
+}
+
+///|
+/// Writes the `style` attribute of a box's shape, with corners no rounder than a quarter of its
+/// shorter side, so that a small box keeps its shape.
+fn write_corners(out : @svg.Markup, css : String, b : Box) -> Unit {
+  let cap = @util.js_min(b.w, b.h) / 4
+  // 4px is the default radius, so only a box that would round off more than that is capped.
+  if !(cap < 4) {
+    @svg.write_rounded_style(out, css)
+    return
+  }
+  out.write(" style=\"rx:min(var(--_r),\{@svg.num(cap)}px)")
+  if css != "" {
+    out.write(";")
+    out.write_esc(css)
+  }
+  out.write("\"")
+}
+
+///|
 /// The emphasis a class gives a node's text, for measuring it.
 fn text_style(style : @svg.RawStyle) -> Int32 {
   (if style.bold { @text.STYLE_BOLD } else { 0 }) |
@@ -117,12 +153,13 @@ fn draw_section(
   } else {
     " fill-opacity=\"0.12\""
   }
+  let short = b.header < HEADER
   let mut label = None
   let mut with_value = false
   let mut label_size = 0.0
   let mut value_size = 0.0
   if b.headed {
-    label_size = fixed.unwrap_or(small)
+    label_size = fixed.unwrap_or(if short { tiny } else { small })
     value_size = fixed.unwrap_or(tiny)
     let room = b.w - 2 * SIDE - 4
     let value_width = if value != "" {
@@ -130,8 +167,10 @@ fn draw_section(
     } else {
       0
     }
-    with_value = value_width > 0 && room - value_width - 12 >= 3 * label_size
-    label = if label_size * LINE <= HEADER {
+    with_value = !short &&
+      value_width > 0 &&
+      room - value_width - 12 >= 3 * label_size
+    label = if label_size * LINE < b.header {
       @common.fit_text(
         name,
         if with_value {
@@ -152,29 +191,32 @@ fn draw_section(
   out.write_esc_text(node.name)
   out.write("\">")
   write_tooltip(out, b, name, label.map(label => label.text))
-  out.write(
-    "<rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(b.w)}\" height=\"\{@svg.num(b.h)}\" fill=\"\{color}\"\{tint} stroke=\"\{color}\"",
-  )
-  @svg.write_rounded_style(out, style.shape)
+  let rect = "<rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(b.w)}\" height=\"\{@svg.num(b.h)}\" fill="
+  if !b.headed {
+    // A section without a header draws no box, so its children blend into the grid.
+    out.write("\{rect}\"none\"/></g>")
+    return
+  }
+  out.write("\{rect}\"\{color}\"\{tint} stroke=\"\{color}\"")
+  write_corners(out, style.shape, b)
   out.write("/>")
-  if b.headed {
-    let baseline = y + HEADER / 2 + 1
-    if label is Some(label) {
-      write_text(
-        out,
-        " x=\"\{@svg.num(x + SIDE + 2)}\" y=\"\{@svg.num(baseline + label_size * 0.35)}\" font-weight=\"var(--_hw)\"",
-        style.text,
-        label.text,
-      )
-    }
-    if with_value && value_size * LINE <= HEADER {
-      write_text(
-        out,
-        " class=\"pele-value\" x=\"\{@svg.num(x + b.w - SIDE - 2)}\" y=\"\{@svg.num(baseline + value_size * 0.35)}\" font-size=\"\{tiny}\" text-anchor=\"end\" fill=\"var(--_m)\"",
-        style.text,
-        value,
-      )
-    }
+  let baseline = y + b.header / 2 + 1
+  if label is Some(label) {
+    let size_attr = if short { " font-size=\"\{label_size}\"" } else { "" }
+    write_text(
+      out,
+      " x=\"\{@svg.num(x + SIDE + 2)}\" y=\"\{@svg.num(baseline + label_size * 0.35)}\" font-weight=\"var(--_hw)\"\{size_attr}",
+      style.text,
+      label.text,
+    )
+  }
+  if with_value && value_size * LINE <= HEADER {
+    write_text(
+      out,
+      " class=\"pele-value\" x=\"\{@svg.num(x + b.w - SIDE - 2)}\" y=\"\{@svg.num(baseline + value_size * 0.35)}\" font-size=\"\{tiny}\" text-anchor=\"end\" fill=\"var(--_m)\"",
+      style.text,
+      value,
+    )
   }
   out.write("</g>")
 }
@@ -216,7 +258,7 @@ fn draw_leaf(
   out.write(
     "<rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(b.w)}\" height=\"\{@svg.num(b.h)}\" fill=\"\{@svg.series_color(b.series)}\"",
   )
-  @svg.write_rounded_style(out, style.shape)
+  write_corners(out, style.shape, b)
   out.write("/>")
   if label is Some(label) {
     let cx = @svg.num(x + b.w / 2)
@@ -282,10 +324,24 @@ fn render_treemap(
       _ => ","
     },
   )
+  // Gaps and insets shrink with the average area of a leaf, so a crowded treemap keeps room for its boxes.
+  let crowd = @util.js_min(
+    1,
+    @util.js_max(
+      0,
+      @math.log10(
+        width *
+        height /
+        @util.js_max(1, leaf_count(model.roots).to_double()) /
+        800,
+      ),
+    ),
+  )
   let boxes = layout_treemap(model.roots, width, height, {
-    gap: number_option(config, "padding", 4, 0, 200),
+    gap: number_option(config, "padding", (2.0 + 2 * crowd).round(), 0, 200),
     header: HEADER,
-    side: SIDE,
+    short: SHORT_HEADER,
+    side: (3.0 + 3 * crowd).round(),
   })
   let title = @text.layout_label(
     model.title,

@@ -24,7 +24,7 @@ fn section(
 }
 
 ///|
-let insets : @treemap.Insets = { gap: 4, header: 28, side: 6, }
+let insets : @treemap.Insets = { gap: 4, header: 28, short: 18, side: 6, }
 
 ///|
 fn describe_box(b : @treemap.Box) -> String {
@@ -52,7 +52,12 @@ fn overlap(a : @treemap.Box, b : @treemap.Box) -> Bool {
 test "boxes are placed in rows along the shorter side, largest first" {
   let nodes = [40.0, 30.0, 20.0, 8.0, 2.0].mapi((i, v) => leaf("n\{i}", v))
   inspect(
-    laid_out(nodes, 1000, 600, insets={ gap: 0, header: 28, side: 6, }),
+    laid_out(nodes, 1000, 600, insets={
+      gap: 0,
+      header: 28,
+      short: 18,
+      side: 6,
+    }),
     content=(
       #|n0 s0 v40 @0,0 400x600
       #|n1 s1 v30 @400,0 300x600
@@ -87,6 +92,7 @@ test "each box has an area in proportion to its value and no two boxes overlap" 
   let boxes = @treemap.layout_treemap(nodes, 1000, 600, {
     gap: 0,
     header: 28,
+    short: 18,
     side: 6,
   })
   inspect(boxes.length(), content="5")
@@ -106,6 +112,7 @@ test "boxes stay close to square" {
   let boxes = @treemap.layout_treemap(nodes, 800, 500, {
     gap: 0,
     header: 28,
+    short: 18,
     side: 6,
   })
   let mut sum = 0.0
@@ -125,6 +132,7 @@ test "the boxes fill the frame and the gap lies between siblings" {
     laid_out([leaf("a", 1), leaf("b", 1)], 400, 200, insets={
       gap: 10,
       header: 28,
+      short: 18,
       side: 6,
     }),
     content=(

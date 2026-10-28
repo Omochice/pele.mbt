@@ -69,6 +69,76 @@ fn texts_in(markup : String) -> Array[String] {
 }
 
 ///|
+/// A box drawn for a node, by the node's name.
+struct Drawn {
+  id : String
+  x : Double
+  y : Double
+  w : Double
+  h : Double
+}
+
+///|
+/// Every box drawn, in the order it is drawn.
+fn drawn_boxes(svg : String) -> Array[Drawn] {
+  let boxes = []
+  let mut from = 0
+  while true {
+    let at = @util.index_of(svg, "data-id=\"", from~)
+    if at < 0 {
+      break
+    }
+    let id = quoted_after(svg, "data-id=\"", from=at)
+    let (x, y, w, h) = box_of(svg, id)
+    boxes.push({ id, x, y, w, h, })
+    from = at + 1
+  }
+  boxes
+}
+
+///|
+/// The narrowest space between two boxes side by side or one above the other, or infinity.
+/// Boxes too thin to keep a gap are left out.
+fn smallest_gap(boxes : Array[Drawn]) -> Double {
+  let mut least = @double.infinity
+  for a in boxes {
+    for b in boxes {
+      if @util.js_min(@util.js_min(a.w, a.h), @util.js_min(b.w, b.h)) < 8 {
+        continue
+      }
+      if a.y < b.y + b.h && b.y < a.y + a.h && b.x >= a.x + a.w {
+        least = @util.js_min(least, b.x - a.x - a.w)
+      }
+      if a.x < b.x + b.w && b.x < a.x + a.w && b.y >= a.y + a.h {
+        least = @util.js_min(least, b.y - a.y - a.h)
+      }
+    }
+  }
+  least
+}
+
+///|
+/// Six top-level sections, each of eight sections holding one section of eight leaves.
+fn deep_tree() -> String {
+  let source = StringBuilder()
+  source.write_string("treemap\n")
+  for i in 0..<6 {
+    source.write_string("\"top \{i}\"\n")
+    for j in 0..<8 {
+      source.write_string("  \"mid \{i}.\{j}\"\n    \"inner \{i}.\{j}\"\n")
+      for k in 0..<8 {
+        let n = 1 + (i * 64 + j * 8 + k) % 37
+        source.write_string("      \"leaf \{i}.\{j}.\{k}\": \{n * n * n}\n")
+      }
+    }
+  }
+  source.to_string()
+}
+
+///|
+let budget : String = "treemap-beta\n\"Budget\"\n    \"Operations\"\n        \"Salaries\": 700000\n        \"Equipment\": 200000\n        \"Supplies\": 100000\n    \"Marketing\"\n        \"Advertising\": 400000\n        \"Events\": 100000"
+
+///|
 fn count(text : String, part : String) -> Int32 {
   let mut n = 0
   let mut from = 0

@@ -10,6 +10,8 @@ pub(all) struct Box {
   children : Array[Box]
   /// Small sections give their header space to their children.
   mut headed : Bool
+  /// The height of the header of a section that has one, or 0.
+  mut header : Double
   mut x : Double
   mut y : Double
   mut w : Double
@@ -21,6 +23,8 @@ pub(all) struct Box {
 pub(all) struct Insets {
   gap : Double
   header : Double
+  /// The header a section too short for a full one keeps instead.
+  short : Double
   side : Double
 }
 
@@ -50,7 +54,7 @@ pub fn layout_treemap(
       parent.value += all[i].value
     }
   }
-  let { gap, header, side, } = insets
+  let { gap, header, short, side, } = insets
   let placed = []
   let place = (
     children : Array[Box],
@@ -90,15 +94,11 @@ pub fn layout_treemap(
     if b.children.is_empty() {
       continue
     }
-    b.headed = b.w > 2 * side && b.h > header + side
+    let top = if b.h - header - side >= 12 { header } else { short }
+    b.headed = b.w > @util.js_max(24, 2 * side) && b.h - top - side >= 8
+    b.header = if b.headed { top } else { 0 }
     if b.headed {
-      place(
-        b.children,
-        b.x + side,
-        b.y + header,
-        b.w - 2 * side,
-        b.h - header - side,
-      )
+      place(b.children, b.x + side, b.y + top, b.w - 2 * side, b.h - top - side)
     } else {
       place(b.children, b.x, b.y, b.w, b.h)
     }
@@ -119,6 +119,7 @@ fn make_box(node : TreemapNode, parent : Box?, series : Int32) -> Box {
     value,
     children: [],
     headed: false,
+    header: 0,
     x: 0,
     y: 0,
     w: 0,

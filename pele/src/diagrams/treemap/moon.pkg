@@ -5,6 +5,7 @@ import {
   "Omochice/pele/text",
   "Omochice/pele/types",
   "Omochice/pele/util",
+  "moonbitlang/core/math",
   "moonbitlang/core/string",
 }
 
