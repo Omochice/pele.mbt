@@ -1,6 +1,6 @@
 # Golden fixtures
 
-The files in this directory are the reference outputs of pele v1.10.0, rendered from pele's own test corpus.
+The files in this directory are the reference outputs of pele v1.12.0, rendered from pele's own test corpus.
 A port is correct when it reproduces every file here.
 The directory is generated, so it MUST NOT be edited by hand.
 The port's output ceiling, its known constraints, and how it is tested beyond these fixtures are described under [doc/](../doc/README.md).
@@ -53,6 +53,7 @@ The generator also runs pele with `TZ=UTC`, recorded as `timeZone` in the manife
 Gantt reads a date-only value as UTC midnight but floors its axis ticks to local midnight, so without that pin the goldens would depend on the time zone of the machine that generated them.
 `maxWidth` (outside the narrow profile), `responsive`, `linkSchemes`, and `imageSchemes` are left unset because their defaults mean "undefined selects the built-in behavior" rather than a concrete value.
 `config` is unset as well, and so are `measurer`, `icons`, and `math` outside their own profiles.
+`monospace` is unset too, so the goldens never ask for a part of a diagram to be measured and drawn in the monospace font.
 The default measurer falls back to pele's built-in metrics table when no canvas is available, and a port has to reproduce that table to match text widths.
 
 ## Callback options
