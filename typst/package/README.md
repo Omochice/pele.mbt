@@ -82,6 +82,27 @@ The `measurer` option can also be written by hand, as a dictionary of `unitsPerE
 The section "Callback options" of the repository's `golden/README.md` gives its exact rules.
 It is a table rather than a function because a plugin cannot call back into typst, so kerning and ligatures are not part of it.
 
+## Monospace parts
+
+`monospace` lists the parts of a diagram that are code, which pele measures and draws in the monospace font so that their boxes fit them.
+That font is the theme's `font-mono`, `DejaVu Sans Mono` by default.
+
+```typ
+#mermaid(monospace: ("members",), "classDiagram\n  class A {\n    +title: string\n  }")
+```
+
+Each part names the text of one kind of diagram, as the following table lists.
+
+| Part         | Text                                           |
+| ------------ | ---------------------------------------------- |
+| `members`    | Attributes and methods in class diagrams       |
+| `attributes` | Attribute types, names and keys in ER diagrams |
+| `files`      | File and directory names in tree view diagrams |
+| `messages`   | Message text on arrows in sequence diagrams    |
+
+A class or entity whose `style` or `classDef` sets a `font-family` keeps that font.
+typst writes a list of one item with a trailing comma, so `("members")` is a string, which pele ignores as it ignores any value that is not a list and any part it does not know.
+
 ## Icons
 
 pele asks a function for the drawing of each icon a diagram names, which typst cannot pass to a plugin, so `icons` gives the drawings as a dictionary instead.
