@@ -69,8 +69,7 @@ fn agentflow_section(config : @types.Config) -> Map[String, Json] {
 /// A fill the author set replaces the wash and stays opaque.
 fn tint(slot : Int32, wash : String, style : @svg.ResolvedStyle) -> String {
   let color = @svg.series_color(slot)
-  let opacity = if style.shape.contains("\"fill:") ||
-    style.shape.contains(";fill:") {
+  let opacity = if @svg.sets_fill(style.shape) {
     ""
   } else {
     " fill-opacity=\"\{wash}\""

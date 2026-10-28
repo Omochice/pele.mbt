@@ -81,6 +81,8 @@ pub fn route_path(Array[Double], String?, Double, Double, start_reach? : Double,
 
 pub fn series_color(Int32) -> String
 
+pub fn sets_fill(String) -> Bool
+
 pub fn sets_font_family(String) -> Bool
 
 pub fn shape_has_label(String) -> Bool
