@@ -10,6 +10,8 @@ pub fn direction(String?) -> Dir
 
 pub fn ease(Double, Double) -> Double
 
+pub fn inherit_crossed_directions(Array[CNode], Array[(Int32, Int32)]) -> Unit
+
 pub fn lane_layout(Array[CNode], Array[CEdge], Dir, LayeredOptions, lane_pad? : Double) -> CompoundResult
 
 pub fn layered(Array[LNode], Array[LEdge], LayeredOptions) -> LayeredResult

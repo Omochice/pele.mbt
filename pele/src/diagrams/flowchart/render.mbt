@@ -240,6 +240,12 @@ fn draw(
       None => -1
     }
   }
+  @layout.inherit_crossed_directions(
+    cnodes,
+    graph.edges.map(edge => {
+      (index.get(edge.start).unwrap_or(-1), index.get(edge.end).unwrap_or(-1))
+    }),
+  )
   let root_dir = if turned {
     @layout.Dir::TB
   } else {

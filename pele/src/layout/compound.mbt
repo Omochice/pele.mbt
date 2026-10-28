@@ -69,6 +69,43 @@ pub(all) struct CompoundResult {
 }
 
 ///|
+/// Drops the direction of every group that an edge enters or leaves, so that it takes its
+/// parent's, as Mermaid does.
+/// `ends` holds the source and target index of each edge, -1 for an end that is not in `nodes`.
+pub fn inherit_crossed_directions(
+  nodes : Array[CNode],
+  ends : Array[(Int32, Int32)],
+) -> Unit {
+  let ancestors = (i : Int32) => {
+    let found : Set[Int32] = Set([])
+    let mut p = nodes[i].parent
+    while p >= 0 && !found.contains(p) {
+      found.add(p)
+      p = nodes[p].parent
+    }
+    found
+  }
+  for end in ends {
+    let (src, dst) = end
+    if src < 0 || dst < 0 || src == dst {
+      continue
+    }
+    let a = ancestors(src)
+    let b = ancestors(dst)
+    for g in a {
+      if !b.contains(g) {
+        nodes[g].dir = None
+      }
+    }
+    for g in b {
+      if !a.contains(g) {
+        nodes[g].dir = None
+      }
+    }
+  }
+}
+
+///|
 /// Moves a laid out graph by `ox` across and `oy` down.
 pub fn shift_layout(
   nodes : Array[CNode],
