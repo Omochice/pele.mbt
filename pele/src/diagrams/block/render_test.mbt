@@ -595,6 +595,113 @@ test "keeps every label for several edges between the same blocks" {
 }
 
 ///|
+test "keeps parallel edges straight while it stacks their labels" {
+  let src = "block\n  columns 3\n  l a r\n  space:3\n  m b n\n  a -- \"production conforming\" --> b\n  b -- \"production deviation\" --> a"
+  expect_separate_labels(src, 2)
+  for d in edge_paths(block_svg(src)) {
+    assert_true(line_ends(d) is Some(_), msg=d)
+  }
+}
+
+///|
+test "leaves parallel labels in place when stacking them would cover another block" {
+  let expect_clear = (src : String, ids : Array[String]) => {
+    let svg = block_svg(src)
+    let all = boxes(svg)
+    for id in ids {
+      let b = box_of(all, id)
+      for label in edge_labels(svg) {
+        let l = label.1
+        assert_true(
+          (l.x - b.x).abs() >= (l.w + b.w) / 2 ||
+          (l.y - b.y).abs() >= (l.h + b.h) / 2,
+          msg="\{label.0} covers \{id}",
+        )
+      }
+    }
+  }
+  expect_clear(
+    "block\n  columns 1\n  a\n  space\n  c[\"Middle\"]\n  space\n  b\n  a -- \"forward label\" --> b\n  a -- \"second label\" --> b",
+    ["c"],
+  )
+  expect_clear(
+    "block\n  columns 1\n  a c d e b\n  a -- \"one<br>two<br>three<br>four\" --> b\n  a -- \"one<br>two<br>three<br>four\" --> b",
+    ["c", "e"],
+  )
+}
+
+///|
+test "leaves parallel labels in place when stacking them would cover a composite title" {
+  let svg = block_svg(
+    "block\n  columns 1\n  b\n  space\n  block:g[\"Group\"]\n    x\n  end\n  a\n  a -- \"a long label\" --> b\n  a -- \"a long label\" --> b\n  a -- \"a long label\" --> b",
+  )
+  let title_at = @util.index_of(svg, "class=\"pele-cluster-label\"")
+  assert_true(title_at != -1)
+  let attrs = read_until(svg, title_at, ">")
+  let x = attribute(attrs, " x")
+  let baseline = attribute(attrs, " y")
+  for label in edge_labels(svg) {
+    let l = label.1
+    assert_true(
+      (l.x - x).abs() >= l.w / 2 || (l.y - (baseline - 6)).abs() >= l.h / 2,
+      msg=label.0,
+    )
+  }
+}
+
+///|
+/// Every point of every marker path.
+fn marker_points(svg : String) -> Array[(Double, Double)] {
+  let out = []
+  let open = "class=\"pele-marker\" d=\""
+  let mut at = @util.index_of(svg, open)
+  while at != -1 {
+    let d = read_until(svg, at + open.length(), "\"")
+    for part in d.split("M") {
+      for point in part.split("L") {
+        let xy = point.split(",").to_array()
+        if xy.length() == 2 {
+          out.push(
+            (
+              @util.parse_float(xy[0].to_owned()),
+              @util.parse_float(xy[1].to_owned()),
+            ),
+          )
+        }
+      }
+    }
+    at = @util.index_of(svg, open, from=at + open.length())
+  }
+  out
+}
+
+///|
+test "leaves parallel labels in place when stacking them would cover an arrowhead" {
+  let svg = block_svg(
+    "block\n  columns 1\n  a\n  space\n  b\n  a -- \"first label\" --> b\n  a -- \"second label\" --> b\n  b -- \"third label\" --> a",
+  )
+  let tips = marker_points(svg)
+  assert_true(tips.length() > 0)
+  for label in edge_labels(svg) {
+    let l = label.1
+    for tip in tips {
+      assert_true(
+        (tip.0 - l.x).abs() >= l.w / 2 || (tip.1 - l.y).abs() >= l.h / 2,
+        msg=label.0,
+      )
+    }
+  }
+}
+
+///|
+test "stacks parallel labels without widening the drawing past maxWidth" {
+  let src = "block\n  columns 1\n  a\n  space:2\n  b\n  a -- \"a fairly long forward label\" --> b\n  b -- \"a fairly long backward label\" --> a"
+  expect_separate_labels(src, 2)
+  guard block_render(src, max_width=240) is Ok(result) else { fail("rejected") }
+  assert_true(result.width <= 240, msg=result.width.to_string())
+}
+
+///|
 test "draws a self-loop as an arc" {
   let svg = block_svg("block\n  a\n  a -- \"again\" --> a")
   assert_true(edge_paths(svg)[0].contains("A10,10 0 1 1 "))
