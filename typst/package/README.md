@@ -41,7 +41,8 @@ pele colors its SVG with CSS custom properties, which typst does not resolve, so
 #mermaid(theme: (bg: rgb("#1e1e2e"), fg: white, accent: blue, radius: 8pt, series-1: teal), "pie\n  \"A\": 1")
 ```
 
-The keys are `bg`, `fg`, `muted`, `line`, `surface`, `surface-alt`, `border`, `accent`, `critical`, `radius`, `font`, `font-mono`, `heading-weight`, `title-weight`, `bold-weight` and `series-1` to `series-8`.
+The keys are `bg`, `fg`, `fg-on-light`, `fg-on-dark`, `muted`, `line`, `surface`, `surface-alt`, `border`, `accent`, `critical`, `radius`, `font`, `font-mono`, `heading-weight`, `title-weight`, `bold-weight` and `series-1` to `series-8`.
+`fg-on-light` and `fg-on-dark` color a label on a fill the source sets, whichever contrasts more with that fill, unless the source sets the label's color too.
 A color is written as its hex code, a length as a number of the SVG's units, and anything else as its string.
 An absent key keeps pele's own value.
 A value holding `;`, `{` or `}` is ignored, as it could end the declaration it is written into.
