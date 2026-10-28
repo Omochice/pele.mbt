@@ -69,6 +69,8 @@ pub(all) struct FlowVariant {
     @layout.Dir,
     @types.IconResolver?,
   ) -> Unit raise @errors.PeleError)?
+  /// The part of a group `draw_group` draws that takes its fill, as left, top, right and bottom, from its laid out box and the diagram's direction.
+  filled_box : ((@layout.CNode, @layout.Dir) -> Array[Double])?
 }
 
 ///|
@@ -362,6 +364,7 @@ fn draw(
   let clusters = @svg.Markup::new()
   let struck_titles = @svg.Markup::new()
   let nodes_out = @svg.Markup::new()
+  let filled : Array[Double] = []
   for i, view in views {
     let c = cnodes[i]
     let node = view.node
@@ -369,6 +372,10 @@ fn draw(
     if c.is_group &&
       c.parent < 0 &&
       variant is Some({ draw_group: Some(draw_group), .. }) {
+      if @svg.paints(view.style.shape) &&
+        variant is Some({ filled_box: Some(filled_box), .. }) {
+        filled.push_iter(filled_box(c, root_dir).iter())
+      }
       draw_group(
         clusters,
         c,
@@ -382,6 +389,11 @@ fn draw(
       continue
     }
     if c.is_group {
+      if @svg.paints(view.style.shape) {
+        filled.push_iter(
+          [c.x - c.w / 2, c.y - c.h / 2, c.x + c.w / 2, c.y + c.h / 2].iter(),
+        )
+      }
       let title_x = @svg.cluster_title_x(
         c,
         view.label.width,
@@ -529,6 +541,7 @@ fn draw(
       drawn[i].arrow_type_end,
     )
   }
+  let casings = @svg.Markup::new()
   let edges_out = @svg.Markup::new()
   let labels_out = @svg.Markup::new()
   let loop_seen : Map[Int32, Int32] = Map([])
@@ -609,6 +622,17 @@ fn draw(
         Some(style) => style.line
         None => ""
       }
+      if @svg.runs_inside(path.d, filled) {
+        casings.write(
+          @svg.edge_casing(
+            path,
+            start_type,
+            end_type,
+            line~,
+            thick=edge.thickness == Some("thick"),
+          ),
+        )
+      }
       edges_out.write(
         "<g class=\"pele-edge\{edge_classes(edge.classes)}\" data-id=\"\{@svg.esc_text(edge.id)}\"\{line}>",
       )
@@ -648,6 +672,7 @@ fn draw(
   if !clusters.is_empty() {
     content.write_group("<g class=\"pele-clusters\">", clusters, "</g>")
   }
+  @svg.write_casings(content, casings)
   if !edges_out.is_empty() {
     content.write_group(
       "<g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\">",

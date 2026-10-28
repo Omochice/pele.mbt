@@ -106,6 +106,7 @@ let variant : @flowchart.FlowVariant = {
     )
   },
   draw_group: Some(draw_lane),
+  filled_box: None,
 }
 
 ///|
