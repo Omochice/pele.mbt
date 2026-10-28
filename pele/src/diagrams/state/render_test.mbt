@@ -340,7 +340,7 @@ test "picks a contrasting label color on fills a style sets" {
 }
 
 ///|
-test "cases transitions that run over a composite fill a style sets" {
+test "cases transitions that cross a composite fill a style sets and inks those inside it" {
   let source = "state Busy {\n  a --> b\n}\nstate Idle {\n  c --> d\n}\nb --> e\ne --> c\nstyle Busy fill:#FFF9C4"
   let svg = draw(source)
   let casings = between(svg, "<g class=\"pele-casings\"", "</g>")
@@ -351,14 +351,23 @@ test "cases transitions that run over a composite fill a style sets" {
     .map(d => casings.contains("<path d=\"\{d}\"/>"))
     .map(c => c.to_string())
     .join(" "),
-    content="true false true false",
+    content="false false true false",
   )
+  let group = (id : String) => {
+    let at = @util.index_of(svg, "data-id=\"\{id}\">")
+    let start = @util.last_index_of(svg, "<g ", from=at)
+    @util.slice(svg, start, end=@util.index_of(svg, "</g>", from=at))
+  }
   inspect(
-    draw(source.replace(old="\nstyle Busy fill:#FFF9C4", new="")).contains(
-      "pele-casings",
+    group("edge0"),
+    content=(
+      #|<g class="pele-edge pele-transition" stroke="var(--pele-fg-on-light,#1f1f1f)" data-id="edge0"><path d="M52,104L52,141"/><path class="pele-marker" d="M52,148L48.64,140L55.36,140Z" fill="var(--pele-fg-on-light,#1f1f1f)" stroke="none"/>
     ),
-    content="false",
   )
+  inspect(group("edge2").contains("--pele-fg-on"), content="false")
+  let plain = draw(source.replace(old="\nstyle Busy fill:#FFF9C4", new=""))
+  inspect(plain.contains("pele-casings"), content="false")
+  inspect(plain.contains("stroke=\"var(--pele-fg-on"), content="false")
 }
 
 ///|

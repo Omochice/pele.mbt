@@ -728,7 +728,7 @@ fn draw(
     }
   }
   let clusters = @svg.Markup::new()
-  let filled : Array[Double] = []
+  let fills : Array[@svg.Fill] = []
   let dividers = @svg.Markup::new()
   let nodes_out = @svg.Markup::new()
   let notes_out = @svg.Markup::new()
@@ -824,7 +824,9 @@ fn draw(
         let left = x - c.w / 2
         let top = y - c.h / 2
         if @svg.raw_paints(style.shape) {
-          filled.push_iter([left, top, left + c.w, top + c.h].iter())
+          fills.push(
+            @svg.Fill::raw([left, top, left + c.w, top + c.h], style.shape),
+          )
         }
         let wash = if @svg.sets_raw_fill(style.shape) {
           ""
@@ -1160,25 +1162,31 @@ fn draw(
       edx = path.edx
       edy = path.edy
     }
-    if @svg.runs_inside(d, filled) {
-      casings.write(
-        @svg.edge_casing(
-          { d, sx: 0, sy: 0, sdx: 0, sdy: 0, ex, ey, edx, edy, },
-          "none",
-          end_type,
-        ),
-      )
+    let ink = match @svg.over_fills(d, [ex, ey], fills) {
+      Some("") => {
+        casings.write(
+          @svg.edge_casing(
+            { d, sx: 0, sy: 0, sdx: 0, sdy: 0, ex, ey, edx, edy, },
+            "none",
+            end_type,
+          ),
+        )
+        None
+      }
+      Some(ink) => Some(ink)
+      None => None
     }
-    let kind = if note {
-      "pele-note-edge\" stroke=\"var(--_b)\" stroke-dasharray=\"3 4"
-    } else {
-      "pele-transition"
+    let kind = match (note, ink) {
+      (true, _) =>
+        "pele-note-edge\" stroke=\"\{ink.unwrap_or("var(--_b)")}\" stroke-dasharray=\"3 4"
+      (false, Some(ink)) => "pele-transition\" stroke=\"\{ink}"
+      (false, None) => "pele-transition"
     }
     edges_out.write("<g class=\"pele-edge \{kind}\" data-id=\"")
     edges_out.write_esc_text(edge.id)
     edges_out.write(
       "\"><path d=\"\{d}\"/>" +
-      @svg.marker(end_type, ex, ey, edx, edy, "var(--_l)") +
+      @svg.marker(end_type, ex, ey, edx, edy, ink.unwrap_or("var(--_l)")) +
       "</g>",
     )
     if label.width > 0 {

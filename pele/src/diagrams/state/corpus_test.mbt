@@ -114,7 +114,7 @@ let corpus_cases : Array[(String, String)] = [
   ),
   (
     "stateDiagram-v2\n      classDef pinned fill:#111827,stroke:#F59E0B\n      state Active {\n        [*] --> A\n        --\n        [*] --> B\n      }\n      class Active pinned\n    ",
-    "76128403",
+    "acc6e534",
   ),
   (
     "stateDiagram-v2\n      state First {\n        [*] --> A\n        --\n        [*] --> B\n      }\n      state Second {\n        [*] --> C\n        --\n        [*] --> D\n      }\n    ",
@@ -122,11 +122,11 @@ let corpus_cases : Array[(String, String)] = [
   ),
   (
     "stateDiagram-v2\n      classDef pinned fill:#111827,stroke:#F59E0B\n      state First {\n        [*] --> A\n      }\n      state Second {\n        [*] --> B\n      }\n      state Third {\n        [*] --> C\n      }\n      class Second pinned\n    ",
-    "693a8cca",
+    "288a5540",
   ),
   (
     "stateDiagram-v2\n      state First {\n        [*] --> A\n      }\n      state Second {\n        [*] --> B\n      }\n      style Second fill:#111827\n    ",
-    "5e349ee8",
+    "048983c4",
   ),
   (
     "stateDiagram-v2\n      [*] --> Loop\n      state Loop {\n        [*] --> Spin\n      }\n      Loop --> Loop\n      Loop --> Exit\n      state Exit {\n        [*] --> Bye\n      }\n    ",
