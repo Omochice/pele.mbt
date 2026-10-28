@@ -147,6 +147,76 @@ fn box_of(at : Map[String, Box], id : String) -> Box raise {
 }
 
 ///|
+/// The id and centered box of every edge label, in drawing order.
+fn edge_labels(svg : String) -> Array[(String, Box)] {
+  let out = []
+  let open = "class=\"pele-edge-label\" data-id=\""
+  let mut at = @util.index_of(svg, open)
+  while at != -1 {
+    let id = read_until(svg, at + open.length(), "\"")
+    let rect_at = @util.index_of(svg, "<rect ", from=at)
+    let attrs = read_until(svg, rect_at, ">")
+    let w = attribute(attrs, "width")
+    let h = attribute(attrs, "height")
+    out.push(
+      (
+        id,
+        {
+          x: attribute(attrs, "x") + w / 2,
+          y: attribute(attrs, "y") + h / 2,
+          w,
+          h,
+        },
+      ),
+    )
+    at = @util.index_of(svg, open, from=rect_at)
+  }
+  out
+}
+
+///|
+/// Checks that every labelled edge keeps one label inside the drawing, and that no two labels overlap.
+fn expect_separate_labels(source : String, count : Int32) -> Unit raise {
+  guard block_render(source) is Ok(result) else { fail("rejected \{source}") }
+  let db = parsed_db(source)
+  let labels = edge_labels(result.svg)
+  assert_eq(labels.length(), count, msg=source)
+  assert_eq(
+    labels.map(label => label.0),
+    db.edges.filter(edge => edge.label != "").map(edge => edge.id),
+    msg=source,
+  )
+  assert_eq(edge_paths(result.svg).length(), db.edges.length(), msg=source)
+  for i, label in labels {
+    let (id, a) = label
+    assert_true(a.w > 0, msg=id)
+    assert_true(a.h > 0, msg=id)
+    assert_true(a.x - a.w / 2 >= 0, msg=id)
+    assert_true(a.y - a.h / 2 >= 0, msg=id)
+    assert_true(a.x + a.w / 2 <= result.width, msg=id)
+    assert_true(a.y + a.h / 2 <= result.height, msg=id)
+    for j in (i + 1)..<labels.length() {
+      let (other, b) = labels[j]
+      let overlap_x = (a.w + b.w) / 2 - (a.x - b.x).abs()
+      let overlap_y = (a.h + b.h) / 2 - (a.y - b.y).abs()
+      assert_true(
+        @util.js_min(overlap_x, overlap_y) <= 0.01,
+        msg="\{id} overlaps \{other}",
+      )
+    }
+    // Labels paint last, so a label's center must belong to that label alone.
+    let hits = labels
+      .filter(entry => {
+        let b = entry.1
+        (a.x - b.x).abs() < b.w / 2 && (a.y - b.y).abs() < b.h / 2
+      })
+      .map(entry => entry.0)
+    assert_eq(hits, [id], msg=source)
+  }
+  assert_eq(block_svg(source), result.svg, msg=source)
+}
+
+///|
 test "draws blocks, composites, arrows and edges as pele does" {
   assert_eq(
     snapshot(
@@ -481,6 +551,47 @@ test "spreads edges between the same two blocks" {
   let paths = edge_paths(block_svg("block\n  a space b\n  a --> b\n  b --> a"))
   let y = (d : String) => read_until(d, @util.index_of(d, ",") + 1, "L")
   assert_not_eq(y(paths[0]), y(paths[1]))
+}
+
+///|
+test "separates labels on opposite vertical edges" {
+  expect_separate_labels(
+    "block\n  columns 1\n  a[\"Upper layer\"]\n  space:3\n  b[\"Lower layer\"]\n  a -- \"12 production conforming\" --> b\n  b -- \"12 production deviation\" --> a",
+    2,
+  )
+}
+
+///|
+test "separates labels on opposite horizontal edges" {
+  expect_separate_labels(
+    "block\n  a[\"Left layer\"] space:3 b[\"Right layer\"]\n  a -- \"12 production<br>conforming\" --> b\n  b -- \"12 production<br>deviation\" --> a",
+    2,
+  )
+}
+
+///|
+test "keeps disjoint labels on their original straight parallel routes" {
+  let src = "block\n  a space:3 b\n  a -- \"forward\" --> b\n  b -- \"reverse\" --> a"
+  expect_separate_labels(src, 2)
+  for d in edge_paths(block_svg(src)) {
+    assert_true(line_ends(d) is Some(_), msg=d)
+  }
+}
+
+///|
+test "separates wide labels when narrow endpoints clamp the parallel routes" {
+  expect_separate_labels(
+    "block\n  columns 1\n  a[\"A\"]\n  space\n  b[\"B\"]\n  a -- \"144 production conforming\" --> b\n  b -- \"144 production deviation\" --> a",
+    2,
+  )
+}
+
+///|
+test "keeps every label for several edges between the same blocks" {
+  expect_separate_labels(
+    "block\n  columns 1\n  a[\"A\"]\n  space:2\n  b[\"B\"]\n  a -- \"7 production policy\" --> b\n  a -- \"7 test policy\" --> b\n  a -- \"7 production exception\" --> b\n  b -- \"7 production deviation\" --> a",
+    4,
+  )
 }
 
 ///|
