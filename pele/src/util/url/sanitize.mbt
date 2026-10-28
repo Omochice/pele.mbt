@@ -247,10 +247,15 @@ fn is_invalid_protocol(protocol : String) -> Bool {
 }
 
 ///|
-/// `url` without the control characters, entity codes and escapes that could hide a scheme, or
-/// `None` for a URL wrapped too many times to be a real one.
-fn unwrap(url : String) -> String? {
-  let mut out = decode_or_keep(@util.trim(url))
+/// `url` without the control characters, entity codes and escapes that could hide a scheme, and
+/// with `percent`, without percent escapes too, or `None` for a URL wrapped too many times to be
+/// a real one.
+fn unwrap(url : String, percent~ : Bool) -> String? {
+  let mut out = if percent {
+    decode_or_keep(@util.trim(url))
+  } else {
+    @util.trim(url)
+  }
   let mut rounds = 0
   while true {
     rounds += 1
@@ -263,7 +268,9 @@ fn unwrap(url : String) -> String? {
     out = without_ctrl(out)
     out = remove_matches(out, ws_escape_end)
     out = @util.trim(out)
-    out = decode_or_keep(out)
+    if percent {
+      out = decode_or_keep(out)
+    }
     let more = has_ctrl(out) ||
       has_entity(out) ||
       has_match(out, ctrl_entity_end) ||
@@ -276,23 +283,31 @@ fn unwrap(url : String) -> String? {
 }
 
 ///|
-/// The click target as @braintree/sanitize-url, which Mermaid applies to links, leaves it: `about:blank` for a script or data URL.
+/// The click target with what @braintree/sanitize-url, which Mermaid applies to links, refuses
+/// turned into `about:blank`, such as a script or data URL.
+/// Unlike it, keeps percent escapes, so `file=A%26B` still names the note `A&B`.
 pub fn sanitize_url(url : String) -> String {
   if url == "" {
     return blank
   }
-  guard unwrap(url) is Some(decoded) && decoded != "" else { return blank }
+  guard unwrap(url, percent=true) is Some(decoded) &&
+    decoded != "" &&
+    unwrap(url, percent=false) is Some(kept) &&
+    kept != "" else {
+    return blank
+  }
   let first = @util.code_at(decoded, 0)
   if first == '.'.to_int() || first == '/'.to_int() {
-    return decoded
+    return kept
   }
-  let trimmed = @util.trim_start(decoded)
-  guard scheme_match(trimmed) is Some(scheme) else { return decoded }
+  guard scheme_match(@util.trim_start(decoded)) is Some(scheme) else {
+    return kept
+  }
   let protocol = @util.trim(protocol_lower(scheme))
   if is_invalid_protocol(protocol) {
     return blank
   }
-  let normalized = trimmed.replace_all(old="\\", new="/")
+  let normalized = @util.trim_start(kept).replace_all(old="\\", new="/")
   if protocol == "mailto:" || protocol.contains("://") {
     return normalized
   }
