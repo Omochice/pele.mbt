@@ -293,11 +293,12 @@ fn mark(
   dx : Double,
   dy : Double,
   color : String,
+  stroke~ : String = "none",
 ) -> String {
   if kind == "extension" {
     extension(x, y, dx, dy, color)
   } else {
-    @svg.marker(kind, x, y, dx, dy, color)
+    @svg.marker(kind, x, y, dx, dy, color, stroke~)
   }
 }
 
@@ -729,6 +730,7 @@ fn draw(
   }
   attach_ends(cedges, cnodes, views)
   let clusters = @svg.Markup::new()
+  let filled : Array[Double] = []
   let nodes_out = @svg.Markup::new()
   for i, view in views {
     let c = cnodes[i]
@@ -745,6 +747,9 @@ fn draw(
     if view.kind == Boundary {
       let x = c.x - c.w / 2
       let y = c.y - c.h / 2
+      if @svg.raw_paints(view.css.shape) {
+        filled.push_iter([x, y, x + c.w, y + c.h].iter())
+      }
       let wash = if @svg.sets_raw_fill(view.css.shape) {
         ""
       } else {
@@ -933,6 +938,7 @@ fn draw(
       "</g>",
     )
   }
+  let casings = @svg.Markup::new()
   let edges_out = @svg.Markup::new()
   let labels_out = @svg.Markup::new()
   let loop_seen : Map[Int32, Int32] = Map([])
@@ -1011,6 +1017,17 @@ fn draw(
       Some(stroke) if stroke != "" => @svg.STROKE_CSS
       _ => "var(--_l)"
     }
+    if @svg.runs_inside(path.d, filled) {
+      let bg = "var(--_bg)"
+      casings.write(
+        @svg.raw_casing(
+          path.d,
+          mark(start_type, path.sx, path.sy, path.sdx, path.sdy, bg, stroke=bg) +
+          mark(end_type, path.ex, path.ey, path.edx, path.edy, bg, stroke=bg),
+          css=css.line,
+        ),
+      )
+    }
     // Mermaid animates these dashes.
     // A still picture keeps the dashes.
     let dashes = if edge.internal {
@@ -1064,6 +1081,7 @@ fn draw(
   if !clusters.is_empty() {
     content.write_group("<g class=\"pele-clusters\">", clusters, "</g>")
   }
+  @svg.write_casings(content, casings)
   if !edges_out.is_empty() {
     content.write_group(
       "<g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\">",
