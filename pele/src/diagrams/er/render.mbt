@@ -593,7 +593,7 @@ fn draw(
         view.label,
         title_x,
         y + 8 + view.label.height / 2,
-        " class=\"pele-cluster-label\" fill=\"var(--_m)\"\{view.style.text}",
+        " class=\"pele-cluster-label\"\{@svg.ink_fill(view.style, fallback="var(--_m)")}\{view.style.text}",
         icons?=options.icons,
       )
       clusters.write("</g>")
@@ -604,6 +604,8 @@ fn draw(
     let x0 = -w / 2
     let y0 = -h / 2
     let text = view.style.text
+    let color = @svg.ink_fill(view.style)
+    let muted = @svg.ink_fill(view.style, fallback="var(--_m)")
     let shape = "x=\"\{@svg.num(x0)}\" y=\"\{@svg.num(y0)}\" width=\"\{@svg.num(w)}\" height=\"\{@svg.num(h)}\""
     let label = @svg.Markup::new()
     @svg.write_label(
@@ -615,7 +617,7 @@ fn draw(
       } else {
         0
       },
-      " class=\"pele-label\"\{text}",
+      " class=\"pele-label\"\{color}\{text}",
       icons?=options.icons,
     )
     let display = @text.decode_entities(
@@ -683,7 +685,7 @@ fn draw(
           row.cells[0],
           x0 + view.cols[0],
           baseline,
-          " class=\"pele-er-type\" fill=\"var(--_m)\"\{text}",
+          " class=\"pele-er-type\"\{muted}\{text}",
           options.icons,
           mono=view.mono,
         )
@@ -692,7 +694,7 @@ fn draw(
           row.cells[1],
           x0 + view.cols[1],
           baseline,
-          " class=\"pele-er-name\"\{text}",
+          " class=\"pele-er-name\"\{color}\{text}",
           options.icons,
           mono=view.mono,
         )
@@ -701,7 +703,7 @@ fn draw(
           row.cells[2],
           x0 + view.cols[2],
           baseline,
-          " class=\"pele-er-keys\" font-size=\"\{view.key_size}\" fill=\"var(--_m)\"\{text}",
+          " class=\"pele-er-keys\" font-size=\"\{view.key_size}\"\{muted}\{text}",
           options.icons,
           mono=view.mono,
         )
@@ -710,7 +712,7 @@ fn draw(
           row.cells[3],
           x0 + view.cols[3],
           baseline,
-          " class=\"pele-er-comment\" fill=\"var(--_m)\"\{text}",
+          " class=\"pele-er-comment\"\{muted}\{text}",
           options.icons,
         )
         y += row.h
@@ -726,8 +728,14 @@ fn draw(
       nodes_out.write(
         "<rect \{shape}\{@svg.rounded(BOX_ATTRS + view.style.shape)}/>",
       )
+      // Keep row shading light on light fills and dark on dark fills to preserve text contrast.
+      let shade = match @svg.ink(view.style.shape) {
+        Some(@svg.ON_LIGHT) => @svg.ON_DARK
+        Some(@svg.ON_DARK) => @svg.ON_LIGHT
+        _ => "var(--_bg)"
+      }
       nodes_out.write_group(
-        "<g class=\"pele-er-stripes\" fill=\"var(--_bg)\"\{tint}>",
+        "<g class=\"pele-er-stripes\" fill=\"\{shade}\"\{tint}>",
         stripes,
         "</g>",
       )

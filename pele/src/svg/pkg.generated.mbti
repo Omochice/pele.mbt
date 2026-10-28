@@ -19,6 +19,10 @@ pub const LEAD : Double = 6
 
 pub const LINE_CSS : String = "\x00l"
 
+pub const ON_DARK : String = "var(--pele-fg-on-dark,#fff)"
+
+pub const ON_LIGHT : String = "var(--pele-fg-on-light,#1f1f1f)"
+
 pub const PAD_X : Double = 18
 
 pub const PAD_Y : Double = 12

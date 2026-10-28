@@ -31,10 +31,12 @@ let light_names : Array[String] = [
 ]
 
 ///|
-const ON_LIGHT : String = "var(--pele-fg-on-light,#1f1f1f)"
+/// The color of text on a light fill the source sets.
+pub const ON_LIGHT : String = "var(--pele-fg-on-light,#1f1f1f)"
 
 ///|
-const ON_DARK : String = "var(--pele-fg-on-dark,#fff)"
+/// The color of text on a dark fill the source sets.
+pub const ON_DARK : String = "var(--pele-fg-on-dark,#fff)"
 
 ///|
 fn linear(c : Double) -> Double {

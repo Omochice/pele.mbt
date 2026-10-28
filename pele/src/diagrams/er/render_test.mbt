@@ -254,6 +254,58 @@ test "shades alternate rows and rounds the last one with the box" {
 }
 
 ///|
+/// The entity `id`, up to the end tag of its stripes' group.
+fn entity_of(svg : String, id : String) -> String {
+  between(svg, "data-id=\"\{id}\"", "</g></g>")
+}
+
+///|
+test "picks a contrasting text color on fills a style sets" {
+  let svg = svg_of(
+    "erDiagram\n A { int id PK \"key\" }\n B { int id }\n C { int id }\n D { int id }\n subgraph G\n  E\n end\n style A fill:navy\n style B fill:#BBDEFB\n style C fill:#BBDEFB,color:#333\n style G fill:#FFF9C4",
+  )
+  let dark = " fill=\"var(--pele-fg-on-dark,#fff)\""
+  let a = entity_of(svg, "A")
+  assert_true(
+    a.contains(
+      "<g class=\"pele-er-stripes\" fill=\"var(--pele-fg-on-light,#1f1f1f)\" opacity=\"0.6\">",
+    ),
+  )
+  for
+    cell in [
+      "pele-label", "pele-er-type", "pele-er-name", "pele-er-keys", "pele-er-comment",
+    ] {
+    assert_true(text_tag(a, cell).contains(dark), msg=cell)
+  }
+  let b = entity_of(svg, "B")
+  assert_true(
+    b.contains(
+      "<text class=\"pele-label\" fill=\"var(--pele-fg-on-light,#1f1f1f)\"",
+    ),
+  )
+  assert_true(
+    b.contains(
+      "<g class=\"pele-er-stripes\" fill=\"var(--pele-fg-on-dark,#fff)\" opacity=\"0.6\">",
+    ),
+  )
+  let c = entity_of(svg, "C")
+  assert_false(c.contains("--pele-fg-on-light"))
+  assert_true(
+    c.contains(
+      "<text class=\"pele-er-type\" fill=\"var(--_m)\" style=\"fill:#333;\"",
+    ),
+  )
+  let d = entity_of(svg, "D")
+  assert_true(d.contains("<g class=\"pele-er-stripes\" fill=\"var(--_bg)\">"))
+  assert_false(d.contains("--pele-fg-on"))
+  assert_true(
+    between(svg, "data-id=\"G\">", "</g>").contains(
+      "<text class=\"pele-cluster-label\" fill=\"var(--pele-fg-on-light,#1f1f1f)\"",
+    ),
+  )
+}
+
+///|
 test "shows the alias in place of the name" {
   let svg = svg_of(
     "erDiagram\n  p[Person] {\n string name\n }\n  a[\"Customer Account\"]\n  p ||--o| a : has",
@@ -464,7 +516,7 @@ test "style, classDef, class and the shorthand reach boxes, lines and text" {
   inspect(
     body(result.svg),
     content=(
-      #|<g class="pele-nodes"><g class="pele-node pele-entity hot" data-id="A" transform="translate(56,44)"><rect x="-48" y="-36" width="96" height="72" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r);stroke-width:2px;fill:#f96;stroke:#333;"/><g class="pele-er-stripes" fill="var(--_bg)" opacity="0.6"><rect x="-48" width="96" y="6" height="30" style="rx:var(--_r)"/><rect x="-48" width="96" y="6" height="15"/></g><path class="pele-er-divider" d="M-48,6H48" stroke="#333"/><rect x="-48" y="-36" width="96" height="72" fill="none" stroke="var(--_b)" style="rx:var(--_r);stroke-width:2px;stroke:#333;"/><text class="pele-label" x="0" y="-9.4" text-anchor="middle">A</text><g class="pele-er-attributes" font-size="14"><text class="pele-er-type" fill="var(--_m)" x="-36" y="25.9">int</text><text class="pele-er-name" x="9.95" y="25.9">id</text></g></g><g class="pele-node pele-entity hot" data-id="B" transform="translate(200,44)"><rect x="-48" y="-24" width="96" height="48" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r);stroke-width:2px;fill:#f96;stroke:#333;"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">B</text></g><g class="pele-node pele-entity" data-id="C" transform="translate(344,44)"><rect x="-48" y="-24" width="96" height="48" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r);stroke-width:2px;fill:#bbf;"/><text class="pele-label" style="fill:#fff;" x="0" y="5.6" text-anchor="middle">C</text></g></g></svg>
+      #|<g class="pele-nodes"><g class="pele-node pele-entity hot" data-id="A" transform="translate(56,44)"><rect x="-48" y="-36" width="96" height="72" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r);stroke-width:2px;fill:#f96;stroke:#333;"/><g class="pele-er-stripes" fill="var(--pele-fg-on-dark,#fff)" opacity="0.6"><rect x="-48" width="96" y="6" height="30" style="rx:var(--_r)"/><rect x="-48" width="96" y="6" height="15"/></g><path class="pele-er-divider" d="M-48,6H48" stroke="#333"/><rect x="-48" y="-36" width="96" height="72" fill="none" stroke="var(--_b)" style="rx:var(--_r);stroke-width:2px;stroke:#333;"/><text class="pele-label" fill="var(--pele-fg-on-light,#1f1f1f)" x="0" y="-9.4" text-anchor="middle">A</text><g class="pele-er-attributes" font-size="14"><text class="pele-er-type" fill="var(--pele-fg-on-light,#1f1f1f)" x="-36" y="25.9">int</text><text class="pele-er-name" fill="var(--pele-fg-on-light,#1f1f1f)" x="9.95" y="25.9">id</text></g></g><g class="pele-node pele-entity hot" data-id="B" transform="translate(200,44)"><rect x="-48" y="-24" width="96" height="48" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r);stroke-width:2px;fill:#f96;stroke:#333;"/><text class="pele-label" fill="var(--pele-fg-on-light,#1f1f1f)" x="0" y="5.6" text-anchor="middle">B</text></g><g class="pele-node pele-entity" data-id="C" transform="translate(344,44)"><rect x="-48" y="-24" width="96" height="48" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r);stroke-width:2px;fill:#bbf;"/><text class="pele-label" style="fill:#fff;" x="0" y="5.6" text-anchor="middle">C</text></g></g></svg>
     ),
   )
 }
@@ -492,7 +544,7 @@ test "a styled subgraph sets its own direction" {
   inspect(
     body(result.svg),
     content=(
-      #|<g class="pele-clusters"><g class="pele-cluster k" data-id="g"><rect x="8" y="8" width="315" height="108" fill="var(--_a)" stroke="var(--_b)" style="rx:var(--_r);stroke:#c33;fill:#fee;"/><text class="pele-cluster-label" fill="var(--_m)" x="26.45" y="33.6" text-anchor="middle">g</text></g></g><g class="pele-edges" fill="none" stroke="var(--_l)" stroke-linecap="round"><g class="pele-edge pele-er-identifying" data-id="id_entity-A-0_entity-B-1_0"><path d="M124,72L207,72"/><path class="pele-marker" d="M130,77L130,67M134,77L134,67"/><path class="pele-marker" d="M201,67L201,77M197,67L197,77"/></g></g><g class="pele-edge-labels" font-size="14"><g class="pele-edge-label" data-id="id_entity-A-0_entity-B-1_0"><rect x="158" y="61.5" width="15" height="21" rx="3" fill="var(--_bg)"/><text x="165.5" y="76.9" text-anchor="middle">x</text></g></g><g class="pele-nodes"><g class="pele-node pele-entity" data-id="A" transform="translate(76,72)"><rect x="-48" y="-24" width="96" height="48" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">A</text></g><g class="pele-node pele-entity" data-id="B" transform="translate(255,72)"><rect x="-48" y="-24" width="96" height="48" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">B</text></g></g></svg>
+      #|<g class="pele-clusters"><g class="pele-cluster k" data-id="g"><rect x="8" y="8" width="315" height="108" fill="var(--_a)" stroke="var(--_b)" style="rx:var(--_r);stroke:#c33;fill:#fee;"/><text class="pele-cluster-label" fill="var(--pele-fg-on-light,#1f1f1f)" x="26.45" y="33.6" text-anchor="middle">g</text></g></g><g class="pele-edges" fill="none" stroke="var(--_l)" stroke-linecap="round"><g class="pele-edge pele-er-identifying" data-id="id_entity-A-0_entity-B-1_0"><path d="M124,72L207,72"/><path class="pele-marker" d="M130,77L130,67M134,77L134,67"/><path class="pele-marker" d="M201,67L201,77M197,67L197,77"/></g></g><g class="pele-edge-labels" font-size="14"><g class="pele-edge-label" data-id="id_entity-A-0_entity-B-1_0"><rect x="158" y="61.5" width="15" height="21" rx="3" fill="var(--_bg)"/><text x="165.5" y="76.9" text-anchor="middle">x</text></g></g><g class="pele-nodes"><g class="pele-node pele-entity" data-id="A" transform="translate(76,72)"><rect x="-48" y="-24" width="96" height="48" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">A</text></g><g class="pele-node pele-entity" data-id="B" transform="translate(255,72)"><rect x="-48" y="-24" width="96" height="48" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">B</text></g></g></svg>
     ),
   )
 }
