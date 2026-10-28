@@ -233,6 +233,27 @@ test "measures members in the monospace font when monospace lists them" {
 }
 
 ///|
+test "ignores monospace values that do not list members" {
+  let src = "classDiagram\nclass A {\n  +title: string\n  +draw()*\n}"
+  let plain = svg_of(src)
+  for monospace in [[], ["member"], ["attributes"]] {
+    assert_eq(svg_of(src, monospace~), plain)
+  }
+  let configured = match
+    drawn(src, config={
+      "class": { "monoMembers": true, "monospace": ["members"] },
+    }) {
+    Ok(result) => result.svg
+    Err(failure) => failure.message
+  }
+  assert_eq(configured, plain)
+  assert_eq(
+    svg_of(src, monospace=["attributes", "members"]),
+    svg_of(src, monospace=["members"]),
+  )
+}
+
+///|
 test "uses the label of a class in place of its name" {
   assert_eq(
     snapshot(
