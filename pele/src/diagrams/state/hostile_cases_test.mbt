@@ -1,4 +1,4 @@
-// pele's state-security templates and payloads (tests/render/state-security.test.ts, tests/support/inert.ts), with a hash of what pele v1.10.0's render gives each pair.
+// pele's state-security templates and payloads (tests/render/state-security.test.ts, tests/support/inert.ts), with a hash of what pele's render gives each pair, taken from pele v1.10.0 and retaken where a later pele draws it differently.
 
 ///|
 /// Each template as the text around the places its payload goes.
@@ -339,12 +339,12 @@ let hostile_outcomes : Array[String] = [
   "665f8378", "665f8378", "665f8378", "99a6f7d4", "f920b49a", "665f8378", "db2d8694",
   "bceed5a3", "9a1ff28e", "fbfda3d1", "665f8378", "d128c345", "d128c345", "d128c345",
   "d128c345", "d128c345", "d128c345", "d128c345", "d128c345", "d128c345", "d128c345",
-  "518dca27", "4bc2a567", "f832710f", "53b258d1", "0ffeaab7", "aa774c75", "85bccd4b",
-  "26202351", "0765d561", "d128c345", "0af7ac27", "d128c345", "6e0909cb", "d128c345",
-  "d128c345", "d128c345", "6621960b", "d128c345", "d128c345", "d128c345", "d128c345",
-  "d128c345", "d128c345", "d128c345", "d128c345", "d128c345", "d128c345", "f4468a35",
-  "889e6e55", "19cd022d", "ede99547", "d128c345", "d128c345", "d128c345", "841859e1",
-  "4bc430c5", "d128c345", "377db421", "3e9624cb", "e1a87491", "4af622eb", "d128c345",
+  "542b2dba", "05198b84", "a0f7c73c", "b0a9b182", "b321ed68", "9f32e1b2", "ac896668",
+  "3e7e18be", "66387aae", "d128c345", "bfed77b8", "d128c345", "db337d44", "d128c345",
+  "d128c345", "d128c345", "0c183100", "d128c345", "d128c345", "d128c345", "d128c345",
+  "d128c345", "d128c345", "d128c345", "d128c345", "d128c345", "d128c345", "02fc5846",
+  "cd36ac6a", "5ca7f90a", "f0728ce8", "d128c345", "d128c345", "d128c345", "81b0abd2",
+  "6d1ee20a", "d128c345", "f97400b2", "a09b6ce0", "13ebc9f2", "f08e37b0", "d128c345",
   "898a5373", "898a5373", "898a5373", "898a5373", "898a5373", "898a5373", "898a5373",
   "898a5373", "898a5373", "898a5373", "7c77bb23", "fa88f8ec", "03039cbe", "cab2f625",
   "f3343702", "993e31df", "6667d5d4", "cf8b6c1c", "25e0be3b", "898a5373", "75ea6832",

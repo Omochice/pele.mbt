@@ -282,6 +282,30 @@ test "draws a composite as a titled cluster around its states, to any depth" {
 }
 
 ///|
+test "draws a composite fill the author sets at full opacity" {
+  let svg = draw(
+    "  state Busy {\n    a\n  }\n  state Idle {\n    b\n  }\n  classDef warm fill:#FFF9C4\n  class Busy warm",
+  )
+  let rects = []
+  let mut at = @util.index_of(svg, "<rect ")
+  while at != -1 {
+    let end = @util.index_of(svg, ">", from=at)
+    let rect = @util.slice(svg, at, end=end + 1)
+    if rect.contains("fill=\"var(--_a)\"") {
+      rects.push(rect)
+    }
+    at = @util.index_of(svg, "<rect ", from=end)
+  }
+  let warm = rects.filter(r => r.contains("fill:#FFF9C4"))
+  inspect(warm.length(), content="1")
+  inspect(warm[0].contains("fill-opacity"), content="false")
+  inspect(
+    rects.filter(r => r.contains("fill-opacity=\"0.5\"")).length(),
+    content="1",
+  )
+}
+
+///|
 test "gives each composite its own direction" {
   let svg = draw(
     "state A {\n direction LR\n a1 --> a2\n }\n state B {\n b1 --> b2\n }\n A --> B",

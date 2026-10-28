@@ -821,13 +821,18 @@ fn draw(
       K_COMPOSITE => {
         let left = x - c.w / 2
         let top = y - c.h / 2
+        let wash = if @svg.sets_raw_fill(style.shape) {
+          ""
+        } else {
+          " fill-opacity=\"0.5\""
+        }
         write_rect(
           body,
           left,
           top,
           c.w,
           c.h,
-          " rx=\"\{CORNER}\" fill=\"var(--_a)\" fill-opacity=\"0.5\" stroke=\"var(--_b)\"",
+          " rx=\"\{CORNER}\" fill=\"var(--_a)\"\{wash} stroke=\"var(--_b)\"",
           style.shape,
         )
         if view.title_h > 0 {
