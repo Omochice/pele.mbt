@@ -254,6 +254,27 @@ test "ignores monospace values that do not list members" {
 }
 
 ///|
+test "keeps a class's own font-family on its members when monospace lists them" {
+  let members = (svg : String) => {
+    let box = group_of(svg, "A")
+    let at = @util.index_of(box, "<g class=\"pele-members\"")
+    @util.slice(box, at, end=@util.index_of(box, "</g>", from=at) + 4)
+  }
+  for
+    rule in [
+      "style A color:black,font-family:serif", "classDef serif color:black,font-family:serif\nclass A:::serif",
+    ] {
+    let src = "classDiagram\nclass A {\n  +title: string\n}\nclass B {\n  +title: string\n}\n\{rule}"
+    let svg = svg_of(src, monospace=["members"])
+    assert_eq(members(svg), members(svg_of(src)))
+    inspect(
+      group_of(svg, "B").contains("font-family=\"var(--_fm)\""),
+      content="true",
+    )
+  }
+}
+
+///|
 test "uses the label of a class in place of its name" {
   assert_eq(
     snapshot(

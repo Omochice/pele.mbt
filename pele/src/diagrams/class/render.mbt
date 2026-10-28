@@ -127,6 +127,14 @@ fn member_line(
 }
 
 ///|
+/// Whether the members of a class with `style` are measured and drawn in the monospace font.
+fn mono_members(options : @types.RenderOptions, style : @svg.RawStyle) -> Bool {
+  // Explicit class fonts override monospace.
+  options.monospaces("members") &&
+  !@svg.sets_font_family(@svg.style_attribute(style.text))
+}
+
+///|
 /// Draws a class diagram, turned to run down when a narrow host needs it and drawn tightly when it does not fit.
 pub fn render_class(
   db : ClassDb,
@@ -162,7 +170,6 @@ fn draw(
     hierarchical=!(conf.get("hierarchicalNamespaces") is Some(False)),
   )
   let hide_empty = conf.get("hideEmptyMembersBox") is Some(True)
-  let monospaced = options.monospaces("members")
   let size = options.font_size.unwrap_or(16)
   let small = (size * 0.875).round()
   let tiny = (size * 0.8).round()
@@ -318,11 +325,12 @@ fn draw(
         None => Literal("«" + @util.trim(@text.decode_entities(a)) + "»")
       }
     })
+    let mono = mono_members(options, style)
     let attributes = cls.members.map(m => {
-      member_line(m, measurer, member_size, monospaced)
+      member_line(m, measurer, member_size, mono)
     })
     let methods = cls.methods.map(m => {
-      member_line(m, measurer, member_size, monospaced)
+      member_line(m, measurer, member_size, mono)
     })
     let mut inner = label.width
     let mut annotations_h = 0.0
@@ -1254,7 +1262,7 @@ fn write_class(
   }
   if view.attributes.length() > 0 || view.methods.length() > 0 {
     body.write("<g class=\"pele-members\" font-size=\"\{member_size}\"")
-    if options.monospaces("members") {
+    if mono_members(options, style) {
       body.write(" font-family=\"\{FONT_MONO}\"")
     }
     body.write(">")
