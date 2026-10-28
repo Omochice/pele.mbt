@@ -16,7 +16,7 @@ let allowed_attributes : Array[String] = [
   "stroke-dasharray", "stroke-linecap", "stroke-linejoin", "role", "aria-roledescription",
   "aria-labelledby", "aria-describedby", "id", "data-id", "data-icon", "data-href",
   "transform", "x", "y", "rx", "ry", "r", "cx", "cy", "d", "points", "text-anchor",
-  "xml:space", "href", "target", "rel", "preserveAspectRatio",
+  "xml:space", "href", "target", "rel", "preserveAspectRatio", "pointer-events",
 ]
 
 ///|
