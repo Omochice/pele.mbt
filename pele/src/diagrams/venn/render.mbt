@@ -22,6 +22,8 @@ priv struct Region {
   spot : Spot
   lines : Array[Line]
   style : @svg.RawStyle
+  /// Whether its text is written across other circles.
+  across : Bool
 }
 
 ///|
@@ -137,16 +139,14 @@ fn render_venn(
     }
     let base = (if style.bold { @text.STYLE_BOLD } else { 0 }) |
       (if style.italic { @text.STYLE_ITALIC } else { 0 })
-    let mut spot = find_spot(
-      circles,
-      inside,
-      neighbors[smallest].filter(i => !within.contains(i)),
-    )
+    let others = neighbors[smallest].filter(i => !within.contains(i))
+    let mut spot = find_spot(circles, inside, others)
     // A region that other circles cover, or all but cover, is written across them instead.
-    if spot.margin < circles[smallest].r * 0.2 {
+    let across = others.length() > 0 && spot.margin < circles[smallest].r * 0.2
+    if across {
       spot = find_spot(circles, inside, [])
     }
-    let region : Region = { sets, inside, spot, lines: [], style, }
+    let region : Region = { sets, inside, spot, lines: [], style, across, }
     if text is Some(text) && text != "" {
       let font_size = if sets.length() == 1 { size } else { small }
       region.lines.push({
@@ -277,6 +277,29 @@ fn render_venn(
     @svg.write_style(sets, style.shape)
     sets.write("/>")
   }
+  let painted = regions
+    .values()
+    .filter(r => r.sets.length() > 1 && r.style.shape != "")
+    .collect()
+  // The fill under a region's text is the last overlap drawn over all of it, or its own circle when the style sets an opacity.
+  let under = (region : Region) => {
+    if region.across {
+      return ""
+    }
+    let shape = region.style.shape
+    let own = region.sets.length() == 1 &&
+      (
+        @svg.style_contains(shape, "\"fill-opacity:") ||
+        @svg.style_contains(shape, ";fill-opacity:")
+      )
+    let mut fill = if own { shape } else { "" }
+    for other in painted {
+      if other.sets.iter().all(id => region.sets.contains(id)) {
+        fill = other.style.shape
+      }
+    }
+    fill
+  }
   let overlaps = @svg.Markup::new()
   let labels = @svg.Markup::new()
   for _, region in regions {
@@ -298,21 +321,31 @@ fn render_venn(
     }
     let x = region.spot.x * scale + ox
     let mut y = region.spot.y * scale + oy - total / 2
+    let fill = under(region)
     let content = @svg.Markup::new()
     for line in region.lines {
       let cy = y + line.label.height / 2
       match line.id {
-        None =>
+        None => {
+          let own = region.style.text
+          let color = match @svg.raw_ink(fill, text=own) {
+            Some(color) => " fill=\"\{color}\""
+            None => ""
+          }
           @svg.write_label_styled(
             content,
             line.label,
             x,
             cy,
             " class=\"pele-label\"" +
-            (if line.size == size { "" } else { " font-size=\"\{line.size}\"" }),
-            region.style.text,
+            (if line.size == size { "" } else { " font-size=\"\{line.size}\"" }) +
+            color,
+            own,
           )
-        Some(text) =>
+        }
+        Some(text) => {
+          let own = style_of(text).text
+          let color = @svg.raw_ink(fill, text=own).unwrap_or("var(--_m)")
           @svg.write_label_with_id(
             content,
             line.label,
@@ -320,9 +353,10 @@ fn render_venn(
             cy,
             " class=\"pele-venn-text\" data-id=\"",
             text,
-            "\" font-size=\"\{tiny}\" fill=\"var(--_m)\"",
-            style_of(text).text,
+            "\" font-size=\"\{tiny}\" fill=\"\{color}\"",
+            own,
           )
+        }
       }
       y += line.label.height
     }
