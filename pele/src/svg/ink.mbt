@@ -304,18 +304,14 @@ fn tone(raw : String) -> (Double, Double)? {
 }
 
 ///|
-/// The label color over `fill` drawn at `opacity`, as the text of a declaration of each.
+/// The label color over `fill`, as the text of its declaration, drawn at `opacity`.
 /// Fills below half opacity depend on an unknown background.
-fn ink_over(fill : String?, opacity : String?) -> String? {
+fn ink_over(fill : String?, opacity : Double) -> String? {
   guard fill is Some(fill) && tone(fill) is Some((lum, alpha)) else {
     return None
   }
   // An opacity that isn't a plain number, such as calc() or var(), may still be low.
-  let factor = match opacity {
-    Some(opacity) => amount(@util.trim(opacity), 1)
-    None => 1
-  }
-  if !(alpha * factor >= 0.5) {
+  if !(alpha * opacity >= 0.5) {
     return None
   }
   Some(if lum > even { ON_LIGHT } else { ON_DARK })
@@ -390,6 +386,25 @@ fn raw_value(css : String, name : String) -> String? {
 }
 
 ///|
+/// How opaque the `fill-opacity` declaration of a `style` attribute leaves its fill, or NaN when it
+/// is not a plain number.
+fn attribute_opacity(attrs : String) -> Double {
+  match attribute_value(attrs, "fill-opacity") {
+    Some(opacity) => amount(@util.trim(opacity), 1)
+    None => 1
+  }
+}
+
+///|
+/// `attribute_opacity` of the `style` attribute made of the raw `css`.
+fn raw_opacity(css : String) -> Double {
+  match raw_value(css, "fill-opacity") {
+    Some(opacity) => amount(@util.trim(opacity), 1)
+    None => 1
+  }
+}
+
+///|
 /// The label color that contrasts most with the fill the `style` attribute `shape` sets, unless the
 /// text's own `style` attribute `text` sets a color, or `None` when it sets no fill this can read.
 /// Styles come from `resolve_style`.
@@ -398,7 +413,7 @@ pub fn ink(shape : String, text~ : String = "") -> String? {
     Some(_) => None
     None => attribute_value(shape, "fill")
   }
-  ink_over(fill, attribute_value(shape, "fill-opacity"))
+  ink_over(fill, attribute_opacity(shape))
 }
 
 ///|
@@ -409,21 +424,17 @@ pub fn raw_ink(shape : String, text~ : String = "") -> String? {
     Some(_) => None
     None => raw_value(shape, "fill")
   }
-  ink_over(fill, raw_value(shape, "fill-opacity"))
+  ink_over(fill, raw_opacity(shape))
 }
 
 ///|
-/// Whether `fill` drawn at `opacity`, as the text of a declaration of each, covers what is under it.
+/// Whether `fill`, as the text of its declaration, drawn at `scale` covers what is under it.
 /// Unknown fill colors and opacities are treated as opaque.
-fn paints_over(fill : String?, opacity : String?) -> Bool {
+fn paints_over(fill : String?, scale : Double) -> Bool {
   guard fill is Some(fill) else { return false }
   let fill = @util.trim(fill)
   if lower_ascii(fill) is ("" | "none" | "transparent") {
     return false
-  }
-  let scale = match opacity {
-    Some(opacity) => amount(@util.trim(opacity), 1)
-    None => 1
   }
   let alpha = match tone(fill) {
     Some((_, alpha)) => alpha
@@ -436,17 +447,14 @@ fn paints_over(fill : String?, opacity : String?) -> Bool {
 /// Whether the fill the `style` attribute `shape` sets covers what is under it.
 /// Styles come from `resolve_style`.
 pub fn paints(shape : String) -> Bool {
-  paints_over(
-    attribute_value(shape, "fill"),
-    attribute_value(shape, "fill-opacity"),
-  )
+  paints_over(attribute_value(shape, "fill"), attribute_opacity(shape))
 }
 
 ///|
 /// `paints` of the `style` attribute `resolve_style` makes of the raw CSS `css`.
 /// Styles come from `resolve_raw_style`.
 pub fn raw_paints(css : String) -> Bool {
-  paints_over(raw_value(css, "fill"), raw_value(css, "fill-opacity"))
+  paints_over(raw_value(css, "fill"), raw_opacity(css))
 }
 
 ///|
