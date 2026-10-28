@@ -684,6 +684,60 @@ test "picks a contrasting text color for labels on a rect or box fill" {
 }
 
 ///|
+test "draws arrows on a rect or box fill in their label color" {
+  let svg = svg_of(
+    "sequenceDiagram\n  box black Group\n  participant A\n  participant B\n  end\n  participant C\n  A->>B: boxed\n  B->>C: open\n  rect rgb(191, 223, 255)\n  A-->>C: light\n  C-xC: self\n  A-|\\B: solid\n  A-\\\\B: stick\n  end",
+  )
+  let message = (text : String) => {
+    let label = @util.last_index_of(
+      svg,
+      "data-id=\"i",
+      from=@util.index_of(svg, ">\{text}</text>"),
+    )
+    let id = between(@util.slice(svg, label), "data-id=\"", "\"")
+    let at = @util.index_of(
+      svg,
+      "<g class=\"pele-edge pele-message\" data-id=\"\{id}\"",
+    )
+    @util.slice(svg, at, end=@util.index_of(svg, "</g>", from=at) + 4)
+  }
+  let dark = "var(--pele-fg-on-dark,#fff)"
+  let light = "var(--pele-fg-on-light,#1f1f1f)"
+  let opening = (text : String) => {
+    let group = message(text)
+    @util.slice(group, 0, end=@util.index_of(group, ">") + 1)
+  }
+  assert_true(opening("boxed").has_suffix(" stroke=\"\{dark}\">"))
+  assert_true(message("boxed").contains("class=\"pele-marker\""))
+  assert_true(message("boxed").contains(" fill=\"\{dark}\""))
+  assert_false(message("open").contains("--pele-fg-on"))
+  assert_true(opening("light").has_suffix(" stroke=\"\{light}\">"))
+  assert_true(
+    @util.slice(message("light"), opening("light").length()).has_prefix(
+      "<path ",
+    ),
+  )
+  assert_true(message("light").contains("stroke-dasharray"))
+  assert_true(opening("self").has_suffix(" stroke=\"\{light}\">"))
+  assert_false(message("self").contains("var(--_l)"))
+  assert_true(message("solid").contains("Z\" fill=\"\{light}\""))
+  assert_true(opening("stick").has_suffix(" stroke=\"\{light}\">"))
+  assert_false(message("stick").contains("var(--_l)"))
+  let lifelines = between(svg, "class=\"pele-lifelines\"", "</g>")
+  assert_false(lifelines.contains("--pele-fg-on"))
+}
+
+///|
+test "keeps the theme color for a self-message that reaches past its box" {
+  let svg = svg_of(
+    "sequenceDiagram\n  autonumber 1000\n  box black\n  participant A\n  end\n  A->>A: x",
+  )
+  let at = @util.index_of(svg, "<g class=\"pele-edge pele-message\"")
+  let opening = @util.slice(svg, at, end=@util.index_of(svg, ">", from=at))
+  assert_false(opening.contains(" stroke="))
+}
+
+///|
 test "picks a contrasting name color for figures in a box" {
   let svg = svg_of(
     "sequenceDiagram\n  box black Group\n  actor A\n  participant B\n  end\n  actor C\n  A->>B: hi\n  B->>C: yo",
@@ -1243,9 +1297,9 @@ test "draws blocks with sections, a shaded rect, and a box" {
       #|</g>
       #|</g>
       #|<g class="pele-edges" fill="none" stroke="var(--_l)" stroke-linecap="round">
-      #|<g class="pele-edge pele-message" data-id="i2">
+      #|<g class="pele-edge pele-message" data-id="i2" stroke="var(--pele-fg-on-light,#1f1f1f)">
       #|<path d="M0,183H85"/>
-      #|<path class="pele-marker" d="M92,183L84,186.36L84,179.64Z" fill="var(--_l)" stroke="none"/>
+      #|<path class="pele-marker" d="M92,183L84,186.36L84,179.64Z" fill="var(--pele-fg-on-light,#1f1f1f)" stroke="none"/>
       #|</g>
       #|<g class="pele-edge pele-message" data-id="i6">
       #|<path d="M92,279H193"/>

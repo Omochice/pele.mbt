@@ -282,13 +282,14 @@ fn half(
   dir : Double,
   up : Double,
   stick : Bool,
+  color : String,
 ) -> String {
   let n = @svg.num
   let bx = n(x - dir * @svg.ARROW)
   if stick {
     return "<path class=\"pele-marker\" d=\"M\{n(x)},\{n(y)}L\{bx},\{n(y + up * 5)}\"/>"
   }
-  "<path class=\"pele-marker\" d=\"M\{n(x)},\{n(y)}L\{bx},\{n(y + up * 4.5)}V\{n(y)}Z\" fill=\"var(--_l)\" stroke=\"none\"/>"
+  "<path class=\"pele-marker\" d=\"M\{n(x)},\{n(y)}L\{bx},\{n(y + up * 4.5)}V\{n(y)}Z\" fill=\"\{color}\" stroke=\"none\"/>"
 }
 
 ///|
@@ -300,15 +301,16 @@ fn head(
   y : Double,
   dir : Double,
   up : Double,
+  color : String,
 ) -> String {
   let n = @svg.num
   match kind {
-    Arrow => @svg.marker("arrow_point", x, y, dir, 0, "var(--_l)")
-    Cross => @svg.marker("arrow_cross", x, y, dir, 0, "var(--_l)")
+    Arrow => @svg.marker("arrow_point", x, y, dir, 0, color)
+    Cross => @svg.marker("arrow_cross", x, y, dir, 0, color)
     Open =>
       "<path class=\"pele-marker\" d=\"M\{n(x - dir * @svg.ARROW)},\{n(y - 4.5)}L\{n(x)},\{n(y)}L\{n(x - dir * @svg.ARROW)},\{n(y + 4.5)}\" stroke-linejoin=\"round\"/>"
-    HalfSolid => half(x, y, dir, up, false)
-    HalfStick => half(x, y, dir, up, true)
+    HalfSolid => half(x, y, dir, up, false, color)
+    HalfStick => half(x, y, dir, up, true, color)
     NoHead => ""
   }
 }
@@ -1288,8 +1290,10 @@ fn draw(
       let circle_to = cc == CENTRAL_CONNECTION || cc == CENTRAL_CONNECTION_DUAL
       let circle_from = cc == CENTRAL_CONNECTION_REVERSE ||
         cc == CENTRAL_CONNECTION_DUAL
+      let mut line = None
+      let mut color = "var(--_l)"
       let circle = (cx : Double, cy : Double) => {
-        "<circle class=\"pele-central\" cx=\"\{n(cx)}\" cy=\"\{n(cy)}\" r=\"\{CENTRAL_R}\" fill=\"var(--_l)\" stroke=\"none\"/>"
+        "<circle class=\"pele-central\" cx=\"\{n(cx)}\" cy=\"\{n(cy)}\" r=\"\{CENTRAL_R}\" fill=\"\{color}\" stroke=\"none\"/>"
       }
       let tail_at_end = st.at_start && !st.at_end
       let head_trim = trim(st.head)
@@ -1309,6 +1313,8 @@ fn draw(
           right_edge(a, starting)
         }
         let out = @util.js_max(x0, x1) + SELF_W + bw / 2
+        line = ink_of(fill_under(a.x, out))
+        color = line.unwrap_or(color)
         if circle_from {
           inner.write_string(circle(a.x, top))
         }
@@ -1340,11 +1346,15 @@ fn draw(
         }
         // The loop leaves to the right and comes back heading left, which turns a half head over.
         let heads = (if st.at_start {
-            head(st.head, x0, top, -1, up)
+            head(st.head, x0, top, -1, up, color)
           } else {
             ""
           }) +
-          (if st.at_end { head(st.head, x1, bottom, -1, -up) } else { "" })
+          (if st.at_end {
+            head(st.head, x1, bottom, -1, -up, color)
+          } else {
+            ""
+          })
         let from = n(x0 + (if st.at_start { head_trim } else { 0 }))
         let to = n(x1 + (if st.at_end { head_trim } else { 0 }))
         let d = if right_angles {
@@ -1375,6 +1385,10 @@ fn draw(
       } else {
         let dir = if b.x > a.x { 1.0 } else { -1.0 }
         let creating = b.create_at == i
+        line = ink_of(
+          fill_under(@util.js_min(a.x, b.x), @util.js_max(a.x, b.x)),
+        )
+        color = line.unwrap_or(color)
         line_y = y +
           msg_gap +
           @util.js_max(
@@ -1422,12 +1436,12 @@ fn draw(
           }
         }
         let heads = (if st.at_start {
-            head(st.head, x0, line_y, -dir, up * dir)
+            head(st.head, x0, line_y, -dir, up * dir, color)
           } else {
             ""
           }) +
           (if st.at_end {
-            head(st.head, x1, line_y, dir, up * dir)
+            head(st.head, x1, line_y, dir, up * dir, color)
           } else {
             ""
           })
@@ -1467,8 +1481,12 @@ fn draw(
           y = line_y + b.size.h / 2 - 6
         }
       }
+      let line_stroke = match line {
+        Some(line) => " stroke=\"\{line}\""
+        None => ""
+      }
       edges_out.write(
-        "<g class=\"pele-edge pele-message\" data-id=\"i\{@svg.esc_text(m.id)}\">\{inner}</g>",
+        "<g class=\"pele-edge pele-message\" data-id=\"i\{@svg.esc_text(m.id)}\"\{line_stroke}>\{inner}</g>",
       )
       y = @util.js_max(y, line_y)
       if a.destroy_at == i {
