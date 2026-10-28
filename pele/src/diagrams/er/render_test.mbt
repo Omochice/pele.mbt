@@ -410,6 +410,42 @@ test "draws a subgraph fill the author sets at full opacity" {
 }
 
 ///|
+/// The `d` of every relationship's line, in order.
+fn relationship_paths(svg : String) -> Array[String] {
+  let paths = []
+  let head = "<g class=\"pele-edge pele-er-"
+  let mut at = @util.index_of(svg, head)
+  while at != -1 {
+    let open = @util.index_of(svg, "<path d=\"", from=at) + 9
+    paths.push(@util.slice(svg, open, end=@util.index_of(svg, "\"", from=open)))
+    at = @util.index_of(svg, head, from=open)
+  }
+  paths
+}
+
+///|
+test "cases relationships that run over a subgraph fill a style sets" {
+  let source = "erDiagram\n subgraph g\n  A ||--o{ B : has\n end\n B ||--|| C : is\n C ||--|| D : of\n C ||--o{ C : self\n style g fill:#BBDEFB"
+  let svg = svg_of(source)
+  let casings = between(
+    svg, "<g class=\"pele-casings\"", "</g><g class=\"pele-edges\"",
+  )
+  inspect(
+    relationship_paths(svg)
+    .map(d => casings.contains("<path d=\"\{d}\"/>").to_string())
+    .join(" "),
+    content="true true false false",
+  )
+  inspect(casings.contains("pele-marker"), content="false")
+  inspect(
+    svg_of(source.replace(old="\n style g fill:#BBDEFB", new="")).contains(
+      "pele-casings",
+    ),
+    content="false",
+  )
+}
+
+///|
 test "connects a relationship written before its subgraph to that subgraph" {
   let svg = svg_of("erDiagram\n g ||--o{ X : early\n subgraph g\n  A\n end")
   inspect(count(svg, "<g class=\"pele-edge "), content="1")
@@ -544,7 +580,7 @@ test "a styled subgraph sets its own direction" {
   inspect(
     body(result.svg),
     content=(
-      #|<g class="pele-clusters"><g class="pele-cluster k" data-id="g"><rect x="8" y="8" width="315" height="108" fill="var(--_a)" stroke="var(--_b)" style="rx:var(--_r);stroke:#c33;fill:#fee;"/><text class="pele-cluster-label" fill="var(--pele-fg-on-light,#1f1f1f)" x="26.45" y="33.6" text-anchor="middle">g</text></g></g><g class="pele-edges" fill="none" stroke="var(--_l)" stroke-linecap="round"><g class="pele-edge pele-er-identifying" data-id="id_entity-A-0_entity-B-1_0"><path d="M124,72L207,72"/><path class="pele-marker" d="M130,77L130,67M134,77L134,67"/><path class="pele-marker" d="M201,67L201,77M197,67L197,77"/></g></g><g class="pele-edge-labels" font-size="14"><g class="pele-edge-label" data-id="id_entity-A-0_entity-B-1_0"><rect x="158" y="61.5" width="15" height="21" rx="3" fill="var(--_bg)"/><text x="165.5" y="76.9" text-anchor="middle">x</text></g></g><g class="pele-nodes"><g class="pele-node pele-entity" data-id="A" transform="translate(76,72)"><rect x="-48" y="-24" width="96" height="48" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">A</text></g><g class="pele-node pele-entity" data-id="B" transform="translate(255,72)"><rect x="-48" y="-24" width="96" height="48" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">B</text></g></g></svg>
+      #|<g class="pele-clusters"><g class="pele-cluster k" data-id="g"><rect x="8" y="8" width="315" height="108" fill="var(--_a)" stroke="var(--_b)" style="rx:var(--_r);stroke:#c33;fill:#fee;"/><text class="pele-cluster-label" fill="var(--pele-fg-on-light,#1f1f1f)" x="26.45" y="33.6" text-anchor="middle">g</text></g></g><g class="pele-casings" fill="none" stroke="var(--_bg)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"><path d="M124,72L207,72"/><path d="M130,77L130,67M134,77L134,67"/><path d="M201,67L201,77M197,67L197,77"/></g><g class="pele-edges" fill="none" stroke="var(--_l)" stroke-linecap="round"><g class="pele-edge pele-er-identifying" data-id="id_entity-A-0_entity-B-1_0"><path d="M124,72L207,72"/><path class="pele-marker" d="M130,77L130,67M134,77L134,67"/><path class="pele-marker" d="M201,67L201,77M197,67L197,77"/></g></g><g class="pele-edge-labels" font-size="14"><g class="pele-edge-label" data-id="id_entity-A-0_entity-B-1_0"><rect x="158" y="61.5" width="15" height="21" rx="3" fill="var(--_bg)"/><text x="165.5" y="76.9" text-anchor="middle">x</text></g></g><g class="pele-nodes"><g class="pele-node pele-entity" data-id="A" transform="translate(76,72)"><rect x="-48" y="-24" width="96" height="48" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">A</text></g><g class="pele-node pele-entity" data-id="B" transform="translate(255,72)"><rect x="-48" y="-24" width="96" height="48" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">B</text></g></g></svg>
     ),
   )
 }

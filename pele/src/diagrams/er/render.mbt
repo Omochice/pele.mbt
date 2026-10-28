@@ -562,6 +562,7 @@ fn draw(
     }
   }
   let clusters = @svg.Markup::new()
+  let filled : Array[Double] = []
   let nodes_out = @svg.Markup::new()
   for i, view in views {
     let c = cnodes[i]
@@ -578,6 +579,9 @@ fn draw(
         crossings,
         GROUP_PAD,
       )
+      if @svg.paints(view.style.shape) {
+        filled.push_iter([x, y, x + c.w, y + c.h].iter())
+      }
       clusters.write("<g class=\"pele-cluster\{classes}\"")
       clusters.write_data_id(node.id)
       let wash = if @svg.sets_fill(view.style.shape) {
@@ -770,6 +774,7 @@ fn draw(
     }
   }
   let edges_out = @svg.Markup::new()
+  let casings = @svg.Markup::new()
   let labels_out = @svg.Markup::new()
   for i, ce in cedges {
     let edge = drawn[i]
@@ -844,6 +849,9 @@ fn draw(
         )
       }
     }
+    if @svg.runs_inside(d, filled) {
+      casings.write(@svg.casing(d, start + end))
+    }
     let kind = if edge.dashed { "non-identifying" } else { "identifying" }
     let dash = if edge.dashed { " stroke-dasharray=\"4 3\"" } else { "" }
     edges_out.write("<g class=\"pele-edge pele-er-\{kind}\"")
@@ -872,6 +880,7 @@ fn draw(
   if !clusters.is_empty() {
     content.write_group("<g class=\"pele-clusters\">", clusters, "</g>")
   }
+  @svg.write_casings(content, casings)
   if !edges_out.is_empty() {
     content.write_group(
       "<g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\">",
