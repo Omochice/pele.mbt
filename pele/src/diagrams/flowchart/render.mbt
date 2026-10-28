@@ -389,8 +389,14 @@ fn draw(
         group_pad,
       )
       let title_y = c.y - c.h / 2 + 8 + view.label.height / 2
-      let title_attrs = " class=\"pele-cluster-label\" fill=\"var(--_m)\"\{view.style.text}"
       let struck = @svg.title_crossed(c, view.label.width, title_x, crossings)
+      // A title drawn over the edges sits on a halo in the theme's colors.
+      let title_ink = if struck {
+        " fill=\"var(--_m)\""
+      } else {
+        @svg.ink_fill(view.style, fallback="var(--_m)")
+      }
+      let title_attrs = " class=\"pele-cluster-label\"\{title_ink}\{view.style.text}"
       if struck {
         @svg.write_struck_title(
           struck_titles,
@@ -429,11 +435,15 @@ fn draw(
       continue
     }
     let inner = @svg.Markup::new()
+    let mut ink = ""
     if node.img is Some(img) && img != "" {
       write_picture(inner, node, img, view, options)
     } else if node.icon is Some(icon) && icon != "" {
       write_icon(inner, node, icon, view, options.icons)
     } else {
+      if @svg.shape_filled(view.shape) {
+        ink = @svg.ink_fill(view.style)
+      }
       inner.write(
         @svg.draw_shape(
           view.shape,
@@ -450,7 +460,7 @@ fn draw(
       view.label,
       0,
       view.dy,
-      " class=\"pele-label\"\{view.style.text}",
+      " class=\"pele-label\"\{ink}\{view.style.text}",
       icons?=options.icons,
     )
     let body = @svg.Markup::new()

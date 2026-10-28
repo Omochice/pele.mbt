@@ -53,6 +53,10 @@ pub fn font_style(Double, String?, String?) -> String
 
 pub fn has_invalid_xml(String) -> Bool
 
+pub fn ink(String, text? : String) -> String?
+
+pub fn ink_fill(ResolvedStyle, fallback? : String) -> String
+
 pub fn inset_route(Array[Double], Int32, @layout.CNode, shape~ : String, w~ : Double, h~ : Double) -> Unit
 
 pub fn is_held_document(String) -> Bool
@@ -70,6 +74,10 @@ pub fn markup_document(String, Double, Double, Double, @types.RenderOptions, Str
 pub fn node_class_names(String) -> String
 
 pub fn num(Double) -> String
+
+pub fn raw_ink(String, text? : String) -> String?
+
+pub fn raw_ink_fill(RawStyle, fallback? : String) -> String
 
 pub fn resolve_raw_style(Array[String]) -> RawStyle
 

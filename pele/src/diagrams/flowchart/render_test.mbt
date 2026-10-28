@@ -85,7 +85,9 @@ test "lays a subgraph out in its own direction" {
     svg(
       "flowchart LR\n  subgraph outer\n    direction TB\n    subgraph inner [<b>Inner</b>]\n      A --> B\n    end\n  end\n  C --> inner\n  classDef hot fill:#f00\n  class outer hot",
     ),
-    content="356x184 <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-flowchart\" viewBox=\"0 0 356 184\" width=\"356\" height=\"184\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_w:var(--pele-bold-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"flowchart\"><g class=\"pele-clusters\"><g class=\"pele-cluster hot\" data-id=\"outer\"><rect x=\"104\" y=\"8\" width=\"244\" height=\"168\" fill=\"var(--_a)\" stroke=\"var(--_b)\" style=\"rx:var(--_r);fill:#f00;\"/><text class=\"pele-cluster-label\" fill=\"var(--_m)\" x=\"136.23\" y=\"33.6\" text-anchor=\"middle\">outer</text></g><g class=\"pele-cluster\" data-id=\"inner\"><rect x=\"144\" y=\"48\" width=\"184\" height=\"108\" fill=\"var(--_a)\" fill-opacity=\"0.5\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-cluster-label\" fill=\"var(--_m)\" font-weight=\"var(--_w)\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"177.56\" y=\"73.6\">Inner</tspan></text></g></g><g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\"><g class=\"pele-edge\" data-id=\"L_A_B_0\"><path d=\"M212,112L253,112\"/><path class=\"pele-marker\" d=\"M260,112L252,115.36L252,108.64Z\" fill=\"var(--_l)\" stroke=\"none\"/></g><g class=\"pele-edge\" data-id=\"L_C_inner_0\"><path d=\"M56,102L137,102\"/><path class=\"pele-marker\" d=\"M144,102L136,105.36L136,98.64Z\" fill=\"var(--_l)\" stroke=\"none\"/></g></g><g class=\"pele-nodes\"><g class=\"pele-node pele-shape-rect\" data-id=\"A\" transform=\"translate(188,112)\"><rect x=\"-24\" y=\"-24\" width=\"48\" height=\"48\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" x=\"0\" y=\"5.6\" text-anchor=\"middle\">A</text></g><g class=\"pele-node pele-shape-rect\" data-id=\"B\" transform=\"translate(284,112)\"><rect x=\"-24\" y=\"-24\" width=\"48\" height=\"48\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" x=\"0\" y=\"5.6\" text-anchor=\"middle\">B</text></g><g class=\"pele-node pele-shape-rect\" data-id=\"C\" transform=\"translate(32,102)\"><rect x=\"-24\" y=\"-24\" width=\"48\" height=\"48\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" x=\"0\" y=\"5.6\" text-anchor=\"middle\">C</text></g></g></svg>",
+    content=(
+      #|356x184 <svg xmlns="http://www.w3.org/2000/svg" class="pele pele-flowchart" viewBox="0 0 356 184" width="356" height="184" style="max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_w:var(--pele-bold-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)" fill="var(--_fg)" role="graphics-document document" aria-roledescription="flowchart"><g class="pele-clusters"><g class="pele-cluster hot" data-id="outer"><rect x="104" y="8" width="244" height="168" fill="var(--_a)" stroke="var(--_b)" style="rx:var(--_r);fill:#f00;"/><text class="pele-cluster-label" fill="var(--pele-fg-on-light,#1f1f1f)" x="136.23" y="33.6" text-anchor="middle">outer</text></g><g class="pele-cluster" data-id="inner"><rect x="144" y="48" width="184" height="108" fill="var(--_a)" fill-opacity="0.5" stroke="var(--_b)" style="rx:var(--_r)"/><text class="pele-cluster-label" fill="var(--_m)" font-weight="var(--_w)" text-anchor="middle" xml:space="preserve"><tspan x="177.56" y="73.6">Inner</tspan></text></g></g><g class="pele-edges" fill="none" stroke="var(--_l)" stroke-linecap="round"><g class="pele-edge" data-id="L_A_B_0"><path d="M212,112L253,112"/><path class="pele-marker" d="M260,112L252,115.36L252,108.64Z" fill="var(--_l)" stroke="none"/></g><g class="pele-edge" data-id="L_C_inner_0"><path d="M56,102L137,102"/><path class="pele-marker" d="M144,102L136,105.36L136,98.64Z" fill="var(--_l)" stroke="none"/></g></g><g class="pele-nodes"><g class="pele-node pele-shape-rect" data-id="A" transform="translate(188,112)"><rect x="-24" y="-24" width="48" height="48" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">A</text></g><g class="pele-node pele-shape-rect" data-id="B" transform="translate(284,112)"><rect x="-24" y="-24" width="48" height="48" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">B</text></g><g class="pele-node pele-shape-rect" data-id="C" transform="translate(32,102)"><rect x="-24" y="-24" width="48" height="48" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">C</text></g></g></svg>
+    ),
   )
 }
 
@@ -180,7 +182,9 @@ test "applies style, classDef and linkStyle" {
     svg(
       "flowchart TD\n  A --> B\n  style A fill:#f9f,stroke:#333,stroke-width:4px,color:#fff\n  classDef warn fill:#ff0\n  class B warn\n  linkStyle 0 stroke:#f00,stroke-width:3px",
     ),
-    content="64x160 <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-flowchart\" viewBox=\"0 0 64 160\" width=\"64\" height=\"160\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"flowchart\"><g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\"><g class=\"pele-edge\" data-id=\"L_A_B_0\" style=\"stroke:#f00;stroke-width:3px;\"><path d=\"M32,56L32,97\"/><path class=\"pele-marker\" d=\"M32,104L28.64,96L35.36,96Z\" fill=\"#f00\" stroke=\"none\"/></g></g><g class=\"pele-nodes\"><g class=\"pele-node pele-shape-rect\" data-id=\"A\" transform=\"translate(32,32)\"><rect x=\"-24\" y=\"-24\" width=\"48\" height=\"48\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r);fill:#f9f;stroke:#333;stroke-width:4px;\"/><text class=\"pele-label\" style=\"fill:#fff;\" x=\"0\" y=\"5.6\" text-anchor=\"middle\">A</text></g><g class=\"pele-node pele-shape-rect warn\" data-id=\"B\" transform=\"translate(32,128)\"><rect x=\"-24\" y=\"-24\" width=\"48\" height=\"48\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r);fill:#ff0;\"/><text class=\"pele-label\" x=\"0\" y=\"5.6\" text-anchor=\"middle\">B</text></g></g></svg>",
+    content=(
+      #|64x160 <svg xmlns="http://www.w3.org/2000/svg" class="pele pele-flowchart" viewBox="0 0 64 160" width="64" height="160" style="max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)" fill="var(--_fg)" role="graphics-document document" aria-roledescription="flowchart"><g class="pele-edges" fill="none" stroke="var(--_l)" stroke-linecap="round"><g class="pele-edge" data-id="L_A_B_0" style="stroke:#f00;stroke-width:3px;"><path d="M32,56L32,97"/><path class="pele-marker" d="M32,104L28.64,96L35.36,96Z" fill="#f00" stroke="none"/></g></g><g class="pele-nodes"><g class="pele-node pele-shape-rect" data-id="A" transform="translate(32,32)"><rect x="-24" y="-24" width="48" height="48" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r);fill:#f9f;stroke:#333;stroke-width:4px;"/><text class="pele-label" style="fill:#fff;" x="0" y="5.6" text-anchor="middle">A</text></g><g class="pele-node pele-shape-rect warn" data-id="B" transform="translate(32,128)"><rect x="-24" y="-24" width="48" height="48" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r);fill:#ff0;"/><text class="pele-label" fill="var(--pele-fg-on-light,#1f1f1f)" x="0" y="5.6" text-anchor="middle">B</text></g></g></svg>
+    ),
   )
 }
 
@@ -317,6 +321,40 @@ fn node_text(svg : String, id : String) -> String {
   let node = @util.index_of(svg, "data-id=\"\{id}\"")
   let from = @util.index_of(svg, "<text", from=node)
   @util.slice(svg, from, end=@util.index_of(svg, "</text>", from~) + 7)
+}
+
+///|
+test "picks a contrasting label color on fills a style sets" {
+  let drawn = svg(
+    "flowchart LR\n  subgraph S[\"Cluster\"]\n    A[Start] -- Launch --> B[Worker]\n  end\n  C[Output]\n  D[Dark]\n  E[Own]\n  F[Plain]\n  G[Words]\n  B --> C\n" +
+    "  style S fill:#BBDEFB\n  style C fill:#BBDEFB\n  classDef dark fill:navy\n  class D dark\n  style E fill:#BBDEFB,color:#333\n  style G fill:#000\n  G@{ shape: text }",
+  )
+  let labels = ["S", "C", "D", "E", "F", "G", "A"].map(id => {
+    node_text(drawn, id)
+  })
+  inspect(
+    labels.join("\n"),
+    content=(
+      #|<text class="pele-cluster-label" fill="var(--pele-fg-on-light,#1f1f1f)" x="47.34" y="33.6" text-anchor="middle">Cluster</text>
+      #|<text class="pele-label" fill="var(--pele-fg-on-light,#1f1f1f)" x="0" y="5.6" text-anchor="middle">Output</text>
+      #|<text class="pele-label" fill="var(--pele-fg-on-dark,#fff)" x="0" y="5.6" text-anchor="middle">Dark</text>
+      #|<text class="pele-label" style="fill:#333;" x="0" y="5.6" text-anchor="middle">Own</text>
+      #|<text class="pele-label" x="0" y="5.6" text-anchor="middle">Plain</text>
+      #|<text class="pele-label" x="0" y="5.6" text-anchor="middle">Words</text>
+      #|<text class="pele-label" x="0" y="5.6" text-anchor="middle">Start</text>
+    ),
+  )
+  let edge_label = @util.index_of(drawn, "class=\"pele-edge-label\"")
+  inspect(
+    @util.slice(
+      drawn,
+      edge_label,
+      end=@util.index_of(drawn, "</g>", from=edge_label),
+    ),
+    content=(
+      #|class="pele-edge-label" data-id="L_A_B_0"><rect x="120.29" y="61.5" width="53.92" height="21" rx="3" fill="var(--_bg)"/><text x="147.25" y="76.9" text-anchor="middle">Launch</text>
+    ),
+  )
 }
 
 ///|
