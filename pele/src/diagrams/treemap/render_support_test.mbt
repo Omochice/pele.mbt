@@ -3,8 +3,14 @@ fn drawn(
   source : String,
   max_width? : Double,
   padding? : Double,
+  font_size? : Double,
 ) -> @types.RenderResult {
-  let options = { ..@types.RenderOptions::default(), max_width, padding, }
+  let options = {
+    ..@types.RenderOptions::default(),
+    max_width,
+    padding,
+    font_size,
+  }
   @core.render([@treemap.treemap], source, options) catch {
     @errors.PeleError(_) => panic()
   }

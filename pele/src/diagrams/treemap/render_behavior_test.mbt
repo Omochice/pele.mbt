@@ -244,3 +244,26 @@ test "text is fitted at the font size a class sets" {
     }
   }
 }
+
+///|
+test "a section name at a large font size is kept while it fits the header" {
+  let tree = "treemap\n\"Section\"\n  \"Leaf\": 1"
+  let classed = (size : String) => {
+    "treemap\n\"Section\":::big\n  \"Leaf\": 1\nclassDef big font-size:\{size}px"
+  }
+  inspect(drawn(tree, font_size=24).svg.contains("\">Section<"), content="true")
+  inspect(drawn(classed("20")).svg.contains("\">Section<"), content="true")
+  let tall = drawn(classed("32")).svg
+  inspect(tall.contains("\">Section<"), content="false")
+  inspect(tall.contains("<title>Section</title>"), content="true")
+}
+
+///|
+test "a label is drawn at a fractional class font size when it fits" {
+  let svg = drawn(
+      with_config(
+        "    nodeHeight: 2", "treemap\n\"Label\": 1:::frac\nclassDef frac font-size:12.5px",
+      ),
+    ).svg
+  inspect(svg.contains("\">Label<"), content="true")
+}

@@ -110,7 +110,7 @@ fn draw_section(
       0
     }
     with_value = value_width > 0 && room - value_width - 12 >= 3 * label_size
-    label = if label_size * LINE <= HEADER - 4 {
+    label = if label_size * LINE <= HEADER {
       @common.fit_text(
         name,
         if with_value {
@@ -146,7 +146,7 @@ fn draw_section(
         label.text,
       )
     }
-    if with_value && value_size * LINE <= HEADER - 4 {
+    if with_value && value_size * LINE <= HEADER {
       write_text(
         out,
         " class=\"pele-value\" x=\"\{@svg.num(x + b.w - SIDE - 2)}\" y=\"\{@svg.num(baseline + value_size * 0.35)}\" font-size=\"\{tiny}\" text-anchor=\"end\" fill=\"var(--_m)\"",
@@ -178,7 +178,11 @@ fn draw_leaf(
   let emphasis = text_style(style)
   let room = b.w - 8
   let smallest = fixed.unwrap_or(least)
-  let tallest = @util.js_min(fixed.unwrap_or(size), ((b.h - 4) / LINE).floor())
+  // A class's font size is kept whole, since flooring the room would refuse a fractional size that fits.
+  let tallest = match fixed {
+    None => @util.js_min(size, ((b.h - 4) / LINE).floor())
+    Some(fixed) => if fixed * LINE <= b.h - 4 { fixed } else { 0 }
+  }
   let label = if tallest >= smallest {
     @common.fit_text(name, room, tallest, smallest, measurer, style=emphasis)
   } else {

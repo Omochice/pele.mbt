@@ -246,7 +246,32 @@ test "a box thinner than the gap is kept, and so is one with no room at all" {
 }
 
 ///|
+test "every box stays inside its area, with a finite size" {
+  let wide = @treemap.layout_treemap(
+    [leaf("big", 397), leaf("thin", 3)],
+    400,
+    100,
+    { ..insets, gap: 40, },
+  )
+  for b in wide {
+    inspect(b.x + b.w <= 400, content="true")
+  }
+  let huge = @treemap.layout_treemap(
+    [leaf("big", 1.0e20), leaf("small", 1)],
+    640,
+    400,
+    insets,
+  )
+  inspect(huge.map(b => b.node.name).join(" "), content="big small")
+  for b in huge {
+    for n in [b.x, b.y, b.w, b.h] {
+      inspect(!n.is_nan() && !n.is_inf() && n >= 0, content="true")
+    }
+  }
+}
+
+///|
 test "a frame with no area keeps its boxes with no size" {
-  inspect(laid_out([leaf("a", 1)], 0, 100), content="a s0 v1 @0,0 0x100")
-  inspect(laid_out([leaf("a", 1)], 100, -1), content="a s0 v1 @0,0 100x0")
+  inspect(laid_out([leaf("a", 1)], 0, 100), content="a s0 v1 @0,0 0x0")
+  inspect(laid_out([leaf("a", 1)], 100, -1), content="a s0 v1 @0,0 0x0")
 }

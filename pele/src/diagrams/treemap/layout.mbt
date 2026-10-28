@@ -67,16 +67,18 @@ pub fn layout_treemap(
     if shown.is_empty() || total.is_nan() || total.is_inf() {
       return
     }
+    let w = @util.js_max(0, w)
+    let h = @util.js_max(0, h)
     if w > 0 && h > 0 {
       squarify(shown, total, x - gap / 2, y - gap / 2, w + gap, h + gap, gap)
     }
     for b in shown {
-      if w <= 0 || h <= 0 {
-        b.x = x
-        b.y = y
-        b.w = @util.js_max(0, w)
-        b.h = @util.js_max(0, h)
-      }
+      let x0 = clamp(b.x, x, x + w)
+      let y0 = clamp(b.y, y, y + h)
+      b.w = clamp(b.x + b.w, x0, x + w) - x0
+      b.h = clamp(b.y + b.h, y0, y + h) - y0
+      b.x = x0
+      b.y = y0
       placed.push(b)
     }
   }
@@ -121,6 +123,16 @@ fn make_box(node : TreemapNode, parent : Box?, series : Int32) -> Box {
     y: 0,
     w: 0,
     h: 0,
+  }
+}
+
+///|
+/// Keeps `v` within `low` and `high`, taking `low` for NaN.
+fn clamp(v : Double, low : Double, high : Double) -> Double {
+  if v >= low {
+    @util.js_min(v, high)
+  } else {
+    low
   }
 }
 
