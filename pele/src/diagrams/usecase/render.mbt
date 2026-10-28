@@ -740,6 +740,8 @@ fn draw(
     let shape = view.style.shape
     let w = view.w
     let h = view.h
+    let color = @svg.raw_ink_fill(view.css)
+    let muted = @svg.raw_ink_fill(view.css, fallback="var(--_m)")
     if view.kind == Boundary {
       let x = c.x - c.w / 2
       let y = c.y - c.h / 2
@@ -749,7 +751,7 @@ fn draw(
         " fill-opacity=\"0.5\""
       }
       let box = " fill=\"var(--_a)\"\{wash} stroke=\"var(--_b)\"\{shape}"
-      let title_attrs = " class=\"pele-cluster-label\" fill=\"var(--_m)\""
+      let title_attrs = " class=\"pele-cluster-label\"\{muted}"
       clusters.write(
         "<g class=\"pele-cluster pele-boundary\{classes}\" data-id=\"\{id}\">",
       )
@@ -842,7 +844,7 @@ fn draw(
             key,
             x0 + CELL_PAD + key.width / 2,
             y + row_h / 2,
-            " class=\"pele-json-key\" fill=\"var(--_m)\"",
+            " class=\"pele-json-key\"\{muted}",
             icons?=options.icons,
           )
           write_left_label(
@@ -850,7 +852,7 @@ fn draw(
             value,
             x0 + view.key_w + CELL_PAD,
             y + row_h / 2,
-            " class=\"pele-json-value\"",
+            " class=\"pele-json-value\"\{color}",
             view.css.text,
             icons?=options.icons,
           )
@@ -867,7 +869,7 @@ fn draw(
           view.label,
           0,
           -h / 2 + view.head_h / 2,
-          " class=\"pele-label\" font-weight=\"var(--_hw)\"",
+          " class=\"pele-label\" font-weight=\"var(--_hw)\"\{color}",
           view.css.text,
           icons?=options.icons,
         )
@@ -910,7 +912,7 @@ fn draw(
           view.stereotype,
           0,
           -view.label.height / 2,
-          " class=\"pele-stereotype\" font-size=\"\{tiny}\" fill=\"var(--_m)\"",
+          " class=\"pele-stereotype\" font-size=\"\{tiny}\"\{muted}",
           icons?=options.icons,
         )
         @svg.write_label_styled(
@@ -918,7 +920,7 @@ fn draw(
           view.label,
           0,
           view.stereotype.height / 2,
-          " class=\"pele-label\"\{note_size}",
+          " class=\"pele-label\"\{note_size}\{color}",
           view.css.text,
           icons?=options.icons,
         )

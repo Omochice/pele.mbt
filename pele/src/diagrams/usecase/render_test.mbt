@@ -219,3 +219,38 @@ test "draws a boundary fill the author sets at full opacity" {
   assert_true(body("S") != "" && !body("S").contains("fill-opacity"))
   assert_true(body("T").contains("fill-opacity=\"0.5\""))
 }
+
+///|
+test "picks a contrasting text color on fills a style sets" {
+  let svg = svg_of(
+    "usecase-beta\nactor A <<Human>>\nU(Use) <<Core>>\nW(Own)\nX(Plain)\njson J@{ \"k\": \"v\" }\nsystemBoundary S\n  V\nend\nstyle U fill:#1f3a5f\nstyle A fill:#1f3a5f\nstyle W fill:#1f3a5f,color:#eee\nstyle J fill:navy\nstyle S fill:#FFF9C4",
+  )
+  let texts = (id : String) => {
+    let from = @util.index_of(svg, "data-id=\"\{id}\"")
+    let next = @util.index_of(svg, "</g><g", from~)
+    let last = @util.index_of(svg, "</g></g>", from~)
+    let end = if next != -1 && (last == -1 || next < last) {
+      next
+    } else {
+      last
+    }
+    let tags = []
+    let mut at = @util.index_of(svg, "<text ", from~)
+    while at != -1 && at < end {
+      tags.push(@util.slice(svg, at, end=@util.index_of(svg, ">", from=at) + 1))
+      at = @util.index_of(svg, "<text ", from=at + 1)
+    }
+    "\{id}: " + tags.join(" ")
+  }
+  inspect(
+    ["U", "A", "W", "J", "S", "X"].map(texts).join("\n"),
+    content=(
+      #|U: <text class="pele-stereotype" font-size="13" fill="var(--pele-fg-on-dark,#fff)" x="0" y="-7.45" text-anchor="middle"> <text class="pele-label" fill="var(--pele-fg-on-dark,#fff)" x="0" y="15.6" text-anchor="middle">
+      #|A: <text class="pele-stereotype" font-size="13" fill="var(--_m)" x="0" y="25.55" text-anchor="middle"> <text class="pele-label" x="0" y="48.6" text-anchor="middle">
+      #|W: <text class="pele-label" style="fill:#eee;" x="0" y="5.6" text-anchor="middle">
+      #|J: <text class="pele-label" font-weight="var(--_hw)" fill="var(--pele-fg-on-dark,#fff)" text-anchor="middle" xml:space="preserve"> <text class="pele-json-key" fill="var(--pele-fg-on-dark,#fff)" x="-22.5" y="20.9" text-anchor="middle"> <text class="pele-json-value" fill="var(--pele-fg-on-dark,#fff)" x="4.5" y="20.9" text-anchor="middle">
+      #|S: <text class="pele-cluster-label" fill="var(--pele-fg-on-light,#1f1f1f)" x="72" y="447.6" text-anchor="middle">
+      #|X: <text class="pele-label" x="0" y="5.6" text-anchor="middle">
+    ),
+  )
+}
