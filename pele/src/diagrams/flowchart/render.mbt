@@ -364,7 +364,7 @@ fn draw(
   let clusters = @svg.Markup::new()
   let struck_titles = @svg.Markup::new()
   let nodes_out = @svg.Markup::new()
-  let filled : Array[Double] = []
+  let fills : Array[@svg.Fill] = []
   for i, view in views {
     let c = cnodes[i]
     let node = view.node
@@ -374,7 +374,7 @@ fn draw(
       variant is Some({ draw_group: Some(draw_group), .. }) {
       if @svg.paints(view.style.shape) &&
         variant is Some({ filled_box: Some(filled_box), .. }) {
-        filled.push_iter(filled_box(c, root_dir).iter())
+        fills.push(@svg.Fill::new(filled_box(c, root_dir), view.style.shape))
       }
       draw_group(
         clusters,
@@ -390,8 +390,11 @@ fn draw(
     }
     if c.is_group {
       if @svg.paints(view.style.shape) {
-        filled.push_iter(
-          [c.x - c.w / 2, c.y - c.h / 2, c.x + c.w / 2, c.y + c.h / 2].iter(),
+        fills.push(
+          @svg.Fill::new(
+            [c.x - c.w / 2, c.y - c.h / 2, c.x + c.w / 2, c.y + c.h / 2],
+            view.style.shape,
+          ),
         )
       }
       let title_x = @svg.cluster_title_x(
@@ -609,8 +612,20 @@ fn draw(
           end_reach=arrives,
         )
       }
-      let color = match style {
-        Some({ stroke: Some(stroke), .. }) if stroke != "" => @svg.esc(stroke)
+      let line = match style {
+        Some(style) => style.line
+        None => ""
+      }
+      let over = @svg.over_fills(
+        path.d,
+        [path.sx, path.sy, path.ex, path.ey],
+        fills,
+        line~,
+      )
+      let color = match (over, style) {
+        (Some(ink), _) if ink != "" => ink
+        (_, Some({ stroke: Some(stroke), .. })) if stroke != "" =>
+          @svg.esc(stroke)
         _ => "var(--_l)"
       }
       let attrs = match edge.thickness {
@@ -618,11 +633,7 @@ fn draw(
         Some("dotted") => " stroke-dasharray=\"3 4\""
         _ => ""
       }
-      let line = match style {
-        Some(style) => style.line
-        None => ""
-      }
-      if @svg.runs_inside(path.d, filled) {
+      if over is Some("") {
         casings.write(
           @svg.edge_casing(
             path,
@@ -633,8 +644,12 @@ fn draw(
           ),
         )
       }
+      let ink = match over {
+        Some(ink) if ink != "" => " stroke=\"\{ink}\""
+        _ => ""
+      }
       edges_out.write(
-        "<g class=\"pele-edge\{edge_classes(edge.classes)}\" data-id=\"\{@svg.esc_text(edge.id)}\"\{line}>",
+        "<g class=\"pele-edge\{edge_classes(edge.classes)}\" data-id=\"\{@svg.esc_text(edge.id)}\"\{ink}\{line}>",
       )
       edges_out.write("<path d=\"\{path.d}\"\{attrs}/>")
       edges_out.write(

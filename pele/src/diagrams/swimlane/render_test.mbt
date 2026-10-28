@@ -264,14 +264,23 @@ test "picks a contrasting lane title color on a fill a style sets" {
 }
 
 ///|
-test "cases edges that run over a lane band a style fills" {
+test "inks or cases edges on a lane band a style fills" {
   let source = "swimlane-beta TB\nsubgraph S[\"one<br/>two<br/>three<br/>four<br/>five<br/>six<br/>seven<br/>eight\"]\n  A\nend\nS --> S\nstyle S fill:black"
-  assert_true(svg_of(source).contains("class=\"pele-casings\""))
-  assert_false(
-    svg_of(source.replace(old="\nstyle S fill:black", new="")).contains(
-      "class=\"pele-casings\"",
+  let svg = svg_of(source)
+  let at = @util.index_of(
+    svg,
+    "<g class=\"pele-edge",
+    from=@util.index_of(svg, "<g class=\"pele-edges\"") + 1,
+  )
+  inspect(
+    @util.slice(svg, at, end=@util.index_of(svg, ">", from=at) + 1),
+    content=(
+      #|<g class="pele-edge" data-id="L_S_S_0" stroke="var(--pele-fg-on-dark,#fff)">
     ),
   )
+  let plain = svg_of(source.replace(old="\nstyle S fill:black", new=""))
+  assert_false(plain.contains("pele-casings"))
+  assert_false(plain.contains("--pele-fg-on"))
 }
 
 ///|
