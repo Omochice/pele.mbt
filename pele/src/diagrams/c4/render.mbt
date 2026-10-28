@@ -239,8 +239,17 @@ fn draw(
   }
 
   // Every line is drawn before any label is placed, so that labels can keep off the arrowheads.
+  let casings = @svg.Markup::new()
   let edges_out = @svg.Markup::new()
   let trim = @svg.marker_trim("arrow_point")
+  let filled : Array[Double] = []
+  for i, group in order {
+    if i > 0 &&
+      @svg.raw_paints(user_style(group.boundary.bg_color, None, None).shape) {
+      let g = group.box
+      filled.push_iter([g.x, g.y, g.x + g.w, g.y + g.h].iter())
+    }
+  }
   let lanes = Lanes::new()
   for i, group in order {
     if i > 0 {
@@ -316,6 +325,34 @@ fn draw(
         r.ey - @svg.ARROW,
         r.ex + @svg.ARROW,
         r.ey + @svg.ARROW,
+      )
+    }
+    if @svg.runs_inside(r.d, filled) {
+      casings.write(
+        @svg.raw_edge_casing(
+          {
+            d: r.d,
+            sx: r.sx,
+            sy: r.sy,
+            sdx: r.sdx,
+            sdy: r.sdy,
+            ex: r.ex,
+            ey: r.ey,
+            edx: r.edx,
+            edy: r.edy,
+          },
+          if start_arrow {
+            "arrow_point"
+          } else {
+            "none"
+          },
+          if end_arrow {
+            "arrow_point"
+          } else {
+            "none"
+          },
+          css=style.line,
+        ),
       )
     }
     edges_out.write("<g class=\"pele-edge\" data-id=\"")
@@ -646,6 +683,7 @@ fn draw(
   if !clusters.is_empty() {
     content.write_group("<g class=\"pele-clusters\">", clusters, "</g>")
   }
+  @svg.write_casings(content, casings)
   if !edges_out.is_empty() {
     content.write_group(
       "<g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\">",

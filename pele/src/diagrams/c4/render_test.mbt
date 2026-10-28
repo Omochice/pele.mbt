@@ -945,6 +945,65 @@ test "picks a contrasting text color on fills a style sets" {
 }
 
 ///|
+/// What the group of casings in a drawing holds, or an empty string when it has none.
+fn casings_of(svg : String) -> String {
+  let open = @util.index_of(svg, "<g class=\"pele-casings\"")
+  if open == -1 {
+    return ""
+  }
+  let start = @util.index_of(svg, ">", from=open) + 1
+  @util.slice(
+    svg,
+    start,
+    end=@util.index_of(svg, "</g><g class=\"pele-edges\"", from=start),
+  )
+}
+
+///|
+test "cases relations that run over a boundary fill a style sets" {
+  let source =
+    #|C4Context
+    #|Boundary(b, "B") {
+    #|  System(x, "X")
+    #|  System(y, "Y")
+    #|}
+    #|System(z, "Z")
+    #|System(w, "W")
+    #|Rel(x, y, "in")
+    #|Rel(y, z, "out")
+    #|Rel(z, w, "away")
+    #|UpdateElementStyle(b, $bgColor="lightyellow")
+  let svg = svg_of(source)
+  let casings = casings_of(svg)
+  inspect(
+    ["x-y", "y-z", "z-w"]
+    .map(id => "\{id} \{casings.contains("<path d=\"\{line_of(svg, id)}\"/>")}")
+    .join("\n"),
+    content=(
+      #|x-y true
+      #|y-z true
+      #|z-w false
+    ),
+  )
+  inspect(
+    svg_of(
+      source.replace(
+        old="UpdateElementStyle(b, $bgColor=\"lightyellow\")",
+        new="",
+      ),
+    ).contains("pele-casings"),
+    content="false",
+  )
+  let looped = svg_of(
+    "C4Context\nBoundary(S, \"S\") {\n  System(A, \"A\")\n}\nRel(A, A, \"self\")\nUpdateElementStyle(S, $bgColor=\"white\")",
+  )
+  inspect(
+    casings_of(looped).contains("<path d=\"\{line_of(looped, "A-A")}\"/>"),
+    content="true",
+  )
+}
+
+///|
 test "applies UpdateRelStyle colours and offsets" {
   let base = "C4Context\nUpdateLayoutConfig(\"1\", \"1\")\nSystem(a, \"A\")\nSystem(b, \"B\")\nRel(a, b, \"x\")\n"
   let plain = svg_of(base)
