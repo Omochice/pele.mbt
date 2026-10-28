@@ -128,6 +128,7 @@ test "edge_casing drops the markers' class so marker styles skip the casing" {
     d: "M0,0L0,20",
     sx: 0,
     sy: 0,
+    tokens: None,
     sdx: 0,
     sdy: -1,
     ex: 0,

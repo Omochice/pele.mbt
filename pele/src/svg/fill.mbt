@@ -40,16 +40,43 @@ pub(all) enum FillUnder {
 
 ///|
 /// Where the path `d`, with marker tips at the x, y pairs of `tips`, lies among the `fills`.
+/// `tokens` are the commands of `d`, which `d` is read for when they are not given.
 /// A path that only runs along a border or ends on one touches no fill.
 pub fn fill_under(
   d : String,
   tips : Array[Double],
   fills : Array[Fill],
+  tokens? : Array[Double],
 ) -> FillUnder {
   if fills.is_empty() {
     return Off
   }
-  let points = path_points(d)
+  let points = match tokens {
+    Some(tokens) => sample(tokens)
+    None => path_points(d)
+  }
+  let mut min_x = @double.infinity
+  let mut min_y = @double.infinity
+  let mut max_x = @double.neg_infinity
+  let mut max_y = @double.neg_infinity
+  for all in [points, tips] {
+    for k = 0; k < all.length(); k = k + 2 {
+      let x = all[k]
+      let y = all[k + 1]
+      if x < min_x {
+        min_x = x
+      }
+      if x > max_x {
+        max_x = x
+      }
+      if y < min_y {
+        min_y = y
+      }
+      if y > max_y {
+        max_y = y
+      }
+    }
+  }
   let mut holder = None
   let mut least = @double.infinity
   for fill in fills {
@@ -57,6 +84,9 @@ pub fn fill_under(
     let t = fill.box[1]
     let r = fill.box[2]
     let b = fill.box[3]
+    if max_x < l + 0.5 || min_x > r - 0.5 || max_y < t + 0.5 || min_y > b - 0.5 {
+      continue
+    }
     let mut touched = enters(points, l + 0.5, t + 0.5, r - 0.5, b - 0.5)
     for k = 0; k < tips.length() && !touched; k = k + 2 {
       touched = tips[k] > l + 0.5 &&
@@ -67,13 +97,8 @@ pub fn fill_under(
     if !touched {
       continue
     }
-    for all in [points, tips] {
-      for k = 0; k < all.length(); k = k + 2 {
-        if !all[k].is_nan() &&
-          !(all[k] >= l && all[k] <= r && all[k + 1] >= t && all[k + 1] <= b) {
-          return Across
-        }
-      }
+    if min_x < l || max_x > r || min_y < t || max_y > b {
+      return Across
     }
     let area = (r - l) * (b - t)
     if area < least {
@@ -123,14 +148,16 @@ pub fn hollow_on(markers : String, fill : Fill) -> String {
 /// The color of the path `d`, with marker tips at `tips`, where it lies on one of the `fills`: that
 /// fill's `edge_ink` when the innermost fill it touches holds all of it, an empty string, which asks
 /// for a casing, when it crosses a border, and `None` off them all.
+/// `tokens` are the commands of `d`, as `fill_under` takes them.
 /// Styles come from `resolve_style`.
 pub fn over_fills(
   d : String,
   tips : Array[Double],
   fills : Array[Fill],
   line~ : String = "",
+  tokens? : Array[Double],
 ) -> String? {
-  match fill_under(d, tips, fills) {
+  match fill_under(d, tips, fills, tokens?) {
     On(fill) => Some(edge_ink(fill, line~))
     Across => Some("")
     Off => None

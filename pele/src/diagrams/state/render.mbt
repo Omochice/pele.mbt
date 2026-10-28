@@ -1058,6 +1058,7 @@ fn draw(
     let note = edge.dashed
     let end_type = if note { "none" } else { "arrow_point" }
     let mut d = ""
+    let mut tokens : Array[Double]? = None
     let mut ex = 0.0
     let mut ey = 0.0
     let mut edx = 0.0
@@ -1157,16 +1158,17 @@ fn draw(
         end_reach=arrives,
       )
       d = path.d
+      tokens = path.tokens
       ex = path.ex
       ey = path.ey
       edx = path.edx
       edy = path.edy
     }
-    let ink = match @svg.over_fills(d, [ex, ey], fills) {
+    let ink = match @svg.over_fills(d, [ex, ey], fills, tokens?) {
       Some("") => {
         casings.write(
           @svg.edge_casing(
-            { d, sx: 0, sy: 0, sdx: 0, sdy: 0, ex, ey, edx, edy, },
+            { d, tokens, sx: 0, sy: 0, sdx: 0, sdy: 0, ex, ey, edx, edy, },
             "none",
             end_type,
           ),

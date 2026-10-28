@@ -457,7 +457,18 @@ fn trace(
   d.write_string(
     "L\{@svg.num(ex - bx * end_trim)},\{@svg.num(ey - by * end_trim)}",
   )
-  { d: d.to_string(), sx, sy, sdx: -ax, sdy: -ay, ex, ey, edx: bx, edy: by, }
+  {
+    d: d.to_string(),
+    tokens: None,
+    sx,
+    sy,
+    sdx: -ax,
+    sdy: -ay,
+    ex,
+    ey,
+    edx: bx,
+    edy: by,
+  }
 }
 
 ///|
@@ -519,6 +530,7 @@ fn loop_path(
     d: "M\{@svg.num(x1)},\{@svg.num(y1)}A\{@svg.num(r)},\{@svg.num(r)} 0 \{large} 1 \{@svg.num(x2)},\{@svg.num(y2)}",
     sx,
     sy,
+    tokens: None,
     sdx: if sl > 0 {
       (sx - x1) / sl
     } else {

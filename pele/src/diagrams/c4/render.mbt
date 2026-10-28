@@ -352,6 +352,7 @@ fn draw(
             d: r.d,
             sx: r.sx,
             sy: r.sy,
+            tokens: None,
             sdx: r.sdx,
             sdy: r.sdy,
             ex: r.ex,

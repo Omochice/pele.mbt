@@ -621,6 +621,7 @@ fn draw(
         [path.sx, path.sy, path.ex, path.ey],
         fills,
         line~,
+        tokens?=path.tokens,
       )
       let color = match (over, style) {
         (Some(ink), _) if ink != "" => ink

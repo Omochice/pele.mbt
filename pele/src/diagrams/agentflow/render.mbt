@@ -569,7 +569,13 @@ fn draw(
       Some(style) => style.line
       None => ""
     }
-    let over = @svg.over_fills(path.d, [path.ex, path.ey], fills, line~)
+    let over = @svg.over_fills(
+      path.d,
+      [path.ex, path.ey],
+      fills,
+      line~,
+      tokens?=path.tokens,
+    )
     let color = match (over, style) {
       (Some(ink), _) if ink != "" => ink
       (_, Some({ stroke: Some(stroke), .. })) if stroke != "" =>

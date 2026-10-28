@@ -992,6 +992,7 @@ fn draw(
         d: "M\{@svg.num(sx)},\{@svg.num(sy)}C\{out(ax, ay, -1, reach)} \{out(bx, by, 1, reach)} \{@svg.num(ex)},\{@svg.num(ey)}",
         sx: ax,
         sy: ay,
+        tokens: None,
         sdx: if sideways {
           ux
         } else {
@@ -1014,7 +1015,12 @@ fn draw(
       @svg.route_path(ce.route, None, trim(start_type), trim(end_type))
     }
     let (over, under) = match
-      @svg.fill_under(path.d, [path.sx, path.sy, path.ex, path.ey], fills) {
+      @svg.fill_under(
+        path.d,
+        [path.sx, path.sy, path.ex, path.ey],
+        fills,
+        tokens?=path.tokens,
+      ) {
       On(fill) => (Some(@svg.raw_edge_ink(fill, css=css.line)), Some(fill))
       Across => (Some(""), None)
       Off => (None, None)

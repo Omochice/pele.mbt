@@ -1028,6 +1028,7 @@ fn draw(
         d: "M\{num(x + start_trim)},\{num(y - spread)}C\{num(x + reach + start_trim)},\{num(y - spread)} \{num(x + reach + end_trim)},\{num(y + spread)} \{num(x + end_trim)},\{num(y + spread)}",
         sx: x,
         sy: y - spread,
+        tokens: None,
         sdx: -1,
         sdy: 0,
         ex: x,

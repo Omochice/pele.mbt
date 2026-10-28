@@ -3,6 +3,8 @@
 pub(all) struct EdgePath {
   /// The path data.
   d : String
+  /// The commands of `d` as `fill_under` reads them, when whoever wrote `d` kept them.
+  tokens : Array[Double]?
   sx : Double
   sy : Double
   /// The way a marker at the start points: back toward the node the edge leaves.

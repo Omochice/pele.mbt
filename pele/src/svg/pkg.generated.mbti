@@ -59,7 +59,7 @@ pub fn esc(String) -> String
 
 pub fn esc_text(String) -> String
 
-pub fn fill_under(String, Array[Double], Array[Fill]) -> FillUnder
+pub fn fill_under(String, Array[Double], Array[Fill], tokens? : Array[Double]) -> FillUnder
 
 pub fn font_style(Double, String?, String?) -> String
 
@@ -89,7 +89,7 @@ pub fn node_class_names(String) -> String
 
 pub fn num(Double) -> String
 
-pub fn over_fills(String, Array[Double], Array[Fill], line? : String) -> String?
+pub fn over_fills(String, Array[Double], Array[Fill], line? : String, tokens? : Array[Double]) -> String?
 
 pub fn paints(String) -> Bool
 
@@ -184,6 +184,7 @@ pub fn Crossings::new() -> Self
 
 pub(all) struct EdgePath {
   d : String
+  tokens : Array[Double]?
   sx : Double
   sy : Double
   sdx : Double
