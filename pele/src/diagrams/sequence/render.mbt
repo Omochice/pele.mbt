@@ -550,6 +550,29 @@ fn draw(
     }
   }
   let views : Array[View?] = Array::make(count, None)
+  let sized : Array[Map[Double, @text.Label]?] = Array::make(count, None)
+  let sized_text = (i : Int32, room : Double) => {
+    let known = match sized[i] {
+      Some(known) => known
+      None => {
+        let label = views[i].unwrap().label
+        if room == wrap_w {
+          return label
+        }
+        let known = Map::from_array([(wrap_w, label)])
+        sized[i] = Some(known)
+        known
+      }
+    }
+    match known.get(room) {
+      Some(label) => label
+      None => {
+        let label = message_text(messages[i].message, true, room)
+        known.set(room, label)
+        label
+      }
+    }
+  }
   for i in 0..<count {
     let m = messages[i]
     let a = m.from.bind(id => col_of.get(id))
@@ -838,9 +861,8 @@ fn draw(
             x0 = @util.js_min(a.x, b.x)
             x1 = @util.js_max(a.x, b.x)
             if tight || m.wrap {
-              view.label = message_text(
-                m.message,
-                true,
+              view.label = sized_text(
+                i,
                 @util.js_max(wrap_w, x1 - x0 - 2 * msg_pad - ACT_W),
               )
             }
@@ -928,10 +950,21 @@ fn draw(
       for w in want {
         missing += w
       }
-      if by_need && crossed > 1 && missing > 0 {
+      // Allow for rounding error.
+      let needs = (g : Int32) => want[g] * (spare - 0.01) / missing
+      // Reducing wrapping requires at least one gap wider than the even split.
+      let wider = () => {
+        for g in 0..<gaps.length() {
+          if needs(g) > even(g) {
+            break true
+          }
+        } nobreak {
+          false
+        }
+      }
+      if by_need && crossed > 1 && missing > 0 && wider() {
         let first = counts
-        // Allow for rounding error.
-        counts = spread(g => want[g] * (spare - 0.01) / missing)
+        counts = spread(needs)
         uneven = sum(counts) < sum(first) &&
           counts.mapi((k, n) => n <= first[k]).iter().all(kept => kept)
         if !uneven {
