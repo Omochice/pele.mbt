@@ -1247,7 +1247,7 @@ fn draw(
   let height = (max_y - min_y + title_height + 2 * pad).ceil()
   let clusters = @svg.Markup::new()
   let nodes = @svg.Markup::new()
-  let filled : Array[Double] = []
+  let fills : Array[@svg.Fill] = []
   for j in 1..<order.length() {
     let v = order[j]
     if v.kind is Space {
@@ -1258,7 +1258,12 @@ fn draw(
       let c = v.cell
       let top = c.y - c.h / 2
       if @svg.raw_paints(v.style.shape) {
-        filled.push_iter([c.x - c.w / 2, top, c.x + c.w / 2, top + c.h].iter())
+        fills.push(
+          @svg.Fill::raw(
+            [c.x - c.w / 2, top, c.x + c.w / 2, top + c.h],
+            v.style.shape,
+          ),
+        )
       }
       clusters.write("<g class=\"pele-cluster\{classes}\" data-id=\"")
       clusters.write_esc_text(v.block.id)
@@ -1353,7 +1358,12 @@ fn draw(
       }
       trace(points, @svg.marker_trim(start_type), @svg.marker_trim(end_type))
     }
-    if @svg.runs_inside(path.d, filled) {
+    let over = @svg.over_fills(
+      path.d,
+      [path.sx, path.sy, path.ex, path.ey],
+      fills,
+    )
+    if over is Some("") {
       casings.write(
         @svg.edge_casing(
           path,
@@ -1362,6 +1372,10 @@ fn draw(
           thick=edge.thickness == "thick",
         ),
       )
+    }
+    let (ink, color) = match over {
+      Some(ink) if ink != "" => (" stroke=\"\{ink}\"", ink)
+      _ => ("", "var(--_l)")
     }
     let thick = if edge.thickness == "thick" {
       " stroke-width=\"2.5\""
@@ -1375,12 +1389,12 @@ fn draw(
     }
     edges.write("<g class=\"pele-edge\" data-id=\"")
     edges.write_esc_text(edge.id)
-    edges.write("\"><path d=\"\{path.d}\"\{thick}\{dotted}/>")
+    edges.write("\"\{ink}><path d=\"\{path.d}\"\{thick}\{dotted}/>")
     edges.write(
-      @svg.marker(start_type, path.sx, path.sy, path.sdx, path.sdy, "var(--_l)"),
+      @svg.marker(start_type, path.sx, path.sy, path.sdx, path.sdy, color),
     )
     edges.write(
-      @svg.marker(end_type, path.ex, path.ey, path.edx, path.edy, "var(--_l)"),
+      @svg.marker(end_type, path.ex, path.ey, path.edx, path.edy, color),
     )
     edges.write("</g>")
     if route.label.width > 0 {

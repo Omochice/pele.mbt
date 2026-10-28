@@ -855,7 +855,7 @@ test "picks a contrasting label color on fills a style sets" {
 }
 
 ///|
-test "cases edges that run over a composite fill a style sets" {
+test "cases edges that cross a composite fill a style sets and inks those inside it" {
   let source = "block\n  block:g\n    a b\n  end\n  c\n  a --> b\n  b --> c\n  c --> c\n  style g fill:#BBDEFB"
   let svg = block_svg(source)
   let at = @util.index_of(svg, "<g class=\"pele-casings\"")
@@ -864,14 +864,54 @@ test "cases edges that run over a composite fill a style sets" {
   inspect(paths.length(), content="3")
   inspect(
     paths.map(d => casings.contains("<path d=\"\{d}\"/>").to_string()).join(" "),
-    content="true true false",
+    content="false true false",
   )
   inspect(
-    block_svg(source.replace(old="\n  style g fill:#BBDEFB", new="")).contains(
-      "pele-casings",
+    edge_heads(svg),
+    content=(
+      #|<g class="pele-edge" data-id="1-a-b" stroke="var(--pele-fg-on-light,#1f1f1f)">
+      #|<g class="pele-edge" data-id="1-b-c">
+      #|<g class="pele-edge" data-id="1-c-c">
     ),
-    content="false",
   )
+  let plain = block_svg(source.replace(old="\n  style g fill:#BBDEFB", new=""))
+  inspect(plain.contains("pele-casings"), content="false")
+  inspect(plain.contains("--pele-fg-on"), content="false")
+  // The second loop on a reaches out past the composite, so it is cased.
+  let loops = block_svg(
+    "block\n  block:g\n    a\n  end\n  a --> a\n  a --> a\n  style g fill:white",
+  )
+  inspect(
+    edge_heads(loops),
+    content=(
+      #|<g class="pele-edge" data-id="1-a-a" stroke="var(--pele-fg-on-light,#1f1f1f)">
+      #|<g class="pele-edge" data-id="2-a-a">
+    ),
+  )
+  let loop_casings = read_until(
+    loops,
+    @util.index_of(loops, "<g class=\"pele-casings\""),
+    "</g><g class=\"pele-edges\"",
+  )
+  inspect(
+    edge_paths(loops)
+    .map(d => loop_casings.contains("<path d=\"\{d}\"/>").to_string())
+    .join(" "),
+    content="false true",
+  )
+}
+
+///|
+/// The opening tag of every edge's group, one to a line.
+fn edge_heads(svg : String) -> String {
+  let heads = []
+  let open = "<g class=\"pele-edge\" data-id=\""
+  let mut at = @util.index_of(svg, open)
+  while at != -1 {
+    heads.push(read_until(svg, at, ">") + ">")
+    at = @util.index_of(svg, open, from=at + 1)
+  }
+  heads.join("\n")
 }
 
 ///|
