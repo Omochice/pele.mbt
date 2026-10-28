@@ -1247,6 +1247,7 @@ fn draw(
   let height = (max_y - min_y + title_height + 2 * pad).ceil()
   let clusters = @svg.Markup::new()
   let nodes = @svg.Markup::new()
+  let filled : Array[Double] = []
   for j in 1..<order.length() {
     let v = order[j]
     if v.kind is Space {
@@ -1256,6 +1257,9 @@ fn draw(
     if v.kind is Composite {
       let c = v.cell
       let top = c.y - c.h / 2
+      if @svg.raw_paints(v.style.shape) {
+        filled.push_iter([c.x - c.w / 2, top, c.x + c.w / 2, top + c.h].iter())
+      }
       clusters.write("<g class=\"pele-cluster\{classes}\" data-id=\"")
       clusters.write_esc_text(v.block.id)
       let wash = if @svg.sets_raw_fill(v.style.shape) {
@@ -1325,6 +1329,7 @@ fn draw(
     )
     nodes.write("</g>")
   }
+  let casings = @svg.Markup::new()
   let edges = @svg.Markup::new()
   let labels = @svg.Markup::new()
   for j, route in routes {
@@ -1347,6 +1352,16 @@ fn draw(
         k += 2
       }
       trace(points, @svg.marker_trim(start_type), @svg.marker_trim(end_type))
+    }
+    if @svg.runs_inside(path.d, filled) {
+      casings.write(
+        @svg.edge_casing(
+          path,
+          start_type,
+          end_type,
+          thick=edge.thickness == "thick",
+        ),
+      )
     }
     let thick = if edge.thickness == "thick" {
       " stroke-width=\"2.5\""
@@ -1391,6 +1406,7 @@ fn draw(
   if !clusters.is_empty() {
     body.write_group("<g class=\"pele-clusters\">", clusters, "</g>")
   }
+  @svg.write_casings(body, casings)
   if !edges.is_empty() {
     body.write_group(
       "<g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\">",

@@ -855,6 +855,26 @@ test "picks a contrasting label color on fills a style sets" {
 }
 
 ///|
+test "cases edges that run over a composite fill a style sets" {
+  let source = "block\n  block:g\n    a b\n  end\n  c\n  a --> b\n  b --> c\n  c --> c\n  style g fill:#BBDEFB"
+  let svg = block_svg(source)
+  let at = @util.index_of(svg, "<g class=\"pele-casings\"")
+  let casings = read_until(svg, at, "</g><g class=\"pele-edges\"")
+  let paths = edge_paths(svg)
+  inspect(paths.length(), content="3")
+  inspect(
+    paths.map(d => casings.contains("<path d=\"\{d}\"/>").to_string()).join(" "),
+    content="true true false",
+  )
+  inspect(
+    block_svg(source.replace(old="\n  style g fill:#BBDEFB", new="")).contains(
+      "pele-casings",
+    ),
+    content="false",
+  )
+}
+
+///|
 test "draws the front matter title" {
   guard block_render("block\n  a") is Ok(plain) else { fail("rejected") }
   guard block_render("---\ntitle: Systems\n---\nblock\n  a") is Ok(titled) else {
