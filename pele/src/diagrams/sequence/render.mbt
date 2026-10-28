@@ -342,6 +342,7 @@ fn draw(
   options : @types.RenderOptions,
   tight : Bool,
   hold~ : Double = 0,
+  by_need~ : Bool = true,
 ) -> @types.Rendered raise @errors.PeleError {
   let n = @svg.num
   let infinity = @double.infinity
@@ -864,16 +865,17 @@ fn draw(
 
   // Widen gaps only if it reduces message wrapping.
   let mut grown = false
+  let mut uneven = false
   if tight && options.max_width is Some(max_width) {
     let spare = max_width.floor() - (max_x - min_x + 2 * pad).ceil() - hold
     let stretch = FixedArray::make(col_count, 0)
+    let want = FixedArray::make(gaps.length(), 0.0)
     let wrapped : Array[Int32] = []
     let mut lines = 0
     for i = 0; spare > 0 && i < views.length(); i = i + 1 {
-      guard views[i] is Some(view) &&
-        view.kind is LineView &&
-        view.label.lines.length() >
-        message_text(messages[i].message, false, infinity).lines.length() else {
+      guard views[i] is Some(view) && view.kind is LineView else { continue }
+      let natural = message_text(messages[i].message, false, infinity)
+      if view.label.lines.length() <= natural.lines.length() {
         continue
       }
       wrapped.push(i)
@@ -882,6 +884,13 @@ fn draw(
       let hi = if view.a < view.b { view.b } else { view.a }
       stretch[lo] += 1
       stretch[hi] -= 1
+      let short = (
+          natural.width - (cols[hi].x - cols[lo].x - 2 * msg_pad - ACT_W)
+        ) /
+        (hi - lo).to_double()
+      for g in lo..<hi {
+        want[g] = @util.js_max(want[g], short)
+      }
     }
     let mut active = 0
     let mut crossed = 0
@@ -892,16 +901,44 @@ fn draw(
     }
     if crossed > 0 {
       let before = gaps.copy()
-      for i in 0..<gaps.length() {
-        gaps[i] += stretch[i].to_double() * spare / crossed.to_double()
+      let spread = (share : (Int32) -> Double) => {
+        for g in 0..<gaps.length() {
+          gaps[g] = before[g] + share(g)
+        }
+        layout()
+        wrapped.map(i => {
+          match views[i] {
+            Some(view) => view.label.lines.length()
+            None => 0
+          }
+        })
       }
-      layout()
-      for i in wrapped {
-        if views[i] is Some(view) {
-          lines -= view.label.lines.length()
+      let sum = (counts : Array[Int32]) => {
+        let mut total = 0
+        for n in counts {
+          total += n
+        }
+        total
+      }
+      let even = (g : Int32) => {
+        stretch[g].to_double() * spare / crossed.to_double()
+      }
+      let mut counts = spread(even)
+      let mut missing = 0.0
+      for w in want {
+        missing += w
+      }
+      if by_need && crossed > 1 && missing > 0 {
+        let first = counts
+        // Allow for rounding error.
+        counts = spread(g => want[g] * (spare - 0.01) / missing)
+        uneven = sum(counts) < sum(first) &&
+          counts.mapi((k, n) => n <= first[k]).iter().all(kept => kept)
+        if !uneven {
+          counts = spread(even)
         }
       }
-      grown = lines > 0
+      grown = sum(counts) < lines
       if !grown {
         for i, gap in before {
           gaps[i] = gap
@@ -1464,13 +1501,20 @@ fn draw(
   }
   let width = (max_x - min_x + 2 * pad).ceil()
   if grown && options.max_width is Some(max_width) && width > max_width {
-    // Retry with space for activation notes and rounding.
+    // Retry with equal shares or room for activation notes and rounding.
     return draw(
       db,
       config,
       options,
       tight,
-      hold=if hold > 0 { infinity } else { width - max_width.floor() },
+      hold=if uneven {
+        hold
+      } else if hold > 0 {
+        infinity
+      } else {
+        width - max_width.floor()
+      },
+      by_need=false,
     )
   }
   let height = (bottom - min_y + 2 * pad).ceil()

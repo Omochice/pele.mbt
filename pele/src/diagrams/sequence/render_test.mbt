@@ -413,30 +413,42 @@ test "widens gaps within maxWidth before wrapping a message" {
   let reported = "sequenceDiagram\n  participant U as UE\n  participant M as MeNB (LTE anchor)\n  participant S as SgNB (5G, NR leg)\n" +
     "  M->>S: SgNB Addition Request (DRB-ID, CG-ConfigInfo)\n  M->>U: RRCConnectionReconfiguration (carries the NR SCG config)\n  U->>M: RRCConnectionReconfigurationComplete"
   let long = "thisIsAnExtremelyLongMessageIdentifierThatShouldHaveRoomToFit"
-  let cases : Array[(String, String, Double)] = [
-    (reported, "i2", 760),
-    (reported, "i2", 760.5),
-    ("sequenceDiagram\n  A->>B: \{long}", "i0", 300.25),
+  let cases : Array[(String, String, Double, Array[String]?)] = [
+    (reported, "i2", 760, None),
+    (reported, "i2", 760.5, None),
+    (reported, "i2", 760, Some(["messages"])),
+    (reported, "i2", 400, None),
+    (
+      "sequenceDiagram\n  participant A\n  participant B\n  participant C\n  B->>A: \{"x".repeat(168)}\n  C->>A: \{"x".repeat(89)}",
+      "i1",
+      709,
+      None,
+    ),
+    ("sequenceDiagram\n  A->>B: \{long}", "i0", 300.25, None),
     (
       "sequenceDiagram\n  participant A\n  participant B\n  participant C\n  participant D\n  A->>D: \{long}",
       "i0",
       450,
+      None,
     ),
     (
       "sequenceDiagram\n  A->>+B: \{long}\n  Note right of B: note\n  B-->>-A: ok",
       "i0",
       400,
+      None,
     ),
   ]
   let drawn_lines = cases.map(case => {
-    let (source, id, max_width) = case
-    guard drawn(source, max_width~) is Ok(result) else { return "failed" }
+    let (source, id, max_width, monospace) = case
+    guard drawn(source, max_width~, monospace?) is Ok(result) else {
+      return "failed"
+    }
     "\{result.width <= max_width} \{lines(result.svg, id)}"
   })
   inspect(
     drawn_lines.join(" | "),
     content=(
-      #|true 1 | true 1 | true 3 | true 2 | true 2
+      #|true 1 | true 1 | true 1 | true 2 | true 1 | true 3 | true 2 | true 2
     ),
   )
 }
