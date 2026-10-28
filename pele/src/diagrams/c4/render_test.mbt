@@ -908,6 +908,43 @@ test "applies UpdateElementStyle to shapes and boundaries" {
 }
 
 ///|
+test "picks a contrasting text color on fills a style sets" {
+  let svg = svg_of(
+    (
+      #|C4Context
+      #|Boundary(b, "B", "Kind") {
+      #|  System(c, "C", "about c")
+      #|}
+      #|System(d, "D", "about d")
+      #|System(e, "E")
+      #|UpdateElementStyle(b, $bgColor="lightyellow")
+      #|UpdateElementStyle(c, $bgColor="navy")
+      #|UpdateElementStyle(d, $bgColor="navy", $fontColor="#ddd")
+    ),
+  )
+  let group = (id : String) => {
+    let from = @util.index_of(svg, "data-id=\"\{id}\"")
+    @util.slice(svg, from, end=@util.index_of(svg, "</g>", from~))
+  }
+  inspect(
+    count(group("c"), "fill=\"var(--pele-fg-on-dark,#fff)\""),
+    content="3",
+  )
+  assert_true(
+    group("b").contains(
+      "<text class=\"pele-cluster-label\" font-weight=\"var(--_hw)\" fill=\"var(--pele-fg-on-light,#1f1f1f)\"",
+    ),
+  )
+  assert_true(
+    tag_with(group("b"), "class=\"pele-c4-type\"").contains(
+      " fill=\"var(--pele-fg-on-light,#1f1f1f)\"",
+    ),
+  )
+  assert_false(group("d").contains("--pele-fg-on"))
+  assert_false(group("e").contains("--pele-fg-on"))
+}
+
+///|
 test "applies UpdateRelStyle colours and offsets" {
   let base = "C4Context\nUpdateLayoutConfig(\"1\", \"1\")\nSystem(a, \"A\")\nSystem(b, \"B\")\nRel(a, b, \"x\")\n"
   let plain = svg_of(base)

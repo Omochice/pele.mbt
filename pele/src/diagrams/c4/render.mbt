@@ -482,6 +482,8 @@ fn draw(
         boundary.border_color,
         boundary.font_color,
       )
+      let color = @svg.raw_ink_fill(style)
+      let muted = @svg.raw_ink_fill(style, fallback="var(--_m)")
       let x = g.x + group.head_x
       let mut y = g.y + HEAD_TOP
       let text = @svg.Markup::new()
@@ -490,7 +492,7 @@ fn draw(
         group.labels[0],
         x,
         y,
-        " class=\"pele-cluster-label\" font-weight=\"var(--_hw)\"",
+        " class=\"pele-cluster-label\" font-weight=\"var(--_hw)\"\{color}",
         style.text,
       )
       y += group.labels[0].height
@@ -499,7 +501,7 @@ fn draw(
         group.labels[1],
         x,
         y,
-        " class=\"pele-c4-type\" font-size=\"\{small}\" fill=\"var(--_m)\"",
+        " class=\"pele-c4-type\" font-size=\"\{small}\"\{muted}",
         style.text,
       )
       y += group.labels[1].height
@@ -508,7 +510,7 @@ fn draw(
         group.labels[2],
         x,
         y,
-        " class=\"pele-c4-descr\" font-size=\"\{small}\" fill=\"var(--_m)\"",
+        " class=\"pele-c4-descr\" font-size=\"\{small}\"\{muted}",
         style.text,
       )
       let is_node = boundary.node_type is Some(_)
@@ -539,6 +541,8 @@ fn draw(
         shape.border_color,
         shape.font_color,
       )
+      let color = @svg.raw_ink_fill(style)
+      let muted = @svg.raw_ink_fill(style, fallback="var(--_m)")
       let stroke = " stroke=\"var(--_b)\"" +
         (if external { " stroke-dasharray=\"4 3\"" } else { "" })
       let { w, h, form, .. } = node.box
@@ -571,7 +575,7 @@ fn draw(
         labels[0],
         dx,
         y + labels[0].height / 2,
-        " class=\"pele-c4-type\" font-size=\"\{small - 1}\" fill=\"var(--_m)\"",
+        " class=\"pele-c4-type\" font-size=\"\{small - 1}\"\{muted}",
         style.text,
       )
       y += labels[0].height
@@ -580,7 +584,7 @@ fn draw(
         labels[1],
         dx,
         y + labels[1].height / 2,
-        " class=\"pele-label\" font-weight=\"var(--_hw)\"",
+        " class=\"pele-label\" font-weight=\"var(--_hw)\"\{color}",
         style.text,
       )
       y += labels[1].height
@@ -589,7 +593,7 @@ fn draw(
         labels[2],
         dx,
         y + labels[2].height / 2,
-        " class=\"pele-c4-techn\" font-size=\"\{small}\" fill=\"var(--_m)\"",
+        " class=\"pele-c4-techn\" font-size=\"\{small}\"\{muted}",
         style.text,
       )
       y += labels[2].height + 4
@@ -598,7 +602,7 @@ fn draw(
         labels[3],
         dx,
         y + labels[3].height / 2,
-        " class=\"pele-c4-descr\" font-size=\"\{small}\"",
+        " class=\"pele-c4-descr\" font-size=\"\{small}\"\{color}",
         style.text,
       )
       nodes_out.write(
