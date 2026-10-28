@@ -50,6 +50,27 @@ fn write_text(
 }
 
 ///|
+/// Writes the name of a node as a tooltip, unless its text already shows the whole name.
+fn write_tooltip(out : @svg.Markup, name : String, drawn : String?) -> Unit {
+  if drawn is Some(drawn) && drawn == name {
+    return
+  }
+  if name == "" {
+    return
+  }
+  out.write("<title>")
+  out.write_esc(name)
+  out.write("</title>")
+}
+
+///|
+/// The emphasis a class gives a node's text, for measuring it.
+fn text_style(style : @svg.RawStyle) -> Int32 {
+  (if style.bold { @text.STYLE_BOLD } else { 0 }) |
+  (if style.italic { @text.STYLE_ITALIC } else { 0 })
+}
+
+///|
 /// Draws one section: its box, and a header with its name and, when there is room, its value.
 fn draw_section(
   out : @svg.Markup,
@@ -67,51 +88,68 @@ fn draw_section(
   let color = @svg.series_color(b.series)
   let small = (size * 0.875).round()
   let tiny = (size * 0.75).round()
+  // An inline font size overrides the size attributes, so text is truncated instead of shrunk.
+  let fixed = style.font_size
+  let emphasis = text_style(style)
   let tint = if has_own_fill(style.shape) {
     ""
   } else {
     " fill-opacity=\"0.12\""
   }
-  out.write("<g class=\"pele-node pele-section\{classes}\" data-id=\"")
-  out.write_esc_text(node.name)
-  out.write(
-    "\"><rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(b.w)}\" height=\"\{@svg.num(b.h)}\" fill=\"\{color}\"\{tint} stroke=\"\{color}\"",
-  )
-  @svg.write_rounded_style(out, style.shape)
-  out.write("/>")
-  if b.h >= HEADER {
+  let mut label = None
+  let mut with_value = false
+  let mut label_size = 0.0
+  let mut value_size = 0.0
+  if b.headed {
+    label_size = fixed.unwrap_or(small)
+    value_size = fixed.unwrap_or(tiny)
     let room = b.w - 2 * SIDE - 4
     let value_width = if value != "" {
-      measurer.width(value, tiny, 0)
+      measurer.width(value, value_size, emphasis)
     } else {
       0
     }
-    let with_value = value_width > 0 && room - value_width - 12 >= 3 * small
-    let label = @common.fit_text(
-      name,
-      if with_value {
-        room - value_width - 12
-      } else {
-        room
-      },
-      small,
-      small,
-      measurer,
-      style=@text.STYLE_BOLD,
-    )
+    with_value = value_width > 0 && room - value_width - 12 >= 3 * label_size
+    label = if label_size * LINE <= HEADER - 4 {
+      @common.fit_text(
+        name,
+        if with_value {
+          room - value_width - 12
+        } else {
+          room
+        },
+        label_size,
+        label_size,
+        measurer,
+        style=emphasis | @text.STYLE_BOLD,
+      )
+    } else {
+      None
+    }
+  }
+  out.write("<g class=\"pele-node pele-section\{classes}\" data-id=\"")
+  out.write_esc_text(node.name)
+  out.write("\">")
+  write_tooltip(out, name, label.map(label => label.text))
+  out.write(
+    "<rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(b.w)}\" height=\"\{@svg.num(b.h)}\" fill=\"\{color}\"\{tint} stroke=\"\{color}\"",
+  )
+  @svg.write_rounded_style(out, style.shape)
+  out.write("/>")
+  if b.headed {
     let baseline = y + HEADER / 2 + 1
     if label is Some(label) {
       write_text(
         out,
-        " x=\"\{@svg.num(x + SIDE + 2)}\" y=\"\{@svg.num(baseline + small * 0.35)}\" font-weight=\"var(--_hw)\"",
+        " x=\"\{@svg.num(x + SIDE + 2)}\" y=\"\{@svg.num(baseline + label_size * 0.35)}\" font-weight=\"var(--_hw)\"",
         style.text,
         label.text,
       )
     }
-    if with_value {
+    if with_value && value_size * LINE <= HEADER - 4 {
       write_text(
         out,
-        " class=\"pele-value\" x=\"\{@svg.num(x + b.w - SIDE - 2)}\" y=\"\{@svg.num(baseline + tiny * 0.35)}\" font-size=\"\{tiny}\" text-anchor=\"end\" fill=\"var(--_m)\"",
+        " class=\"pele-value\" x=\"\{@svg.num(x + b.w - SIDE - 2)}\" y=\"\{@svg.num(baseline + value_size * 0.35)}\" font-size=\"\{tiny}\" text-anchor=\"end\" fill=\"var(--_m)\"",
         style.text,
         value,
       )
@@ -136,28 +174,35 @@ fn draw_leaf(
   let style = @svg.resolve_raw_style(node.css_compiled_styles.unwrap_or([]))
   let classes = @svg.class_names(node.class_selector.unwrap_or(""))
   let least = (size * 0.5625).round()
+  let fixed = style.font_size
+  let emphasis = text_style(style)
   let room = b.w - 8
-  let tallest = @util.js_min(size, ((b.h - 4) / LINE).floor())
-  let label = if tallest >= least {
-    @common.fit_text(name, room, tallest, least, measurer)
+  let smallest = fixed.unwrap_or(least)
+  let tallest = @util.js_min(fixed.unwrap_or(size), ((b.h - 4) / LINE).floor())
+  let label = if tallest >= smallest {
+    @common.fit_text(name, room, tallest, smallest, measurer, style=emphasis)
   } else {
     None
   }
   out.write("<g class=\"pele-node pele-leaf\{classes}\" data-id=\"")
   out.write_esc_text(node.name)
+  out.write("\">")
+  write_tooltip(out, name, label.map(label => label.text))
   out.write(
-    "\"><rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(b.w)}\" height=\"\{@svg.num(b.h)}\" fill=\"\{@svg.series_color(b.series)}\"",
+    "<rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(b.w)}\" height=\"\{@svg.num(b.h)}\" fill=\"\{@svg.series_color(b.series)}\"",
   )
   @svg.write_rounded_style(out, style.shape)
   out.write("/>")
   if label is Some(label) {
     let cx = @svg.num(x + b.w / 2)
     let cy = y + b.h / 2
-    let value_size = @util.js_max(least, (label.size * 0.8).round())
+    let value_size = fixed.unwrap_or(
+      @util.js_max(least, (label.size * 0.8).round()),
+    )
     let lines = (label.size + value_size) * LINE
     if value != "" &&
       lines <= b.h - 4 &&
-      measurer.width(value, value_size, 0) <= room {
+      measurer.width(value, value_size, emphasis) <= room {
       let first = cy - lines / 2 + label.size * LINE / 2
       let second = cy + lines / 2 - value_size * LINE / 2
       write_text(

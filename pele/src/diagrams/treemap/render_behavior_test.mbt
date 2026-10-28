@@ -9,7 +9,7 @@ fn with_config(treemap : String, body : String) -> String {
 ///|
 /// The value of the attribute `name` on the rect drawn for the node `id`, or an empty string.
 fn attr_of(svg : String, id : String, name : String) -> String {
-  let at = @util.index_of(svg, "data-id=\"\{id}\"><rect ")
+  let at = rect_at(svg, id)
   let end = @util.index_of(svg, "/>", from=at)
   let element = @util.slice(svg, at, end~)
   quoted_after(element, " \{name}=\"")
@@ -177,10 +177,70 @@ test "unusable config is ignored" {
 }
 
 ///|
-test "a box that is too small for text still shows, without it" {
+test "a box that is too small for its text still shows, and names it in a tooltip" {
   let svg = drawn(
       "treemap\n\"A section with a very long name indeed\"\n  \"big\": 1000\n  \"A leaf with quite a long name\": 60\n  \"tiny\": 12\n\"other\": 3000",
     ).svg
-  inspect(svg.contains(">tiny<"), content="false")
+  inspect(svg.contains("\">tiny<"), content="false")
   inspect(svg.contains("data-id=\"tiny\""), content="true")
+  inspect(svg.contains("<title>tiny</title>"), content="true")
+  inspect(
+    svg.contains("<title>A section with a very long name indeed</title>"),
+    content="true",
+  )
+  inspect(svg.contains("<title>other</title>"), content="false")
+}
+
+///|
+test "every node of a large, deep tree is drawn" {
+  let source = StringBuilder()
+  source.write_string("treemap\n")
+  let mut leaves = 0
+  let mut sections = 0
+  for i in 0..<6 {
+    source.write_string("\"top \{i}\"\n")
+    sections += 1
+    for j in 0..<8 {
+      source.write_string("  \"mid \{i}.\{j}\"\n    \"inner \{i}.\{j}\"\n")
+      sections += 2
+      for k in 0..<8 {
+        let n = 1 + (i * 64 + j * 8 + k) % 37
+        source.write_string("      \"leaf \{i}.\{j}.\{k}\": \{n * n * n}\n")
+        leaves += 1
+      }
+    }
+  }
+  let svg = drawn(source.to_string()).svg
+  inspect(count(svg, "class=\"pele-node pele-leaf\"") == leaves, content="true")
+  inspect(
+    count(svg, "class=\"pele-node pele-section\"") == sections,
+    content="true",
+  )
+}
+
+///|
+test "text is fitted at the font size a class sets" {
+  let svg = drawn(
+      "treemap\n\"A section with a long name\":::head\n  \"A leaf with a fairly long name\": 30:::big\n  \"Another leaf with a long name\": 20:::big\n  \"rest\": 400\nclassDef big font-size:20px\nclassDef head font-size:18px",
+    ).svg
+  let measurer = @types.RenderOptions::default().text_measurer()
+  let checked = [
+    ("pele-section head", "A section with a long name", 18.0, @text.STYLE_BOLD),
+    ("pele-leaf big", "A leaf with a fairly long name", 20.0, 0),
+    ("pele-leaf big", "Another leaf with a long name", 20.0, 0),
+  ]
+  for item in checked {
+    let (kind, id, size, style) = item
+    let at = @util.index_of(
+      svg,
+      "class=\"pele-node \{kind}\" data-id=\"\{id}\">",
+    )
+    let body = @util.slice(svg, at, end=@util.index_of(svg, "</g>", from=at))
+    let (_, _, w, _) = box_of(svg, id)
+    let texts = texts_in(body)
+    inspect(texts.length() > 0, content="true")
+    for text in texts {
+      inspect(measurer.width(text, size, style) <= w - 8, content="true")
+    }
+  }
 }

@@ -8,6 +8,8 @@ pub(all) struct Box {
   /// A leaf's own value, or the sum of the leaves under a section.
   mut value : Double
   children : Array[Box]
+  /// Small sections give their header space to their children.
+  mut headed : Bool
   mut x : Double
   mut y : Double
   mut w : Double
@@ -24,7 +26,7 @@ pub(all) struct Insets {
 
 ///|
 /// Places the nodes that have a positive value as a squarified treemap in `width` by `height`.
-/// Returns every placed box with its size, parents before their children.
+/// Returns every box with a positive value, even one left with no room, parents before their children.
 pub fn layout_treemap(
   roots : Array[TreemapNode],
   width : Double,
@@ -57,9 +59,6 @@ pub fn layout_treemap(
     w : Double,
     h : Double,
   ) => {
-    if w <= 0 || h <= 0 {
-      return
-    }
     let shown = by_value(children.filter(b => b.value > 0))
     let mut total = 0.0
     for b in shown {
@@ -68,18 +67,29 @@ pub fn layout_treemap(
     if shown.is_empty() || total.is_nan() || total.is_inf() {
       return
     }
-    squarify(shown, total, x - gap / 2, y - gap / 2, w + gap, h + gap, gap)
+    if w > 0 && h > 0 {
+      squarify(shown, total, x - gap / 2, y - gap / 2, w + gap, h + gap, gap)
+    }
     for b in shown {
-      if b.w > 0 && b.h > 0 {
-        placed.push(b)
+      if w <= 0 || h <= 0 {
+        b.x = x
+        b.y = y
+        b.w = @util.js_max(0, w)
+        b.h = @util.js_max(0, h)
       }
+      placed.push(b)
     }
   }
   place(top, 0, 0, width, height)
   let mut i = 0
   while i < placed.length() {
     let b = placed[i]
-    if b.children.length() > 0 {
+    i += 1
+    if b.children.is_empty() {
+      continue
+    }
+    b.headed = b.w > 2 * side && b.h > header + side
+    if b.headed {
       place(
         b.children,
         b.x + side,
@@ -87,8 +97,9 @@ pub fn layout_treemap(
         b.w - 2 * side,
         b.h - header - side,
       )
+    } else {
+      place(b.children, b.x, b.y, b.w, b.h)
     }
-    i += 1
   }
   placed
 }
@@ -99,7 +110,18 @@ fn make_box(node : TreemapNode, parent : Box?, series : Int32) -> Box {
     (None, Some(v)) if !v.is_nan() && !v.is_inf() && v > 0 => v
     _ => 0.0
   }
-  { node, parent, series, value, children: [], x: 0, y: 0, w: 0, h: 0, }
+  {
+    node,
+    parent,
+    series,
+    value,
+    children: [],
+    headed: false,
+    x: 0,
+    y: 0,
+    w: 0,
+    h: 0,
+  }
 }
 
 ///|
@@ -172,14 +194,23 @@ fn squarify(
       let across = w >= h
       let bx = if across { x } else { x + offset }
       let by = if across { y + offset } else { y }
-      let left = (bx + gap / 2).round()
-      let top = (by + gap / 2).round()
-      b.x = left
-      b.y = top
-      b.w = (bx + (if across { thickness } else { length }) - gap / 2).round() -
-        left
-      b.h = (by + (if across { length } else { thickness }) - gap / 2).round() -
-        top
+      let bw = if across { thickness } else { length }
+      let bh = if across { length } else { thickness }
+      // A box thinner than the gap keeps its sliver instead of losing it to the gap.
+      let gx = if (bx + bw - gap / 2).round() > (bx + gap / 2).round() {
+        gap / 2
+      } else {
+        0
+      }
+      let gy = if (by + bh - gap / 2).round() > (by + gap / 2).round() {
+        gap / 2
+      } else {
+        0
+      }
+      b.x = (bx + gx).round()
+      b.y = (by + gy).round()
+      b.w = (bx + bw - gx).round() - b.x
+      b.h = (by + bh - gy).round() - b.y
       offset += length
       rest -= b.value
     }

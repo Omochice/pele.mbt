@@ -191,15 +191,62 @@ test "what has no positive value is left out" {
 }
 
 ///|
-test "a section too small for its header is placed without its children" {
+test "a section too small for its header gives its children its whole box" {
   inspect(
     laid_out([section("s", [leaf("a", 1)])], 50, 20),
-    content="s s0 v1 @0,0 50x20",
+    content=(
+      #|s s0 v1 @0,0 50x20
+      #|a s0 v1 @0,0 50x20
+    ),
+  )
+  let tree = [
+    section("s", [leaf("a", 2), section("t", [leaf("b", 1), leaf("c", 1)])]),
+  ]
+  let boxes = @treemap.layout_treemap(tree, 300, 30, insets)
+  inspect(boxes.map(b => b.node.name).join(" "), content="s a t b c")
+  let s = boxes[0]
+  inspect(s.headed, content="false")
+  for b in boxes[1:] {
+    inspect(
+      b.w * b.h > 0 &&
+      b.x >= s.x &&
+      b.y >= s.y &&
+      b.x + b.w <= s.x + s.w &&
+      b.y + b.h <= s.y + s.h,
+      content="true",
+    )
+  }
+  inspect(
+    @treemap.layout_treemap(tree, 300, 300, insets)[0].headed,
+    content="true",
   )
 }
 
 ///|
-test "a frame with no area places nothing" {
-  inspect(laid_out([leaf("a", 1)], 0, 100), content="")
-  inspect(laid_out([leaf("a", 1)], 100, -1), content="")
+test "a box thinner than the gap is kept, and so is one with no room at all" {
+  let thin = @treemap.layout_treemap(
+    [leaf("big", 397), leaf("thin", 3)],
+    400,
+    100,
+    insets,
+  )
+  inspect(thin.map(b => b.node.name).join(" "), content="big thin")
+  inspect(thin[1].w > 0, content="true")
+  inspect(overlap(thin[0], thin[1]), content="false")
+  let speck = @treemap.layout_treemap(
+    [leaf("big", 1.0e6), section("s", [leaf("speck", 1)])],
+    100,
+    100,
+    insets,
+  )
+  inspect(speck.map(b => b.node.name).join(" "), content="big s speck")
+  for b in speck[1:] {
+    inspect(b.w * b.h, content="0")
+  }
+}
+
+///|
+test "a frame with no area keeps its boxes with no size" {
+  inspect(laid_out([leaf("a", 1)], 0, 100), content="a s0 v1 @0,0 0x100")
+  inspect(laid_out([leaf("a", 1)], 100, -1), content="a s0 v1 @0,0 100x0")
 }

@@ -28,6 +28,7 @@ pub(all) struct Box {
   series : Int32
   mut value : Double
   children : Array[Box]
+  mut headed : Bool
   mut x : Double
   mut y : Double
   mut w : Double
