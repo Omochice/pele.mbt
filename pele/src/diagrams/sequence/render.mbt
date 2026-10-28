@@ -1017,6 +1017,7 @@ fn draw(
     }
     lo < xs.length() && xs[lo] < x1
   }
+  let stack : Array[Frame] = []
   fn write_backed(
     out : @svg.Markup,
     label : @text.Label,
@@ -1117,7 +1118,6 @@ fn draw(
     "<g class=\"pele-sequence-number\"><rect x=\"\{n(cx - w / 2)}\" y=\"\{n(cy - BADGE_H / 2)}\" width=\"\{n(w)}\" height=\"\{BADGE_H}\" rx=\"\{BADGE_H / 2}\" fill=\"var(--_l)\" stroke=\"none\"/><text x=\"\{n(cx)}\" y=\"\{n(cy + tiny * 0.35)}\" text-anchor=\"middle\" font-size=\"\{tiny}\" fill=\"var(--_bg)\" stroke=\"none\">\{@svg.esc(numbering.index[i].to_string())}</text></g>"
   }
   let mut y = head_bottom + 6
-  let stack : Array[Frame] = []
   for i in 0..<count {
     let m = messages[i]
     let kind = m.kind
