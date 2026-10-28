@@ -143,4 +143,11 @@ test "cases an edge as wide and as faint as its line style makes it" {
   inspect(casings("", "none"), content="")
   inspect(casings("", "transparent"), content="")
   inspect(casings("", "#0000"), content="")
+  let faded = svg(
+    "flowchart TB\nsubgraph S\n  A --> B\nend\nstyle S fill:black,opacity:0",
+  )
+  inspect(
+    faded.contains("pele-casings") || faded.contains("--pele-fg-on"),
+    content="false",
+  )
 }

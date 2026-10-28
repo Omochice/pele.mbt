@@ -386,22 +386,75 @@ fn raw_value(css : String, name : String) -> String? {
 }
 
 ///|
-/// How opaque the `fill-opacity` declaration of a `style` attribute leaves its fill, or NaN when it
-/// is not a plain number.
-fn attribute_opacity(attrs : String) -> Double {
-  match attribute_value(attrs, "fill-opacity") {
-    Some(opacity) => amount(@util.trim(opacity), 1)
-    None => 1
+/// The length of the `fill-opacity:` or `opacity:` key that starts at `at`, or 0 when neither does.
+fn opacity_key(text : String, at : Int32) -> Int32 {
+  if @util.starts_with_at(text, "fill-opacity:", at) {
+    13
+  } else if @util.starts_with_at(text, "opacity:", at) {
+    8
+  } else {
+    0
   }
 }
 
 ///|
-/// `attribute_opacity` of the `style` attribute made of the raw `css`.
-fn raw_opacity(css : String) -> Double {
-  match raw_value(css, "fill-opacity") {
-    Some(opacity) => amount(@util.trim(opacity), 1)
-    None => 1
+/// How opaque the `fill-opacity` and `opacity` declarations of a `style` attribute leave its fill, as
+/// `/[";](?:fill-)?opacity:([^;"]*)/g` finds them, or NaN when one is not a plain number.
+fn attribute_opacity(attrs : String) -> Double {
+  let mut product = 1.0
+  let mut at = 0
+  while at < attrs.length() {
+    let c = @util.code_at(attrs, at)
+    let key = if c == '"' || c == ';' { opacity_key(attrs, at + 1) } else { 0 }
+    if key == 0 {
+      at += 1
+      continue
+    }
+    let start = at + 1 + key
+    let mut end = start
+    while end < attrs.length() &&
+          @util.code_at(attrs, end) != ';' &&
+          @util.code_at(attrs, end) != '"' {
+      end += 1
+    }
+    product *= amount(@util.trim(@util.slice(attrs, start, end~)), 1)
+    at = end
   }
+  product
+}
+
+///|
+/// `attribute_opacity` of the `style` attribute made of the raw `css`, read as `raw_value` reads a declaration.
+fn raw_opacity(css : String) -> Double {
+  let mut product = 1.0
+  let mut at = 0
+  while at < css.length() {
+    let opens = at == 0 ||
+      @util.code_at(css, at - 1) == ';' ||
+      escape_head(@util.code_at(css, at - 1)) is Some(_)
+    let key = if opens { opacity_key(css, at) } else { 0 }
+    if key == 0 {
+      at += 1
+      continue
+    }
+    let start = at + key
+    let mut end = start
+    let mut head = ""
+    while end < css.length() {
+      let c = @util.code_at(css, end)
+      if c == ';' {
+        break
+      }
+      if escape_head(c) is Some(escaped) {
+        head = escaped
+        break
+      }
+      end += 1
+    }
+    product *= amount(@util.trim(@util.slice(css, start, end~) + head), 1)
+    at = end
+  }
+  product
 }
 
 ///|

@@ -245,6 +245,9 @@ test "leaves labels alone on fills under half opaque" {
   assert_eq(ink_for(["fill:#0009", "fill-opacity:0.8"]), None)
   assert_eq(ink_for(["fill:#000", "fill-opacity:calc(0.1)"]), None)
   assert_eq(ink_for(["fill:#000", "fill-opacity:var(--fade)"]), None)
+  assert_eq(ink_for(["fill:#000", "opacity:0.4"]), None)
+  assert_eq(ink_for(["fill:#000", "opacity:0.8", "fill-opacity:0.6"]), None)
+  assert_eq(ink_for(["fill:#000", "opacity:0.8"]), Some(ON_DARK))
 }
 
 ///|
@@ -259,6 +262,9 @@ test "reads raw CSS as the attribute it is escaped into" {
   assert_eq(ink_for(["stroke:x&fill:black"]), Some(ON_DARK))
   assert_eq(ink_for(["fill:#fff&", "stroke:red"]), None)
   assert_eq(ink_for(["fill:#000", "stroke:\"&fill-opacity:0.1"]), None)
+  assert_eq(ink_for(["fill:#000", "stroke:\"&opacity:0.1"]), None)
+  assert_eq(ink_for(["fill:#000", "stroke:a&opacity:0.9", "opacity:0.5"]), None)
+  assert_eq(ink_for(["fill:#000", "stroke-opacity:0.1"]), Some(ON_DARK))
   assert_eq(ink_for(["fill:#000", "color:a&b"]), None)
 }
 
