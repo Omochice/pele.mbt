@@ -255,23 +255,51 @@ fn word(text : String) -> @common.TokenType {
 }
 
 ///|
-fn one_of(
+/// Whether `[-\w]*\w` matches at `at`, that is, whether a name goes on there.
+fn continues_name(src : String, at : Int32) -> Bool {
+  let mut i = at
+  while true {
+    let c = @util.code_at(src, i)
+    if @util.is_word(c) {
+      return true
+    }
+    if c != '-'.to_int() {
+      break
+    }
+    i += 1
+  }
+  false
+}
+
+///|
+/// A value of the option whose token type is `option`.
+/// It gives way to a longer name, except right after its option, as in `graticule polygonaxis`.
+fn option_value(
   name : String,
   choices : Array[String],
   first : String,
+  option : Int32,
 ) -> @common.TokenType {
-  @common.pattern(
+  {
     name,
-    (src, p) => {
-      for choice in choices {
-        if @util.starts_with_at(src, choice, p) {
-          return p + choice.length()
+    scanner: () => {
+      (src, p, previous) => {
+        for choice in choices {
+          if @util.starts_with_at(src, choice, p) {
+            let end = p + choice.length()
+            return if previous == option || !continues_name(src, end) {
+              end
+            } else {
+              @common.NO_MATCH
+            }
+          }
         }
+        @common.NO_MATCH
       }
-      @common.NO_MATCH
     },
-    first~,
-  )
+    first: Some(first),
+    hidden: false,
+  }
 }
 
 ///|
@@ -295,11 +323,11 @@ let radar_tokens : Array[@common.TokenType] = [
   @common.literal("]", "]"),
   @common.literal("{", "{"),
   @common.literal("}", "}"),
-  one_of("GRATICULE", ["circle", "polygon"], "cp"),
-  one_of("BOOLEAN", ["true", "false"], "tf"),
+  option_value("GRATICULE", ["circle", "polygon"], "cp", GRATICULE),
+  option_value("BOOLEAN", ["true", "false"], "tf", SHOW_LEGEND),
   { ..@common.acc_descr, scanner: acc_descr_scanner, },
   @common.acc_title,
-  @common.title,
+  @common.title_before(continues_name),
   {
     name: "NUMBER",
     scanner: number_scanner,

@@ -196,22 +196,32 @@ pub let acc_title : TokenType = pattern(
 
 ///|
 /// `[\t ]*title(?:[\t ][^\n\r]*?(?=%%)|[\t ][^\n\r]*|)`
-pub let title : TokenType = pattern(
-  "TITLE",
-  (src, p) => {
-    let start = skip_blanks(src, p)
-    if !@util.starts_with_at(src, "title", start) {
-      return NO_MATCH
-    }
-    let after = start + "title".length()
-    if @util.is_blank(@util.code_at(src, after)) {
-      line_or_comment_end(src, after + 1)
-    } else {
-      after
-    }
-  },
-  first="\t t",
-)
+pub let title : TokenType = title_before((_, _) => false)
+
+///|
+/// `title` that does not match a bare `title` where `rest` answers that a name goes on at the
+/// index after it, so that `title` does not split a longer name.
+/// `rest` stands for the lookahead of `[\t ]*title(?:[\t ][^\n\r]*?(?=%%)|[\t ][^\n\r]*|(?!rest))`.
+pub fn title_before(rest : (String, Int32) -> Bool) -> TokenType {
+  pattern(
+    "TITLE",
+    (src, p) => {
+      let start = skip_blanks(src, p)
+      if !@util.starts_with_at(src, "title", start) {
+        return NO_MATCH
+      }
+      let after = start + "title".length()
+      if @util.is_blank(@util.code_at(src, after)) {
+        line_or_comment_end(src, after + 1)
+      } else if rest(src, after) {
+        NO_MATCH
+      } else {
+        after
+      }
+    },
+    first="\t t",
+  )
+}
 
 ///|
 /// Where `"([^"\\]|\\.)*"`, or its single-quoted twin, matches the string whose quote is at `p`: its end, or -1.

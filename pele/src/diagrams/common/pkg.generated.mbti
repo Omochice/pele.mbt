@@ -93,6 +93,8 @@ pub fn tighten(@types.RenderOptions, (Bool) -> @types.Rendered raise?) -> @types
 
 pub let title : TokenType
 
+pub fn title_before((String, Int32) -> Bool) -> TokenType
+
 pub fn title_room(@types.RenderOptions) -> Double
 
 pub fn title_value(String) -> String
