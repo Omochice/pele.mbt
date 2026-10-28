@@ -69,7 +69,7 @@ fn draw_lane(
     label,
     cx,
     cy,
-    " class=\"pele-cluster-label\" fill=\"var(--_m)\"\{style.text}",
+    " class=\"pele-cluster-label\"\{@svg.ink_fill(style, fallback="var(--_m)")}\{style.text}",
     icons?,
   )
   let band_w = if sideways { c.pad_top } else { c.w }

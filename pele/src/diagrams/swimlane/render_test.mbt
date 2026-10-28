@@ -237,6 +237,33 @@ test "draws one lane per top-level subgraph and keeps each node in its lane" {
 }
 
 ///|
+/// The opening tag of the first text drawn after `data-id="id"`.
+fn text_tag_after(svg : String, id : String) -> String {
+  let from = @util.index_of(
+    svg,
+    "<text",
+    from=@util.index_of(svg, "data-id=\"\{id}\""),
+  )
+  @util.slice(svg, from, end=@util.index_of(svg, ">", from~) + 1)
+}
+
+///|
+test "picks a contrasting lane title color on a fill a style sets" {
+  let svg = svg_of(
+    "swimlane-beta LR\n  subgraph L[Light]\n    a\n  end\n  subgraph D[Dark]\n    b\n  end\n  subgraph P[Plain]\n    c\n  end\n  style L fill:#BBDEFB\n  style D fill:#1f3a5f",
+  )
+  inspect(
+    ["L", "D", "P", "a"].map(id => text_tag_after(svg, id)).join("\n"),
+    content=(
+      #|<text class="pele-cluster-label" fill="var(--pele-fg-on-light,#1f1f1f)" x="28" y="61.6" text-anchor="middle">
+      #|<text class="pele-cluster-label" fill="var(--pele-fg-on-dark,#fff)" x="28" y="157.6" text-anchor="middle">
+      #|<text class="pele-cluster-label" fill="var(--_m)" x="28" y="253.6" text-anchor="middle">
+      #|<text class="pele-label" x="0" y="5.6" text-anchor="middle">
+    ),
+  )
+}
+
+///|
 test "stacks lanes down the page when the flow runs sideways, and across it otherwise" {
   let sideways = svg_of(order)
   assert_true(lane(sideways, "Customer").y < lane(sideways, "Warehouse").y)
