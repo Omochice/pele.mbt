@@ -32,6 +32,19 @@
 // Other options reach pele under their own names.
 #assert(render(flowchart, fontSize: 20).svg.contains("font:20px"))
 
+// monospace lists parts that are measured and drawn in the theme's mono font.
+#let members = "classDiagram\n  class A {\n    +title: string\n  }"
+#let mono = render(members, monospace: ("members",))
+#assert(mono.svg.contains("<g class=\"pele-members\" font-size=\"14\" font-family=\"DejaVu Sans Mono\">"), message: mono.svg)
+#assert(mono.width > render(members).width, message: "the members are measured in the mono font")
+#assert(render(members, monospace: ("members",), theme: none).svg.contains("font-family=\"var(--_fm)\""))
+
+// A string is not a list of parts, so pele draws as without the option.
+#assert.eq(render(members, monospace: ("members")).svg, render(members).svg)
+
+// The README's monospace parts compile as written.
+#mermaid(monospace: ("members",), "classDiagram\n  class A {\n    +title: string\n  }")
+
 // Icons reach pele as a dictionary from icon name to SVG fragment.
 #let car = "<path d=\"M3,14H21V18H3Z\"/>"
 #let iconic = render("graph TD\n  A[fa:fa-car Car]\n  B[fa:fa-bus Bus]", icons: ("fa:fa-car": car))
