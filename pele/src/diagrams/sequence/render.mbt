@@ -1015,30 +1015,31 @@ fn draw(
     lo < xs.length() && xs[lo] < x1
   }
   let stack : Array[Frame] = []
+  let ink_of = (fill : String?) => {
+    guard fill is Some(fill) && fill != "" else { return None }
+    @svg.raw_ink(@svg.resolve_raw_style(["fill:" + fill]).shape)
+  }
   let ink_on = (fill : String?) => {
-    guard fill is Some(fill) && fill != "" else { return "" }
-    match @svg.raw_ink(@svg.resolve_raw_style(["fill:" + fill]).shape) {
+    match ink_of(fill) {
       Some(color) => " fill=\"\{color}\""
       None => ""
     }
   }
   // Prefer the innermost rect's fill, then a containing box's.
-  let under = (l : Double, r : Double) => {
-    let mut fill = None
-    for k = stack.length() - 1; k >= 0 && fill is None; k = k - 1 {
+  let fill_under = (l : Double, r : Double) => {
+    for k = stack.length() - 1; k >= 0; k = k - 1 {
       if stack[k].kind == "rect" {
-        fill = Some(stack[k].fill)
+        return Some(stack[k].fill)
       }
     }
-    if fill is None {
-      for run in runs {
-        if l >= run_left(run) && r <= run_right(run) {
-          fill = Some(run.box.fill)
-        }
+    for run in runs {
+      if l >= run_left(run) && r <= run_right(run) {
+        return Some(run.box.fill)
       }
     }
-    ink_on(fill)
+    None
   }
+  let under = (l : Double, r : Double) => ink_on(fill_under(l, r))
   fn write_backed(
     out : @svg.Markup,
     label : @text.Label,
