@@ -129,7 +129,7 @@ fn member_line(
 ///|
 /// Whether the members of a class with `style` are measured and drawn in the monospace font.
 fn mono_members(options : @types.RenderOptions, style : @svg.RawStyle) -> Bool {
-  // Explicit class fonts override monospace.
+  // A font the author names in a style or classDef is a choice about this class, so it outranks a diagram-wide option.
   options.monospaces("members") &&
   !@svg.sets_font_family(@svg.style_attribute(style.text))
 }
