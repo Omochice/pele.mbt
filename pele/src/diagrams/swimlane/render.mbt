@@ -93,6 +93,18 @@ fn draw_lane(
 }
 
 ///|
+/// The band at the start of a lane that holds its title, which is the part a style fills.
+fn lane_band(c : @layout.CNode, dir : @layout.Dir) -> Array[Double] {
+  let left = c.x - c.w / 2
+  let top = c.y - c.h / 2
+  if dir is (LR | RL) {
+    [left, top, left + c.pad_top, top + c.h]
+  } else {
+    [left, top, left + c.w, top + c.pad_top]
+  }
+}
+
+///|
 let variant : @flowchart.FlowVariant = {
   kind: "swimlane",
   prepare,
@@ -106,7 +118,7 @@ let variant : @flowchart.FlowVariant = {
     )
   },
   draw_group: Some(draw_lane),
-  filled_box: None,
+  filled_box: Some(lane_band),
 }
 
 ///|

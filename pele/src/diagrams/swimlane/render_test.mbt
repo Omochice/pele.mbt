@@ -264,6 +264,17 @@ test "picks a contrasting lane title color on a fill a style sets" {
 }
 
 ///|
+test "cases edges that run over a lane band a style fills" {
+  let source = "swimlane-beta TB\nsubgraph S[\"one<br/>two<br/>three<br/>four<br/>five<br/>six<br/>seven<br/>eight\"]\n  A\nend\nS --> S\nstyle S fill:black"
+  assert_true(svg_of(source).contains("class=\"pele-casings\""))
+  assert_false(
+    svg_of(source.replace(old="\nstyle S fill:black", new="")).contains(
+      "class=\"pele-casings\"",
+    ),
+  )
+}
+
+///|
 test "stacks lanes down the page when the flow runs sideways, and across it otherwise" {
   let sideways = svg_of(order)
   assert_true(lane(sideways, "Customer").y < lane(sideways, "Warehouse").y)
