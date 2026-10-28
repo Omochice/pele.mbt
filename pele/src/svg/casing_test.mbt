@@ -79,11 +79,24 @@ test "runs_inside tells a path that runs over a box from one along or outside it
       #|  true,
       #|  false,
       #|  false,
-      #|  true,
+      #|  false,
       #|  false,
       #|  false,
       #|]
     ),
+  )
+}
+
+///|
+test "runs_inside follows an arc around its bulge, not only to its end" {
+  let arcs = [
+    "M-5,20A20,20 0 0 1 -5,-10", "M-5,20A20,20 0 0 0 -5,-10", "M-5,20A20,20 0 1 1 -5,-10",
+    "M-5,20A20,20 0 1 0 -5,-10", "M-5,20A1,1 0 0 1 -5,-10", "M-5,20A0,20 0 0 1 15,5",
+    "M-5,5A5,5 0 0 1 -5,5",
+  ]
+  inspect(
+    arcs.map(d => @svg.runs_inside(d, [0, 0, 10, 10]).to_string()).join(" "),
+    content="false true false false false true false",
   )
 }
 

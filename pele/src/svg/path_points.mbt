@@ -63,8 +63,56 @@ fn path_numbers(text : String, from : Int32, end : Int32) -> Array[Double] {
 }
 
 ///|
-/// Points along a path as x, y pairs: its corners, eight samples along each curve, and the end of
-/// each arc.
+/// Pushes eight points along an unrotated arc from (`x1`, `y1`) to (`x2`, `y2`), or just its end when
+/// it has no radius or no length, finding its center as SVG converts the end points of an arc.
+fn sample_arc(
+  out : Array[Double],
+  x1 : Double,
+  y1 : Double,
+  rx : Double,
+  ry : Double,
+  large : Double,
+  sweep : Double,
+  x2 : Double,
+  y2 : Double,
+) -> Unit {
+  let hx = (x1 - x2) / 2
+  let hy = (y1 - y2) / 2
+  if rx == 0 || ry == 0 || (hx == 0 && hy == 0) {
+    out.push(x2)
+    out.push(y2)
+    return
+  }
+  let scale = @util.js_max(
+    1,
+    (hx * hx / (rx * rx) + hy * hy / (ry * ry)).sqrt(),
+  )
+  let rx = rx * scale
+  let ry = ry * scale
+  let k = (if large == sweep { -1.0 } else { 1.0 }) *
+    @util.js_max(
+      0,
+      (rx * rx * ry * ry - rx * rx * hy * hy - ry * ry * hx * hx) /
+      (rx * rx * hy * hy + ry * ry * hx * hx),
+    ).sqrt()
+  let cx = k * rx * hy / ry + (x1 + x2) / 2
+  let cy = -k * ry * hx / rx + (y1 + y2) / 2
+  let from = @math.atan2((y1 - cy) / ry, (x1 - cx) / rx)
+  let mut turn = @math.atan2((y2 - cy) / ry, (x2 - cx) / rx) - from
+  if sweep != 0 && turn < 0 {
+    turn += 2 * @math.PI
+  } else if sweep == 0 && turn > 0 {
+    turn -= 2 * @math.PI
+  }
+  for i in 1..<=8 {
+    let at = from + turn * i.to_double() / 8
+    out.push(cx + rx * @math.cos(at))
+    out.push(cy + ry * @math.sin(at))
+  }
+}
+
+///|
+/// Points along a path as x, y pairs: its corners and eight samples along each curve and arc.
 /// A NaN pair separates subpaths, so no segment joins the end of one to the start of the next.
 fn path_points(d : String) -> Array[Double] {
   let out : Array[Double] = []
@@ -119,19 +167,36 @@ fn path_points(d : String) -> Array[Double] {
         y = ys[ys.length() - 1]
         k += step
       }
-    } else {
-      let step = if cmd == 'A' { 7 } else { 2 }
+    } else if cmd == 'A' {
       let mut k = 0
-      while k + step <= args.length() {
+      while k + 7 <= args.length() {
+        sample_arc(
+          out,
+          x,
+          y,
+          args[k],
+          args[k + 1],
+          args[k + 3],
+          args[k + 4],
+          args[k + 5],
+          args[k + 6],
+        )
+        x = args[k + 5]
+        y = args[k + 6]
+        k += 7
+      }
+    } else {
+      let mut k = 0
+      while k + 2 <= args.length() {
         if cmd == 'M' && k == 0 && out.length() > 0 {
           out.push(@double.not_a_number)
           out.push(@double.not_a_number)
         }
-        x = args[k + step - 2]
-        y = args[k + step - 1]
+        x = args[k]
+        y = args[k + 1]
         out.push(x)
         out.push(y)
-        k += step
+        k += 2
       }
     }
     at = end

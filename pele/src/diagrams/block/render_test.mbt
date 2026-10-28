@@ -875,6 +875,27 @@ test "cases edges that run over a composite fill a style sets" {
 }
 
 ///|
+test "cases a loop whose arc alone bulges over a composite fill" {
+  let svg = block_svg(
+    "block\n  columns 2\n  a\n  block:g\n    b\n  end\n  a --> a\n  a --> a\n  style g fill:black",
+  )
+  let at = @util.index_of(svg, "<g class=\"pele-casings\"")
+  let casings = if at == -1 {
+    ""
+  } else {
+    read_until(svg, at, "</g><g class=\"pele-edges\"")
+  }
+  inspect(
+    edge_paths(svg)
+    .map(d => casings.contains("<path d=\"\{d}\"/>").to_string())
+    .join(" "),
+    content=(
+      #|false true
+    ),
+  )
+}
+
+///|
 test "draws the front matter title" {
   guard block_render("block\n  a") is Ok(plain) else { fail("rejected") }
   guard block_render("---\ntitle: Systems\n---\nblock\n  a") is Ok(titled) else {
