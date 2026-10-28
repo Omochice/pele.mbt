@@ -242,12 +242,15 @@ fn draw(
   let casings = @svg.Markup::new()
   let edges_out = @svg.Markup::new()
   let trim = @svg.marker_trim("arrow_point")
-  let filled : Array[Double] = []
+  let fills : Array[@svg.Fill] = []
   for i, group in order {
-    if i > 0 &&
-      @svg.raw_paints(user_style(group.boundary.bg_color, None, None).shape) {
+    if i == 0 {
+      continue
+    }
+    let shape = user_style(group.boundary.bg_color, None, None).shape
+    if @svg.raw_paints(shape) {
       let g = group.box
-      filled.push_iter([g.x, g.y, g.x + g.w, g.y + g.h].iter())
+      fills.push(@svg.Fill::raw([g.x, g.y, g.x + g.w, g.y + g.h], shape))
     }
   }
   let lanes = Lanes::new()
@@ -261,8 +264,16 @@ fn draw(
     let a = ends[index * 2]
     let b = ends[index * 2 + 1]
     let style = user_style(None, rel.line_color, None)
-    let write_marker = (x : Double, y : Double, dx : Double, dy : Double) => {
+    let write_marker = (
+      x : Double,
+      y : Double,
+      dx : Double,
+      dy : Double,
+      ink : String,
+    ) => {
       match style.stroke {
+        _ if ink != "" =>
+          edges_out.write(@svg.marker("arrow_point", x, y, dx, dy, ink))
         Some(stroke) if stroke != "" =>
           @svg.write_styled(
             edges_out,
@@ -327,7 +338,14 @@ fn draw(
         r.ey + @svg.ARROW,
       )
     }
-    if @svg.runs_inside(r.d, filled) {
+    let over = @svg.raw_over_fills(
+      r.d,
+      [r.sx, r.sy, r.ex, r.ey],
+      fills,
+      css=style.line,
+    )
+    let ink = over.unwrap_or("")
+    if over is Some("") {
       casings.write(
         @svg.raw_edge_casing(
           {
@@ -358,13 +376,16 @@ fn draw(
     edges_out.write("<g class=\"pele-edge\" data-id=\"")
     edges_out.write_esc_text(rel.from + "-" + rel.to)
     edges_out.write("\"")
+    if ink != "" {
+      edges_out.write(" stroke=\"\{ink}\"")
+    }
     @svg.write_style(edges_out, style.line)
     edges_out.write("><path d=\"\{r.d}\"/>")
     if start_arrow {
-      write_marker(r.sx, r.sy, r.sdx, r.sdy)
+      write_marker(r.sx, r.sy, r.sdx, r.sdy, ink)
     }
     if end_arrow {
-      write_marker(r.ex, r.ey, r.edx, r.edy)
+      write_marker(r.ex, r.ey, r.edx, r.edy, ink)
     }
     edges_out.write("</g>")
     routes.push(r)

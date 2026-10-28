@@ -960,7 +960,7 @@ fn casings_of(svg : String) -> String {
 }
 
 ///|
-test "cases relations that run over a boundary fill a style sets" {
+test "cases relations that cross a boundary fill a style sets and inks those inside it" {
   let source =
     #|C4Context
     #|Boundary(b, "B") {
@@ -980,26 +980,41 @@ test "cases relations that run over a boundary fill a style sets" {
     .map(id => "\{id} \{casings.contains("<path d=\"\{line_of(svg, id)}\"/>")}")
     .join("\n"),
     content=(
-      #|x-y true
+      #|x-y false
       #|y-z true
       #|z-w false
     ),
   )
+  // x --> y lies inside the boundary and takes its ink; y --> z crosses out of it.
+  let head = (svg : String, id : String) => {
+    let at = @util.index_of(svg, "class=\"pele-edge\" data-id=\"\{id}\"")
+    let marker = @util.index_of(svg, "<path class=\"pele-marker\"", from=at)
+    @util.slice(svg, at, end=@util.index_of(svg, ">", from=at) + 1) +
+    " " +
+    @util.slice(svg, marker, end=@util.index_of(svg, "/>", from=marker) + 2)
+  }
   inspect(
-    svg_of(
-      source.replace(
-        old="UpdateElementStyle(b, $bgColor=\"lightyellow\")",
-        new="",
-      ),
-    ).contains("pele-casings"),
-    content="false",
+    head(svg, "x-y"),
+    content=(
+      #|class="pele-edge" data-id="x-y" stroke="var(--pele-fg-on-light,#1f1f1f)"> <path class="pele-marker" d="M364,227L356,230.36L356,223.64Z" fill="var(--pele-fg-on-light,#1f1f1f)" stroke="none"/>
+    ),
   )
+  let plain = svg_of(
+    source.replace(
+      old="UpdateElementStyle(b, $bgColor=\"lightyellow\")",
+      new="",
+    ),
+  )
+  inspect(plain.contains("pele-casings"), content="false")
+  inspect(plain.contains("stroke=\"var(--pele-fg-on"), content="false")
   let looped = svg_of(
     "C4Context\nBoundary(S, \"S\") {\n  System(A, \"A\")\n}\nRel(A, A, \"self\")\nUpdateElementStyle(S, $bgColor=\"white\")",
   )
   inspect(
-    casings_of(looped).contains("<path d=\"\{line_of(looped, "A-A")}\"/>"),
-    content="true",
+    head(looped, "A-A"),
+    content=(
+      #|class="pele-edge" data-id="A-A" stroke="var(--pele-fg-on-light,#1f1f1f)"> <path class="pele-marker" d="M244,123L252.66,122.53L250.4,128.85Z" fill="var(--pele-fg-on-light,#1f1f1f)" stroke="none"/>
+    ),
   )
 }
 
