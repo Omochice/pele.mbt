@@ -14,6 +14,9 @@ const ELBOW : Double = 4
 const HIGHLIGHT_OVERHANG : Double = 4
 
 ///|
+const FONT_MONO : String = "var(--_fm)"
+
+///|
 fn setting(
   config : @types.Config,
   key : String,
@@ -106,6 +109,8 @@ fn draw(
   let measurer = options.text_measurer()
   let pad = options.padding.unwrap_or(8)
   let icons = icon_config(config)
+  let mono = options.monospaces("files")
+  let family = if mono { " font-family=\"\{FONT_MONO}\"" } else { "" }
   let { padding_x, padding_y, row_indent, line_thickness, } = tree_settings(
     config,
   )
@@ -182,16 +187,10 @@ fn draw(
       40,
       max_width - 2 * pad - 2 * HIGHLIGHT_OVERHANG - label_x,
     )
+    let style = (if directory { @text.STYLE_BOLD } else { 0 }) |
+      (if mono { @text.STYLE_MONO } else { 0 })
     let label = if tight {
-      Some(
-        @common.literal_label(
-          text,
-          measurer,
-          size,
-          room,
-          style=if directory { @text.STYLE_BOLD } else { 0 },
-        ),
-      )
+      Some(@common.literal_label(text, measurer, size, room, style~))
     } else {
       None
     }
@@ -210,8 +209,7 @@ fn draw(
     }
     let width = match label {
       Some(label) => label.width
-      None =>
-        measurer.width(text, size, if directory { @text.STYLE_BOLD } else { 0 })
+      None => measurer.width(text, size, style)
     }
     if label_x + width > label_right {
       label_right = label_x + width
@@ -348,12 +346,12 @@ fn draw(
           label,
           inset + row.label_x,
           top + row.top + padding_y,
-          " class=\"pele-label\"\{weight}",
+          " class=\"pele-label\"\{weight}\{family}",
         )
       None =>
         if row.text != "" {
           inner.write(
-            "<text class=\"pele-label\" x=\"\{@svg.num(inset + row.label_x)}\" y=\"\{@svg.num(cy + baseline)}\"\{weight} xml:space=\"preserve\">",
+            "<text class=\"pele-label\" x=\"\{@svg.num(inset + row.label_x)}\" y=\"\{@svg.num(cy + baseline)}\"\{weight}\{family} xml:space=\"preserve\">",
           )
           inner.write_esc(row.text)
           inner.write("</text>")

@@ -6,8 +6,14 @@ fn drawn(
   source : String,
   max_width? : Double,
   icons? : @types.IconResolver,
+  monospace? : Array[String],
 ) -> Result[@types.RenderResult, @errors.Failure] {
-  let options = { ..@types.RenderOptions::default(), max_width, icons, }
+  let options = {
+    ..@types.RenderOptions::default(),
+    max_width,
+    icons,
+    monospace,
+  }
   Ok(@core.render([@treeview.treeview], source, options)) catch {
     @errors.PeleError(failure) => Err(failure)
   }
@@ -18,8 +24,9 @@ fn svg(
   source : String,
   max_width? : Double,
   icons? : @types.IconResolver,
+  monospace? : Array[String],
 ) -> String {
-  match drawn(source, max_width?, icons?) {
+  match drawn(source, max_width?, icons?, monospace?) {
     Ok(result) => result.svg
     Err(failure) => failure.message
   }
@@ -122,6 +129,60 @@ test "highlights, descriptions in one column, and extra classes" {
   let xs = numbers_after(out, "class=\"pele-tree-description\" x=\"")
   inspect(xs.length(), content="2")
   inspect(xs[0] == xs[1], content="true")
+}
+
+///|
+/// The opening tag and the text that follows it, for every element that starts with `open`.
+fn tags(text : String, open : String) -> Array[(String, String)] {
+  let found = []
+  let mut at = @util.index_of(text, open)
+  while at != -1 {
+    let end = @util.index_of(text, ">", from=at) + 1
+    found.push((@util.slice(text, at, end~), @util.slice(text, end)))
+    at = @util.index_of(text, open, from=end)
+  }
+  found
+}
+
+///|
+test "measures names in the monospace font when monospace lists files" {
+  let src = "treeView-beta\n    src/\n        App.tsx ## main\n"
+  let desc_x = (out : String) => {
+    @util.parse_float(
+      numbers_after(out, "class=\"pele-tree-description\" x=\"")[0],
+    )
+  }
+  let plain = svg(src)
+  for max_width in [None, Some(90.0)] {
+    let out = svg(src, max_width?, monospace=["files"])
+    let labels = tags(out, "<text class=\"pele-label\"")
+    inspect(
+      labels
+      .filter(label => label.0.contains(" font-family=\"var(--_fm)\""))
+      .length(),
+      content=if max_width is Some(_) { "3" } else { "2" },
+    )
+    inspect(
+      labels
+      .iter()
+      .any(label => {
+        label.0.contains(" font-weight=\"var(--_hw)\"") &&
+        label.1.has_prefix("src<")
+      }),
+      content="true",
+    )
+    inspect(
+      tags(out, "<text class=\"pele-tree-description\"")
+      .iter()
+      .any(desc => desc.0.contains(" font-family=")),
+      content="false",
+    )
+  }
+  inspect(plain.contains("font-family=\""), content="false")
+  inspect(desc_x(svg(src, monospace=["files"])) > desc_x(plain), content="true")
+  for monospace in [[], ["file"], ["members"]] {
+    assert_eq(svg(src, monospace~), plain)
+  }
 }
 
 ///|
