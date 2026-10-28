@@ -14,7 +14,9 @@ test "a class gives its declarations to the boxes and their text" {
     svg(
       "treemap\n\"S\":::frame\n  \"a\": 1:::hot\n  \"b\": 2\nclassDef hot fill:red,color:blue,stroke:#FFD600;\nclassDef frame fill:#eee,stroke-width:2px",
     ),
-    content="656x416 <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-treemap\" viewBox=\"0 0 656 416\" width=\"656\" height=\"416\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_hw:var(--pele-heading-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"treemap\"><g class=\"pele-sections\" font-size=\"14\"><g class=\"pele-node pele-section frame\" data-id=\"S\"><rect x=\"8\" y=\"8\" width=\"640\" height=\"400\" fill=\"var(--pele-series-1,#4c78a8)\" stroke=\"var(--pele-series-1,#4c78a8)\" style=\"rx:var(--_r);fill:#eee;stroke-width:2px;\"/><text x=\"16\" y=\"27.9\" font-weight=\"var(--_hw)\">S</text><text class=\"pele-value\" x=\"640\" y=\"27.2\" font-size=\"12\" text-anchor=\"end\" fill=\"var(--_m)\">3</text></g></g><g class=\"pele-leaves\" text-anchor=\"middle\" fill=\"var(--_bg)\"><g class=\"pele-node pele-leaf\" data-id=\"b\"><rect x=\"14\" y=\"36\" width=\"417\" height=\"366\" fill=\"var(--pele-series-1,#4c78a8)\" style=\"rx:var(--_r)\"/><text x=\"222.5\" y=\"216.48\" font-size=\"16\">b</text><text class=\"pele-value\" x=\"222.5\" y=\"233.55\" font-size=\"13\">2</text></g><g class=\"pele-node pele-leaf hot\" data-id=\"a\"><rect x=\"435\" y=\"36\" width=\"207\" height=\"366\" fill=\"var(--pele-series-1,#4c78a8)\" style=\"rx:var(--_r);fill:red;stroke:#FFD600;\"/><text x=\"538.5\" y=\"216.48\" font-size=\"16\" style=\"fill:blue;\">a</text><text class=\"pele-value\" x=\"538.5\" y=\"233.55\" font-size=\"13\" style=\"fill:blue;\">1</text></g></g></svg>",
+    content=(
+      #|656x416 <svg xmlns="http://www.w3.org/2000/svg" class="pele pele-treemap" viewBox="0 0 656 416" width="656" height="416" style="max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_hw:var(--pele-heading-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)" fill="var(--_fg)" role="graphics-document document" aria-roledescription="treemap"><g class="pele-sections" font-size="14"><g class="pele-node pele-section frame" data-id="S"><rect x="8" y="8" width="640" height="400" fill="var(--pele-series-1,#4c78a8)" stroke="var(--pele-series-1,#4c78a8)" style="rx:var(--_r);fill:#eee;stroke-width:2px;"/><text x="16" y="27.9" font-weight="var(--_hw)" fill="var(--pele-fg-on-light,#1f1f1f)">S</text><text class="pele-value" x="640" y="27.2" font-size="12" text-anchor="end" fill="var(--pele-fg-on-light,#1f1f1f)">3</text></g></g><g class="pele-leaves" text-anchor="middle" fill="var(--_bg)"><g class="pele-node pele-leaf" data-id="b"><rect x="14" y="36" width="417" height="366" fill="var(--pele-series-1,#4c78a8)" style="rx:var(--_r)"/><text x="222.5" y="216.48" font-size="16">b</text><text class="pele-value" x="222.5" y="233.55" font-size="13">2</text></g><g class="pele-node pele-leaf hot" data-id="a"><rect x="435" y="36" width="207" height="366" fill="var(--pele-series-1,#4c78a8)" style="rx:var(--_r);fill:red;stroke:#FFD600;"/><text x="538.5" y="216.48" font-size="16" style="fill:blue;">a</text><text class="pele-value" x="538.5" y="233.55" font-size="13" style="fill:blue;">1</text></g></g></svg>
+    ),
   )
 }
 
@@ -80,6 +82,25 @@ test "a value format applies to every value" {
     ),
     content="656x416 <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-treemap\" viewBox=\"0 0 656 416\" width=\"656\" height=\"416\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_hw:var(--pele-heading-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"treemap\"><g class=\"pele-sections\" font-size=\"14\"><g class=\"pele-node pele-section\" data-id=\"Market\"><rect x=\"8\" y=\"8\" width=\"640\" height=\"400\" fill=\"var(--pele-series-1,#4c78a8)\" fill-opacity=\"0.12\" stroke=\"var(--pele-series-1,#4c78a8)\" style=\"rx:var(--_r)\"/><text x=\"16\" y=\"27.9\" font-weight=\"var(--_hw)\">Market</text><text class=\"pele-value\" x=\"640\" y=\"27.2\" font-size=\"12\" text-anchor=\"end\" fill=\"var(--_m)\">$100.0%</text></g></g><g class=\"pele-leaves\" text-anchor=\"middle\" fill=\"var(--_bg)\"><g class=\"pele-node pele-leaf\" data-id=\"B\"><rect x=\"14\" y=\"36\" width=\"407\" height=\"366\" fill=\"var(--pele-series-1,#4c78a8)\" style=\"rx:var(--_r)\"/><text x=\"217.5\" y=\"216.48\" font-size=\"16\">B</text><text class=\"pele-value\" x=\"217.5\" y=\"233.55\" font-size=\"13\">$65.0%</text></g><g class=\"pele-node pele-leaf\" data-id=\"A\"><rect x=\"425\" y=\"36\" width=\"217\" height=\"366\" fill=\"var(--pele-series-1,#4c78a8)\" style=\"rx:var(--_r)\"/><text x=\"533.5\" y=\"216.48\" font-size=\"16\">A</text><text class=\"pele-value\" x=\"533.5\" y=\"233.55\" font-size=\"13\">$35.0%</text></g></g></svg>",
   )
+}
+
+///|
+test "picks a contrasting text color on fills a style sets" {
+  let drawn = svg(
+    "---\nconfig:\n  treemap:\n    showValues: true\n---\ntreemap\n\"Section\":::frame\n  \"a\": 10:::dark\n  \"b\": 20:::own\n  \"c\": 30\nclassDef frame fill:#FFF9C4\nclassDef dark fill:navy\nclassDef own fill:navy,color:#ddd",
+  )
+  let group = (id : String) => {
+    let from = @util.index_of(drawn, "data-id=\"\{id}\">")
+    @util.slice(drawn, from, end=@util.index_of(drawn, "</g>", from~))
+  }
+  let light = " fill=\"var(--pele-fg-on-light,#1f1f1f)\""
+  assert_true(
+    group("Section").contains(" font-weight=\"var(--_hw)\"\{light}>Section<"),
+  )
+  assert_true(group("Section").contains("text-anchor=\"end\"\{light}>"))
+  assert_true(group("a").contains(" fill=\"var(--pele-fg-on-dark,#fff)\">a<"))
+  assert_false(group("b").contains("--pele-fg-on"))
+  assert_false(group("c").contains("--pele-fg-on"))
 }
 
 ///|

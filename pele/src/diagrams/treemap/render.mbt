@@ -148,6 +148,7 @@ fn draw_section(
   // An inline font size overrides the size attributes, so text is truncated instead of shrunk.
   let fixed = style.font_size
   let emphasis = text_style(style)
+  let ink = @svg.raw_ink_fill(style)
   let tint = if has_own_fill(style.shape) {
     ""
   } else {
@@ -205,7 +206,7 @@ fn draw_section(
     let size_attr = if short { " font-size=\"\{label_size}\"" } else { "" }
     write_text(
       out,
-      " x=\"\{@svg.num(x + SIDE + 2)}\" y=\"\{@svg.num(baseline + label_size * 0.35)}\" font-weight=\"var(--_hw)\"\{size_attr}",
+      " x=\"\{@svg.num(x + SIDE + 2)}\" y=\"\{@svg.num(baseline + label_size * 0.35)}\" font-weight=\"var(--_hw)\"\{size_attr}\{ink}",
       style.text,
       label.text,
     )
@@ -213,7 +214,7 @@ fn draw_section(
   if with_value && value_size * LINE <= HEADER {
     write_text(
       out,
-      " class=\"pele-value\" x=\"\{@svg.num(x + b.w - SIDE - 2)}\" y=\"\{@svg.num(baseline + value_size * 0.35)}\" font-size=\"\{tiny}\" text-anchor=\"end\" fill=\"var(--_m)\"",
+      " class=\"pele-value\" x=\"\{@svg.num(x + b.w - SIDE - 2)}\" y=\"\{@svg.num(baseline + value_size * 0.35)}\" font-size=\"\{tiny}\" text-anchor=\"end\"\{@svg.raw_ink_fill(style, fallback="var(--_m)")}",
       style.text,
       value,
     )
@@ -239,6 +240,7 @@ fn draw_leaf(
   let least = (size * 0.5625).round()
   let fixed = style.font_size
   let emphasis = text_style(style)
+  let ink = @svg.raw_ink_fill(style)
   let room = b.w - 8
   let smallest = fixed.unwrap_or(least)
   // A class's font size is kept whole, since flooring the room would refuse a fractional size that fits.
@@ -274,20 +276,20 @@ fn draw_leaf(
       let second = cy + lines / 2 - value_size * LINE / 2
       write_text(
         out,
-        " x=\"\{cx}\" y=\"\{@svg.num(first + label.size * 0.35)}\" font-size=\"\{@svg.num(label.size)}\"",
+        " x=\"\{cx}\" y=\"\{@svg.num(first + label.size * 0.35)}\" font-size=\"\{@svg.num(label.size)}\"\{ink}",
         style.text,
         label.text,
       )
       write_text(
         out,
-        " class=\"pele-value\" x=\"\{cx}\" y=\"\{@svg.num(second + value_size * 0.35)}\" font-size=\"\{@svg.num(value_size)}\"",
+        " class=\"pele-value\" x=\"\{cx}\" y=\"\{@svg.num(second + value_size * 0.35)}\" font-size=\"\{@svg.num(value_size)}\"\{ink}",
         style.text,
         value,
       )
     } else {
       write_text(
         out,
-        " x=\"\{cx}\" y=\"\{@svg.num(cy + label.size * 0.35)}\" font-size=\"\{@svg.num(label.size)}\"",
+        " x=\"\{cx}\" y=\"\{@svg.num(cy + label.size * 0.35)}\" font-size=\"\{@svg.num(label.size)}\"\{ink}",
         style.text,
         label.text,
       )
