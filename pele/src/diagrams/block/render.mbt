@@ -1273,7 +1273,7 @@ fn draw(
         v.label,
         c.x,
         top + (c.head + gap) / 2 + 2,
-        " class=\"pele-cluster-label\" fill=\"var(--_m)\"",
+        " class=\"pele-cluster-label\"\{@svg.raw_ink_fill(v.style, fallback="var(--_m)")}",
         v.style.text,
         icons?=options.icons,
       )
@@ -1309,12 +1309,17 @@ fn draw(
         v.style,
       )
     }
+    let ink = if arrow || @svg.shape_filled(v.shape) {
+      @svg.raw_ink_fill(v.style)
+    } else {
+      ""
+    }
     @svg.write_label_styled(
       nodes,
       v.label,
       v.dx,
       v.dy,
-      " class=\"pele-label\"",
+      " class=\"pele-label\"\{ink}",
       v.style.text,
       icons?=options.icons,
     )

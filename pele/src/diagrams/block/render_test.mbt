@@ -829,6 +829,32 @@ test "draws a composite fill the author sets at full opacity" {
 }
 
 ///|
+test "picks a contrasting label color on fills a style sets" {
+  let svg = block_svg(
+    "block\n  block:g[\"Group\"]\n    a[\"Light\"]\n  end\n  b[\"Dark\"] c[\"Own\"] d[\"Plain\"]\n  e<[\"Go\"]>(right)\n  style g fill:#FFF9C4\n  style a fill:#BBDEFB\n  style b fill:#1f3a5f\n  style c fill:#1f3a5f,color:#eee\n  style e fill:black",
+  )
+  let label = (id : String) => {
+    let at = @util.index_of(
+      svg,
+      "<text ",
+      from=@util.index_of(svg, "data-id=\"\{id}\""),
+    )
+    read_until(svg, at, ">")
+  }
+  inspect(
+    ["g", "a", "b", "c", "d", "e"].map(label).join("\n"),
+    content=(
+      #|<text class="pele-cluster-label" fill="var(--pele-fg-on-light,#1f1f1f)" x="55.34" y="35.6" text-anchor="middle"
+      #|<text class="pele-label" fill="var(--pele-fg-on-light,#1f1f1f)" x="0" y="5.6" text-anchor="middle"
+      #|<text class="pele-label" fill="var(--pele-fg-on-dark,#fff)" x="0" y="5.6" text-anchor="middle"
+      #|<text class="pele-label" style="fill:#eee;" x="0" y="5.6" text-anchor="middle"
+      #|<text class="pele-label" x="0" y="5.6" text-anchor="middle"
+      #|<text class="pele-label" fill="var(--pele-fg-on-dark,#fff)" x="-10" y="5.6" text-anchor="middle"
+    ),
+  )
+}
+
+///|
 test "draws the front matter title" {
   guard block_render("block\n  a") is Ok(plain) else { fail("rejected") }
   guard block_render("---\ntitle: Systems\n---\nblock\n  a") is Ok(titled) else {
