@@ -228,6 +228,7 @@ priv struct View {
   mut label : @text.Label
   mut x : Double
   mut w : Double
+  mut room : Double
 }
 
 ///|
@@ -338,6 +339,7 @@ fn draw(
   config : @types.Config,
   options : @types.RenderOptions,
   tight : Bool,
+  grow~ : Bool = true,
 ) -> @types.Rendered raise @errors.PeleError {
   let n = @svg.num
   let infinity = @double.infinity
@@ -545,13 +547,13 @@ fn draw(
       } else {
         need(lo, hi, w - 2 * note_over)
       }
-      views[i] = Some({ kind: NoteView, a, b, label, x: 0, w, })
+      views[i] = Some({ kind: NoteView, a, b, label, x: 0, w, room: 0, })
     } else if is_line_message(m.kind) {
       let label = text(Some(m.message), small, m.wrap, wrap_w)
       let badge = badge_width(i)
       if a == b {
         need(a, a + 1, SELF_W + 8 + label.width + 16 + ACT_W + badge)
-        views[i] = Some({ kind: SelfView, a, b, label, x: 0, w: 0, })
+        views[i] = Some({ kind: SelfView, a, b, label, x: 0, w: 0, room: 0, })
       } else {
         let created = if cols[b].create_at == i {
           cols[b].size.w / 2
@@ -569,7 +571,15 @@ fn draw(
           label.width
         }
         need(lo, hi, shown + 2 * msg_pad + ACT_W + badge + created + central)
-        views[i] = Some({ kind: LineView, a, b, label, x: 0, w: 0, })
+        views[i] = Some({
+          kind: LineView,
+          a,
+          b,
+          label,
+          x: 0,
+          w: 0,
+          room: wrap_w,
+        })
       }
     }
   }
@@ -812,13 +822,10 @@ fn draw(
           LineView => {
             x0 = @util.js_min(a.x, b.x)
             x1 = @util.js_max(a.x, b.x)
-            if tight || m.wrap {
-              view.label = text(
-                Some(m.message),
-                small,
-                true,
-                @util.js_max(wrap_w, x1 - x0 - 2 * msg_pad - ACT_W),
-              )
+            let room = @util.js_max(wrap_w, x1 - x0 - 2 * msg_pad - ACT_W)
+            if (tight || m.wrap) && room != view.room {
+              view.label = text(Some(m.message), small, true, room)
+              view.room = room
             }
             if b.create_at == i {
               if b.x > a.x {
@@ -838,6 +845,45 @@ fn draw(
     }
   }
   layout()
+
+  // Spend unused width on gaps crossed by wrapped messages before placing their rows.
+  let mut grown = false
+  if tight && grow && options.max_width is Some(max_width) {
+    let spare = (max_width - (max_x - min_x + 2 * pad)).floor()
+    if spare > 0 {
+      let stretch = FixedArray::make(col_count, 0)
+      for i, view in views {
+        guard view is Some(view) &&
+          view.kind is LineView &&
+          view.label.lines.length() >= 2 else {
+          continue
+        }
+        if view.label.lines.length() <=
+          text(Some(messages[i].message), small, false, infinity).lines.length() {
+          continue
+        }
+        let lo = if view.a < view.b { view.a } else { view.b }
+        let hi = if view.a < view.b { view.b } else { view.a }
+        stretch[lo] += 1
+        stretch[hi] -= 1
+      }
+      let mut active = 0
+      let mut crossed = 0
+      for i in 0..<gaps.length() {
+        active += stretch[i]
+        stretch[i] = if active > 0 { 1 } else { 0 }
+        crossed += stretch[i]
+      }
+      if crossed > 0 {
+        let extra = spare / crossed.to_double()
+        for i in 0..<gaps.length() {
+          gaps[i] += stretch[i].to_double() * extra
+        }
+        layout()
+        grown = true
+      }
+    }
+  }
 
   // Vertical placement, top to bottom, drawing as it goes.
   let mut box_title_h = 0.0
@@ -1391,6 +1437,9 @@ fn draw(
     )
   }
   let width = (max_x - min_x + 2 * pad).ceil()
+  if grown && options.max_width is Some(max_width) && width > max_width {
+    return draw(db, config, options, tight, grow=false)
+  }
   let height = (bottom - min_y + 2 * pad).ceil()
   let content = @svg.Markup::new()
   content.write(
