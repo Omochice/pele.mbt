@@ -306,6 +306,40 @@ test "draws a composite fill the author sets at full opacity" {
 }
 
 ///|
+/// The opening tags of the texts in `markup`.
+fn text_tags(markup : String) -> String {
+  let tags = []
+  let mut at = @util.index_of(markup, "<text ")
+  while at != -1 {
+    let end = @util.index_of(markup, ">", from=at)
+    tags.push(@util.slice(markup, at, end=end + 1))
+    at = @util.index_of(markup, "<text ", from=end)
+  }
+  tags.join("\n")
+}
+
+///|
+test "picks a contrasting label color on fills a style sets" {
+  let svg = draw(
+    "direction TB\n classDef notMoving fill:white\n classDef badBadEvent fill:#f00,color:white,font-weight:bold\n [*] --> Still\n Still --> Moving\n Moving --> Crash\n class Still notMoving\n class Crash badBadEvent\n" +
+    " state \"Described\" as d : first line\n style d fill:#14201a\n state Busy {\n b\n }\n style Busy fill:#FFF9C4",
+  )
+  inspect(
+    ["Still", "Crash", "Moving", "d", "Busy"]
+    .map(id => text_tags(group_of(svg, id)))
+    .join("\n"),
+    content=(
+      #|<text class="pele-label" fill="var(--pele-fg-on-light,#1f1f1f)" x="0" y="5.6" text-anchor="middle">
+      #|<text class="pele-label" style="fill:white;font-weight:bold;" font-weight="var(--_w)" text-anchor="middle" xml:space="preserve">
+      #|<text class="pele-label" x="0" y="5.6" text-anchor="middle">
+      #|<text class="pele-label" fill="var(--pele-fg-on-dark,#fff)" x="0" y="-11.9" text-anchor="middle">
+      #|<text class="pele-state-description" font-size="14" fill="var(--pele-fg-on-dark,#fff)" x="0" y="23.9" text-anchor="middle">
+      #|<text class="pele-cluster-label" fill="var(--pele-fg-on-light,#1f1f1f)" x="284.8" y="31.6" text-anchor="middle">
+    ),
+  )
+}
+
+///|
 test "gives each composite its own direction" {
   let svg = draw(
     "state A {\n direction LR\n a1 --> a2\n }\n state B {\n b1 --> b2\n }\n A --> B",

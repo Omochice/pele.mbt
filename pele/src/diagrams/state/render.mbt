@@ -817,6 +817,7 @@ fn draw(
     let w = view.w
     let h = view.h
     let body = @svg.Markup::new()
+    let ink = @svg.raw_ink_fill(style)
     match view.kind {
       K_COMPOSITE => {
         let left = x - c.w / 2
@@ -846,7 +847,7 @@ fn draw(
             view.label,
             title_x(c, view.label.width, crossings) + pad,
             top + view.title_h / 2,
-            " class=\"pele-cluster-label\"",
+            " class=\"pele-cluster-label\"\{ink}",
             style.text,
             icons?=options.icons,
           )
@@ -916,7 +917,7 @@ fn draw(
             view.label,
             0,
             0,
-            " class=\"pele-label\"",
+            " class=\"pele-label\"\{ink}",
             style.text,
             icons?=options.icons,
           )
@@ -932,7 +933,7 @@ fn draw(
             view.label,
             0,
             at - view.label.height / 2,
-            " class=\"pele-label\"",
+            " class=\"pele-label\"\{ink}",
             style.text,
             icons?=options.icons,
           )
@@ -943,7 +944,7 @@ fn draw(
               line,
               0,
               at + line.height / 2,
-              " class=\"pele-state-description\" font-size=\"\{small}\"",
+              " class=\"pele-state-description\" font-size=\"\{small}\"\{ink}",
               style.text,
               icons?=options.icons,
             )
