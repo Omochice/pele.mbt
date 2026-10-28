@@ -420,7 +420,7 @@ fn casings_of(svg : String) -> String {
 }
 
 ///|
-test "cases edges that run over a flow fill a style sets" {
+test "cases edges that cross a flow fill a style sets and inks those inside it" {
   let source = "agentflow-beta TB\n  flow f[\"Flow\"]\n    a[\"A\"] --> b[\"B\"]\n  end\n  b --> c[\"C\"]\n  c --> d[\"D\"]\n  style f fill:#FFF9C4"
   let svg = snapshot(source)
   let casings = casings_of(svg)
@@ -428,12 +428,41 @@ test "cases edges that run over a flow fill a style sets" {
   inspect(paths.length(), content="3")
   inspect(
     paths.map(d => casings.contains("<path d=\"\{d}\"/>").to_string()).join(" "),
-    content="true true false",
+    content="false true false",
   )
   inspect(
-    snapshot(source.replace(old="\n  style f fill:#FFF9C4", new="")).contains(
-      "pele-casings",
+    edge_heads(svg),
+    content=(
+      #|<g class="pele-edge pele-edge-sequence" data-id="L_a_b_0" stroke="var(--pele-fg-on-light,#1f1f1f)">
+      #|<g class="pele-edge pele-edge-sequence" data-id="L_b_c_0">
+      #|<g class="pele-edge pele-edge-sequence" data-id="L_c_d_0">
     ),
-    content="false",
   )
+  let plain = snapshot(source.replace(old="\n  style f fill:#FFF9C4", new=""))
+  inspect(plain.contains("pele-casings"), content="false")
+  inspect(plain.contains("stroke=\"var(--pele-fg-on"), content="false")
+  // An edge from a flow to a node inside it starts on the flow's border and stays on its fill.
+  let held = snapshot(
+    "agentflow-beta TB\n  flow f[Flow]\n    a[A]\n  end\n  f --> a\n  style f fill:white",
+  )
+  inspect(
+    edge_heads(held),
+    content=(
+      #|<g class="pele-edge pele-edge-sequence" data-id="L_f_a_0" stroke="var(--pele-fg-on-light,#1f1f1f)">
+    ),
+  )
+  inspect(held.contains("pele-casings"), content="false")
+}
+
+///|
+/// The opening tag of every edge's group, one to a line.
+fn edge_heads(svg : String) -> String {
+  let heads = []
+  let head = "<g class=\"pele-edge "
+  let mut at = @util.index_of(svg, head)
+  while at != -1 {
+    heads.push(@util.slice(svg, at, end=@util.index_of(svg, ">", from=at) + 1))
+    at = @util.index_of(svg, head, from=at + 1)
+  }
+  heads.join("\n")
 }
