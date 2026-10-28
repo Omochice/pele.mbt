@@ -1017,9 +1017,15 @@ fn draw(
     lo < xs.length() && xs[lo] < x1
   }
   let stack : Array[Frame] = []
+  let inks : Map[String, String?] = Map([])
   let ink_of = (fill : String?) => {
     guard fill is Some(fill) && fill != "" else { return None }
-    @svg.raw_ink(@svg.resolve_raw_style(["fill:" + fill]).shape)
+    if inks.get(fill) is Some(known) {
+      return known
+    }
+    let picked = @svg.raw_ink(@svg.resolve_raw_style(["fill:" + fill]).shape)
+    inks[fill] = picked
+    picked
   }
   let ink_on = (fill : String?) => {
     match ink_of(fill) {
