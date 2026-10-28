@@ -235,22 +235,63 @@ test "characters outside the CSV alphabet are reported as the token before them"
 }
 
 ///|
-test "a blank row inside the text is rejected" {
+test "blanks at the start and end of each row are ignored" {
   inspect(
-    rows("sankey\na,b,1\n   \nc,d,2"),
-    content="Parse error on line 3:\n   \n---^\nExpecting 'COMMA', 'NEWLINE', 'EOF', got 'NEWLINE'",
+    rows("sankey-beta \na,b,1"),
+    content="nodes=\"a\",\"b\" links=\"a\">\"b\"=1",
+  )
+  inspect(
+    rows("sankey-beta\n\ta,b,1\nc,d,2"),
+    content="nodes=\"a\",\"b\",\"c\",\"d\" links=\"a\">\"b\"=1,\"c\">\"d\"=2",
+  )
+  inspect(
+    rows("sankey-beta\na,b,1\n   \nc,d,2"),
+    content="nodes=\"a\",\"b\",\"c\",\"d\" links=\"a\">\"b\"=1,\"c\">\"d\"=2",
+  )
+  inspect(
+    rows("sankey-beta\na,b,1\n \"c d\",e,2"),
+    content="nodes=\"a\",\"b\",\"c d\",\"e\" links=\"a\">\"b\"=1,\"c d\">\"e\"=2",
+  )
+  inspect(
+    rows("sankey-beta\nd,e,\"2\" \ng,h,3"),
+    content="nodes=\"d\",\"e\",\"g\",\"h\" links=\"d\">\"e\"=2,\"g\">\"h\"=3",
+  )
+  inspect(
+    rows("sankey\n\"a  \n  b\",c,1"),
+    content="nodes=\"a  \\n  b\",\"c\" links=\"a  \\n  b\">\"c\"=1",
+  )
+  inspect(
+    rows("sankey\na,b,1\n ,c,2"),
+    content="nodes=\"a\",\"b\",\"\",\"c\" links=\"a\">\"b\"=1,\"\">\"c\"=2",
   )
 }
 
 ///|
-test "preparing the text trims its ends and collapses line breaks" {
+/// The line and column of the error parsing `source` fails with, in `source` as written.
+fn located(source : String) -> String {
+  let db = @sankey.SankeyDb::new()
+  @sankey.parse_sankey(@sankey.prepare_text_for_parsing(source), db, source~) catch {
+    @errors.PeleError(failure) => return "\{failure.line}:\{failure.column}"
+  }
+  "parsed"
+}
+
+///|
+test "errors after blanks at row edges are reported where they are written" {
+  inspect(located("sankey \n\t a,b,1 \n  \n \tb,c,abc "), content="4:7")
+  inspect(located("sankey\n \"a \n b\", c ,x"), content="3:9")
+  inspect(located("sankey\n a,b,1 \n c,d"), content="3:5")
+}
+
+///|
+test "preparing the text trims the edges of rows and collapses line breaks" {
   inspect(
     @sankey.prepare_text_for_parsing(" \t\n\r\nsankey\r\n\r\n\na,b,1 \t\n\n"),
     content="sankey\na,b,1",
   )
   inspect(
     @sankey.prepare_text_for_parsing("\u{3000}sankey\u{a0}\na\u{a0}\n\u{feff}"),
-    content="sankey\u{a0}\na",
+    content="sankey\na",
   )
 }
 
