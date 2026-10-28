@@ -1033,7 +1033,7 @@ fn draw(
       None => ""
     }
   }
-  // Prefer the innermost rect's fill, then a containing box's.
+  // A rect is painted over the box that holds it, so the innermost rect is what the text actually sits on.
   let fill_under = (l : Double, r : Double) => {
     for k = stack.length() - 1; k >= 0; k = k - 1 {
       if stack[k].kind == "rect" {
