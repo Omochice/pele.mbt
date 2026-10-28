@@ -4,8 +4,9 @@
 fn drawn(
   source : String,
   max_width? : Double,
+  monospace? : Array[String],
 ) -> Result[@types.RenderResult, @errors.Failure] {
-  let options = { ..@types.RenderOptions::default(), max_width, }
+  let options = { ..@types.RenderOptions::default(), max_width, monospace, }
   Ok(@core.render([@er.er], source, options)) catch {
     @errors.PeleError(failure) => Err(failure)
   }
@@ -122,6 +123,117 @@ test "draws every cell of the attribute table" {
     inspect(svg.contains(text), content="true")
   }
   inspect(count(svg, "<text class=\"pele-er-type\""), content="4")
+}
+
+///|
+fn mono_of(source : String, monospace : Array[String]) -> String {
+  match drawn(source, monospace~) {
+    Ok(result) => result.svg
+    Err(failure) => failure.message
+  }
+}
+
+///|
+/// The opening tag of the first text element of class `cls`.
+fn text_tag(svg : String, cls : String) -> String {
+  let at = @util.index_of(svg, "<text class=\"\{cls}\"")
+  @util.slice(svg, at, end=@util.index_of(svg, ">", from=at) + 1)
+}
+
+///|
+/// The width of the box of the entity `name`.
+fn box_width(svg : String, name : String) -> Double {
+  let at = @util.index_of(svg, "data-id=\"\{name}\" transform=")
+  let from = @util.index_of(svg, " width=\"", from=at) + 8
+  @util.parse_float(
+    @util.slice(svg, from, end=@util.index_of(svg, "\"", from~)),
+  )
+}
+
+///|
+test "measures attribute types, names and keys in the monospace font when monospace lists attributes" {
+  let src = "erDiagram\n  CAR {\n    string registrationNumber PK \"The plate number, as issued by the registration office of the country\"\n    int wheels FK, UK\n  }"
+  let plain = svg_of(src)
+  let mono = mono_of(src, ["attributes"])
+  let comment = (svg : String) => {
+    let at = @util.index_of(svg, "<text class=\"pele-er-comment\"")
+    @util.slice(svg, at, end=@util.index_of(svg, "</text>", from=at) + 7)
+  }
+  let without_x = (text : String) => {
+    let out = StringBuilder()
+    let mut last = 0
+    let mut at = @util.index_of(text, " x=\"")
+    while at != -1 {
+      out.write_string(@util.slice(text, last, end=at))
+      last = @util.index_of(text, "\"", from=at + 4) + 1
+      at = @util.index_of(text, " x=\"", from=last)
+    }
+    out.write_string(@util.slice(text, last))
+    out.to_string()
+  }
+  for cls in ["pele-er-type", "pele-er-name", "pele-er-keys"] {
+    inspect(
+      text_tag(mono, cls).contains(" font-family=\"var(--_fm)\""),
+      content="true",
+    )
+  }
+  inspect(plain.contains("font-family=\"var(--_fm)\""), content="false")
+  inspect(comment(mono).contains("font-family"), content="false")
+  assert_eq(without_x(comment(mono)), without_x(comment(plain)))
+  inspect(count(comment(mono), "<tspan"), content="2")
+  inspect(box_width(mono, "CAR") > box_width(plain, "CAR"), content="true")
+  for name in ["`a  b`", "`<code>a  b</code>`"] {
+    let spaced = mono_of("erDiagram\n  A {\n    string \{name}\n  }", [
+      "attributes",
+    ])
+    let head = "<text class=\"pele-er-name\" font-family=\"var(--_fm)\" xml:space=\"preserve\"><tspan"
+    let at = @util.index_of(spaced, head)
+    inspect(at != -1, content="true")
+    let open = @util.index_of(spaced, ">", from=at + head.length()) + 1
+    inspect(
+      @util.slice(
+        spaced,
+        open,
+        end=@util.index_of(spaced, "</tspan>", from=open),
+      ),
+      content="a  b",
+    )
+  }
+}
+
+///|
+test "ignores monospace values that do not list attributes" {
+  let src = "erDiagram\n  CAR {\n    string registrationNumber PK \"The plate\"\n  }"
+  let plain = svg_of(src)
+  for monospace in [[], ["attribute"], ["members"]] {
+    assert_eq(mono_of(src, monospace), plain)
+  }
+}
+
+///|
+test "keeps an entity's own font-family on its attributes when monospace lists them" {
+  let attributes = (svg : String) => {
+    let at = @util.index_of(
+      svg,
+      "<g class=\"pele-er-attributes\"",
+      from=@util.index_of(svg, "data-id=\"A\""),
+    )
+    @util.slice(svg, at, end=@util.index_of(svg, "</g>", from=at) + 4)
+  }
+  for
+    rule in [
+      "style A color:black,font-family:serif", "classDef serif color:black,font-family:serif\n  class A serif",
+    ] {
+    let src = "erDiagram\n  A {\n    string name PK\n  }\n  B {\n    string name PK\n  }\n  \{rule}"
+    let svg = mono_of(src, ["attributes"])
+    assert_eq(attributes(svg), attributes(svg_of(src)))
+    inspect(
+      @util.slice(svg, @util.index_of(svg, "data-id=\"B\"")).contains(
+        "font-family=\"var(--_fm)\"",
+      ),
+      content="true",
+    )
+  }
 }
 
 ///|

@@ -88,6 +88,8 @@ priv struct NodeView {
   cols : Array[Double]
   row_size : Double
   key_size : Double
+  /// `@text.STYLE_MONO` when attribute types, names and keys are drawn in the monospace font, or 0.
+  mono : Int32
   /// Whether self-relationships loop out of the bottom side rather than the right.
   below : Bool
 }
@@ -110,6 +112,7 @@ fn write_text_left(
   y : Double,
   attrs : String,
   icons : @types.IconResolver?,
+  mono~ : Int32 = 0,
 ) -> Unit raise @errors.PeleError {
   let lines = label.lines
   if lines.length() == 0 {
@@ -119,8 +122,12 @@ fn write_text_left(
     lines[0].length() == 1 &&
     lines[0][0].icon is None &&
     lines[0][0].math is None &&
-    lines[0][0].style == 0 {
-    out.write("<text\{attrs} x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\">")
+    lines[0][0].style == mono &&
+    // The short form collapses repeated spaces in monospace text.
+    !(mono != 0 && lines[0][0].text.contains("  ")) {
+    out.write(
+      "<text\{@svg.text_style(attrs, mono)} x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\">",
+    )
     out.write_esc(lines[0][0].text)
     out.write("</text>")
     return
@@ -227,6 +234,7 @@ fn draw(
   turned : Bool,
 ) -> @types.Rendered raise @errors.PeleError {
   let graph = build_er_graph(db)
+  let monospaced = options.monospaces("attributes")
   let size = options.font_size.unwrap_or(16)
   let small_size = (size * 0.875).round()
   let measurer = options.text_measurer()
@@ -316,6 +324,11 @@ fn draw(
     )
     let base = (if style.bold { @text.STYLE_BOLD } else { 0 }) |
       (if style.italic { @text.STYLE_ITALIC } else { 0 })
+    let mono = if monospaced && !@svg.sets_font_family(style.text) {
+      @text.STYLE_MONO
+    } else {
+      0
+    }
     let name_size = style.font_size.unwrap_or(size)
     let row_size = style.font_size.unwrap_or(small_size)
     let key_size = style.font_size.unwrap_or((size * 0.75).round())
@@ -350,6 +363,7 @@ fn draw(
       cols: [],
       row_size,
       key_size,
+      mono,
       below,
     }
     let mut reach = 0.0
@@ -409,7 +423,7 @@ fn draw(
               measurer,
               row_size,
               NO_WRAP,
-              base~,
+              base=base | mono,
             ),
             @text.layout_label(
               Some(cell_text(attribute.name)),
@@ -417,7 +431,7 @@ fn draw(
               measurer,
               row_size,
               NO_WRAP,
-              base~,
+              base=base | mono,
             ),
             @text.layout_label(
               Some(attribute.keys.join(", ")),
@@ -425,7 +439,7 @@ fn draw(
               measurer,
               key_size,
               NO_WRAP,
-              base~,
+              base=base | mono,
             ),
             @text.layout_label(
               Some(cell_text(attribute.comment)),
@@ -666,6 +680,7 @@ fn draw(
           baseline,
           " class=\"pele-er-type\" fill=\"var(--_m)\"\{text}",
           options.icons,
+          mono=view.mono,
         )
         write_text_left(
           cells,
@@ -674,6 +689,7 @@ fn draw(
           baseline,
           " class=\"pele-er-name\"\{text}",
           options.icons,
+          mono=view.mono,
         )
         write_text_left(
           cells,
@@ -682,6 +698,7 @@ fn draw(
           baseline,
           " class=\"pele-er-keys\" font-size=\"\{view.key_size}\" fill=\"var(--_m)\"\{text}",
           options.icons,
+          mono=view.mono,
         )
         write_text_left(
           cells,
