@@ -6,12 +6,14 @@ fn drawn(
   max_width? : Double,
   config? : Map[String, Json],
   auto_direction? : Bool,
+  monospace? : Array[String],
 ) -> Result[@types.RenderResult, @errors.Failure] {
   let options = {
     ..@types.RenderOptions::default(),
     max_width,
     config,
     auto_direction,
+    monospace,
   }
   Ok(@core.render([@class.class], source, options)) catch {
     @errors.PeleError(failure) => Err(failure)
@@ -175,6 +177,59 @@ test "keeps empty compartments unless hideEmptyMembersBox is set" {
     ),
     "80 x 56 []\n<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-class\" viewBox=\"0 0 80 56\" width=\"80\" height=\"56\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_hw:var(--pele-heading-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"class\"><g class=\"pele-nodes\"><g class=\"pele-node pele-class\" data-id=\"A\" transform=\"translate(40,28)\"><rect x=\"-32\" y=\"-20\" width=\"64\" height=\"40\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" font-weight=\"var(--_hw)\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"0\" y=\"5.6\">A</tspan></text></g></g></svg>",
   )
+}
+
+///|
+/// The SVG of the group that carries `data-id="id"`, through the end tag that closes it.
+fn group_of(svg : String, id : String) -> String {
+  let start = @util.index_of(svg, "data-id=\"\{id}\"")
+  let from = @util.last_index_of(svg, "<g", from=start)
+  let mut depth = 0
+  let mut at = from
+  while at < svg.length() {
+    if @util.starts_with_at(svg, "</g>", at) {
+      depth -= 1
+      if depth == 0 {
+        return @util.slice(svg, from, end=at + 4)
+      }
+    } else if @util.starts_with_at(svg, "<g ", at) ||
+      @util.starts_with_at(svg, "<g>", at) {
+      depth += 1
+    }
+    at += 1
+  }
+  @util.slice(svg, from)
+}
+
+///|
+fn svg_of(source : String, monospace? : Array[String]) -> String {
+  match drawn(source, monospace?) {
+    Ok(result) => result.svg
+    Err(failure) => abort(failure.message)
+  }
+}
+
+///|
+test "measures members in the monospace font when monospace lists them" {
+  let width = (svg : String) => {
+    let box = group_of(svg, "A")
+    let at = @util.index_of(box, " width=\"") + 8
+    @util.parse_float(
+      @util.slice(box, at, end=@util.index_of(box, "\"", from=at)),
+    )
+  }
+  let plain = svg_of("classDiagram\nclass A {\n  +title: string\n}")
+  let mono = svg_of("classDiagram\nclass A {\n  +title: string\n}", monospace=[
+    "members",
+  ])
+  inspect(
+    mono.contains(
+      "<g class=\"pele-members\" font-size=\"14\" font-family=\"var(--_fm)\">",
+    ),
+    content="true",
+  )
+  inspect(plain.contains("font-family=\"var(--_fm)\""), content="false")
+  inspect(width(mono) > width(plain), content="true")
 }
 
 ///|

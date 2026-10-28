@@ -98,6 +98,7 @@ fn decode_options(json : Json) -> @types.RenderOptions {
   {
     font_family: string_field(fields, "fontFamily"),
     font_family_mono: string_field(fields, "fontFamilyMono"),
+    monospace: strings_field(fields, "monospace"),
     font_size: number_field(fields, "fontSize"),
     id_prefix: string_field(fields, "idPrefix"),
     responsive: bool_field(fields, "responsive"),
