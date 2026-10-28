@@ -123,6 +123,35 @@ test "a title and accessibility statements come before the nodes" {
 }
 
 ///|
+test "a name may start with title" {
+  inspect(
+    ast("treeView-beta\ntitles/\n  title.txt\n  title-page.md\n"),
+    content=(
+      #|title=- accTitle=- accDescr=-
+      #|-|"titles/"|-|-|-
+      #|2|"title.txt"|-|-|-
+      #|2|"title-page.md"|-|-|-
+    ),
+  )
+  inspect(
+    ast("treeView-beta\ntitle%% c\naccTitle: A\nroot\n"),
+    content=(
+      #|title="" accTitle="A" accDescr=-
+      #|-|"root"|-|-|-
+    ),
+  )
+  inspect(
+    ast("treeView-beta\n  a\n  title\n  b\n"),
+    content=(
+      #|Parse error on line 3:
+      #|  title
+      #|^
+      #|Expecting a name but found `  title`.
+    ),
+  )
+}
+
+///|
 test "text after the keyword on its line is not a tree view" {
   inspect(
     ast("treeView-beta title x\n a"),
