@@ -633,6 +633,86 @@ test "shades rect blocks with the given color, the inner one on top" {
 }
 
 ///|
+/// The text element that reads `text`, or `[text]` as a block's title does.
+fn text_reading(svg : String, text : String) -> String {
+  let mut end = @util.index_of(svg, ">\{text}</text>")
+  if end == -1 {
+    end = @util.index_of(svg, ">[\{text}]</text>")
+  }
+  let start = @util.last_index_of(svg, "<text", from=end)
+  @util.slice(svg, start, end=@util.index_of(svg, "</text>", from=end) + 7)
+}
+
+///|
+test "picks a contrasting text color for labels on a rect or box fill" {
+  let svg = svg_of(
+    "sequenceDiagram\n  box rgb(34, 56, 0) Group\n  participant A\n  participant B\n  end\n  participant C\n  participant D\n" +
+    "  A->>B: boxed\n  C->>D: open\n  rect rgb(191, 223, 255)\n  C->>D: light\n  C->>C: self\n  loop Often\n  D->>C: looped\n  end\n  rect black\n  C->>D: dark\n  end\n  rect rgba(0, 0, 0, .2)\n  C->>D: faint\n  end\n  A->>D: crossing two of the lifelines\n  end",
+  )
+  let light = "fill=\"var(--pele-fg-on-light,#1f1f1f)\""
+  let dark = "fill=\"var(--pele-fg-on-dark,#fff)\""
+  assert_true(text_reading(svg, "boxed").contains(dark))
+  assert_true(svg.contains("<text class=\"pele-cluster-label\" \{dark}"))
+  assert_false(text_reading(svg, "open").contains("fill="))
+  assert_true(text_reading(svg, "light").contains(light))
+  assert_true(text_reading(svg, "self").contains(light))
+  assert_true(
+    text_reading(svg, "Often").contains(
+      "class=\"pele-frame-label\" \{light} stroke=\"none\"",
+    ),
+  )
+  assert_true(text_reading(svg, "looped").contains(light))
+  assert_true(text_reading(svg, "dark").contains(dark))
+  assert_false(text_reading(svg, "faint").contains("fill="))
+  // A label across a lifeline sits on a plate in the page color.
+  let crossing = @util.index_of(svg, ">crossing two of the lifelines<")
+  let plate = @util.last_index_of(svg, "<rect ", from=crossing)
+  inspect(
+    @util.slice(
+      svg,
+      plate,
+      end=@util.index_of(
+        svg,
+        " x=",
+        from=@util.index_of(svg, "<text", from=plate),
+      ),
+    ),
+    content=(
+      #|<rect x="74.36" y="452" width="173.29" height="17" rx="3" fill="var(--_bg)" stroke="none"/><text
+    ),
+  )
+}
+
+///|
+test "picks a contrasting name color for figures in a box" {
+  let svg = svg_of(
+    "sequenceDiagram\n  box black Group\n  actor A\n  participant B\n  end\n  actor C\n  A->>B: hi\n  B->>C: yo",
+  )
+  inspect(
+    count(
+      svg, "<text class=\"pele-label\" fill=\"var(--pele-fg-on-dark,#fff)\"",
+    ),
+    content="2",
+  )
+  let name = (id : String) => {
+    let at = @util.index_of(
+      svg,
+      "<text class=\"pele-label\"",
+      from=@util.index_of(svg, "data-id=\"\{id}\">"),
+    )
+    @util.slice(svg, at, end=@util.index_of(svg, " x=", from=at))
+  }
+  inspect(
+    ["A", "B", "C"].map(name).join("\n"),
+    content=(
+      #|<text class="pele-label" fill="var(--pele-fg-on-dark,#fff)"
+      #|<text class="pele-label"
+      #|<text class="pele-label"
+    ),
+  )
+}
+
+///|
 test "groups participants in boxes, with color and title" {
   let svg = svg_of(
     "sequenceDiagram\n  box Aqua Group One\n  participant A\n  participant B\n  end\n  box Group Two\n  participant C\n  end\n  box rgb(1, 2, 3)\n  participant D\n  end\n  A->>D: x",
@@ -1124,7 +1204,7 @@ test "draws blocks with sections, a shaded rect, and a box" {
       #|<g class="pele-boxes" font-size="14">
       #|<g class="pele-cluster pele-box" data-id="Team">
       #|<rect x="-42" y="0" width="164" height="607" fill="var(--_a)" stroke="var(--_b)" style="rx:var(--_r);fill:Aqua;"/>
-      #|<text class="pele-cluster-label" fill="var(--_m)" x="40" y="22.4" text-anchor="middle">Team</text>
+      #|<text class="pele-cluster-label" fill="var(--pele-fg-on-light,#1f1f1f)" x="40" y="22.4" text-anchor="middle">Team</text>
       #|</g>
       #|</g>
       #|<g class="pele-rects" fill="var(--_a)">
@@ -1150,7 +1230,7 @@ test "draws blocks with sections, a shaded rect, and a box" {
       #|<text class="pele-frame-label" fill="var(--_m)" stroke="none" x="3.57" y="308.4" text-anchor="middle">[bad]</text>
       #|<rect x="-20" y="219" width="28" height="20" fill="var(--_s)" style="rx:var(--_r)"/>
       #|<text class="pele-frame-kind" x="-6" y="233.2" text-anchor="middle" font-size="12" font-weight="var(--_hw)" fill="var(--_m)" stroke="none">alt</text>
-      #|<text class="pele-frame-label" fill="var(--_m)" stroke="none" x="27.29" y="234.4" text-anchor="middle">[ok]</text>
+      #|<text class="pele-frame-label" fill="var(--pele-fg-on-light,#1f1f1f)" stroke="none" x="27.29" y="234.4" text-anchor="middle">[ok]</text>
       #|</g>
       #|<g class="pele-frame pele-frame-par">
       #|<rect x="-20" y="373" width="240" height="142" fill="none" style="rx:var(--_r)"/>
@@ -1159,7 +1239,7 @@ test "draws blocks with sections, a shaded rect, and a box" {
       #|<text class="pele-frame-label" fill="var(--_m)" stroke="none" x="2.78" y="462.4" text-anchor="middle">[two]</text>
       #|<rect x="-20" y="373" width="32.67" height="20" fill="var(--_s)" style="rx:var(--_r)"/>
       #|<text class="pele-frame-kind" x="-3.66" y="387.2" text-anchor="middle" font-size="12" font-weight="var(--_hw)" fill="var(--_m)" stroke="none">par</text>
-      #|<text class="pele-frame-label" fill="var(--_m)" stroke="none" x="36.24" y="388.4" text-anchor="middle">[one]</text>
+      #|<text class="pele-frame-label" fill="var(--pele-fg-on-light,#1f1f1f)" stroke="none" x="36.24" y="388.4" text-anchor="middle">[one]</text>
       #|</g>
       #|</g>
       #|<g class="pele-edges" fill="none" stroke="var(--_l)" stroke-linecap="round">
@@ -1186,19 +1266,19 @@ test "draws blocks with sections, a shaded rect, and a box" {
       #|</g>
       #|<g class="pele-edge-labels" font-size="14">
       #|<g class="pele-edge-label" data-id="i2">
-      #|<text x="46" y="173.4" text-anchor="middle">a</text>
+      #|<text fill="var(--pele-fg-on-light,#1f1f1f)" x="46" y="173.4" text-anchor="middle">a</text>
       #|</g>
       #|<g class="pele-edge-label" data-id="i6">
       #|<text x="146" y="269.4" text-anchor="middle">b</text>
       #|</g>
       #|<g class="pele-edge-label" data-id="i8">
-      #|<text x="100" y="339.4" text-anchor="middle">c</text>
+      #|<text fill="var(--pele-fg-on-light,#1f1f1f)" x="100" y="339.4" text-anchor="middle">c</text>
       #|</g>
       #|<g class="pele-edge-label" data-id="i11">
-      #|<text x="100" y="423.4" text-anchor="middle">d</text>
+      #|<text fill="var(--pele-fg-on-light,#1f1f1f)" x="100" y="423.4" text-anchor="middle">d</text>
       #|</g>
       #|<g class="pele-edge-label" data-id="i13">
-      #|<text x="100" y="493.4" text-anchor="middle">e</text>
+      #|<text fill="var(--pele-fg-on-light,#1f1f1f)" x="100" y="493.4" text-anchor="middle">e</text>
       #|</g>
       #|</g>
       #|<g class="pele-nodes">
@@ -1209,7 +1289,7 @@ test "draws blocks with sections, a shaded rect, and a box" {
       #|<g class="pele-node pele-actor pele-actor-actor pele-actor-footer" data-id="B">
       #|<circle cx="92" cy="542" r="6" fill="var(--_s)" stroke="var(--_b)"/>
       #|<path d="M92,548V559M82,552H102M84,569L92,559L100,569" fill="none" stroke="var(--_b)"/>
-      #|<text class="pele-label" x="92" y="590.6" text-anchor="middle">B</text>
+      #|<text class="pele-label" fill="var(--pele-fg-on-light,#1f1f1f)" x="92" y="590.6" text-anchor="middle">B</text>
       #|</g>
       #|<g class="pele-node pele-actor pele-actor-queue pele-actor-footer" data-id="C">
       #|<path d="M168,535H232A6,22 0 0 1 232,579H168A6,22 0 0 1 168,535Z" fill="var(--_s)" stroke="var(--_b)"/>
@@ -1223,7 +1303,7 @@ test "draws blocks with sections, a shaded rect, and a box" {
       #|<g class="pele-node pele-actor pele-actor-actor" data-id="B">
       #|<circle cx="92" cy="42" r="6" fill="var(--_s)" stroke="var(--_b)"/>
       #|<path d="M92,48V59M82,52H102M84,69L92,59L100,69" fill="none" stroke="var(--_b)"/>
-      #|<text class="pele-label" x="92" y="90.6" text-anchor="middle">B</text>
+      #|<text class="pele-label" fill="var(--pele-fg-on-light,#1f1f1f)" x="92" y="90.6" text-anchor="middle">B</text>
       #|</g>
       #|<g class="pele-node pele-actor pele-actor-queue" data-id="C">
       #|<path d="M168,53H232A6,22 0 0 1 232,97H168A6,22 0 0 1 168,53Z" fill="var(--_s)" stroke="var(--_b)"/>

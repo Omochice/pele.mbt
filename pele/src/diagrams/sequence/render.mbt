@@ -198,9 +198,6 @@ const FONT_MONO : String = "var(--_fm)"
 const DASH : String = " stroke-dasharray=\"4 4\""
 
 ///|
-const FRAME_LABEL : String = " class=\"pele-frame-label\" fill=\"var(--_m)\" stroke=\"none\""
-
-///|
 priv struct Column {
   id : String
   actor : SeqActor
@@ -1018,21 +1015,53 @@ fn draw(
     lo < xs.length() && xs[lo] < x1
   }
   let stack : Array[Frame] = []
+  let ink_on = (fill : String?) => {
+    guard fill is Some(fill) && fill != "" else { return "" }
+    match @svg.raw_ink(@svg.resolve_raw_style(["fill:" + fill]).shape) {
+      Some(color) => " fill=\"\{color}\""
+      None => ""
+    }
+  }
+  // Prefer the innermost rect's fill, then a containing box's.
+  let under = (l : Double, r : Double) => {
+    let mut fill = None
+    for k = stack.length() - 1; k >= 0 && fill is None; k = k - 1 {
+      if stack[k].kind == "rect" {
+        fill = Some(stack[k].fill)
+      }
+    }
+    if fill is None {
+      for run in runs {
+        if l >= run_left(run) && r <= run_right(run) {
+          fill = Some(run.box.fill)
+        }
+      }
+    }
+    ink_on(fill)
+  }
   fn write_backed(
     out : @svg.Markup,
     label : @text.Label,
     cx : Double,
     cy : Double,
-    attrs : String,
+    frame : Bool,
   ) -> Unit raise @errors.PeleError {
     if label.width == 0 {
       return
     }
     let l = cx - label.width / 2
-    if crosses(l, l + label.width) {
+    let plate = crosses(l, l + label.width)
+    if plate {
       out.write(
         "<rect x=\"\{n(l - 3)}\" y=\"\{n(cy - label.height / 2 + 2)}\" width=\"\{n(label.width + 6)}\" height=\"\{n(label.height - 4)}\" rx=\"3\" fill=\"var(--_bg)\" stroke=\"none\"/>",
       )
+    }
+    let fill = if plate { "" } else { under(l, l + label.width) }
+    let attrs = if frame {
+      let color = if fill == "" { " fill=\"var(--_m)\"" } else { fill }
+      " class=\"pele-frame-label\"\{color} stroke=\"none\""
+    } else {
+      fill
     }
     @svg.write_label(out, label, cx, cy, attrs, icons?=options.icons)
   }
@@ -1111,6 +1140,11 @@ fn draw(
       col.size,
       col.label,
       icons?=options.icons,
+      ink=if is_figure(col.kind) {
+        ink_on(col.actor.box.map(b => b.fill))
+      } else {
+        ""
+      },
     )
     actors_out.write("</g>")
   }
@@ -1174,7 +1208,7 @@ fn draw(
             label,
             frame.x0 + 8 + label.width / 2,
             dy + 2 + label.height / 2,
-            FRAME_LABEL,
+            true,
           )
         }
         inner.write(
@@ -1188,7 +1222,7 @@ fn draw(
           frame.title,
           frame.x0 + frame.tab_w + 8 + frame.title.width / 2,
           frame.top + @util.js_max(TAB_H, frame.title.height) / 2,
-          FRAME_LABEL,
+          true,
         )
         frames_out.write_group(
           "<g class=\"pele-frame pele-frame-\{frame.kind}\">",
@@ -1330,7 +1364,7 @@ fn draw(
             label,
             out + 8 + label.width / 2,
             (top + bottom) / 2,
-            "",
+            under(out + 8, out + 8 + label.width),
             icons?=options.icons,
           )
           labels_out.write("</g>")
@@ -1419,7 +1453,13 @@ fn draw(
           labels_out.write(
             "<g class=\"pele-edge-label\" data-id=\"i\{@svg.esc_text(m.id)}\">",
           )
-          write_backed(labels_out, label, cx, line_y - 4 - label.height / 2, "")
+          write_backed(
+            labels_out,
+            label,
+            cx,
+            line_y - 4 - label.height / 2,
+            false,
+          )
           labels_out.write("</g>")
         }
         if creating {
@@ -1475,6 +1515,10 @@ fn draw(
     } else {
       @svg.resolve_style(["fill:" + run.box.fill]).shape
     }
+    let box_ink = match ink_on(Some(run.box.fill)) {
+      "" => " fill=\"var(--_m)\""
+      color => color
+    }
     let opacity = if fill != "" { "" } else { " fill-opacity=\"0.5\"" }
     boxes_out.write("<g class=\"pele-cluster pele-box\"")
     if run.box.name is Some(name) && name != "" {
@@ -1490,7 +1534,7 @@ fn draw(
       run.title,
       (x0 + x1) / 2,
       box_pad / 2 + 2 + run.title.height / 2,
-      " class=\"pele-cluster-label\" fill=\"var(--_m)\"",
+      " class=\"pele-cluster-label\"\{box_ink}",
       icons?=options.icons,
     )
     boxes_out.write("</g>")

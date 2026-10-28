@@ -135,7 +135,7 @@ pub let sequence : @types.Diagram
 
 pub fn tokenize(String) -> Tokens
 
-pub fn write_actor(@svg.Markup, String, Double, Double, ActorSize, @text.Label, icons? : (String) -> String?) -> Unit raise @errors.PeleError
+pub fn write_actor(@svg.Markup, String, Double, Double, ActorSize, @text.Label, icons? : (String) -> String?, ink? : String) -> Unit raise @errors.PeleError
 
 // Errors
 
