@@ -386,6 +386,52 @@ test "starts the next row below a message to self whose label is taller than its
 }
 
 ///|
+test "widens gaps within maxWidth before wrapping a message" {
+  let lines = (svg : String, id : String) => {
+    let label = between(
+      svg,
+      "<g class=\"pele-edge-label\" data-id=\"\{id}\">",
+      "</g>",
+    )
+    let spans = count(label, "<tspan")
+    if spans == 0 {
+      1
+    } else {
+      spans
+    }
+  }
+  let reported = "sequenceDiagram\n  participant U as UE\n  participant M as MeNB (LTE anchor)\n  participant S as SgNB (5G, NR leg)\n" +
+    "  M->>S: SgNB Addition Request (DRB-ID, CG-ConfigInfo)\n  M->>U: RRCConnectionReconfiguration (carries the NR SCG config)\n  U->>M: RRCConnectionReconfigurationComplete"
+  let long = "thisIsAnExtremelyLongMessageIdentifierThatShouldHaveRoomToFit"
+  let cases : Array[(String, String, Double)] = [
+    (reported, "i2", 760),
+    (reported, "i2", 760.5),
+    ("sequenceDiagram\n  A->>B: \{long}", "i0", 300.25),
+    (
+      "sequenceDiagram\n  participant A\n  participant B\n  participant C\n  participant D\n  A->>D: \{long}",
+      "i0",
+      450,
+    ),
+    (
+      "sequenceDiagram\n  A->>+B: \{long}\n  Note right of B: note\n  B-->>-A: ok",
+      "i0",
+      400,
+    ),
+  ]
+  let drawn_lines = cases.map(case => {
+    let (source, id, max_width) = case
+    guard drawn(source, max_width~) is Ok(result) else { return "failed" }
+    "\{result.width <= max_width} \{lines(result.svg, id)}"
+  })
+  inspect(
+    drawn_lines.join(" | "),
+    content=(
+      #|true 1 | true 1 | true 3 | true 2 | true 2
+    ),
+  )
+}
+
+///|
 test "draws activations, nested ones offset, and ends arrows at their edges" {
   let svg = svg_of(
     "sequenceDiagram\n  A->>+B: one\n  A->>+B: two\n  B-->>-A: three\n  B-->>-A: four",
