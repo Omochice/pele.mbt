@@ -425,6 +425,7 @@ fn draw(
   }
   let clusters = @svg.Markup::new()
   let nodes_out = @svg.Markup::new()
+  let filled : Array[Double] = []
   for i, view in views {
     let c = cnodes[i]
     let node = view.node
@@ -432,6 +433,11 @@ fn draw(
     let id = @svg.esc_text(node.id)
     let container_slot = node.color_index.unwrap_or(KIND_COUNT)
     if c.is_group {
+      if @svg.paints(view.style.shape) {
+        filled.push_iter(
+          [c.x - c.w / 2, c.y - c.h / 2, c.x + c.w / 2, c.y + c.h / 2].iter(),
+        )
+      }
       let title_x = @svg.cluster_title_x(
         c,
         view.label.width,
@@ -539,6 +545,7 @@ fn draw(
     }
     nodes_out.write("</g>")
   }
+  let casings = @svg.Markup::new()
   let edges_out = @svg.Markup::new()
   let labels_out = @svg.Markup::new()
   let put = (
@@ -570,6 +577,9 @@ fn draw(
     let line = match style {
       Some(style) => style.line
       None => ""
+    }
+    if @svg.runs_inside(path.d, filled) {
+      casings.write(@svg.edge_casing(path, "none", end_type, line~))
     }
     edges_out.write(
       "<g class=\"pele-edge pele-edge-\{kind}\{@flowchart.edge_classes(edge.classes)}\" data-id=\"\{@svg.esc_text(edge.id)}\"\{line}>",
@@ -658,6 +668,7 @@ fn draw(
   if !clusters.is_empty() {
     content.write_group("<g class=\"pele-clusters\">", clusters, "</g>")
   }
+  @svg.write_casings(content, casings)
   if !edges_out.is_empty() {
     content.write_group(
       "<g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\">",

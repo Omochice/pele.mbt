@@ -389,3 +389,51 @@ test "picks a contrasting label color on fills a style sets" {
     ),
   )
 }
+
+///|
+/// The `d` of every edge's line, in order.
+fn edge_paths(svg : String) -> Array[String] {
+  let paths = []
+  let head = "<g class=\"pele-edge "
+  let mut at = @util.index_of(svg, head)
+  while at != -1 {
+    let open = @util.index_of(svg, "<path d=\"", from=at) + 9
+    paths.push(@util.slice(svg, open, end=@util.index_of(svg, "\"", from=open)))
+    at = @util.index_of(svg, head, from=open)
+  }
+  paths
+}
+
+///|
+/// What the group of casings in a drawing holds, or an empty string when it has none.
+fn casings_of(svg : String) -> String {
+  let open = @util.index_of(svg, "<g class=\"pele-casings\"")
+  if open == -1 {
+    return ""
+  }
+  let start = @util.index_of(svg, ">", from=open) + 1
+  @util.slice(
+    svg,
+    start,
+    end=@util.index_of(svg, "</g><g class=\"pele-edges\"", from=start),
+  )
+}
+
+///|
+test "cases edges that run over a flow fill a style sets" {
+  let source = "agentflow-beta TB\n  flow f[\"Flow\"]\n    a[\"A\"] --> b[\"B\"]\n  end\n  b --> c[\"C\"]\n  c --> d[\"D\"]\n  style f fill:#FFF9C4"
+  let svg = snapshot(source)
+  let casings = casings_of(svg)
+  let paths = edge_paths(svg)
+  inspect(paths.length(), content="3")
+  inspect(
+    paths.map(d => casings.contains("<path d=\"\{d}\"/>").to_string()).join(" "),
+    content="true true false",
+  )
+  inspect(
+    snapshot(source.replace(old="\n  style f fill:#FFF9C4", new="")).contains(
+      "pele-casings",
+    ),
+    content="false",
+  )
+}
