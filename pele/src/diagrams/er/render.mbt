@@ -562,7 +562,7 @@ fn draw(
     }
   }
   let clusters = @svg.Markup::new()
-  let filled : Array[Double] = []
+  let fills : Array[@svg.Fill] = []
   let nodes_out = @svg.Markup::new()
   for i, view in views {
     let c = cnodes[i]
@@ -580,7 +580,7 @@ fn draw(
         GROUP_PAD,
       )
       if @svg.paints(view.style.shape) {
-        filled.push_iter([x, y, x + c.w, y + c.h].iter())
+        fills.push(@svg.Fill::new([x, y, x + c.w, y + c.h], view.style.shape))
       }
       clusters.write("<g class=\"pele-cluster\{classes}\"")
       clusters.write_data_id(node.id)
@@ -849,14 +849,30 @@ fn draw(
         )
       }
     }
-    if @svg.runs_inside(d, filled) {
-      casings.write(@svg.casing(d, start + end))
+    let ink = match @svg.fill_under(d, [], fills) {
+      On(fill) =>
+        match @svg.edge_ink(fill) {
+          "" => {
+            casings.write(@svg.casing(d, start + end))
+            ""
+          }
+          ink => {
+            start = @svg.hollow_on(start, fill)
+            end = @svg.hollow_on(end, fill)
+            " stroke=\"\{ink}\""
+          }
+        }
+      Across => {
+        casings.write(@svg.casing(d, start + end))
+        ""
+      }
+      Off => ""
     }
     let kind = if edge.dashed { "non-identifying" } else { "identifying" }
     let dash = if edge.dashed { " stroke-dasharray=\"4 3\"" } else { "" }
     edges_out.write("<g class=\"pele-edge pele-er-\{kind}\"")
     edges_out.write_data_id(edge.id)
-    edges_out.write("><path d=\"\{d}\"\{dash}/>" + start + end + "</g>")
+    edges_out.write("\{ink}><path d=\"\{d}\"\{dash}/>" + start + end + "</g>")
     if label.width > 0 {
       @svg.write_edge_label_with_id(
         labels_out,
