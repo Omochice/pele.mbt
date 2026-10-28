@@ -50,16 +50,37 @@ fn write_text(
 }
 
 ///|
-/// Writes the name of a node as a tooltip, unless its text already shows the whole name.
-fn write_tooltip(out : @svg.Markup, name : String, drawn : String?) -> Unit {
-  if drawn is Some(drawn) && drawn == name {
-    return
+/// A node's name as it goes into a tooltip, escaped.
+fn title_part(raw : String) -> String {
+  // Escaping drops characters XML forbids, which can leave blanks at either end.
+  @util.trim(@svg.esc(@util.trim(@text.decode_entities(raw))))
+}
+
+///|
+/// Writes the name of a node as a tooltip, after the sections around it that have no header to
+/// show theirs, unless its text already shows the whole name.
+fn write_tooltip(
+  out : @svg.Markup,
+  b : Box,
+  name : String,
+  drawn : String?,
+) -> Unit {
+  let own = title_part(b.node.name)
+  let path = if own == "" { [] } else { [own] }
+  let mut parent = b.parent
+  while parent is Some(p) && !p.headed {
+    let section = title_part(p.node.name)
+    if section != "" {
+      path.insert(0, section)
+    }
+    parent = p.parent
   }
-  if name == "" {
+  let full = path.join(" › ")
+  if full == "" || (drawn is Some(drawn) && drawn == name && full == own) {
     return
   }
   out.write("<title>")
-  out.write_esc(name)
+  out.write(full)
   out.write("</title>")
 }
 
@@ -130,7 +151,7 @@ fn draw_section(
   out.write("<g class=\"pele-node pele-section\{classes}\" data-id=\"")
   out.write_esc_text(node.name)
   out.write("\">")
-  write_tooltip(out, name, label.map(label => label.text))
+  write_tooltip(out, b, name, label.map(label => label.text))
   out.write(
     "<rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(b.w)}\" height=\"\{@svg.num(b.h)}\" fill=\"\{color}\"\{tint} stroke=\"\{color}\"",
   )
@@ -191,7 +212,7 @@ fn draw_leaf(
   out.write("<g class=\"pele-node pele-leaf\{classes}\" data-id=\"")
   out.write_esc_text(node.name)
   out.write("\">")
-  write_tooltip(out, name, label.map(label => label.text))
+  write_tooltip(out, b, name, label.map(label => label.text))
   out.write(
     "<rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(b.w)}\" height=\"\{@svg.num(b.h)}\" fill=\"\{@svg.series_color(b.series)}\"",
   )

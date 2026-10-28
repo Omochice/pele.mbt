@@ -192,6 +192,25 @@ test "a box that is too small for its text still shows, and names it in a toolti
 }
 
 ///|
+test "a section drawn without a header is named in the tooltips of what covers it" {
+  let svg = drawn(
+      with_config(
+        "    nodeHeight: 3", "treemap\n\"A & B\"\n  \"Inner\"\n    \"Leaf\": 1",
+      ),
+    ).svg
+  inspect(svg.contains("<title>A &amp; B › Inner</title>"), content="true")
+  inspect(
+    svg.contains("<title>A &amp; B › Inner › Leaf</title>"),
+    content="true",
+  )
+  inspect(drawn(basic).svg.contains("<title>"), content="false")
+  let unprintable = drawn(
+      with_config("    nodeHeight: 3", "treemap\n\"#1;\"\n  \"Leaf\": 1"),
+    ).svg
+  inspect(unprintable.contains("<title>"), content="false")
+}
+
+///|
 test "every node of a large, deep tree is drawn" {
   let source = StringBuilder()
   source.write_string("treemap\n")
