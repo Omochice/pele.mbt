@@ -536,6 +536,29 @@ fn loop_path(
 let spots : Array[Double] = [0.5, 0.3, 0.7, 0.15, 0.85]
 
 ///|
+/// Whether a box of the given size centered at (x, y) covers a block other than `s` and `t`.
+fn covers(
+  x : Double,
+  y : Double,
+  w : Double,
+  h : Double,
+  s : View,
+  t : View,
+  obstacles : Array[View]?,
+) -> Bool {
+  guard obstacles is Some(obstacles) else { return false }
+  for v in obstacles {
+    if !physical_equal(v, s) &&
+      !physical_equal(v, t) &&
+      (x - v.x()).abs() < (w + v.bw) / 2 &&
+      (y - v.y()).abs() < (h + v.bh) / 2 {
+      return true
+    }
+  }
+  false
+}
+
+///|
 /// Picks the point on a leg where a label of the given size covers no block other than the two it joins.
 fn label_spot(
   p : Array[Double],
@@ -546,21 +569,11 @@ fn label_spot(
   t : View,
   obstacles : Array[View]?,
 ) -> Double {
-  guard obstacles is Some(obstacles) else { return 0.5 }
+  guard obstacles is Some(_) else { return 0.5 }
   for spot in spots {
     let x = p[at] + (p[at + 2] - p[at]) * spot
     let y = p[at + 1] + (p[at + 3] - p[at + 1]) * spot
-    let mut clear = true
-    for v in obstacles {
-      if !physical_equal(v, s) &&
-        !physical_equal(v, t) &&
-        (x - v.x()).abs() < (w + v.bw) / 2 &&
-        (y - v.y()).abs() < (h + v.bh) / 2 {
-        clear = false
-        break
-      }
-    }
-    if clear {
+    if !covers(x, y, w, h, s, t, obstacles) {
       return spot
     }
   }
