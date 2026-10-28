@@ -238,26 +238,3 @@ fn enters(
   }
   false
 }
-
-///|
-/// Whether a path runs inside any of the boxes, given four numbers each as left, top, right and
-/// bottom.
-/// A path along a border does not count.
-pub fn runs_inside(d : String, boxes : Array[Double]) -> Bool {
-  if boxes.is_empty() {
-    return false
-  }
-  let points = path_points(d)
-  for b = 0; b < boxes.length(); b = b + 4 {
-    if enters(
-        points,
-        boxes[b] + 0.5,
-        boxes[b + 1] + 0.5,
-        boxes[b + 2] - 0.5,
-        boxes[b + 3] - 0.5,
-      ) {
-      return true
-    }
-  }
-  false
-}

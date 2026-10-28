@@ -48,59 +48,6 @@ test "paints tells a fill that covers what is under it from one that does not" {
 }
 
 ///|
-test "runs_inside tells a path that runs over a box from one along or outside it" {
-  let square = [0.0, 0, 10, 10]
-  let cases : Array[(String, Array[Double])] = [
-    ("M0,0L10,0", square),
-    ("M0,5L10,5", square),
-    ("M-5,5L-1,5", square),
-    ("M-5,5L-1,5M20,5L30,5", square),
-    ("M-5,5L-1,5M20,5L30,5", [0, 0, 10, 10, 25, 0, 40, 10]),
-    ("M-5,5H5", square),
-    ("M5,-5V-1", square),
-    ("M-10,-10C-10,20 20,-10 20,20", square),
-    ("M-10,5Q5,-20 20,5", square),
-    ("M-10,5Q5,40 20,5", square),
-    ("M-10,5A15,15 0 0 1 20,5", square),
-    ("M-1e1,5L-.5,5", square),
-    ("M-5,5L5,5", []),
-  ]
-  debug_inspect(
-    cases.map(c => @svg.runs_inside(c.0, c.1)),
-    content=(
-      #|[
-      #|  false,
-      #|  true,
-      #|  false,
-      #|  false,
-      #|  true,
-      #|  true,
-      #|  false,
-      #|  true,
-      #|  false,
-      #|  false,
-      #|  false,
-      #|  false,
-      #|  false,
-      #|]
-    ),
-  )
-}
-
-///|
-test "runs_inside follows an arc around its bulge, not only to its end" {
-  let arcs = [
-    "M-5,20A20,20 0 0 1 -5,-10", "M-5,20A20,20 0 0 0 -5,-10", "M-5,20A20,20 0 1 1 -5,-10",
-    "M-5,20A20,20 0 1 0 -5,-10", "M-5,20A1,1 0 0 1 -5,-10", "M-5,20A0,20 0 0 1 15,5",
-    "M-5,5A5,5 0 0 1 -5,5",
-  ]
-  inspect(
-    arcs.map(d => @svg.runs_inside(d, [0, 0, 10, 10]).to_string()).join(" "),
-    content="false true false false false true false",
-  )
-}
-
-///|
 test "marker outlines an arrowhead in the stroke it is given" {
   inspect(
     @svg.marker("arrow_point", 10, 20, 0, 1, "var(--_bg)", stroke="var(--_bg)"),

@@ -11,6 +11,51 @@ fn styled_fill(box : Array[Double], declarations : Array[String]) -> @svg.Fill {
 }
 
 ///|
+/// Whether the path `d` touches any of the fills inside `boxes`.
+fn touches(d : String, boxes : Array[Array[Double]]) -> String {
+  match @svg.fill_under(d, [], boxes.map(box => @svg.Fill::new(box, ""))) {
+    Off => "false"
+    _ => "true"
+  }
+}
+
+///|
+test "fill_under tells a path that runs over a fill from one along or outside it" {
+  let square = [0.0, 0, 10, 10]
+  let cases : Array[(String, Array[Array[Double]])] = [
+    ("M0,0L10,0", [square]),
+    ("M0,5L10,5", [square]),
+    ("M-5,5L-1,5", [square]),
+    ("M-5,5L-1,5M20,5L30,5", [square]),
+    ("M-5,5L-1,5M20,5L30,5", [square, [25, 0, 40, 10]]),
+    ("M-5,5H5", [square]),
+    ("M5,-5V-1", [square]),
+    ("M-10,-10C-10,20 20,-10 20,20", [square]),
+    ("M-10,5Q5,-20 20,5", [square]),
+    ("M-10,5Q5,40 20,5", [square]),
+    ("M-1e1,5L-.5,5", [square]),
+    ("M-5,5L5,5", []),
+  ]
+  inspect(
+    cases.map(c => touches(c.0, c.1)).join(" "),
+    content="false true false false true true false true false false false false",
+  )
+}
+
+///|
+test "fill_under follows an arc around its bulge, not only to its end" {
+  let arcs = [
+    "M-10,5A15,15 0 0 1 20,5", "M-5,20A20,20 0 0 1 -5,-10", "M-5,20A20,20 0 0 0 -5,-10",
+    "M-5,20A20,20 0 1 1 -5,-10", "M-5,20A20,20 0 1 0 -5,-10", "M-5,20A1,1 0 0 1 -5,-10",
+    "M-5,20A0,20 0 0 1 15,5", "M-5,5A5,5 0 0 1 -5,5",
+  ]
+  inspect(
+    arcs.map(d => touches(d, [[0, 0, 10, 10]])).join(" "),
+    content="false false true false false false true false",
+  )
+}
+
+///|
 /// What `over_fills` gives, with `undefined` for an edge off every fill.
 fn over(
   d : String,

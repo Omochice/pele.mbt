@@ -115,8 +115,6 @@ pub fn rounded(String) -> String
 
 pub fn route_path(Array[Double], String?, Double, Double, start_reach? : Double, end_reach? : Double) -> EdgePath
 
-pub fn runs_inside(String, Array[Double]) -> Bool
-
 pub fn series_color(Int32) -> String
 
 pub fn sets_fill(String) -> Bool
