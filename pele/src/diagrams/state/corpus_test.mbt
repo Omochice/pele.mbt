@@ -1,4 +1,4 @@
-// pele v1.10.0's state corpus (tests/support/corpus.ts: the strings of Mermaid's state specs and the samples of Mermaid's docs), with a hash of what pele's render gives each source.
+// pele v1.12.0's state corpus (tests/support/corpus.ts: the strings of Mermaid's state specs and the samples of Mermaid's docs), with a hash of what pele's render gives each source.
 
 ///|
 test "renders every corpus input as pele does, the same way each time" {

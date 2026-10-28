@@ -271,7 +271,7 @@ test "the output is inert with hostile text in every position" {
       }
     }
   }
-  // pele v1.10.0 draws exactly this many of these texts and rejects the rest.
+  // pele v1.12.0 draws exactly this many of these texts and rejects the rest.
   inspect(rendered, content="966")
 }
 

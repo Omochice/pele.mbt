@@ -1,5 +1,5 @@
 // What pele makes of each agentflow input of its reference corpus, its documentation corpus, Mermaid's fixtures and the goldens.
-// Generated from pele 1.10.0: a success is a hash of the dump written as `dump_model` writes it.
+// Generated from pele 1.12.0: a success is a hash of the dump written as `dump_model` writes it.
 
 ///|
 let model_cases : Array[(String, String)] = [

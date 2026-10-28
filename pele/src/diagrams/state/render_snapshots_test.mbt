@@ -1,4 +1,4 @@
-// The snapshots were taken from pele v1.10.0's render under the default options, and retaken where a later pele draws them differently.
+// The snapshots were taken from pele v1.12.0's render under the default options.
 
 ///|
 /// What rendering gives: the size and links, then the document, or the error.

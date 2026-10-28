@@ -1,4 +1,4 @@
-// Mermaid's documentation examples in pele's corpus (tests/corpus/swimlane-docs.json), with a hash of what pele v1.10.0's render gives each at its natural width and at a host width of 480.
+// Mermaid's documentation examples in pele's corpus (tests/corpus/swimlane-docs.json), with a hash of what pele v1.12.0's render gives each at its natural width and at a host width of 480.
 
 ///|
 let docs_examples : Array[(String, String, String)] = [

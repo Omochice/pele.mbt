@@ -50,7 +50,7 @@ test "title_label wraps a title wider than the room for it" {
 
 ///|
 test "with_title puts the title above the content and widens the picture for it" {
-  // The expected documents were taken from pele v1.10.0's withTitle.
+  // The expected documents were taken from pele v1.12.0's withTitle.
   let check = (
     title : String?,
     size : Double,

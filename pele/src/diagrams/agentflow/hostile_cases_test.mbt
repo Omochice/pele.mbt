@@ -1,4 +1,4 @@
-// pele's agentflow-security templates and payloads (tests/render/agentflow-security.test.ts, tests/support/inert.ts), with a hash of what pele's render gives each pair, taken from pele v1.10.0 and retaken where a later pele draws it differently.
+// pele's agentflow-security templates and payloads (tests/render/agentflow-security.test.ts, tests/support/inert.ts), with a hash of what pele's render gives each pair, taken from pele v1.12.0.
 
 ///|
 /// Each template as the text around the places its payload goes.

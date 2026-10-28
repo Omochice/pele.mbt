@@ -1,4 +1,4 @@
-// The hostile-text templates of pele's swimlane render tests and pele's payloads (tests/render/swimlane.test.ts, tests/support/inert.ts), with a hash of what pele v1.10.0's render gives each pair.
+// The hostile-text templates of pele's swimlane render tests and pele's payloads (tests/render/swimlane.test.ts, tests/support/inert.ts), with a hash of what pele v1.12.0's render gives each pair.
 
 ///|
 let hostile_payloads : Array[String] = [
