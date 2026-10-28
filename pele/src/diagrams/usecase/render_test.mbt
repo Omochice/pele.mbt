@@ -287,20 +287,50 @@ fn casings_of(svg : String) -> String {
 }
 
 ///|
-test "cases edges that run over a boundary fill a style sets" {
+test "cases edges that cross a boundary fill a style sets and inks those inside it" {
   let source = "usecase-beta\nactor User\nsystemBoundary S\n  Pay\n  Ship\nend\nPay --> Ship\nUser --> Pay\nUser --> Other\nstyle S fill:#BBDEFB"
   let svg = svg_of(source)
   let casings = casings_of(svg)
   let paths = edge_paths(svg)
   inspect(paths.length(), content="3")
+  // Pay --> Ship lies inside the boundary and takes its ink; User --> Pay crosses into it.
   inspect(
     paths.map(d => casings.contains("<path d=\"\{d}\"/>").to_string()).join(" "),
-    content="true true false",
+    content="false true false",
   )
   inspect(
-    svg_of(source.replace(old="\nstyle S fill:#BBDEFB", new="")).contains(
-      "pele-casings",
+    edge_heads(svg),
+    content=(
+      #|<g class="pele-edge pele-association" data-id="edge-0" stroke="var(--pele-fg-on-light,#1f1f1f)">
+      #|<g class="pele-edge pele-association" data-id="edge-1">
+      #|<g class="pele-edge pele-association" data-id="edge-2">
     ),
-    content="false",
   )
+  let plain = svg_of(source.replace(old="\nstyle S fill:#BBDEFB", new=""))
+  inspect(plain.contains("pele-casings"), content="false")
+  inspect(plain.contains("stroke=\"var(--pele-fg-on"), content="false")
+  // A hollow triangle keeps the fill's color inside it.
+  let hollow = svg_of(
+    "usecase-beta\nsystemBoundary S\n  Pay\n  Ship\nend\nPay --|> Ship\nstyle S fill:black",
+  )
+  let at = @util.index_of(hollow, "<path class=\"pele-marker\"")
+  inspect(
+    @util.slice(hollow, at, end=@util.index_of(hollow, "/>", from=at) + 2),
+    content=(
+      #|<path class="pele-marker" d="M188,74L176,80L176,68Z" fill="black" stroke="var(--pele-fg-on-dark,#fff)" stroke-linejoin="round"/>
+    ),
+  )
+}
+
+///|
+/// The opening tag of every edge's group, one to a line.
+fn edge_heads(svg : String) -> String {
+  let heads = []
+  let head = "<g class=\"pele-edge "
+  let mut at = @util.index_of(svg, head)
+  while at != -1 {
+    heads.push(@util.slice(svg, at, end=@util.index_of(svg, ">", from=at) + 1))
+    at = @util.index_of(svg, head, from=at + 1)
+  }
+  heads.join("\n")
 }

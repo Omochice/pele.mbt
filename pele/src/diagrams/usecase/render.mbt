@@ -730,7 +730,7 @@ fn draw(
   }
   attach_ends(cedges, cnodes, views)
   let clusters = @svg.Markup::new()
-  let filled : Array[Double] = []
+  let fills : Array[@svg.Fill] = []
   let nodes_out = @svg.Markup::new()
   for i, view in views {
     let c = cnodes[i]
@@ -748,7 +748,7 @@ fn draw(
       let x = c.x - c.w / 2
       let y = c.y - c.h / 2
       if @svg.raw_paints(view.css.shape) {
-        filled.push_iter([x, y, x + c.w, y + c.h].iter())
+        fills.push(@svg.Fill::raw([x, y, x + c.w, y + c.h], view.css.shape))
       }
       let wash = if @svg.sets_raw_fill(view.css.shape) {
         ""
@@ -1013,11 +1013,18 @@ fn draw(
       }
       @svg.route_path(ce.route, None, trim(start_type), trim(end_type))
     }
-    let color = match css.stroke {
-      Some(stroke) if stroke != "" => @svg.STROKE_CSS
+    let (over, under) = match
+      @svg.fill_under(path.d, [path.sx, path.sy, path.ex, path.ey], fills) {
+      On(fill) => (Some(@svg.raw_edge_ink(fill, css=css.line)), Some(fill))
+      Across => (Some(""), None)
+      Off => (None, None)
+    }
+    let color = match (over, css.stroke) {
+      (Some(ink), _) if ink != "" => ink
+      (_, Some(stroke)) if stroke != "" => @svg.STROKE_CSS
       _ => "var(--_l)"
     }
-    if @svg.runs_inside(path.d, filled) {
+    if over is Some("") {
       let bg = "var(--_bg)"
       casings.write(
         @svg.raw_casing(
@@ -1042,12 +1049,18 @@ fn draw(
     let edge_classes = @svg.class_names(
       strip_prefix(edge.classes, "default relationship relationship-", true),
     )
+    let marks = mark(start_type, path.sx, path.sy, path.sdx, path.sdy, color) +
+      mark(end_type, path.ex, path.ey, path.edx, path.edy, color)
+    let (ink, marks) = match (over, under) {
+      (Some(ink), Some(fill)) if ink != "" =>
+        (" stroke=\"\{ink}\"", @svg.hollow_on(marks, fill))
+      _ => ("", marks)
+    }
     @svg.write_styled(
       edges_out,
-      "<g class=\"pele-edge pele-\{edge.relationship_type}\{edge_classes}\" data-id=\"\{@svg.esc_text(edge.id)}\"\{style.line}>" +
+      "<g class=\"pele-edge pele-\{edge.relationship_type}\{edge_classes}\" data-id=\"\{@svg.esc_text(edge.id)}\"\{ink}\{style.line}>" +
       "<path d=\"\{path.d}\"\{dashes}/>" +
-      mark(start_type, path.sx, path.sy, path.sdx, path.sdy, color) +
-      mark(end_type, path.ex, path.ey, path.edx, path.edy, color) +
+      marks +
       "</g>",
       css,
     )
