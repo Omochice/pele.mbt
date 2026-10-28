@@ -199,13 +199,13 @@ fn dashes(text : String) -> @common.TokenType {
     scanner: () => {
       let front_matter = (@common.yaml.scanner)()
       let mut closerless = false
-      (src, p) => {
+      (src, p, previous) => {
         if !@util.starts_with_at(src, text, p) {
           return @common.NO_MATCH
         }
         let end = p + text.length()
         if !closerless {
-          let fence = front_matter(src, p)
+          let fence = front_matter(src, p, previous)
           if fence == @common.NO_CLOSER {
             closerless = true
           } else if fence > end {
@@ -323,7 +323,7 @@ let architecture_tokens : Array[@common.TokenType] = [
   @common.pattern("ARCH_ICON", scan_icon, first="("),
   {
     name: "ARCH_TITLE",
-    scanner: () => (src, p) => scan_label(src, p),
+    scanner: () => (src, p, _) => scan_label(src, p),
     first: Some("["),
     hidden: false,
   },

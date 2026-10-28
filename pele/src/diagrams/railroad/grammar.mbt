@@ -22,11 +22,11 @@ fn without_leading_blanks(
     name: base.name,
     scanner: () => {
       let scan = (base.scanner)()
-      (src, p) => {
+      (src, p, previous) => {
         if is_blank_at(src, p) {
           @common.NO_MATCH
         } else {
-          scan(src, p)
+          scan(src, p, previous)
         }
       }
     },
@@ -51,7 +51,7 @@ let acc_descr : @common.TokenType = {
   name: "ACC_DESCR",
   scanner: () => {
     let mut unclosed = 0x7fffffff
-    (src, at) => {
+    (src, at, _) => {
       if !@util.starts_with_at(src, "accDescr", at) {
         return @common.NO_MATCH
       }

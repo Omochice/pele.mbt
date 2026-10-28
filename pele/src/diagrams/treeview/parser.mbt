@@ -130,8 +130,8 @@ fn keyword_token() -> @common.TokenType {
     ..keyword,
     scanner: () => {
       let scan = (keyword.scanner)()
-      (src, p) => {
-        let end = scan(src, p)
+      (src, p, previous) => {
+        let end = scan(src, p, previous)
         if end > p && match_bare_name(src, p) > end {
           @common.NO_MATCH
         } else {

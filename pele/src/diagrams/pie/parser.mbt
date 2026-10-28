@@ -32,7 +32,7 @@ fn number_scanner() -> @common.Scanner {
   let mut from = 0
   let mut end = 0
   let mut fraction = -1
-  (src, p) => {
+  (src, p, _) => {
     let at = if @util.code_at(src, p) == '-'.to_int() { p + 1 } else { p }
     if at < from || at >= end {
       from = at

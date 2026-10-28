@@ -5,8 +5,9 @@
 
 ///|
 /// Matches a token at an index: returns where the match ends, `NO_MATCH`, or `NO_CLOSER`.
+/// The last argument is the type index of the last visible token, or -1 at the start.
 /// Raises where pele's pattern for the token throws instead of answering.
-pub type Scanner = (String, Int32) -> Int32 raise @errors.PeleError
+pub type Scanner = (String, Int32, Int32) -> Int32 raise @errors.PeleError
 
 ///|
 /// The token does not match here.
@@ -48,7 +49,7 @@ fn stateless(scan : Scanner) -> () -> Scanner {
 pub fn literal(name : String, text : String) -> TokenType {
   {
     name,
-    scanner: stateless((src, p) => {
+    scanner: stateless((src, p, _) => {
       if @util.starts_with_at(src, text, p) {
         p + text.length()
       } else {
@@ -65,7 +66,7 @@ pub fn literal(name : String, text : String) -> TokenType {
 pub fn keyword(word : String) -> TokenType {
   {
     name: word,
-    scanner: stateless((src, p) => {
+    scanner: stateless((src, p, _) => {
       if !@util.starts_with_at(src, word, p) {
         return NO_MATCH
       }
@@ -92,7 +93,7 @@ pub fn pattern(
   first? : String,
   hidden~ : Bool = false,
 ) -> TokenType {
-  { name, scanner: stateless((src, p) => scan(src, p)), first, hidden, }
+  { name, scanner: stateless((src, p, _) => scan(src, p)), first, hidden, }
 }
 
 ///|
@@ -239,7 +240,7 @@ pub fn quoted_span(src : String, p : Int32) -> Int32 {
 /// `"([^"\\]|\\.)*"|'([^'\\]|\\.)*'`
 pub let string : TokenType = {
   name: "STRING",
-  scanner: stateless((src, p) => {
+  scanner: stateless((src, p, _) => {
     let quote = @util.code_at(src, p)
     if quote != '"'.to_int() && quote != '\''.to_int() {
       return NO_MATCH
@@ -390,12 +391,16 @@ pub fn tokenize(
   while p < n {
     let c = @util.code_at(src, p)
     let candidates = if c < 128 { starting[c] } else { every }
+    let previous = match kinds.last() {
+      Some(kind) => kind
+      None => -1
+    }
     let mut matched = false
     for k in candidates {
       if dead[k] {
         continue
       }
-      let end = scanners[k](src, p)
+      let end = scanners[k](src, p, previous)
       if end == NO_CLOSER {
         dead[k] = true
         continue

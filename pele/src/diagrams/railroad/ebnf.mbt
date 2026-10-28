@@ -98,7 +98,7 @@ let open_group : @common.TokenType = {
   name: "(",
   scanner: () => {
     let mut unclosed = false
-    (src, p) => {
+    (src, p, _) => {
       if @util.code_at(src, p) != '('.to_int() {
         return @common.NO_MATCH
       }
@@ -122,12 +122,12 @@ let minus : @common.TokenType = {
   scanner: () => {
     let front_matter = (@common.yaml.scanner)()
     let mut unclosed = false
-    (src, p) => {
+    (src, p, previous) => {
       if @util.code_at(src, p) != '-'.to_int() {
         return @common.NO_MATCH
       }
       if !unclosed {
-        let end = front_matter(src, p)
+        let end = front_matter(src, p, previous)
         if end > p {
           return @common.NO_MATCH
         }

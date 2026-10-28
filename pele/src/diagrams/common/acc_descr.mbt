@@ -7,7 +7,7 @@ pub let resumable_acc_descr : TokenType = {
   name: "ACC_DESCR",
   scanner: () => {
     let mut unclosed = false
-    (src, p) => {
+    (src, p, _) => {
       let start = skip_blanks(src, p)
       if !@util.starts_with_at(src, "accDescr", start) {
         return NO_MATCH

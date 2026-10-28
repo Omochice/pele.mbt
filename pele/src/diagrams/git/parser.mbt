@@ -209,8 +209,8 @@ fn int_end(src : String, at : Int32) -> Int32 {
 /// Chevrotain's LONGER_ALT: where a name matches more text than the word does, the name wins.
 /// Giving way here lets the name type, which comes last in the order, take the token.
 fn unless_longer_name(scan : @common.Scanner) -> @common.Scanner {
-  (src, p) => {
-    let end = scan(src, p)
+  (src, p, previous) => {
+    let end = scan(src, p, previous)
     if end > p && reference_end(src, p) > end {
       @common.NO_MATCH
     } else {
@@ -224,8 +224,8 @@ fn unless_longer_name(scan : @common.Scanner) -> @common.Scanner {
 /// Reading to the end of the text once is enough to know that no later one can close either.
 fn acc_descr_scanner() -> @common.Scanner {
   let base = (@common.acc_descr.scanner)()
-  (src, p) => {
-    let end = base(src, p)
+  (src, p, previous) => {
+    let end = base(src, p, previous)
     if end != @common.NO_MATCH {
       return end
     }
@@ -253,7 +253,7 @@ fn word(text : String) -> @common.TokenType {
   {
     name: text,
     scanner: () => {
-      unless_longer_name((src, p) => {
+      unless_longer_name((src, p, _) => {
         if @util.starts_with_at(src, text, p) {
           p + text.length()
         } else {

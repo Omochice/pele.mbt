@@ -61,7 +61,7 @@ fn digits(src : String, from : Int32) -> Int32 {
 fn number_scanner() -> @common.Scanner {
   let mut run_from = 0
   let mut run_end = 0
-  (src, at) => {
+  (src, at, _) => {
     if at < run_from || at >= run_end {
       run_from = at
       run_end = digits(src, at)
@@ -121,8 +121,8 @@ fn id_end(src : String, at : Int32) -> Int32 {
 /// Chevrotain's LONGER_ALT: where a name matches more text than the word does, the name wins.
 /// Giving way here lets the name type, which comes later in the order, take the token.
 fn unless_longer_name(scan : @common.Scanner) -> @common.Scanner {
-  (src, p) => {
-    let end = scan(src, p)
+  (src, p, previous) => {
+    let end = scan(src, p, previous)
     if end > p && id_end(src, p) > end {
       @common.NO_MATCH
     } else {
@@ -138,7 +138,7 @@ fn unless_longer_name(scan : @common.Scanner) -> @common.Scanner {
 fn acc_descr_scanner() -> @common.Scanner {
   let base = (@common.acc_descr.scanner)()
   let mut last_brace = -2
-  (src, p) => {
+  (src, p, previous) => {
     let mut at = p
     while @util.is_blank(@util.code_at(src, at)) {
       at += 1
@@ -157,7 +157,7 @@ fn acc_descr_scanner() -> @common.Scanner {
         }
       }
     }
-    base(src, p)
+    base(src, p, previous)
   }
 }
 
@@ -241,7 +241,7 @@ fn word(text : String) -> @common.TokenType {
   {
     name: text,
     scanner: () => {
-      unless_longer_name((src, p) => {
+      unless_longer_name((src, p, _) => {
         if @util.starts_with_at(src, text, p) {
           p + text.length()
         } else {

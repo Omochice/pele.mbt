@@ -121,7 +121,7 @@ fn hex_run(src : String, from : Int32) -> Int32 {
 let abnf_numval : @common.TokenType = {
   name: "ABNF_NUMVAL",
   scanner: () => {
-    (src, p) => {
+    (src, p, _) => {
       if @util.code_at(src, p) != '%'.to_int() {
         return @common.NO_MATCH
       }

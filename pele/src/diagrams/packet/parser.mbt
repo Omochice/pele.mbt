@@ -82,12 +82,12 @@ fn int_scanner(src : String, p : Int32) -> Int32 {
 fn dash() -> @common.Scanner {
   let front_matter = (@common.yaml.scanner)()
   let mut closerless = false
-  (src, p) => {
+  (src, p, previous) => {
     if @util.code_at(src, p) != '-'.to_int() {
       return @common.NO_MATCH
     }
     if !closerless {
-      let end = front_matter(src, p)
+      let end = front_matter(src, p, previous)
       if end == @common.NO_CLOSER {
         closerless = true
       } else if end > p + 1 {
