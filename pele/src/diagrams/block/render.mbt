@@ -22,6 +22,9 @@ const LINE_ATTRS : String = " stroke=\"var(--_b)\""
 const OBSTACLE_BUDGET : Double = 2000000
 
 ///|
+const LABEL_GAP : Double = 4
+
+///|
 /// The outline each shape of Mermaid's is drawn with.
 fn shape_name(kind : String) -> String {
   match kind {
@@ -109,14 +112,23 @@ fn View::is_diamond(self : View) -> Bool {
 }
 
 ///|
+/// A composite title as a box that stacked labels keep clear of.
+priv struct Box {
+  x : Double
+  y : Double
+  bw : Double
+  bh : Double
+}
+
+///|
 /// An edge with its route: two points for a straight line, three for a bend, none for a self-loop.
 priv struct Route {
   edge : Block
   points : Array[Double]
   loop_count : Int32
   label : @text.Label
-  lx : Double
-  ly : Double
+  mut lx : Double
+  mut ly : Double
 }
 
 ///|
@@ -536,7 +548,8 @@ fn loop_path(
 let spots : Array[Double] = [0.5, 0.3, 0.7, 0.15, 0.85]
 
 ///|
-/// Whether a box of the given size centered at (x, y) covers a block other than `s` and `t`.
+/// Whether a box of the given size centered at (x, y) covers a block other than `s` and `t`, or one of `titles`.
+/// Nothing is covered without obstacles, since a diagram too large to check its blocks does not check its titles either.
 fn covers(
   x : Double,
   y : Double,
@@ -545,6 +558,7 @@ fn covers(
   s : View,
   t : View,
   obstacles : Array[View]?,
+  titles : Array[Box],
 ) -> Bool {
   guard obstacles is Some(obstacles) else { return false }
   for v in obstacles {
@@ -552,6 +566,11 @@ fn covers(
       !physical_equal(v, t) &&
       (x - v.x()).abs() < (w + v.bw) / 2 &&
       (y - v.y()).abs() < (h + v.bh) / 2 {
+      return true
+    }
+  }
+  for v in titles {
+    if (x - v.x).abs() < (w + v.bw) / 2 && (y - v.y).abs() < (h + v.bh) / 2 {
       return true
     }
   }
@@ -573,11 +592,101 @@ fn label_spot(
   for spot in spots {
     let x = p[at] + (p[at + 2] - p[at]) * spot
     let y = p[at + 1] + (p[at + 3] - p[at + 1]) * spot
-    if !covers(x, y, w, h, s, t, obstacles) {
+    if !covers(x, y, w, h, s, t, obstacles, []) {
       return spot
     }
   }
   0.5
+}
+
+///|
+/// Stacks overlapping labels along their shared line, if they fit between its markers and cover no other block or title.
+fn stack_labels(
+  stack : Array[Int32],
+  routes : Array[Route],
+  legs : Array[Array[Double]],
+  s : View,
+  t : View,
+  obstacles : Array[View]?,
+  titles : Array[Box],
+) -> Unit {
+  let vertical = legs[stack[0]][0] == legs[stack[0]][2]
+  let mut lo = -@double.infinity
+  let mut hi = @double.infinity
+  let mut need = -LABEL_GAP
+  let mut crowded = false
+  for a in 0..<stack.length() {
+    let leg = legs[stack[a]]
+    if (if vertical { leg[0] != leg[2] } else { leg[1] != leg[3] }) {
+      return
+    }
+    lo = @util.js_max(
+      lo,
+      if vertical {
+        @util.js_min(leg[1], leg[3])
+      } else {
+        @util.js_min(leg[0], leg[2])
+      },
+    )
+    hi = @util.js_min(
+      hi,
+      if vertical {
+        @util.js_max(leg[1], leg[3])
+      } else {
+        @util.js_max(leg[0], leg[2])
+      },
+    )
+    let p = routes[stack[a]]
+    need += (if vertical { p.label.height } else { p.label.width + 8 }) +
+      LABEL_GAP
+    for b in 0..<a {
+      let q = routes[stack[b]]
+      if (p.lx - q.lx).abs() < (p.label.width + q.label.width) / 2 + 8 &&
+        (p.ly - q.ly).abs() < (p.label.height + q.label.height) / 2 {
+        crowded = true
+      }
+    }
+  }
+  if !crowded || need > hi - lo - 2 * @svg.ARROW {
+    return
+  }
+  let along = []
+  let mut next = (lo + hi - need) / 2
+  for i in stack {
+    let route = routes[i]
+    let label = route.label
+    let size = if vertical { label.height } else { label.width + 8 }
+    let at = next + size / 2
+    if covers(
+        if vertical {
+          route.lx
+        } else {
+          at
+        },
+        if vertical {
+          at
+        } else {
+          route.ly
+        },
+        label.width + 8,
+        label.height,
+        s,
+        t,
+        obstacles,
+        titles,
+      ) {
+      return
+    }
+    along.push(at)
+    next += size + LABEL_GAP
+  }
+  for k, i in stack {
+    if vertical {
+      routes[i].ly = along[k]
+    } else {
+      routes[i].lx = along[k]
+    }
+  }
 }
 
 ///|
@@ -795,6 +904,7 @@ fn draw(
   }
   let (content_width, content_height) = layout(root.cell, gap)
   let obstacles = []
+  let titles : Array[Box] = []
   for v in order {
     if v.is_leaf() && is_fixed(v.shape) {
       v.bw = v.cell.nw
@@ -811,6 +921,13 @@ fn draw(
     }
     if v.kind is (Leaf | Arrow) {
       obstacles.push(v)
+    } else if v.cell.head > 0 {
+      titles.push({
+        x: v.x(),
+        y: v.y() - v.cell.h / 2 + (v.cell.head + gap) / 2 + 2,
+        bw: v.label.width,
+        bh: v.label.height,
+      })
     }
   }
 
@@ -845,6 +962,8 @@ fn draw(
   }
   let seen : Map[Int64, Int32] = Map([])
   let routes : Array[Route] = []
+  let stacks : Map[Int64, Array[Int32]] = Map([])
+  let legs : Array[Array[Double]] = Array::make(drawn.length(), [])
   let mut min_x = 0.0
   let mut min_y = 0.0
   let mut max_x = content_width
@@ -910,9 +1029,13 @@ fn draw(
       }
       lx = points[at] + (points[at + 2] - points[at]) * spot
       ly = points[at + 1] + (points[at + 3] - points[at + 1]) * spot
-    }
-    if label.width > 0 {
-      grow(lx, ly, label.width + 8, label.height)
+      if label.width > 0 && total > 1 {
+        legs[j] = [points[at], points[at + 1], points[at + 2], points[at + 3]]
+        match stacks.get(key) {
+          Some(stack) => stack.push(j)
+          None => stacks.set(key, [j])
+        }
+      }
     }
     routes.push({
       edge,
@@ -926,6 +1049,17 @@ fn draw(
       lx,
       ly,
     })
+  }
+  for _, stack in stacks {
+    if stack.length() > 1 {
+      let (s, t) = ends[stack[0]]
+      stack_labels(stack, routes, legs, s, t, check, titles)
+    }
+  }
+  for route in routes {
+    if route.label.width > 0 {
+      grow(route.lx, route.ly, route.label.width + 8, route.label.height)
+    }
   }
   let title = @svg.title_label(
     db.title,
