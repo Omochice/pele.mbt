@@ -743,7 +743,12 @@ fn draw(
     if view.kind == Boundary {
       let x = c.x - c.w / 2
       let y = c.y - c.h / 2
-      let box = " fill=\"var(--_a)\" fill-opacity=\"0.5\" stroke=\"var(--_b)\"\{shape}"
+      let wash = if @svg.sets_raw_fill(view.css.shape) {
+        ""
+      } else {
+        " fill-opacity=\"0.5\""
+      }
+      let box = " fill=\"var(--_a)\"\{wash} stroke=\"var(--_b)\"\{shape}"
       let title_attrs = " class=\"pele-cluster-label\" fill=\"var(--_m)\""
       clusters.write(
         "<g class=\"pele-cluster pele-boundary\{classes}\" data-id=\"\{id}\">",

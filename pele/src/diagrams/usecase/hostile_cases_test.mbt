@@ -1,4 +1,4 @@
-// pele's usecase-security templates and payloads (tests/render/usecase-security.test.ts, tests/support/inert.ts), with a hash of what pele v1.10.0's render gives each pair.
+// pele's usecase-security templates and payloads (tests/render/usecase-security.test.ts, tests/support/inert.ts), with a hash of what pele's render gives each pair, taken from pele v1.10.0 and retaken where a later pele draws it differently.
 
 ///|
 /// Each template as the text around the places its payload goes.
@@ -625,8 +625,8 @@ let hostile_outcomes : Array[String] = [
   "8430852f", "37498689", "b41aee34", "5d481ebf", "87095980", "a2580482", "e3bb7fe8",
   "ba35667a", "e3bb7fe8", "7047c93d", "7047c93d", "7ed43880", "50e83890", "c0ac6695",
   "7823b7f0", "7ed43880", "ef8e940b", "f1665223", "58428dea", "88afb2bf", "3299b5f3",
-  "ca2adabe", "3299b5f3", "b8329f4d", "d7ac8cbe", "4e85dcfc", "8bfc3641", "e566cfed",
-  "ac690529", "11fea8a9", "dc82a2a1", "83ca498c", "b5cadd7b", "26981278", "74c2af22",
+  "ca2adabe", "3299b5f3", "b8329f4d", "d7ac8cbe", "4e85dcfc", "8bfc3641", "ef5d488e",
+  "7c4f61c6", "5540db30", "a89fe43e", "83ca498c", "b5cadd7b", "26981278", "74c2af22",
   "e22d7c86", "ceec3ce1", "e3bb7fe8", "1f681b19", "593727d7", "2afc77a8", "92014ca2",
   "d663e4a8", "d4608a27", "d663e4a8", "d663e4a8", "d663e4a8", "d663e4a8", "d663e4a8",
   "ad0586ee", "ad0586ee", "ad0586ee", "b6fe7b08", "11495260", "699f14d2", "0e06d415",
