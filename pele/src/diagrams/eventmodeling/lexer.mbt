@@ -248,7 +248,10 @@ let tokens : Array[@common.TokenType] = [
   em_data_block,
   { ..@common.acc_descr, name: "EM_ACC_DESCR", },
   { ..@common.acc_title, name: "EM_ACC_TITLE", },
-  { ..@common.title, name: "EM_TITLE", },
+  {
+    ..@common.title_before((src, at) => @util.is_word(@util.code_at(src, at))),
+    name: "EM_TITLE",
+  },
   em_ws,
   { ..@common.yaml, name: "EM_YAML", },
   { ..@common.directive, name: "EM_DIRECTIVE", },
