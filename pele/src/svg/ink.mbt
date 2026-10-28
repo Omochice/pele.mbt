@@ -458,10 +458,48 @@ fn raw_opacity(css : String) -> Double {
 }
 
 ///|
+/// The label colors `ink` has picked, by the styles it picked them for.
+/// A diagram asks again for every label and edge on the same few fills, so reading each style once
+/// saves parsing its color over and over.
+let known_inks : Map[String, String?] = Map([])
+
+///|
+/// The label colors `raw_ink` has picked, apart from `known_inks` because raw CSS that reads like a
+/// `style` attribute picks another color.
+let known_raw_inks : Map[String, String?] = Map([])
+
+///|
+/// What `pick` answers for `shape` and `text`, kept in `known` for the next time they are asked.
+/// The cap keeps a plugin that renders many diagrams from holding every style it ever saw.
+fn remembered(
+  known : Map[String, String?],
+  shape : String,
+  text : String,
+  pick : (String, String) -> String?,
+) -> String? {
+  // pele joins the two with a NUL, which a style may hold too, so the length marks where `shape` ends.
+  let key = "\{shape.length()}:" + shape + text
+  if known.get(key) is Some(found) {
+    return found
+  }
+  if known.length() > 1000 {
+    known.clear()
+  }
+  let result = pick(shape, text)
+  known[key] = result
+  result
+}
+
+///|
 /// The label color that contrasts most with the fill the `style` attribute `shape` sets, unless the
 /// text's own `style` attribute `text` sets a color, or `None` when it sets no fill this can read.
 /// Styles come from `resolve_style`.
 pub fn ink(shape : String, text~ : String = "") -> String? {
+  remembered(known_inks, shape, text, pick_ink)
+}
+
+///|
+fn pick_ink(shape : String, text : String) -> String? {
   let fill = match attribute_value(text, "fill") {
     Some(_) => None
     None => attribute_value(shape, "fill")
@@ -473,6 +511,11 @@ pub fn ink(shape : String, text~ : String = "") -> String? {
 /// `ink` of the `style` attributes `resolve_style` makes of the raw CSS `shape` and `text`.
 /// Styles come from `resolve_raw_style`.
 pub fn raw_ink(shape : String, text~ : String = "") -> String? {
+  remembered(known_raw_inks, shape, text, pick_raw_ink)
+}
+
+///|
+fn pick_raw_ink(shape : String, text : String) -> String? {
   let fill = match raw_value(text, "fill") {
     Some(_) => None
     None => raw_value(shape, "fill")

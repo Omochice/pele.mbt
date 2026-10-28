@@ -303,3 +303,22 @@ test "a label's fill attribute falls back when no fill is read" {
     content=" fill=\"var(--pele-fg-on-light,#1f1f1f)\"",
   )
 }
+
+///|
+test "picks the same color for a style asked again, after others push it out" {
+  let dark = @svg.resolve_style(["fill:black"])
+  assert_eq(@svg.ink(dark.shape), Some(ON_DARK))
+  for i in 0..<1100 {
+    ignore(@svg.ink(@svg.resolve_style(["fill:#\{100000 + i}"]).shape))
+  }
+  assert_eq(@svg.ink(dark.shape), Some(ON_DARK))
+  assert_eq(@svg.ink(dark.shape, text=" style=\"fill:red;\""), None)
+}
+
+///|
+test "keeps the colors picked for raw CSS apart from those for attributes" {
+  // Raw CSS escapes its `&` into `&amp;`, whose `;` starts a declaration that the same text read as an attribute lacks.
+  let shape = "stroke:x&fill:black"
+  assert_eq(@svg.raw_ink(shape), Some(ON_DARK))
+  assert_eq(@svg.ink(shape), None)
+}
