@@ -663,7 +663,6 @@ fn draw(
       gaps[run.last] += run.grow
     }
   }
-  place()
   let mut min_x = infinity
   let mut max_x = -infinity
   let widen = (x0 : Double, x1 : Double) => {
@@ -674,9 +673,6 @@ fn draw(
       max_x = x1
     }
   }
-  for col in cols {
-    widen(col.x - col.size.w / 2, col.x + col.size.w / 2)
-  }
   let run_left = (run : BoxRun) => {
     let first = cols[run.first]
     first.x - first.size.w / 2 - box_pad - run.grow
@@ -685,154 +681,163 @@ fn draw(
     let end = cols[run.last]
     end.x + end.size.w / 2 + box_pad + run.grow
   }
-  for run in runs {
-    widen(run_left(run), run_right(run))
-  }
-
-  // Horizontal extents of every block, from what it holds.
   let frames : Array[Frame?] = Array::make(count, None)
-  let open : Array[Frame] = []
-  let span_all = () => {
-    if last < 0 {
-      (0.0, 120.0)
-    } else {
-      (cols[0].x - frame_pad, cols[last].x + frame_pad)
+  let layout = () => {
+    place()
+    min_x = infinity
+    max_x = -infinity
+    for col in cols {
+      widen(col.x - col.size.w / 2, col.x + col.size.w / 2)
     }
-  }
-  for i in 0..<count {
-    let m = messages[i]
-    let kind = m.kind
-    if frame_kind(kind) is Some(name) {
-      let frame = {
-        kind: name,
-        x0: infinity,
-        x1: -infinity,
-        top: 0,
-        title: no_label(),
-        tab_w: 0,
-        fill: if name == "rect" {
-          m.message
-        } else {
-          ""
-        },
-        dividers: [i],
-        divider_y: [],
-        divider_labels: [],
+    for run in runs {
+      widen(run_left(run), run_right(run))
+    }
+
+    // Horizontal extents of every block, from what it holds.
+    let open : Array[Frame] = []
+    let span_all = () => {
+      if last < 0 {
+        (0.0, 120.0)
+      } else {
+        (cols[0].x - frame_pad, cols[last].x + frame_pad)
       }
-      frames[i] = Some(frame)
-      open.push(frame)
-    } else if is_divider(kind) {
-      if open.last() is Some(frame) {
-        frame.dividers.push(i)
-      }
-    } else if is_frame_end(kind) {
-      guard open.pop() is Some(frame) else { continue }
-      frames[i] = Some(frame)
-      if frame.x0 > frame.x1 {
-        let (x0, x1) = span_all()
-        frame.x0 = x0
-        frame.x1 = x1
-      }
-      if frame.kind != "rect" {
-        frame.tab_w = measurer.width(frame.kind, tiny, @text.STYLE_BOLD) + 14
-        // A block grows to the right to give its texts up to FRAME_TEXT of width before they wrap.
-        for k, divider in frame.dividers {
-          let raw = messages[divider].message
-          let tab = if k == 0 { frame.tab_w + 8 } else { 0 }
-          let room = frame.x1 - frame.x0 - 16 - tab
-          let label = if raw != "" {
-            text(
-              Some("[" + raw + "]"),
-              small,
-              true,
-              @util.js_max(
-                room,
-                if tight {
-                  @util.js_min(FRAME_TEXT, wrap_w)
-                } else {
-                  FRAME_TEXT
-                },
-              ),
-            )
+    }
+    for i in 0..<count {
+      let m = messages[i]
+      let kind = m.kind
+      if frame_kind(kind) is Some(name) {
+        let frame = {
+          kind: name,
+          x0: infinity,
+          x1: -infinity,
+          top: 0,
+          title: no_label(),
+          tab_w: 0,
+          fill: if name == "rect" {
+            m.message
           } else {
-            no_label()
-          }
-          if label.width > room {
-            frame.x1 += label.width - room
-          }
-          if k == 0 {
-            frame.title = label
-          } else {
-            frame.divider_labels.push(label)
+            ""
+          },
+          dividers: [i],
+          divider_y: [],
+          divider_labels: [],
+        }
+        frames[i] = Some(frame)
+        open.push(frame)
+      } else if is_divider(kind) {
+        if open.last() is Some(frame) {
+          frame.dividers.push(i)
+        }
+      } else if is_frame_end(kind) {
+        guard open.pop() is Some(frame) else { continue }
+        frames[i] = Some(frame)
+        if frame.x0 > frame.x1 {
+          let (x0, x1) = span_all()
+          frame.x0 = x0
+          frame.x1 = x1
+        }
+        if frame.kind != "rect" {
+          frame.tab_w = measurer.width(frame.kind, tiny, @text.STYLE_BOLD) + 14
+          // A block grows to the right to give its texts up to FRAME_TEXT of width before they wrap.
+          for k, divider in frame.dividers {
+            let raw = messages[divider].message
+            let tab = if k == 0 { frame.tab_w + 8 } else { 0 }
+            let room = frame.x1 - frame.x0 - 16 - tab
+            let label = if raw != "" {
+              text(
+                Some("[" + raw + "]"),
+                small,
+                true,
+                @util.js_max(
+                  room,
+                  if tight {
+                    @util.js_min(FRAME_TEXT, wrap_w)
+                  } else {
+                    FRAME_TEXT
+                  },
+                ),
+              )
+            } else {
+              no_label()
+            }
+            if label.width > room {
+              frame.x1 += label.width - room
+            }
+            if k == 0 {
+              frame.title = label
+            } else {
+              frame.divider_labels.push(label)
+            }
           }
         }
-      }
-      widen(frame.x0, frame.x1)
-      if open.last() is Some(parent) {
-        parent.x0 = @util.js_min(parent.x0, frame.x0 - frame_nest)
-        parent.x1 = @util.js_max(parent.x1, frame.x1 + frame_nest)
-      }
-    } else if views[i] is Some(view) {
-      let a = cols[view.a]
-      let b = cols[view.b]
-      let mut x0 = 0.0
-      let mut x1 = 0.0
-      match view.kind {
-        NoteView => {
-          if m.placement == Some(LEFTOF) {
-            view.x = a.x - NOTE_GAP - view.w
-          } else if m.placement == Some(RIGHTOF) {
-            view.x = a.x + NOTE_GAP
-          } else if view.a == view.b {
-            view.x = a.x - view.w / 2
-          } else {
-            let lo = @util.js_min(a.x, b.x) - note_over
-            let hi = @util.js_max(a.x, b.x) + note_over
+        widen(frame.x0, frame.x1)
+        if open.last() is Some(parent) {
+          parent.x0 = @util.js_min(parent.x0, frame.x0 - frame_nest)
+          parent.x1 = @util.js_max(parent.x1, frame.x1 + frame_nest)
+        }
+      } else if views[i] is Some(view) {
+        let a = cols[view.a]
+        let b = cols[view.b]
+        let mut x0 = 0.0
+        let mut x1 = 0.0
+        match view.kind {
+          NoteView => {
+            if m.placement == Some(LEFTOF) {
+              view.x = a.x - NOTE_GAP - view.w
+            } else if m.placement == Some(RIGHTOF) {
+              view.x = a.x + NOTE_GAP
+            } else if view.a == view.b {
+              view.x = a.x - view.w / 2
+            } else {
+              let lo = @util.js_min(a.x, b.x) - note_over
+              let hi = @util.js_max(a.x, b.x) + note_over
+              if tight || m.wrap {
+                view.label = text(
+                  Some(m.message),
+                  small,
+                  true,
+                  @util.js_max(wrap_w, hi - lo - 2 * note_pad),
+                )
+              }
+              view.w = @util.js_max(hi - lo, view.label.width + 2 * note_pad)
+              view.x = (lo + hi - view.w) / 2
+            }
+            x0 = view.x
+            x1 = view.x + view.w
+          }
+          SelfView => {
+            x0 = a.x
+            x1 = a.x + ACT_W + SELF_W + 8 + view.label.width + badge_width(i)
+          }
+          LineView => {
+            x0 = @util.js_min(a.x, b.x)
+            x1 = @util.js_max(a.x, b.x)
             if tight || m.wrap {
               view.label = text(
                 Some(m.message),
                 small,
                 true,
-                @util.js_max(wrap_w, hi - lo - 2 * note_pad),
+                @util.js_max(wrap_w, x1 - x0 - 2 * msg_pad - ACT_W),
               )
             }
-            view.w = @util.js_max(hi - lo, view.label.width + 2 * note_pad)
-            view.x = (lo + hi - view.w) / 2
-          }
-          x0 = view.x
-          x1 = view.x + view.w
-        }
-        SelfView => {
-          x0 = a.x
-          x1 = a.x + ACT_W + SELF_W + 8 + view.label.width + badge_width(i)
-        }
-        LineView => {
-          x0 = @util.js_min(a.x, b.x)
-          x1 = @util.js_max(a.x, b.x)
-          if tight || m.wrap {
-            view.label = text(
-              Some(m.message),
-              small,
-              true,
-              @util.js_max(wrap_w, x1 - x0 - 2 * msg_pad - ACT_W),
-            )
-          }
-          if b.create_at == i {
-            if b.x > a.x {
-              x1 += b.size.w / 2
-            } else {
-              x0 -= b.size.w / 2
+            if b.create_at == i {
+              if b.x > a.x {
+                x1 += b.size.w / 2
+              } else {
+                x0 -= b.size.w / 2
+              }
             }
           }
         }
-      }
-      widen(x0, x1)
-      if open.last() is Some(frame) {
-        frame.x0 = @util.js_min(frame.x0, x0 - frame_pad)
-        frame.x1 = @util.js_max(frame.x1, x1 + frame_pad)
+        widen(x0, x1)
+        if open.last() is Some(frame) {
+          frame.x0 = @util.js_min(frame.x0, x0 - frame_pad)
+          frame.x1 = @util.js_max(frame.x1, x1 + frame_pad)
+        }
       }
     }
   }
+  layout()
 
   // Vertical placement, top to bottom, drawing as it goes.
   let mut box_title_h = 0.0
