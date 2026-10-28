@@ -206,6 +206,23 @@ fn int_end(src : String, at : Int32) -> Int32 {
 }
 
 ///|
+/// Whether `[-./\w]*[-\w]` matches at `at`, that is, whether a branch name goes on there.
+fn continues_name(src : String, at : Int32) -> Bool {
+  let mut i = at
+  while true {
+    let c = @util.code_at(src, i)
+    if @util.is_word(c) || c == '-'.to_int() {
+      return true
+    }
+    if c != '.'.to_int() && c != '/'.to_int() {
+      break
+    }
+    i += 1
+  }
+  false
+}
+
+///|
 /// Chevrotain's LONGER_ALT: where a name matches more text than the word does, the name wins.
 /// Giving way here lets the name type, which comes last in the order, take the token.
 fn unless_longer_name(scan : @common.Scanner) -> @common.Scanner {
@@ -295,7 +312,7 @@ let git_tokens : Array[@common.TokenType] = [
   @common.literal(":", ":"),
   { ..@common.acc_descr, scanner: acc_descr_scanner, },
   @common.acc_title,
-  @common.title,
+  @common.title_before(continues_name),
   @common.pattern("INT", int_end, first="0123456789"),
   @common.string,
   @common.newline,

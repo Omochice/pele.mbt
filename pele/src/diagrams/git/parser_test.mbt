@@ -395,16 +395,39 @@ test "a clause may not run into the next statement" {
 }
 
 ///|
-test "a title keyword takes its place before a digit as the lexer reads it" {
+test "a branch name may start with title" {
   inspect(
     ast(
-      "gitGraph\n commit\n branch commits\n checkout TBD\n merge LRU\n branch title1\n",
+      "gitGraph\n commit\n branch titles\n commit\n branch title/x\n commit\n checkout main\n merge titles\n branch title-2.0\n branch title1\n",
     ),
     content=(
-      #|Parse error on line 6:
-      #| branch title1
-      #|-------^
-      #|Expecting a branch name but found ` title`.
+      #|dir=- title=- accTitle=- accDescr=-
+      #|commit id=- msg=- tags=[] type=-
+      #|branch "titles" order=-
+      #|commit id=- msg=- tags=[] type=-
+      #|branch "title/x" order=-
+      #|commit id=- msg=- tags=[] type=-
+      #|checkout "main"
+      #|merge "titles" id=- tags=[] type=-
+      #|branch "title-2.0" order=-
+      #|branch "title1" order=-
+    ),
+  )
+  inspect(
+    ast("gitGraph\n commit\n branch title.v2\n checkout title.v2"),
+    content=(
+      #|dir=- title=- accTitle=- accDescr=-
+      #|commit id=- msg=- tags=[] type=-
+      #|branch "title.v2" order=-
+      #|checkout "title.v2"
+    ),
+  )
+  inspect(
+    ast("gitGraph\n commit\n branch title.\n"),
+    content=(
+      #|Lexical error on line 3. Unrecognized text.
+      #| branch title.
+      #|-------------^
     ),
   )
 }
