@@ -85,6 +85,16 @@ test "a text statement names its sets" {
 }
 
 ///|
+test "a name that starts with a keyword and a hyphen is a name" {
+  inspect(
+    dump(
+      "venn-beta\nset set-theory\nset union-x\nunion set-theory,union-x[\"both\"]\n  text-5\ntext set-theory text-books\nstyle set-theory fill:red,x:style-y",
+    ),
+    content="title=- subsets=[set-theory:10:-, union-x:10:-, set-theory|union-x:2.5:\"both\"] texts=[set-theory|union-x/-5:-, set-theory/text-books:-] styles=[set-theory{fill=red;x=style-y}]",
+  )
+}
+
+///|
 test "texts with labels, including a comma" {
   inspect(
     dump(
