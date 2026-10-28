@@ -1,4 +1,4 @@
-// pele's block-security templates and payloads (tests/render/block-security.test.ts, tests/support/inert.ts), with a hash of what pele v1.10.0's render gives each pair.
+// pele's block-security templates and payloads (tests/render/block-security.test.ts, tests/support/inert.ts), with a hash of what pele's render gives each pair, taken from pele v1.10.0 and retaken where a later pele draws it differently.
 
 ///|
 /// Each template as the text around the places its payload goes.
@@ -347,13 +347,13 @@ let hostile_outcomes : Array[String] = [
   "c92e435f", "c92e435f", "c3580a95", "88e25f7f", "59bfa5e4", "c92e435f", "bdc70ed9",
   "e66a47ea", "0b95feef", "bc2a5639", "c92e435f", "c92e435f", "32fd0916", "f57b8612",
   "f57b8612", "c377ec3e", "a752371b", "d4e4c0d2", "97e062ef", "eabe665e", "33d922a7",
-  "702b2787", "33d922a7", "83b7cd35", "be013bb6", "610e7565", "1b0318f4", "5bf463b0",
-  "f53c3e31", "ca267630", "ce8df194", "0dd73764", "1add4656", "26148862", "02260e1c",
-  "e412c8f6", "168735e6", "f7a4d924", "a403b9cb", "f80b4cc4", "f57b8612", "1afc4668",
+  "702b2787", "33d922a7", "81c98ed6", "f9d8c893", "65089f3a", "666e96d3", "15499e93",
+  "5521e3c6", "b55f8ab3", "67baa805", "b37397b7", "1add4656", "5e92648b", "1ec62f4f",
+  "187348f7", "168735e6", "f7a4d924", "927d6342", "065d1e57", "f57b8612", "1afc4668",
   "23133a39", "e6142eff", "8a136146", "1f80f0c6", "8a136146", "632bc573", "632bc573",
-  "587cd85f", "c312c3aa", "fdd51c82", "70775932", "dab8315c", "a71271c1", "f9a4dd1e",
-  "3ae52912", "cef97bf2", "39b05045", "6947e6b8", "135e1fbb", "6a39a14d", "dbd0a317",
-  "d80cfdec", "cde9dacc", "f538b3d6", "b0f6853e", "dd4624d5", "2e76eeb8", "5ea1c6e2",
+  "587cd85f", "ef5d9ac7", "92d51c83", "b1cc9ae1", "2dcc4c19", "a71271c1", "f9a4dd1e",
+  "3ae52912", "12ebc03d", "195f71d4", "6947e6b8", "54c1cbbc", "f58c6760", "9076b09e",
+  "95a88843", "cde9dacc", "f538b3d6", "b0f6853e", "dd4624d5", "2e76eeb8", "5ea1c6e2",
   "26e26757", "9b928199", "310f809c", "310f809c", "bd058e23", "8bdcecb6", "0b9a809e",
   "f77a5527", "25ff535e", "2330d874", "600c7480", "21d7e2f4", "8de5842d", "48373f86",
   "2ec31f6b", "a31c08e0", "21d7e2f4", "5f05745b", "2ec31f6b", "53fb5c47", "a31c08e0",

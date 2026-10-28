@@ -815,6 +815,20 @@ test "styles a composite" {
 }
 
 ///|
+test "draws a composite fill the author sets at full opacity" {
+  let svg = block_svg(
+    "block\n  block:g\n    a\n  end\n  block:h\n    b\n  end\n  style g fill:#fee",
+  )
+  let rect = (id : String) => {
+    let at = @util.index_of(svg, "data-id=\"\{id}\"><rect ")
+    assert_true(at != -1)
+    read_until(svg, at, "/>")
+  }
+  assert_true(rect("g").contains("fill=\"var(--_a)\" stroke="))
+  assert_true(rect("h").contains("fill-opacity=\"0.5\""))
+}
+
+///|
 test "draws the front matter title" {
   guard block_render("block\n  a") is Ok(plain) else { fail("rejected") }
   guard block_render("---\ntitle: Systems\n---\nblock\n  a") is Ok(titled) else {

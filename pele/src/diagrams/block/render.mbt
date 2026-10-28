@@ -1258,8 +1258,13 @@ fn draw(
       let top = c.y - c.h / 2
       clusters.write("<g class=\"pele-cluster\{classes}\" data-id=\"")
       clusters.write_esc_text(v.block.id)
+      let wash = if @svg.sets_raw_fill(v.style.shape) {
+        ""
+      } else {
+        " fill-opacity=\"0.5\""
+      }
       clusters.write(
-        "\"><rect x=\"\{@svg.num(c.x - c.w / 2)}\" y=\"\{@svg.num(top)}\" width=\"\{@svg.num(c.w)}\" height=\"\{@svg.num(c.h)}\" fill=\"var(--_a)\" fill-opacity=\"0.5\" stroke=\"var(--_b)\"",
+        "\"><rect x=\"\{@svg.num(c.x - c.w / 2)}\" y=\"\{@svg.num(top)}\" width=\"\{@svg.num(c.w)}\" height=\"\{@svg.num(c.h)}\" fill=\"var(--_a)\"\{wash} stroke=\"var(--_b)\"",
       )
       @svg.write_rounded_style(clusters, v.style.shape)
       clusters.write("/>")
