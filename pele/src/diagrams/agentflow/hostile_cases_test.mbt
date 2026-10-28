@@ -1,4 +1,4 @@
-// pele's agentflow-security templates and payloads (tests/render/agentflow-security.test.ts, tests/support/inert.ts), with a hash of what pele v1.10.0's render gives each pair.
+// pele's agentflow-security templates and payloads (tests/render/agentflow-security.test.ts, tests/support/inert.ts), with a hash of what pele's render gives each pair, taken from pele v1.10.0 and retaken where a later pele draws it differently.
 
 ///|
 /// Each template as the text around the places its payload goes.
@@ -576,13 +576,13 @@ let hostile_outcomes : Array[String] = [
   "8ed63d01", "337cef34", "543d03b3", "8ce08c0e", "3a5cf908", "7b7dc8cb", "d2a35427",
   "9eaab0af", "e3149862", "6a10f882", "6b313d77", "7c2dbc59", "025b4308", "298c0ffc",
   "acccde4e", "44b82dbb", "d9a41776", "56d1ac17", "8dcb4294", "bb3fe175", "f5759e66",
-  "595e6824", "251fb667", "a894ed71", "44ed5d07", "fbb70f8f", "55bb279d", "fac2ca3d",
-  "a4251320", "bf348a6b", "56cb2c5e", "bd2067f3", "548b1a27", "6d018112", "6d018112",
-  "a6de10bd", "abbec011", "290a18e8", "14ef5f1e", "a7f5ddd2", "692b6dd3", "7449e117",
+  "595e6824", "251fb667", "a894ed71", "44ed5d07", "2390402a", "7bbfa94c", "207c90ec",
+  "36569e27", "bf348a6b", "56cb2c5e", "bd2067f3", "2910e3d2", "e8ec2e3d", "e8ec2e3d",
+  "a6de10bd", "abbec011", "9018e03f", "14ef5f1e", "a7f5ddd2", "692b6dd3", "7449e117",
   "0386c68c", "14965736", "861af09a", "1999c78a", "a9f60b48", "3652587e", "b2b4d09e",
   "c72591b9", "6e220b4b", "b7dbd7ec", "6930f759", "be3a3f8f", "4b4ecb6d", "dcc08dd1",
   "c7279ed4", "2e77267b", "2b9cc827", "e07b5e4b", "35278592", "c6260fe7", "7ba98393",
-  "d21adc61", "4c7811aa", "9147a37b", "1fb3b18f", "6b99e3b4", "820e0d0b", "7f175e40",
+  "d21adc61", "4c7811aa", "e8326462", "1fb3b18f", "6b99e3b4", "820e0d0b", "7f175e40",
   "7cfcf309", "582ca090", "b1a7f823", "36c309c1", "ee99bad4", "536fde6e", "aa0f6794",
   "aa44cc1d", "d491b72f", "6f0538ed", "f6d3eb0c", "fdff1147", "a50029c6", "772dd4fb",
   "4de2f463", "138cf431", "5dde9df6", "45683887", "718705f8", "7c2664b9", "0758ea0f",
@@ -604,7 +604,7 @@ let hostile_outcomes : Array[String] = [
   "8223be4a", "1ab6f4c6", "844b3947", "c2ef8d11", "b2514ef5", "d5adc7e9", "b594bbcb",
   "ff8b39eb", "27af6e4b", "019c62f2", "77fb73e4", "02f5f515", "22958b7e", "1557fcc8",
   "8eef11d8", "322e7386", "8069a351", "cdc7ee70", "135ba6f0", "2fc81a58", "dbc57a9b",
-  "fad608a0", "08f673a8", "002ac02e", "906cbfa7", "aaac8ca2", "fd4c2c28", "2170130d",
+  "fad608a0", "08f673a8", "002ac02e", "906cbfa7", "2f644e01", "fd4c2c28", "2170130d",
   "79dc558a", "0d297549", "00b93bbe", "55492499", "f435ef8c", "ae8b39f6", "4a06a02d",
   "5d0d8203", "0d5f2dad", "e02c3100", "6909d49e", "c8292746", "228c8287", "76ace186",
   "b3c7fca1", "e0c0e1b8", "90b7ee88", "e2e60a4e", "70ba301b", "f3f88da4", "7f419aed",
@@ -628,9 +628,9 @@ let hostile_outcomes : Array[String] = [
   "d0cf7a9a", "495e150f", "99f3cfa6", "079eb9e1", "7d94ac93", "50da7e2a", "5d5662ae",
   "abc845b2", "c4ae3271", "d99ea305", "2e4ef9ba", "b8234b72", "d6caaec9", "4c7bf79b",
   "133703f1", "a42ac35a", "3b9df009", "e9f71b3e", "7d0241a3", "6ac6a910", "96a9fe85",
-  "1fc17453", "fc7aa722", "d0b83b74", "3476da7a", "59afbcb2", "8c2fd03a", "5b21c798",
-  "41ec5e16", "ecad8306", "6f2fa479", "5a53ca00", "e3ecbe70", "1d7daeb3", "28bc35cf",
-  "ec4ace84", "893d8eae", "5dbab01c", "3e89c189", "2112bc8b", "a7bb7394", "b1b56ef4",
+  "1fc17453", "fc7aa722", "d0b83b74", "3476da7a", "144b9547", "17629f7b", "ad0a6493",
+  "c532b26b", "ecad8306", "6f2fa479", "5a53ca00", "5a77405f", "90b2ab9a", "45d52688",
+  "ec4ace84", "893d8eae", "c58c41e3", "3e89c189", "2112bc8b", "a7bb7394", "b1b56ef4",
   "61aa31d0", "41ee2c12", "29bf504e", "992afc4c", "f1a96c2c", "81dc17bf", "b8917fbf",
   "c660ac3e", "3a0397ff", "9a6f6e60", "e4e667d4", "c4b34367", "c13ee8bc", "36473693",
   "435ef2d1", "1389feef", "54b98351", "db020586", "6c918fc4", "eba5264c", "e9fdd4d0",

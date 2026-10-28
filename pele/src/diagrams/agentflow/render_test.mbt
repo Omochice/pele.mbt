@@ -364,3 +364,28 @@ test "a metadata error after a directive is placed in the source as written" {
     ),
   )
 }
+
+///|
+test "picks a contrasting label color on fills a style sets" {
+  let svg = snapshot(
+    "agentflow-beta TB\n  flow f[\"Flow\"]\n    a[\"A\"] --> b[\"B\"]\n  end\n  flow p[\"Packed\"]\n    c[\"C\"]\n  end\n  p@{ view: \"collapsed\" }\n  b --> d[\"D\"]\n  style f fill:#FFF9C4\n  style a fill:#1f3a5f\n  style b fill:#1f3a5f,color:#eee\n  style p fill:navy",
+  )
+  let text_of = (id : String) => {
+    let at = @util.index_of(
+      svg,
+      "<text ",
+      from=@util.index_of(svg, "data-id=\"\{id}\""),
+    )
+    @util.slice(svg, at, end=@util.index_of(svg, ">", from=at) + 1)
+  }
+  inspect(
+    ["f", "a", "b", "p", "d"].map(text_of).join("\n"),
+    content=(
+      #|<text class="pele-cluster-label" fill="var(--pele-fg-on-light,#1f1f1f)" x="234.89" y="33.6" text-anchor="middle">
+      #|<text class="pele-label" fill="var(--pele-fg-on-dark,#fff)" x="0" y="5.6" text-anchor="middle">
+      #|<text class="pele-label" style="fill:#eee;" x="0" y="5.6" text-anchor="middle">
+      #|<text class="pele-label" fill="var(--pele-fg-on-dark,#fff)" x="0" y="-1.4" text-anchor="middle">
+      #|<text class="pele-label" x="0" y="5.6" text-anchor="middle">
+    ),
+  )
+}

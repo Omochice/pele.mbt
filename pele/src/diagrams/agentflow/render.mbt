@@ -449,7 +449,7 @@ fn draw(
         view.label,
         title_x,
         c.y - c.h / 2 + 8 + view.label.height / 2,
-        " class=\"pele-cluster-label\" fill=\"var(--_m)\"\{view.style.text}",
+        " class=\"pele-cluster-label\"\{@svg.ink_fill(view.style, fallback="var(--_m)")}\{view.style.text}",
         icons?=options.icons,
       )
       clusters.write("</g>")
@@ -479,13 +479,18 @@ fn draw(
         " pele-kind-\{kind}",
       )
     }
+    let ink = if view.shape == COLLAPSED || @svg.shape_filled(view.shape) {
+      @svg.ink_fill(view.style)
+    } else {
+      ""
+    }
     let text = @svg.Markup::new()
     @svg.write_label(
       text,
       view.label,
       0,
       view.dy,
-      " class=\"pele-label\"\{view.style.text}",
+      " class=\"pele-label\"\{ink}\{view.style.text}",
       icons?=options.icons,
     )
     let body = @svg.Markup::new()
