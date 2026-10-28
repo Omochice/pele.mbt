@@ -2,7 +2,7 @@
   "error": {
     "name": "PeleError",
     "code": "syntax",
-    "message": "Parse error on line 4:\n\n^\nExpecting 'acc_title', 'acc_descr', 'acc_descr_multiline_value', 'NAMESPACE', 'ANNOTATION_START', 'CLASS', 'MEMBER', 'NOTE_FOR', 'NOTE', 'CLASSDEF', 'direction_tb', 'CALLBACK', 'LINK', 'CLICK', 'STYLE', 'CSSCLASS', 'ALPHA', 'MINUS', 'BQUOTE_STR', got 'EOF'",
+    "message": "Parse error on line 2:\nclassDiagram\n------------^\nExpecting 'acc_title', 'acc_descr', 'acc_descr_multiline_value', 'NAMESPACE', 'ANNOTATION_START', 'CLASS', 'MEMBER', 'NOTE_FOR', 'NOTE', 'CLASSDEF', 'direction_tb', 'CALLBACK', 'LINK', 'CLICK', 'STYLE', 'CSSCLASS', 'ALPHA', 'MINUS', 'BQUOTE_STR', got 'EOF'",
     "type": "class",
     "mermaidType": "classDiagram"
   }

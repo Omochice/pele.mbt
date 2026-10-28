@@ -2,7 +2,7 @@
   "error": {
     "name": "PeleError",
     "code": "syntax",
-    "message": "Parse error on line 4:\n\n^\nExpecting 'end', got '$end'",
+    "message": "Parse error on line 3:\n    a[\"Alpha\"]\n--------------^\nExpecting 'end', got '$end'",
     "type": "agentflow",
     "mermaidType": "agentflow"
   }

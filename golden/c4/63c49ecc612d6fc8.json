@@ -2,7 +2,7 @@
   "error": {
     "name": "PeleError",
     "code": "syntax",
-    "message": "Parse error on line 2:\n\n^\nExpecting 'title', 'accDescription', 'acc_title', 'acc_descr', 'acc_descr_multiline_value', 'PERSON', 'REL', got 'EOF'",
+    "message": "Parse error on line 1:\nC4Context\n---------^\nExpecting 'title', 'accDescription', 'acc_title', 'acc_descr', 'acc_descr_multiline_value', 'PERSON', 'REL', got 'EOF'",
     "type": "c4",
     "mermaidType": "c4"
   }

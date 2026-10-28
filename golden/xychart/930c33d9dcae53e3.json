@@ -2,7 +2,7 @@
   "error": {
     "name": "PeleError",
     "code": "syntax",
-    "message": "Parse error on line 5:\n\n^\nExpecting 'SQUARE_BRACES_START', got 'EOF'",
+    "message": "Parse error on line 4:\n line \"lineTitle with space\"   \n----------------------------^\nExpecting 'SQUARE_BRACES_START', got 'EOF'",
     "type": "xychart",
     "mermaidType": "xychart"
   }
