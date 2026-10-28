@@ -168,6 +168,13 @@ pub fn write_styled(out : Markup, template : String, css : RawStyle) -> Unit {
 }
 
 ///|
+/// Whether the `style` attribute `resolve_style` makes of `css` sets a fill, as `sets_fill` tells
+/// of a shape style that is already resolved.
+pub fn sets_raw_fill(css : String) -> Bool {
+  style_contains(css, "\"fill:") || style_contains(css, ";fill:")
+}
+
+///|
 /// Whether the `style` attribute `resolve_style` makes of `css` contains `needle`, found in the
 /// escaped attribute as it would be written, without escaping all of `css` at once.
 pub fn style_contains(css : String, needle : String) -> Bool {

@@ -28,6 +28,24 @@ test "style_contains finds in the raw CSS what searching the escaped attribute f
 }
 
 ///|
+test "a style split as raw CSS sets a fill where its escaped attribute does" {
+  let declarations = [
+    ["fill:red"],
+    ["stroke:red", "fill:blue"],
+    ["stroke:a&fill:b"],
+    ["fill-opacity:0.2"],
+    ["stroke:red"],
+    [],
+  ]
+  for list in declarations {
+    assert_eq(
+      @svg.sets_raw_fill(@svg.resolve_raw_style(list).shape),
+      @svg.sets_fill(@svg.resolve_style(list).shape),
+    )
+  }
+}
+
+///|
 test "the style attributes write what the string ones write under the escaped style" {
   let declarations = [[], ["fill:a&b", "stroke:c"], ["stroke:x", "rx:3"]]
   for list in declarations {

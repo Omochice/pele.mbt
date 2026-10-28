@@ -34,7 +34,7 @@ fn number_option(
 ///|
 /// A section is a tint of its color, unless a class gives it a fill of its own.
 fn has_own_fill(css : String) -> Bool {
-  @svg.style_contains(css, "\"fill:") || @svg.style_contains(css, ";fill:")
+  @svg.sets_raw_fill(css)
 }
 
 ///|

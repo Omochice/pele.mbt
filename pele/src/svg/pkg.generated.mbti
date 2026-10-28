@@ -85,6 +85,8 @@ pub fn sets_fill(String) -> Bool
 
 pub fn sets_font_family(String) -> Bool
 
+pub fn sets_raw_fill(String) -> Bool
+
 pub fn shape_has_label(String) -> Bool
 
 pub fn shape_inset(String, Double, Double, Int32, t? : Double) -> Double
