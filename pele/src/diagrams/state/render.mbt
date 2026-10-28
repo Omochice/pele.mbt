@@ -728,6 +728,7 @@ fn draw(
     }
   }
   let clusters = @svg.Markup::new()
+  let filled : Array[Double] = []
   let dividers = @svg.Markup::new()
   let nodes_out = @svg.Markup::new()
   let notes_out = @svg.Markup::new()
@@ -822,6 +823,9 @@ fn draw(
       K_COMPOSITE => {
         let left = x - c.w / 2
         let top = y - c.h / 2
+        if @svg.raw_paints(style.shape) {
+          filled.push_iter([left, top, left + c.w, top + c.h].iter())
+        }
         let wash = if @svg.sets_raw_fill(style.shape) {
           ""
         } else {
@@ -1041,6 +1045,7 @@ fn draw(
       "arrow_point",
     )
   }
+  let casings = @svg.Markup::new()
   let edges_out = @svg.Markup::new()
   let labels_out = @svg.Markup::new()
   let loop_seen = FixedArray::make(states, 0)
@@ -1155,6 +1160,15 @@ fn draw(
       edx = path.edx
       edy = path.edy
     }
+    if @svg.runs_inside(d, filled) {
+      casings.write(
+        @svg.edge_casing(
+          { d, sx: 0, sy: 0, sdx: 0, sdy: 0, ex, ey, edx, edy, },
+          "none",
+          end_type,
+        ),
+      )
+    }
     let kind = if note {
       "pele-note-edge\" stroke=\"var(--_b)\" stroke-dasharray=\"3 4"
     } else {
@@ -1190,6 +1204,7 @@ fn draw(
       "</g>",
     )
   }
+  @svg.write_casings(content, casings)
   if !edges_out.is_empty() {
     content.write_group(
       "<g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\">",

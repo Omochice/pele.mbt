@@ -340,6 +340,28 @@ test "picks a contrasting label color on fills a style sets" {
 }
 
 ///|
+test "cases transitions that run over a composite fill a style sets" {
+  let source = "state Busy {\n  a --> b\n}\nstate Idle {\n  c --> d\n}\nb --> e\ne --> c\nstyle Busy fill:#FFF9C4"
+  let svg = draw(source)
+  let casings = between(svg, "<g class=\"pele-casings\"", "</g>")
+  let paths = transition_paths(svg)
+  // a --> b inside the composite, then b --> e out of it.
+  inspect(
+    paths
+    .map(d => casings.contains("<path d=\"\{d}\"/>"))
+    .map(c => c.to_string())
+    .join(" "),
+    content="true false true false",
+  )
+  inspect(
+    draw(source.replace(old="\nstyle Busy fill:#FFF9C4", new="")).contains(
+      "pele-casings",
+    ),
+    content="false",
+  )
+}
+
+///|
 test "gives each composite its own direction" {
   let svg = draw(
     "state A {\n direction LR\n a1 --> a2\n }\n state B {\n b1 --> b2\n }\n A --> B",
