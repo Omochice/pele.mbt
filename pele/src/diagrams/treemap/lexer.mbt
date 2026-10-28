@@ -171,7 +171,7 @@ fn scan_string(src : String, p : Int32) -> Int32 {
 let treemap_tokens : Array[@common.TokenType] = [
   @common.acc_descr,
   @common.acc_title,
-  @common.title,
+  @common.title_before((src, at) => @util.is_word(@util.code_at(src, at))),
   @common.pattern(
     "TREEMAP_KEYWORD",
     (src, p) => {
