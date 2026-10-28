@@ -71,12 +71,30 @@ test "the diagram's own title wins over the front matter title" {
 }
 
 ///|
-test "title at the start of a name is a title statement, as Mermaid reads it" {
+test "a rule name may start with title in each notation" {
   inspect(
     header("railroad-ebnf-beta\ntitles = a ;"),
     content="title=- accTitle=- accDescr=-",
   )
-  inspect(rules("railroad-ebnf-beta\ntitles = a ;"), content="s = <a>")
+  inspect(rules("railroad-ebnf-beta\ntitles = a ;"), content="titles = <a>")
+  inspect(
+    rules(
+      "railroad-beta\ntitles = nonterminal(\"title-x\") ;\ntitle-x = terminal(\"a\") ;",
+    ),
+    content="titles = <title-x>; title-x = \"a\"",
+  )
+  inspect(
+    rules("railroad-ebnf-beta\ntitles = title-x ;\ntitle-x = \"a\" ;"),
+    content="titles = <title-x>; title-x = \"a\"",
+  )
+  inspect(
+    rules("railroad-abnf-beta\ntitles = title-x ;\ntitle-x = \"a\" ;"),
+    content="titles = <title-x>; title-x = \"a\"",
+  )
+  inspect(
+    rules("railroad-peg-beta\ntitles <- title-x ;\ntitle-x <- \"a\" ;"),
+    content="titles = <title-x>; title-x = \"a\"",
+  )
 }
 
 ///|

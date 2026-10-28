@@ -64,7 +64,7 @@ let ir_tokens : Array[@common.TokenType] = [
   @common.literal("(", "("),
   @common.literal(",", ","),
   @common.literal(")", ")"),
-  title,
+  title(continues_identifier),
   acc_title,
   acc_descr,
   identifier("RR_ID"),

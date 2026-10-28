@@ -158,7 +158,7 @@ let ebnf_tokens : Array[@common.TokenType] = [
   @common.literal("*", "*"),
   @common.literal("+", "+"),
   minus,
-  title,
+  title(continues_identifier),
   acc_title,
   acc_descr,
   identifier("EBNF_ID"),
