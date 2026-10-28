@@ -76,6 +76,11 @@ fn is_separator_token(t : Int32) -> Bool {
 }
 
 ///|
+fn is_trailing_token(t : Int32) -> Bool {
+  t == COMMENT || t == NEWLINE || t == SPACE || t == EOF
+}
+
+///|
 let text_tokens : String = "'UNICODE_TEXT', 'TEXT', 'TAGSTART'"
 
 ///|
@@ -138,7 +143,23 @@ fn[T] Parser::fail(
 ) -> T raise @errors.PeleError {
   let t = self.kind()
   let last = self.tokens.starts.length() - 1
-  let at = self.tokens.starts[if self.i < last { self.i } else { last }]
+  let i = if self.i < last { self.i } else { last }
+  let at = if t == EOF || t == END_OF_INPUT {
+    // Comments are tokens here, so the general placement after the last content would land
+    // after a trailing comment instead of before it.
+    let types = self.tokens.types
+    let mut k = i
+    while k > 0 && is_trailing_token(types[k - 1]) {
+      k -= 1
+    }
+    let mut from = self.tokens.starts[k]
+    while from > 0 && @util.is_space(self.src.unsafe_get(from - 1).to_int()) {
+      from -= 1
+    }
+    from
+  } else {
+    self.tokens.starts[i]
+  }
   let at = if self.src == self.source {
     at
   } else {

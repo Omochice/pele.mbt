@@ -81,3 +81,18 @@ test "reports a flow left open as pele does" {
     ),
   )
 }
+
+///|
+test "reports the end of input before trailing comments" {
+  inspect(
+    statements_of(
+      "agentflow-beta TB\n  flow f[\"F\"]\n    a --> b\n\n%% trailing\n",
+    ),
+    content=(
+      #|Parse error on line 3:
+      #|    a --> b
+      #|-----------^
+      #|Expecting 'end', got '$end'
+    ),
+  )
+}
