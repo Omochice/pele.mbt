@@ -331,9 +331,9 @@ test "rejects a diagram with no statement" {
   inspect(
     parsed("C4Context\n"),
     content=(
-      #|error: Parse error on line 2:
-      #|
-      #|^
+      #|error: Parse error on line 1:
+      #|C4Context
+      #|---------^
       #|Expecting 'title', 'accDescription', 'acc_title', 'acc_descr', 'acc_descr_multiline_value', 'PERSON', 'REL', got 'EOF'
     ),
   )

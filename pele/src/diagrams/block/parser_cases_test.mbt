@@ -6,7 +6,7 @@ let parser_cases : Array[(String, String)] = [
     "block", "error syntax 1:6\nParse error on line 1:\nblock\n-----^\nExpecting 'NODE_ID', 'COLUMNS', 'SPACE_BLOCK', 'BLOCK_DIAGRAM_KEY', 'id-block', 'classDef', 'class', 'style', got 'EOF'",
   ),
   (
-    "block\n", "error syntax 2:1\nParse error on line 2:\n\n^\nExpecting 'NODE_ID', 'COLUMNS', 'SPACE_BLOCK', 'BLOCK_DIAGRAM_KEY', 'id-block', 'classDef', 'class', 'style', got 'EOF'",
+    "block\n", "error syntax 1:6\nParse error on line 1:\nblock\n-----^\nExpecting 'NODE_ID', 'COLUMNS', 'SPACE_BLOCK', 'BLOCK_DIAGRAM_KEY', 'id-block', 'classDef', 'class', 'style', got 'EOF'",
   ),
   (
     "block\n  a - b", "error syntax 2:5\nLexical error on line 2. Unrecognized text.\n  a - b\n----^",
@@ -585,7 +585,7 @@ let parser_cases : Array[(String, String)] = [
     "block\n    id1{{\"This--- is the t text in the box\"}}\n", "ok\nroot columns=-1\n  id1 hexagon \"This--- is the t text in the box\" span=1",
   ),
   (
-    "block\n          id[\"A labeB\nl\"]\n   -.-       ", "error syntax 4:14\nParse error on line 4:\n   -.-       \n-------------^\nExpecting 'NODE_ID', got 'EOF'",
+    "block\n          id[\"A labeB\nl\"]\n   -.-       ", "error syntax 4:7\nParse error on line 4:\n   -.-       \n------^\nExpecting 'NODE_ID', got 'EOF'",
   ),
   (
     "block\n        columns 1\n        A\n        blockArrow<[\"&nbsp;& == \"x\" ==> bsclassDef DEFAULT x;&nbsp;\"]>(up, down)\n        block\n          columns 3\n            B\n            C\n           \n        end",
@@ -996,7 +996,7 @@ let parser_cases : Array[(String, String)] = [
     "Compopound block", "error syntax 1:1\nParse error on line 1:\nCompopound block\n^\nExpecting 'BLOCK_DIAGRAM_KEY', got 'NODE_ID'",
   ),
   (
-    "block\n          id1[\"first\"]  -->   id2[\"second\"]\n  ===    ", "error syntax 3:10\nParse error on line 3:\n  ===    \n---------^\nExpecting 'NODE_ID', got 'EOF'",
+    "block\n          id1[\"first\"]  -->   id2[\"second\"]\n  ===    ", "error syntax 3:6\nParse error on line 3:\n  ===    \n-----^\nExpecting 'NODE_ID', got 'EOF'",
   ),
   (
     "block-beta)]\n      a\n      b\n      block:group\n       columns 3\n       c\n      end\nclass A, B a    ",
@@ -1228,7 +1228,7 @@ let parser_cases : Array[(String, String)] = [
     "should read block.pang from confi[[ at call time, not at import ===time", "error syntax 1:1\nParse error on line 1:\nshould read block.pang from confi[[ at call time, not at import ===time\n^\nExpecting 'BLOCK_DIAGRAM_KEY', got 'NODE_ID'",
   ),
   (
-    "block\n          id1\n          id2\n          id3\n   \\]\n  A[/\"   ", "error syntax 6:10\nParse error on line 6:\n  A[/\"   \n---------^\nExpecting 'NODE_DEND', got 'STR'",
+    "block\n          id1\n          id2\n          id3\n   \\]\n  A[/\"   ", "error syntax 6:7\nParse error on line 6:\n  A[/\"   \n------^\nExpecting 'NODE_DEND', got 'STR'",
   ),
   (
     "Com[]\\po\"Christmasund block", "error syntax 1:1\nParse error on line 1:\nCom[]\\po\"Christmasund block\n^\nExpecting 'BLOCK_DIAGRAM_KEY', got 'NODE_ID'",
@@ -1243,7 +1243,7 @@ let parser_cases : Array[(String, String)] = [
     "block\n  A\n st{{\"x\"}}yle A fill:#969,stroke:#333;\n\n", "error syntax 3:21\nLexical error on line 3. Unrecognized text.\n st{{\"x\"}}yle A fill:#969,stroke:#333;\n--------------------^",
   ),
   (
-    "block\n          columns auto\n          block1[\"Block 1      ", "error syntax 3:32\nParse error on line 3:\n          block1[\"Block 1      \n-------------------------------^\nExpecting 'NODE_DEND', got 'STR'",
+    "block\n          columns auto\n          block1[\"Block 1      ", "error syntax 3:26\nParse error on line 3:\n          block1[\"Block 1      \n-------------------------^\nExpecting 'NODE_DEND', got 'STR'",
   ),
   (
     "block\n         1[\"firs]  -- \"a label\" -->   id2[|\"x\"][\"second\"]\n      ",
@@ -1271,7 +1271,7 @@ let parser_cases : Array[(String, String)] = [
   ),
   (
     "block\n  block\n    columns 1\n  left  a[\"A label\"] b c d\n           block1end<[\"x\"]>( x )\n",
-    "error syntax 6:1\nParse error on line 6:\n\n^\nExpecting 'NODE_ID', 'COLUMNS', 'SPACE_BLOCK', 'BLOCK_DIAGRAM_KEY', 'id-block', 'classDef', 'class', 'style', 'end', got 'EOF'",
+    "error syntax 5:33\nParse error on line 5:\n           block1end<[\"x\"]>( x )\n--------------------------------^\nExpecting 'NODE_ID', 'COLUMNS', 'SPACE_BLOCK', 'BLOCK_DIAGRAM_KEY', 'id-block', 'classDef', 'class', 'style', 'end', got 'EOF'",
   ),
   (
     "block\n  A space B\n ->B\n  classDef blue fill:#6e6ce6,stroke:#333,stroke-width:4px;\n  class A blue\n  style B fill:#bbf,stroke:#f66,stroke-width:2px,color:#fff,stroke-dasharray: 5 5\n",
@@ -1356,7 +1356,7 @@ let parser_cases : Array[(String, String)] = [
   ),
   (
     "block\n        columns 3\n        one[\"One Slot\"]\n        two[\"Two slots\"]:2-.\n        ",
-    "error syntax 5:9\nParse error on line 5:\n        \n--------^\nExpecting 'LINK_LABEL', got '$end'",
+    "error syntax 4:29\nParse error on line 4:\n        two[\"Two slots\"]:2-.\n----------------------------^\nExpecting 'LINK_LABEL', got '$end'",
   ),
   (
     "compound blocksocks with title", "error syntax 1:1\nParse error on line 1:\ncompound blocksocks with title\n^\nExpecting 'BLOCK_DIAGRAM_KEY', got 'NODE_ID'",
@@ -1389,7 +1389,7 @@ let parser_cases : Array[(String, String)] = [
     "bloc[/k\n    id1(((\"This is the text in the circle\")))\n", "error syntax 1:1\nParse error on line 1:\nbloc[/k\n^\nExpecting 'BLOCK_DIAGRAM_KEY', got 'NODE_ID'",
   ),
   (
-    "block\n  A space B\n>\"This is   A-->B\n", "error syntax 4:1\nParse error on line 4:\n\n^\nExpecting 'NODE_DEND', got 'STR'",
+    "block\n  A space B\n>\"This is   A-->B\n", "error syntax 3:18\nParse error on line 3:\n>\"This is   A-->B\n-----------------^\nExpecting 'NODE_DEND', got 'STR'",
   ),
   (
     "Arrow bocks", "error syntax 1:1\nParse error on line 1:\nArrow bocks\n^\nExpecting 'BLOCK_DIAGRAM_KEY', got 'NODE_ID'",
@@ -1557,7 +1557,7 @@ let parser_cases : Array[(String, String)] = [
   ),
   (
     "block-beta\n      a\n      b\n      block:group\n        c\n      id1(\"Tblockhis is   end\n     ",
-    "error syntax 7:6\nParse error on line 7:\n     \n-----^\nExpecting 'NODE_DEND', got 'STR'",
+    "error syntax 6:30\nParse error on line 6:\n      id1(\"Tblockhis is   end\n-----------------------------^\nExpecting 'NODE_DEND', got 'STR'",
   ),
   (
     "block2ck2", "error syntax 1:1\nParse error on line 1:\nblock2ck2\n^\nExpecting 'BLOCK_DIAGRAM_KEY', got 'NODE_ID'",
@@ -1657,7 +1657,7 @@ let parser_cases : Array[(String, String)] = [
     "error syntax 1:1\nParse error on line 1:\nwhen parsing a b([\"x\"])ock diagram gog a warning((raph it should handle > \n^\nExpecting 'BLOCK_DIAGRAM_KEY', got 'NODE_ID'",
   ),
   (
-    "block\n          id[\"A space\n    label\"]\n            id1[[\"This is ", "error syntax 4:27\nParse error on line 4:\n            id1[[\"This is \n--------------------------^\nExpecting 'NODE_DEND', got 'STR'",
+    "block\n          id[\"A space\n    label\"]\n            id1[[\"This is ", "error syntax 4:26\nParse error on line 4:\n            id1[[\"This is \n-------------------------^\nExpecting 'NODE_DEND', got 'STR'",
   ),
   (
     "block\n  columns 3\n  3\n  a[\"A label\"] b:2 c:2 d\n", "ok\nroot columns=3\n  3 na \"3\" span=1\n  a square \"A label\" span=1\n  b na \"b\" span=2\n  c na \"c\" span=2\n  d na \"d\" span=1",
@@ -2231,7 +2231,7 @@ let parser_cases : Array[(String, String)] = [
   ),
   (
     "block\n  A space B\n  A-->B\n  classD/]\n  id2[\\\"Thief blue fill:#6e6ce6,stroke:#333l,stroke-width:4px;\n  class A blue\n  style B fill:#bbf,roke:#f66,stroke-width:2px,color:#fff,stroke-dasharray: 5 5\n",
-    "error syntax 8:1\nParse error on line 8:\n\n^\nExpecting 'NODE_DEND', got 'STR'",
+    "error syntax 7:80\nParse error on line 7:\n  style B fill:#bbf,roke:#f66,stroke-width:2px,color:#fff,stroke-dasharray: 5 5\n-------------------------------------------------------------------------------^\nExpecting 'NODE_DEND', got 'STR'",
   ),
   (
     "block-beta\n      block:first\n        a\n      end\n      block:secod\n        b\n      end\n      block:third\n        c\n      end\n    ",
@@ -2385,7 +2385,7 @@ let parser_cases : Array[(String, String)] = [
     "blo ck\n  columt to a sins 3\n  a b c((\"x\")) d\n", "error syntax 1:1\nParse error on line 1:\nblo ck\n^\nExpecting 'BLOCK_DIAGRAM_KEY', got 'NODE_ID'",
   ),
   (
-    "block\n 2   id1[(\"downDatabase)]\n", "error syntax 3:1\nParse error on line 3:\n\n^\nExpecting 'NODE_DEND', got 'STR'",
+    "block\n 2   id1[(\"downDatabase)]\n", "error syntax 2:26\nParse error on line 2:\n 2   id1[(\"downDatabase)]\n-------------------------^\nExpecting 'NODE_DEND', got 'STR'",
   ),
   (
     "block\n    id1{\"This is th3e text in the box\"}\n", "ok\nroot columns=-1\n  id1 diamond \"This is th3e text in the box\" span=1",

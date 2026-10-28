@@ -443,6 +443,16 @@ test "errors report lines and columns in the source as written" {
 }
 
 ///|
+test "the end of input is reported on the last line with content" {
+  for end in ["", "\n", "\n%% A comment\n\n"] {
+    assert_true(
+      position_of("flowchart LR\n  A -->\{end}").has_prefix("2:8\n"),
+      msg=end.escape(),
+    )
+  }
+}
+
+///|
 /// A host that has exactly the icons in `pairs`, by name.
 fn host(pairs : Array[(String, String)]) -> @types.IconResolver {
   let icons = Map::from_array(pairs)

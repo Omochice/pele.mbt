@@ -74,9 +74,9 @@ test "reports a flow left open as pele does" {
   inspect(
     statements_of("agentflow-beta TB\n  flow f\n    a\n"),
     content=(
-      #|Parse error on line 4:
-      #|
-      #|^
+      #|Parse error on line 3:
+      #|    a
+      #|-----^
       #|Expecting 'end', got '$end'
     ),
   )

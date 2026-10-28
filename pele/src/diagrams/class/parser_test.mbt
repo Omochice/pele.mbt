@@ -75,7 +75,7 @@ test "parses class diagrams into the model Mermaid's grammar builds, or fails as
       "classDiagram\nclass A\n@", "error: Lexical error on line 3. Unrecognized text.\n@\n^",
     ),
     (
-      "classDiagram\n", "error: Parse error on line 2:\n\n^\nExpecting 'acc_title', 'acc_descr', 'acc_descr_multiline_value', 'NAMESPACE', 'ANNOTATION_START', 'CLASS', 'MEMBER', 'NOTE_FOR', 'NOTE', 'CLASSDEF', 'direction_tb', 'CALLBACK', 'LINK', 'CLICK', 'STYLE', 'CSSCLASS', 'ALPHA', 'MINUS', 'BQUOTE_STR', got 'EOF'",
+      "classDiagram\n", "error: Parse error on line 1:\nclassDiagram\n------------^\nExpecting 'acc_title', 'acc_descr', 'acc_descr_multiline_value', 'NAMESPACE', 'ANNOTATION_START', 'CLASS', 'MEMBER', 'NOTE_FOR', 'NOTE', 'CLASSDEF', 'direction_tb', 'CALLBACK', 'LINK', 'CLICK', 'STYLE', 'CSSCLASS', 'ALPHA', 'MINUS', 'BQUOTE_STR', got 'EOF'",
     ),
     (
       "classDiagram\nnamespace N {\n}", "error: Parse error on line 3:\n}\n^\nExpecting 'NAMESPACE', 'CLASS', 'NOTE_FOR', 'NOTE', got 'STRUCT_STOP'",

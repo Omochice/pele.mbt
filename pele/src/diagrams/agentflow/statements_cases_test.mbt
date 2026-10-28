@@ -176,7 +176,7 @@ let statements_cases : Array[(String, String)] = [
     "ok f2d8d19a",
   ),
   (
-    "agentflow-beta TB\n  flow orphan[\"Orphan\"]\n    a[\"Alpha\"]", "error syntax agentflow agentflow\nParse error on line 4:\n\n^\nExpecting 'end', got '$end'",
+    "agentflow-beta TB\n  flow orphan[\"Orphan\"]\n    a[\"Alpha\"]", "error syntax agentflow agentflow\nParse error on line 3:\n    a[\"Alpha\"]\n--------------^\nExpecting 'end', got '$end'",
   ),
   (
     "---\nconfig:\n  agentflow:\n    nodeSpacing: 70\n    rankSpacing: 70\n---\nagentflow-beta TB\n  a[\"A\"] --> b[\"B\"]\n",
@@ -184,7 +184,7 @@ let statements_cases : Array[(String, String)] = [
   ),
   (
     "%% A `flow` block with no `end`. The JISON parser raises, so no semantic model\n%% is produced and the outcome is `parse-error` rather than any diagnostic.\nagentflow-beta TB\n  flow orphan[\"Orphan\"]\n    a[\"Alpha\"]\n    b[\"Beta\"]\n    a --> b\n",
-    "error syntax agentflow agentflow\nParse error on line 9:\n\n^\nExpecting 'end', got '$end'",
+    "error syntax agentflow agentflow\nParse error on line 7:\n    a --> b\n-----------^\nExpecting 'end', got '$end'",
   ),
   (
     "agentflow-beta TB\n  flow )outer[\"Outer\"]\n    flow inner[\"Inner\"]\n      n1 --> n2\n    end\n  end",
@@ -217,7 +217,7 @@ let statements_cases : Array[(String, String)] = [
   ),
   (
     "%% A `flow` block with no `end`. The JISON parser raises, so no semantic model\n\n%% is produced and the outcome is `parse-error` rather than any diagnostic.\nagentflow-beta TB\n  flow orphan[\"Orphan\"]\n    a[\"Alpha\"]\n    b[\"Beta\"]\n    a --> b\n",
-    "error syntax agentflow agentflow\nParse error on line 10:\n\n^\nExpecting 'end', got '$end'",
+    "error syntax agentflow agentflow\nParse error on line 8:\n    a --> b\n-----------^\nExpecting 'end', got '$end'",
   ),
   (
     "agentflow-beta TB\n      flow outer[\"Outer\"]\n        flow inner[\"Inner\"]\n         a[\"a\"]\n        end\n      end  end\n      flow sibling[\"Sibling\"]\n        b[\"b\"]\n      end\n    ",

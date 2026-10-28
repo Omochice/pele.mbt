@@ -365,7 +365,7 @@ test "models and errors match pele for every string of up to four tokens" {
   ]
   inspect(
     join_quoted(model_hashes(pieces)),
-    content="[\"9509bb37\", \"9fbab1d6\", \"4a023b57\", \"ae482a36\", \"9e7b3438\"]",
+    content="[\"9509bb37\", \"9fbab1d6\", \"e269554f\", \"667bcb2a\", \"6a3f91ec\"]",
   )
 }
 
@@ -379,6 +379,6 @@ test "models and errors match pele for every text of up to four statements" {
   ]
   inspect(
     join_quoted(model_hashes(pieces)),
-    content="[\"9509bb37\", \"765d722f\", \"2c35ab08\", \"432bbeaf\", \"6a49424f\"]",
+    content="[\"9509bb37\", \"c95ec70e\", \"35f47415\", \"bf095e49\", \"77c63e10\"]",
   )
 }

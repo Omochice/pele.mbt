@@ -771,7 +771,7 @@ test "a series that is not well formed" {
     content=(
       #|error: Parse error on line 4:
       #| line "lineTitle with space"   
-      #|-------------------------------^
+      #|----------------------------^
       #|Expecting 'SQUARE_BRACES_START', got 'EOF'
     ),
   )

@@ -81,7 +81,7 @@ test "text that is not a row is reported with the token that was expected" {
   )
   inspect(
     parse("treemap\n\"a\": "),
-    content="error: Parse error on line 3:\n\n^\nExpecting token of type 'NUMBER2' but found end of input.",
+    content="error: Parse error on line 2:\n\"a\": \n----^\nExpecting token of type 'NUMBER2' but found end of input.",
   )
   inspect(
     parse("treemap\n\"a\": x"),
@@ -93,7 +93,7 @@ test "text that is not a row is reported with the token that was expected" {
   )
   inspect(
     parse("treemap\n\"a\":::"),
-    content="error: Parse error on line 3:\n\n^\nExpecting token of type 'ID2' but found end of input.",
+    content="error: Parse error on line 2:\n\"a\":::\n------^\nExpecting token of type 'ID2' but found end of input.",
   )
   inspect(
     parse("treemap\n\"a\": 1:::1x"),
@@ -105,7 +105,7 @@ test "text that is not a row is reported with the token that was expected" {
 test "a comment after a row leaves blanks that no row follows" {
   inspect(
     parse("treemap\n\"a\": 1 %% note"),
-    content="error: Parse error on line 3:\n\n^\nExpecting token of type 'STRING2' but found end of input.",
+    content="error: Parse error on line 2:\n\"a\": 1 %% note\n--------------^\nExpecting token of type 'STRING2' but found end of input.",
   )
 }
 
