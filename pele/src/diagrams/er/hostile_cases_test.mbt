@@ -1,4 +1,4 @@
-// pele's er-security templates and payloads (tests/render/er-security.test.ts, tests/support/inert.ts), with a hash of what pele v1.10.0's render gives each pair.
+// pele's er-security templates and payloads (tests/render/er-security.test.ts, tests/support/inert.ts), with a hash of what pele's render gives each pair, taken from pele v1.10.0 and retaken where a later pele draws it differently.
 
 ///|
 /// Each template as the text around the places its payload goes.
@@ -372,7 +372,7 @@ let hostile_outcomes : Array[String] = [
   "a3ab88a4", "f7effe5d", "a593de11", "e16f2600", "34a2de66", "f70deb61", "5435bf4f",
   "3097a18f", "a155b619", "88c53997", "594fc8b0", "61105fc3", "ad8705d0", "9614554c",
   "a290b0b1", "fdb9a273", "f2e38955", "257e4b1a", "294cbb9d", "e1c6595f", "d4d54225",
-  "8a8071ee", "28f57ec0", "63f758e3", "fa05be8d", "f550d22d", "0a31c1d3", "6c946499",
+  "8a8071ee", "28f57ec0", "63f758e3", "054635f2", "6620c656", "e09c04b6", "100fbfea",
   "c9478366", "8f1a7abc", "184cf817", "4420d285", "681aba6a", "408b0641", "b0a67be5",
   "5919103c", "7eac62d2", "26de4c68", "b983655d", "074cd19b", "e85c383d", "16350b61",
   "dc02686c", "a981b3e6", "908ce1cd", "ca94d77e", "05616194", "3efafa6f", "e13cfc40",

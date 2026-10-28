@@ -580,8 +580,13 @@ fn draw(
       )
       clusters.write("<g class=\"pele-cluster\{classes}\"")
       clusters.write_data_id(node.id)
+      let wash = if @svg.sets_fill(view.style.shape) {
+        ""
+      } else {
+        " fill-opacity=\"0.5\""
+      }
       clusters.write(
-        "><rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(c.w)}\" height=\"\{@svg.num(c.h)}\" fill=\"var(--_a)\" fill-opacity=\"0.5\" stroke=\"var(--_b)\"\{@svg.rounded(view.style.shape)}/>",
+        "><rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(c.w)}\" height=\"\{@svg.num(c.h)}\" fill=\"var(--_a)\"\{wash} stroke=\"var(--_b)\"\{@svg.rounded(view.style.shape)}/>",
       )
       @svg.write_label(
         clusters,
