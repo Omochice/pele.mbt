@@ -192,6 +192,9 @@ const BADGE_H : Double = 16
 const CENTRAL_R : Double = 4
 
 ///|
+const FONT_MONO : String = "var(--_fm)"
+
+///|
 const DASH : String = " stroke-dasharray=\"4 4\""
 
 ///|
@@ -350,6 +353,14 @@ fn draw(
   let small = (size * 0.875).round()
   let tiny = (size * 0.75).round()
   let measurer = options.text_measurer()
+  let monospaced = options.monospaces("messages")
+  let message_measurer : @text.TextMeasurer = if monospaced {
+    {
+      width_of: (t, s, style) => measurer.width(t, s, style | @text.STYLE_MONO),
+    }
+  } else {
+    measurer
+  }
   let pad = options.padding.unwrap_or(8)
   let mirror = !(conf.get("mirrorActors") is Some(False))
   let right_angles = conf.get("rightAngles") is Some(True)
@@ -418,11 +429,17 @@ fn draw(
     messages,
     conf.get("showSequenceNumbers") is Some(True),
   )
-  let text = (raw : String?, font_size : Double, wrap : Bool, width : Double) => {
+  let text_by = (
+    by : @text.TextMeasurer,
+    raw : String?,
+    font_size : Double,
+    wrap : Bool,
+    width : Double,
+  ) => {
     let label = @text.layout_label(
       raw,
       false,
-      measurer,
+      by,
       font_size,
       if tight || wrap {
         width
@@ -431,10 +448,16 @@ fn draw(
       },
     )
     if tight {
-      @common.break_label(label, measurer, @util.js_max(120, width))
+      @common.break_label(label, by, @util.js_max(120, width))
     } else {
       label
     }
+  }
+  let text = (raw : String?, font_size : Double, wrap : Bool, width : Double) => {
+    text_by(measurer, raw, font_size, wrap, width)
+  }
+  let message_text = (raw : String, wrap : Bool, width : Double) => {
+    text_by(message_measurer, Some(raw), small, wrap, width)
   }
   let used : Set[String?]? = if conf.get("hideUnusedParticipants") is Some(True) {
     let used = Set([])
@@ -548,7 +571,7 @@ fn draw(
       }
       views[i] = Some({ kind: NoteView, a, b, label, x: 0, w, })
     } else if is_line_message(m.kind) {
-      let label = text(Some(m.message), small, m.wrap, wrap_w)
+      let label = message_text(m.message, m.wrap, wrap_w)
       let badge = badge_width(i)
       if a == b {
         need(a, a + 1, SELF_W + 8 + label.width + 16 + ACT_W + badge)
@@ -814,9 +837,8 @@ fn draw(
             x0 = @util.js_min(a.x, b.x)
             x1 = @util.js_max(a.x, b.x)
             if tight || m.wrap {
-              view.label = text(
-                Some(m.message),
-                small,
+              view.label = message_text(
+                m.message,
                 true,
                 @util.js_max(wrap_w, x1 - x0 - 2 * msg_pad - ACT_W),
               )
@@ -851,7 +873,7 @@ fn draw(
       guard views[i] is Some(view) &&
         view.kind is LineView &&
         view.label.lines.length() >
-        text(Some(messages[i].message), small, false, infinity).lines.length() else {
+        message_text(messages[i].message, false, infinity).lines.length() else {
         continue
       }
       wrapped.push(i)
@@ -1495,7 +1517,15 @@ fn draw(
     "<g class=\"pele-destroys\" fill=\"none\" stroke=\"var(--_l)\" stroke-width=\"1.5\" stroke-linecap=\"round\">",
     crosses_out,
   )
-  group("<g class=\"pele-edge-labels\" font-size=\"\{small}\">", labels_out)
+  let labels_family = if monospaced {
+    " font-family=\"\{FONT_MONO}\""
+  } else {
+    ""
+  }
+  group(
+    "<g class=\"pele-edge-labels\" font-size=\"\{small}\"\{labels_family}>",
+    labels_out,
+  )
   group(
     "<g class=\"pele-notes\" font-size=\"\{small}\" fill=\"var(--_a)\" stroke=\"var(--_b)\">",
     notes_out,

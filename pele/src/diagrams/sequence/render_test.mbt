@@ -5,16 +5,26 @@ fn drawn(
   source : String,
   max_width? : Double,
   responsive? : Bool,
+  monospace? : Array[String],
 ) -> Result[@types.RenderResult, @errors.Failure] {
-  let options = { ..@types.RenderOptions::default(), max_width, responsive, }
+  let options = {
+    ..@types.RenderOptions::default(),
+    max_width,
+    responsive,
+    monospace,
+  }
   Ok(@core.render([@sequence.sequence], source, options)) catch {
     @errors.PeleError(failure) => Err(failure)
   }
 }
 
 ///|
-fn svg_of(source : String, max_width? : Double) -> String {
-  match drawn(source, max_width?) {
+fn svg_of(
+  source : String,
+  max_width? : Double,
+  monospace? : Array[String],
+) -> String {
+  match drawn(source, max_width?, monospace?) {
     Ok(result) => result.svg
     Err(failure) => failure.message
   }
@@ -428,6 +438,45 @@ test "widens gaps within maxWidth before wrapping a message" {
     content=(
       #|true 1 | true 1 | true 3 | true 2 | true 2
     ),
+  )
+}
+
+///|
+test "measures messages in the monospace font when monospace lists them" {
+  let src = "sequenceDiagram\n  A->>B: a message in the monospace font\n  B->>B: a message to itself\n  Note over A,B: a note"
+  let plain = drawn(src).unwrap()
+  let mono = drawn(src, monospace=["messages"]).unwrap()
+  inspect(
+    mono.svg.contains(
+      "<g class=\"pele-edge-labels\" font-size=\"14\" font-family=\"var(--_fm)\">",
+    ),
+    content="true",
+  )
+  inspect(plain.svg.contains("font-family=\"var(--_fm)\""), content="false")
+  inspect(count(mono.svg, "font-family=\"var(--_fm)\""), content="1")
+  let gap = (svg : String) => lifeline(svg, "B") - lifeline(svg, "A")
+  inspect(gap(mono.svg) > gap(plain.svg), content="true")
+  inspect(
+    mono.width - gap(mono.svg) > plain.width - gap(plain.svg),
+    content="true",
+  )
+  for monospace in [[], ["message"], ["members"]] {
+    assert_eq(svg_of(src, monospace~), plain.svg)
+  }
+}
+
+///|
+test "widens gaps within maxWidth for messages measured in the monospace font" {
+  let source = "sequenceDiagram\n  participant UE\n  participant gNB\n  participant AMF\n  gNB->>UE: RRCConnectionReconfigurationComplete\n  UE->>gNB: ok"
+  let mono = drawn(source, max_width=760, monospace=["messages"]).unwrap()
+  inspect(mono.width <= 760, content="true")
+  inspect(
+    mono.width > drawn(source, max_width=760).unwrap().width,
+    content="true",
+  )
+  inspect(
+    mono.svg.contains(">RRCConnectionReconfigurationComplete<"),
+    content="true",
   )
 }
 
