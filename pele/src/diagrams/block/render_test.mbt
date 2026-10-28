@@ -676,7 +676,7 @@ fn marker_points(svg : String) -> Array[(Double, Double)] {
 }
 
 ///|
-test "leaves parallel labels in place when stacking them would cover an arrowhead" {
+test "keeps stacked labels clear of arrowheads" {
   let svg = block_svg(
     "block\n  columns 1\n  a\n  space\n  b\n  a -- \"first label\" --> b\n  a -- \"second label\" --> b\n  b -- \"third label\" --> a",
   )
@@ -690,6 +690,62 @@ test "leaves parallel labels in place when stacking them would cover an arrowhea
         msg=label.0,
       )
     }
+  }
+}
+
+///|
+test "widens the gap between blocks whose parallel labels do not fit between them" {
+  let rows = "block\n  columns 1\n  a\n  b\n  a -- \"conforming\" --> b\n  b -- \"deviation\" --> a"
+  expect_separate_labels(rows, 2)
+  let near = layout_of("block\n  columns 1\n  a\n  b\n  a --> b\n  b --> a")
+  let far = layout_of(rows)
+  assert_true(
+    box_of(far, "b").y - box_of(far, "a").y >
+    box_of(near, "b").y - box_of(near, "a").y,
+  )
+  expect_separate_labels(
+    "block\n  a[\"Service\"] space b[\"Database\"]\n  a -- \"read\" --> b\n  a -- \"write rows\" --> b\n  b -- \"notify\" --> a",
+    3,
+  )
+  expect_separate_labels(
+    "block\n  columns 1\n  a\n  space\n  b\n  a -- \"one\" --> b\n  a -- \"two\" --> b\n  a -- \"three\" --> b\n  a -- \"four\" --> b\n  a -- \"five\" --> b",
+    5,
+  )
+  expect_separate_labels(
+    "block\n  columns 1\n  block:up[\"Up\"]\n    a b\n  end\n  c\n  up -- \"hi there\" --> c\n  c -- \"back again\" --> up",
+    2,
+  )
+  for d in edge_paths(block_svg(rows)) {
+    assert_true(line_ends(d) is Some(_), msg=d)
+  }
+  // The row is stretched by its neighbor, so the first gap it gets falls short.
+  expect_separate_labels(
+    "block\n  columns 2\n  block:g\n    columns 1\n    a{\"a\"} b\n  end\n  q[\"Q<br>Q<br>Q<br>Q<br>Q<br>Q\"]\n  a -- \"long label\" --> b\n  a -- \"long label\" --> b",
+    2,
+  )
+}
+
+///|
+test "keeps the gap between blocks when widening it leaves labels overlapping" {
+  guard block_render(
+      "block\n  columns 3\n  t1 t2 t3\n  a space b\n  b1 b2 b3\n  a -- \"line one<br>line two<br>line three\" --> b\n  b -- \"back one<br>back two<br>back three\" --> a",
+    )
+    is Ok(labelled) &&
+    block_render(
+      "block\n  columns 3\n  t1 t2 t3\n  a space b\n  b1 b2 b3\n  a --> b\n  b --> a",
+    )
+    is Ok(plain) else {
+    fail("rejected")
+  }
+  assert_eq(labelled.width, plain.width)
+}
+
+///|
+test "does not widen columns past maxWidth" {
+  let src = "block\n  a[\"Service\"] space b[\"Database\"]\n  a -- \"read\" --> b\n  a -- \"write rows\" --> b\n  b -- \"notify\" --> a"
+  for max_width in [380.0, 397.5] {
+    guard block_render(src, max_width~) is Ok(result) else { fail("rejected") }
+    assert_true(result.width <= max_width, msg="\{max_width}: \{result.width}")
   }
 }
 

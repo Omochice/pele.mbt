@@ -601,6 +601,7 @@ fn label_spot(
 
 ///|
 /// Stacks overlapping labels along their shared line, if they fit between its markers and cover no other block or title.
+/// Gives the extra length the line needs to fit the labels, or 0 when it needs none or more length would not help.
 fn stack_labels(
   stack : Array[Int32],
   routes : Array[Route],
@@ -609,7 +610,7 @@ fn stack_labels(
   t : View,
   obstacles : Array[View]?,
   titles : Array[Box],
-) -> Unit {
+) -> Double {
   let vertical = legs[stack[0]][0] == legs[stack[0]][2]
   let mut lo = -@double.infinity
   let mut hi = @double.infinity
@@ -618,7 +619,7 @@ fn stack_labels(
   for a in 0..<stack.length() {
     let leg = legs[stack[a]]
     if (if vertical { leg[0] != leg[2] } else { leg[1] != leg[3] }) {
-      return
+      return 0
     }
     lo = @util.js_max(
       lo,
@@ -647,8 +648,11 @@ fn stack_labels(
       }
     }
   }
-  if !crowded || need > hi - lo - 2 * @svg.ARROW {
-    return
+  if !crowded {
+    return 0
+  }
+  if need > hi - lo - 2 * @svg.ARROW {
+    return need - (hi - lo - 2 * @svg.ARROW)
   }
   let along = []
   let mut next = (lo + hi - need) / 2
@@ -675,7 +679,7 @@ fn stack_labels(
         obstacles,
         titles,
       ) {
-      return
+      return 0
     }
     along.push(at)
     next += size + LABEL_GAP
@@ -687,6 +691,67 @@ fn stack_labels(
       routes[i].lx = along[k]
     }
   }
+  0
+}
+
+///|
+/// Widens the gap between `s` and `t` in their nearest shared container, by `short` beyond the gap it had when the labels were measured.
+/// `base` keeps those gaps, by container and direction, so several stacks across one gap widen it once by the most any of them needs.
+/// Gives false when one block holds the other or they are not apart in that direction.
+fn widen(
+  parents : Array[View?],
+  s : View,
+  t : View,
+  vertical : Bool,
+  short : Double,
+  base : Map[(Int32, Bool), Array[Double]],
+) -> Bool {
+  let chain : Set[Int32] = Set([])
+  let mut up : View? = Some(s)
+  while up is Some(v) {
+    chain.add(v.index)
+    up = parents[v.index]
+  }
+  let mut tb : View? = None
+  let mut found : View? = Some(t)
+  while found is Some(v) && !chain.contains(v.index) {
+    tb = Some(v)
+    found = parents[v.index]
+  }
+  guard found is Some(box) && tb is Some(tb) && !physical_equal(box, s) else {
+    return false
+  }
+  let mut sb = s
+  while parents[sb.index] is Some(parent) && !physical_equal(parent, box) {
+    sb = parent
+  }
+  let at = if vertical {
+    if sb.cell.row == tb.cell.row {
+      return false
+    }
+    (if sb.cell.row > tb.cell.row { sb.cell.row } else { tb.cell.row }) - 1
+  } else {
+    let (l, r) = if sb.cell.col < tb.cell.col { (sb, tb) } else { (tb, sb) }
+    if r.cell.col < l.cell.col + l.cell.span {
+      return false
+    }
+    (r.cell.col - 1).to_int()
+  }
+  let gaps = if vertical { box.cell.row_gaps } else { box.cell.col_gaps }
+  let key = (box.index, vertical)
+  let measured = match base.get(key) {
+    Some(measured) => measured
+    None => {
+      let measured = gaps.copy()
+      base.set(key, measured)
+      measured
+    }
+  }
+  while gaps.length() <= at {
+    gaps.push(0)
+  }
+  gaps[at] = @util.js_max(gaps[at], gap_at(measured, at.to_double()) + short)
+  true
 }
 
 ///|
@@ -884,6 +949,7 @@ fn draw(
   root.cell.nw = 0
   root.cell.nh = 0
   let order = [root]
+  let parents : Array[View?] = [None]
   let by_id : Map[String, View] = Map([])
   let mut i = 0
   while i < order.length() {
@@ -896,6 +962,7 @@ fn draw(
       let v = view(child, order.length())
       parent.children.push(v)
       parent.cell.children.push(v.cell)
+      parents.push(Some(parent))
       order.push(v)
       if !(v.kind is Space) {
         by_id.set(child.id, v)
@@ -904,7 +971,12 @@ fn draw(
   }
   let obstacles = []
   let titles : Array[Box] = []
+  // Layout keeps the widest a container has been, so each run starts from the widths it needs.
+  let widths = order.map(v => v.cell.nw)
   fn place() -> (Double, Double) raise @errors.PeleError {
+    for v in order {
+      v.cell.nw = widths[v.index]
+    }
     let content = layout(root.cell, gap)
     obstacles.clear()
     titles.clear()
@@ -939,7 +1011,7 @@ fn draw(
     }
     content
   }
-  let content = place()
+  let mut content = place()
 
   // Edges between the same two blocks are spread apart instead of drawn on top of each other.
   let count = order.length().to_int64()
@@ -1045,12 +1117,48 @@ fn draw(
       })
     }
   }
-  route()
-  for _, stack in stacks {
-    if stack.length() > 1 {
+  fn settle(allow : Bool) -> Bool {
+    route()
+    let base : Map[(Int32, Bool), Array[Double]] = Map([])
+    let mut grown = false
+    for _, stack in stacks {
+      if stack.length() < 2 {
+        continue
+      }
       let (s, t) = ends[stack[0]]
-      stack_labels(stack, routes, legs, s, t, check, titles)
+      let short = stack_labels(stack, routes, legs, s, t, check, titles)
+      let vertical = legs[stack[0]][0] == legs[stack[0]][2]
+      // Keep columns narrow to fit the host in tight layouts.
+      if allow &&
+        short > 0 &&
+        (vertical || !tight) &&
+        widen(parents, s, t, vertical, short.ceil(), base) {
+        grown = true
+      }
     }
+    grown
+  }
+  fn overlap() -> Double {
+    let mut area = 0.0
+    for i in 0..<routes.length() {
+      let p = routes[i]
+      for j in (i + 1)..<routes.length() {
+        let q = routes[j]
+        let pw = (p.label.width + 8) / 2
+        let qw = (q.label.width + 8) / 2
+        let w = @util.js_min(p.lx + pw, q.lx + qw) -
+          @util.js_max(p.lx - pw, q.lx - qw)
+        let h = @util.js_min(
+            p.ly + p.label.height / 2,
+            q.ly + q.label.height / 2,
+          ) -
+          @util.js_max(p.ly - p.label.height / 2, q.ly - q.label.height / 2)
+        if p.label.width > 0 && q.label.width > 0 && w > 0 && h > 0 {
+          area += w * h
+        }
+      }
+    }
+    area
   }
   let mut min_x = 0.0
   let mut min_y = 0.0
@@ -1086,6 +1194,35 @@ fn draw(
       }
     }
     max_x - min_x
+  }
+  if settle(
+      drawn.length().to_double() * drawn.length().to_double() <= OBSTACLE_BUDGET,
+    ) {
+    let before = overlap()
+    let narrow = bound()
+    // A container stretched by its row gives some of a new gap back, so the gap may take a few rounds.
+    let mut grown = true
+    let mut round = 0
+    while round < 3 && grown {
+      content = place()
+      grown = settle(round < 2)
+      round += 1
+    }
+    // The drawing only grows if that leaves less of the labels covering each other, and within maxWidth.
+    let wide = bound()
+    let room = match options.max_width {
+      Some(max_width) if max_width > 0 => max_width
+      _ => @double.infinity
+    }
+    if overlap() > before - 1 ||
+      (wide > narrow && (wide + 2 * pad).ceil() > room) {
+      for v in order {
+        v.cell.row_gaps = []
+        v.cell.col_gaps = []
+      }
+      content = place()
+      settle(false) |> ignore
+    }
   }
   bound() |> ignore
   let title = @svg.title_label(

@@ -107,6 +107,8 @@ pub(all) struct Cell {
   mut row : Int32
   mut cols : Double
   mut heights : Array[Double]
+  mut row_gaps : Array[Double]
+  mut col_gaps : Array[Double]
   mut x : Double
   mut y : Double
   mut w : Double
