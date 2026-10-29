@@ -47,13 +47,13 @@ The `default` profile holds pele's own defaults, written out explicitly so that 
 The `narrow` profile is the default profile plus `maxWidth: 400`.
 The value 400 is below `directionBreakpoint` (640), so both width fitting and the automatic direction turn take effect.
 The `icons`, `math`, and `metrics` profiles are the default profile plus `icons`, `math`, and `measurer` respectively, in the JSON forms described under [Callback options](#callback-options).
+The `mono` profile is the default profile plus `monospace` listing every part pele accepts, `members`, `attributes`, `files`, and `messages`, so the class, ER, treeview, and sequence code that measures and draws those parts in the monospace font is checked too.
 A comparison tool has to read the profiles from the manifest instead of hard-coding them.
 `now` is an exception: gantt charts read the current time by default, so it is fixed to 1767225600000 (2026-01-01T00:00:00Z).
 The generator also runs pele with `TZ=UTC`, recorded as `timeZone` in the manifest.
 Gantt reads a date-only value as UTC midnight but floors its axis ticks to local midnight, so without that pin the goldens would depend on the time zone of the machine that generated them.
 `maxWidth` (outside the narrow profile), `responsive`, `linkSchemes`, and `imageSchemes` are left unset because their defaults mean "undefined selects the built-in behavior" rather than a concrete value.
-`config` is unset as well, and so are `measurer`, `icons`, and `math` outside their own profiles.
-`monospace` is unset too, so the goldens never ask for a part of a diagram to be measured and drawn in the monospace font.
+`config` is unset as well, and so are `measurer`, `icons`, `math`, and `monospace` outside their own profiles.
 The default measurer falls back to pele's built-in metrics table when no canvas is available, and a port has to reproduce that table to match text widths.
 
 ## Callback options
