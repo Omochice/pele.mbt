@@ -1,4 +1,4 @@
-// pele v1.10.0's state corpus (tests/support/corpus.ts: the strings of Mermaid's state specs and the samples of Mermaid's docs), with a hash of what pele's render gives each source.
+// pele v1.12.0's state corpus (tests/support/corpus.ts: the strings of Mermaid's state specs and the samples of Mermaid's docs), with a hash of what pele's render gives each source.
 
 ///|
 test "renders every corpus input as pele does, the same way each time" {
@@ -114,7 +114,7 @@ let corpus_cases : Array[(String, String)] = [
   ),
   (
     "stateDiagram-v2\n      classDef pinned fill:#111827,stroke:#F59E0B\n      state Active {\n        [*] --> A\n        --\n        [*] --> B\n      }\n      class Active pinned\n    ",
-    "78e16fd5",
+    "acc6e534",
   ),
   (
     "stateDiagram-v2\n      state First {\n        [*] --> A\n        --\n        [*] --> B\n      }\n      state Second {\n        [*] --> C\n        --\n        [*] --> D\n      }\n    ",
@@ -122,11 +122,11 @@ let corpus_cases : Array[(String, String)] = [
   ),
   (
     "stateDiagram-v2\n      classDef pinned fill:#111827,stroke:#F59E0B\n      state First {\n        [*] --> A\n      }\n      state Second {\n        [*] --> B\n      }\n      state Third {\n        [*] --> C\n      }\n      class Second pinned\n    ",
-    "f9233c63",
+    "288a5540",
   ),
   (
     "stateDiagram-v2\n      state First {\n        [*] --> A\n      }\n      state Second {\n        [*] --> B\n      }\n      style Second fill:#111827\n    ",
-    "f3bb29dd",
+    "048983c4",
   ),
   (
     "stateDiagram-v2\n      [*] --> Loop\n      state Loop {\n        [*] --> Spin\n      }\n      Loop --> Loop\n      Loop --> Exit\n      state Exit {\n        [*] --> Bye\n      }\n    ",
@@ -425,14 +425,14 @@ let corpus_cases : Array[(String, String)] = [
   ),
   (
     "   stateDiagram\n   direction TB\n\n   accTitle: This is the accessible title\n   accDescr: This is an accessible description\n\n   classDef notMoving fill:white\n   classDef movement font-style:italic\n   classDef badBadEvent fill:#f00,color:white,font-weight:bold,stroke-width:2px,stroke:yellow\n\n   [*]--> Still\n   Still --> [*]\n   Still --> Moving\n   Moving --> Still\n   Moving --> Crash\n   Crash --> [*]\n\n   class Still notMoving\n   class Moving, Crash movement\n   class Crash badBadEvent\n   class end badBadEvent\n",
-    "41074f8a",
+    "4c9f181f",
   ),
   (
     "stateDiagram\n   direction TB\n\n   accTitle: This is the accessible title\n   accDescr: This is an accessible description\n\n   classDef notMoving fill:white\n   classDef movement font-style:italic;\n   classDef badBadEvent fill:#f00,color:white,font-weight:bold,stroke-width:2px,stroke:yellow\n\n   [*] --> Still:::notMoving\n   Still --> [*]\n   Still --> Moving:::movement\n   Moving --> Still\n   Moving --> Crash:::movement\n   Crash:::badBadEvent --> [*]\n",
-    "41074f8a",
+    "4c9f181f",
   ),
   (
     "stateDiagram\n    classDef yourState font-style:italic,font-weight:bold,fill:white\n\n    yswsii: Your state with spaces in it\n    [*] --> yswsii:::yourState\n    [*] --> SomeOtherState\n    SomeOtherState --> YetAnotherState\n    yswsii --> YetAnotherState\n    YetAnotherState --> [*]\n",
-    "d749319e",
+    "744c601f",
   ),
 ]

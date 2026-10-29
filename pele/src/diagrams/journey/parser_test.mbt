@@ -117,7 +117,7 @@ test "a text that does not start with journey is rejected" {
 test "an accDescr block that is never closed ends the input early" {
   inspect(
     read("journey\n  accDescr {\n  never closed\n"),
-    content="syntax: Parse error on line 5:\n\n^\nExpecting 'EOF', 'SPACE', 'NEWLINE', 'title', 'acc_title', 'acc_descr', 'acc_descr_multiline_value', 'section', 'taskName', got '1'",
+    content="syntax: Parse error on line 3:\n  never closed\n--------------^\nExpecting 'EOF', 'SPACE', 'NEWLINE', 'title', 'acc_title', 'acc_descr', 'acc_descr_multiline_value', 'section', 'taskName', got '1'",
   )
 }
 

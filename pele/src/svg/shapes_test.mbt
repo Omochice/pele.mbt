@@ -439,6 +439,16 @@ test "other shapes carry a label" {
 }
 
 ///|
+test "text and brace shapes draw no fill a style could set" {
+  for shape in ["text", "brace", "brace-r", "braces"] {
+    assert_false(@svg.shape_filled(shape), msg=shape)
+  }
+  for shape in ["rect", "circle", "fork", "collapsedGroup", "nope", ""] {
+    assert_true(@svg.shape_filled(shape), msg=shape)
+  }
+}
+
+///|
 test "edges end on the outline of the shape" {
   inspect(
     insets("stadium"),

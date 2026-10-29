@@ -1,4 +1,4 @@
-// The hostile-text templates of pele's swimlane render tests and pele's payloads (tests/render/swimlane.test.ts, tests/support/inert.ts), with a hash of what pele v1.10.0's render gives each pair.
+// The hostile-text templates of pele's swimlane render tests and pele's payloads (tests/render/swimlane.test.ts, tests/support/inert.ts), with a hash of what pele v1.12.0's render gives each pair.
 
 ///|
 let hostile_payloads : Array[String] = [
@@ -78,7 +78,7 @@ let hostile_outcomes : Array[String] = [
   "814a0af6", "8bd6a9cc", "89b5213e", "8cdd3f7e", "a98be831", "dbe6d24a", "4e758b3a",
   "eccfec8b", "48ac593d", "7186bde4", "5c81bcd2", "216e4618", "dee1a94f", "af248365",
   "a124c38a", "9e741058", "4e2263e9", "b7d948f9", "1779aa66", "0fec1b26", "69865cb9",
-  "c0179102", "b6dae70a", "353b16cc", "f0d13880", "9463ec44", "ab1c94de", "c6cdc643",
+  "04bd1b63", "b6dae70a", "353b16cc", "f0d13880", "9463ec44", "ab1c94de", "c6cdc643",
   "9d322b63", "82b4f06e", "2ac5cb8b", "97ddb1e4", "a3eb6b5a", "3556be5a", "ff6316bb",
   "f5d324d4", "cf8fb210", "d12db65d", "ba9ddcd9", "59b4aaf7", "1ac5abd0", "929c0e95",
   "156d19ef", "8324c6ea", "68fa00f7", "1de17152", "c7f32fe6", "7173a753", "38531ea8",

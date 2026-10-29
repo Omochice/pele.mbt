@@ -288,7 +288,9 @@ fn VennLexer::next(self : VennLexer) -> Int32 {
       }
       for entry in keywords {
         let (word, type_) = entry
-        if self.keyword(i, word) {
+        // A hyphen continues a name, as in `set-theory`.
+        if self.keyword(i, word) &&
+          @util.code_at(src, i + word.length()) != '-'.to_int() {
           return self.token(type_, i + word.length())
         }
       }

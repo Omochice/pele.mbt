@@ -1,7 +1,7 @@
 {
   "pele": {
-    "version": "1.10.0",
-    "commit": "4eff76f98c73b6817800a05773517f35832e4e92"
+    "version": "1.12.0",
+    "commit": "8aff183be57021b533f319a29341a529be934b08"
   },
   "timeZone": "UTC",
   "profiles": {

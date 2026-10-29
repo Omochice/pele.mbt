@@ -16,6 +16,9 @@ pub(all) struct Cell {
   mut row : Int32
   mut cols : Double
   mut heights : Array[Double]
+  /// Extra space after each row or column.
+  mut row_gaps : Array[Double]
+  mut col_gaps : Array[Double]
   /// The center and size given to the cell.
   mut x : Double
   mut y : Double
@@ -38,6 +41,8 @@ pub fn cell(nw : Double, nh : Double, span~ : Double = 1) -> Cell {
     row: 0,
     cols: 0,
     heights: [],
+    row_gaps: [],
+    col_gaps: [],
     x: 0,
     y: 0,
     w: 0,
@@ -135,7 +140,8 @@ fn measure(
       tallest = child.nh
     }
   }
-  let mut height = (heights.length() - 1).to_double() * gap
+  let mut height = (heights.length() - 1).to_double() * gap +
+    total(box.row_gaps)
   for row in 0..<heights.length() {
     if heights[row] < 0 {
       heights[row] = tallest
@@ -144,7 +150,10 @@ fn measure(
   }
   box.cols = cols
   box.heights = heights
-  box.nw = @util.js_max(box.nw, cols * cw + (cols - 1) * gap + 2 * inset)
+  box.nw = @util.js_max(
+    box.nw,
+    cols * cw + (cols - 1) * gap + total(box.col_gaps) + 2 * inset,
+  )
   box.nh = height + 2 * inset + box.head
 }
 
@@ -153,9 +162,21 @@ fn measure(
 fn arrange(box : Cell, gap : Double, inset : Double) -> Unit {
   let cols = box.cols
   let heights = box.heights
+  let row_gaps = box.row_gaps
+  let col_gaps = box.col_gaps
   let rows = heights.length().to_double()
-  let cw = (box.w - 2 * inset - (cols - 1) * gap) / cols
-  let room = box.h - 2 * inset - box.head - (rows - 1) * gap
+  let cw = (box.w - 2 * inset - (cols - 1) * gap - total(col_gaps)) / cols
+  let room = box.h - 2 * inset - box.head - (rows - 1) * gap - total(row_gaps)
+  let offsets = []
+  if col_gaps.length() > 0 {
+    let mut sum = 0.0
+    let mut col = 0.0
+    while col < cols {
+      offsets.push(sum)
+      sum += gap_at(col_gaps, col)
+      col += 1
+    }
+  }
   let mut needed = 0.0
   for height in heights {
     needed += height
@@ -167,14 +188,40 @@ fn arrange(box : Cell, gap : Double, inset : Double) -> Unit {
   let mut row = 0
   for child in box.children {
     while row < child.row {
-      top += heights[row] * scale + share + gap
+      top += heights[row] * scale +
+        share +
+        gap +
+        gap_at(row_gaps, row.to_double())
       row += 1
     }
-    child.w = cw * child.span + gap * (child.span - 1)
+    let before = gap_at(offsets, child.col)
+    child.w = cw * child.span +
+      gap * (child.span - 1) +
+      gap_at(offsets, child.col + child.span - 1) -
+      before
     child.h = heights[row] * scale + share
-    child.x = left + child.col * (cw + gap) + child.w / 2
+    child.x = left + child.col * (cw + gap) + before + child.w / 2
     child.y = top + child.h / 2
   }
+}
+
+///|
+/// The gap at a row or column, which is 0 where none was set, as JavaScript reads a hole or a fractional index.
+fn gap_at(gaps : Array[Double], index : Double) -> Double {
+  if index >= 0 && index < gaps.length().to_double() && index.floor() == index {
+    gaps[index.to_int()]
+  } else {
+    0
+  }
+}
+
+///|
+fn total(gaps : Array[Double]) -> Double {
+  let mut sum = 0.0
+  for gap in gaps {
+    sum += gap
+  }
+  sum
 }
 
 ///|

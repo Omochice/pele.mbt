@@ -908,6 +908,117 @@ test "applies UpdateElementStyle to shapes and boundaries" {
 }
 
 ///|
+test "picks a contrasting text color on fills a style sets" {
+  let svg = svg_of(
+    (
+      #|C4Context
+      #|Boundary(b, "B", "Kind") {
+      #|  System(c, "C", "about c")
+      #|}
+      #|System(d, "D", "about d")
+      #|System(e, "E")
+      #|UpdateElementStyle(b, $bgColor="lightyellow")
+      #|UpdateElementStyle(c, $bgColor="navy")
+      #|UpdateElementStyle(d, $bgColor="navy", $fontColor="#ddd")
+    ),
+  )
+  let group = (id : String) => {
+    let from = @util.index_of(svg, "data-id=\"\{id}\"")
+    @util.slice(svg, from, end=@util.index_of(svg, "</g>", from~))
+  }
+  inspect(
+    count(group("c"), "fill=\"var(--pele-fg-on-dark,#fff)\""),
+    content="3",
+  )
+  assert_true(
+    group("b").contains(
+      "<text class=\"pele-cluster-label\" font-weight=\"var(--_hw)\" fill=\"var(--pele-fg-on-light,#1f1f1f)\"",
+    ),
+  )
+  assert_true(
+    tag_with(group("b"), "class=\"pele-c4-type\"").contains(
+      " fill=\"var(--pele-fg-on-light,#1f1f1f)\"",
+    ),
+  )
+  assert_false(group("d").contains("--pele-fg-on"))
+  assert_false(group("e").contains("--pele-fg-on"))
+}
+
+///|
+/// What the group of casings in a drawing holds, or an empty string when it has none.
+fn casings_of(svg : String) -> String {
+  let open = @util.index_of(svg, "<g class=\"pele-casings\"")
+  if open == -1 {
+    return ""
+  }
+  let start = @util.index_of(svg, ">", from=open) + 1
+  @util.slice(
+    svg,
+    start,
+    end=@util.index_of(svg, "</g><g class=\"pele-edges\"", from=start),
+  )
+}
+
+///|
+test "cases relations that cross a boundary fill a style sets and inks those inside it" {
+  let source =
+    #|C4Context
+    #|Boundary(b, "B") {
+    #|  System(x, "X")
+    #|  System(y, "Y")
+    #|}
+    #|System(z, "Z")
+    #|System(w, "W")
+    #|Rel(x, y, "in")
+    #|Rel(y, z, "out")
+    #|Rel(z, w, "away")
+    #|UpdateElementStyle(b, $bgColor="lightyellow")
+  let svg = svg_of(source)
+  let casings = casings_of(svg)
+  inspect(
+    ["x-y", "y-z", "z-w"]
+    .map(id => "\{id} \{casings.contains("<path d=\"\{line_of(svg, id)}\"/>")}")
+    .join("\n"),
+    content=(
+      #|x-y false
+      #|y-z true
+      #|z-w false
+    ),
+  )
+  // x --> y lies inside the boundary and takes its ink; y --> z crosses out of it.
+  let head = (svg : String, id : String) => {
+    let at = @util.index_of(svg, "class=\"pele-edge\" data-id=\"\{id}\"")
+    let marker = @util.index_of(svg, "<path class=\"pele-marker\"", from=at)
+    @util.slice(svg, at, end=@util.index_of(svg, ">", from=at) + 1) +
+    " " +
+    @util.slice(svg, marker, end=@util.index_of(svg, "/>", from=marker) + 2)
+  }
+  inspect(
+    head(svg, "x-y"),
+    content=(
+      #|class="pele-edge" data-id="x-y" stroke="var(--pele-fg-on-light,#1f1f1f)"> <path class="pele-marker" d="M364,227L356,230.36L356,223.64Z" fill="var(--pele-fg-on-light,#1f1f1f)" stroke="none"/>
+    ),
+  )
+  let plain = svg_of(
+    source.replace(
+      old="UpdateElementStyle(b, $bgColor=\"lightyellow\")",
+      new="",
+    ),
+  )
+  inspect(plain.contains("pele-casings"), content="false")
+  inspect(plain.contains("stroke=\"var(--pele-fg-on"), content="false")
+  let looped = svg_of(
+    "C4Context\nBoundary(S, \"S\") {\n  System(A, \"A\")\n}\nRel(A, A, \"self\")\nUpdateElementStyle(S, $bgColor=\"white\")",
+  )
+  inspect(
+    head(looped, "A-A"),
+    content=(
+      #|class="pele-edge" data-id="A-A" stroke="var(--pele-fg-on-light,#1f1f1f)"> <path class="pele-marker" d="M244,123L252.66,122.53L250.4,128.85Z" fill="var(--pele-fg-on-light,#1f1f1f)" stroke="none"/>
+    ),
+  )
+}
+
+///|
 test "applies UpdateRelStyle colours and offsets" {
   let base = "C4Context\nUpdateLayoutConfig(\"1\", \"1\")\nSystem(a, \"A\")\nSystem(b, \"B\")\nRel(a, b, \"x\")\n"
   let plain = svg_of(base)

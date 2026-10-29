@@ -6,12 +6,14 @@ fn drawn(
   max_width? : Double,
   config? : Map[String, Json],
   auto_direction? : Bool,
+  monospace? : Array[String],
 ) -> Result[@types.RenderResult, @errors.Failure] {
   let options = {
     ..@types.RenderOptions::default(),
     max_width,
     config,
     auto_direction,
+    monospace,
   }
   Ok(@core.render([@class.class], source, options)) catch {
     @errors.PeleError(failure) => Err(failure)
@@ -175,6 +177,101 @@ test "keeps empty compartments unless hideEmptyMembersBox is set" {
     ),
     "80 x 56 []\n<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-class\" viewBox=\"0 0 80 56\" width=\"80\" height=\"56\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_hw:var(--pele-heading-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"class\"><g class=\"pele-nodes\"><g class=\"pele-node pele-class\" data-id=\"A\" transform=\"translate(40,28)\"><rect x=\"-32\" y=\"-20\" width=\"64\" height=\"40\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" font-weight=\"var(--_hw)\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"0\" y=\"5.6\">A</tspan></text></g></g></svg>",
   )
+}
+
+///|
+/// The SVG of the group that carries `data-id="id"`, through the end tag that closes it.
+fn group_of(svg : String, id : String) -> String {
+  let start = @util.index_of(svg, "data-id=\"\{id}\"")
+  let from = @util.last_index_of(svg, "<g", from=start)
+  let mut depth = 0
+  let mut at = from
+  while at < svg.length() {
+    if @util.starts_with_at(svg, "</g>", at) {
+      depth -= 1
+      if depth == 0 {
+        return @util.slice(svg, from, end=at + 4)
+      }
+    } else if @util.starts_with_at(svg, "<g ", at) ||
+      @util.starts_with_at(svg, "<g>", at) {
+      depth += 1
+    }
+    at += 1
+  }
+  @util.slice(svg, from)
+}
+
+///|
+fn svg_of(source : String, monospace? : Array[String]) -> String {
+  match drawn(source, monospace?) {
+    Ok(result) => result.svg
+    Err(failure) => abort(failure.message)
+  }
+}
+
+///|
+test "measures members in the monospace font when monospace lists them" {
+  let width = (svg : String) => {
+    let box = group_of(svg, "A")
+    let at = @util.index_of(box, " width=\"") + 8
+    @util.parse_float(
+      @util.slice(box, at, end=@util.index_of(box, "\"", from=at)),
+    )
+  }
+  let plain = svg_of("classDiagram\nclass A {\n  +title: string\n}")
+  let mono = svg_of("classDiagram\nclass A {\n  +title: string\n}", monospace=[
+    "members",
+  ])
+  inspect(
+    mono.contains(
+      "<g class=\"pele-members\" font-size=\"14\" font-family=\"var(--_fm)\">",
+    ),
+    content="true",
+  )
+  inspect(plain.contains("font-family=\"var(--_fm)\""), content="false")
+  inspect(width(mono) > width(plain), content="true")
+}
+
+///|
+test "ignores monospace values that do not list members" {
+  let src = "classDiagram\nclass A {\n  +title: string\n  +draw()*\n}"
+  let plain = svg_of(src)
+  for monospace in [[], ["member"], ["attributes"]] {
+    assert_eq(svg_of(src, monospace~), plain)
+  }
+  let configured = match
+    drawn(src, config={
+      "class": { "monoMembers": true, "monospace": ["members"] },
+    }) {
+    Ok(result) => result.svg
+    Err(failure) => failure.message
+  }
+  assert_eq(configured, plain)
+  assert_eq(
+    svg_of(src, monospace=["attributes", "members"]),
+    svg_of(src, monospace=["members"]),
+  )
+}
+
+///|
+test "keeps a class's own font-family on its members when monospace lists them" {
+  let members = (svg : String) => {
+    let box = group_of(svg, "A")
+    let at = @util.index_of(box, "<g class=\"pele-members\"")
+    @util.slice(box, at, end=@util.index_of(box, "</g>", from=at) + 4)
+  }
+  for
+    rule in [
+      "style A color:black,font-family:serif", "classDef serif color:black,font-family:serif\nclass A:::serif",
+    ] {
+    let src = "classDiagram\nclass A {\n  +title: string\n}\nclass B {\n  +title: string\n}\n\{rule}"
+    let svg = svg_of(src, monospace=["members"])
+    assert_eq(members(svg), members(svg_of(src)))
+    inspect(
+      group_of(svg, "B").contains("font-family=\"var(--_fm)\""),
+      content="true",
+    )
+  }
 }
 
 ///|
@@ -383,8 +480,31 @@ test "applies style, classDef, cssClass and the ::: shorthand" {
         "classDiagram\nclass A\nclass B:::hot\nclass C\nclass D {\n +x$\n}\nclassDef default stroke:#00f\nstyle A fill:#f9f,stroke:#333,stroke-width:4px\nclassDef hot fill:#fdd,color:#900\nclassDef cold fill:#ddf\ncssClass \"C,D\" cold\nstyle D color:#090",
       ),
     ),
-    "392 x 99 []\n<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-class\" viewBox=\"0 0 392 99\" width=\"392\" height=\"99\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_hw:var(--pele-heading-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"class\"><g class=\"pele-nodes\"><g class=\"pele-node pele-class\" data-id=\"A\" transform=\"translate(40,49.5)\"><rect x=\"-32\" y=\"-30\" width=\"64\" height=\"60\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r);stroke:#333;fill:#f9f;stroke-width:4px;\"/><path class=\"pele-divider\" d=\"M-32,10H32M-32,20H32\" fill=\"none\" stroke=\"var(--_b)\" style=\"stroke:#333\"/><text class=\"pele-label\" font-weight=\"var(--_hw)\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"0\" y=\"-4.4\">A</tspan></text></g><g class=\"pele-node pele-class hot\" data-id=\"B\" transform=\"translate(144,49.5)\"><rect x=\"-32\" y=\"-30\" width=\"64\" height=\"60\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r);stroke:#00f;fill:#fdd;\"/><path class=\"pele-divider\" d=\"M-32,10H32M-32,20H32\" fill=\"none\" stroke=\"var(--_b)\" style=\"stroke:#00f\"/><text class=\"pele-label\" font-weight=\"var(--_hw)\" style=\"fill:#900;\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"0\" y=\"-4.4\">B</tspan></text></g><g class=\"pele-node pele-class cold\" data-id=\"C\" transform=\"translate(248,49.5)\"><rect x=\"-32\" y=\"-30\" width=\"64\" height=\"60\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r);stroke:#00f;fill:#ddf;\"/><path class=\"pele-divider\" d=\"M-32,10H32M-32,20H32\" fill=\"none\" stroke=\"var(--_b)\" style=\"stroke:#00f\"/><text class=\"pele-label\" font-weight=\"var(--_hw)\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"0\" y=\"-4.4\">C</tspan></text></g><g class=\"pele-node pele-class cold\" data-id=\"D\" transform=\"translate(352,49.5)\"><rect x=\"-32\" y=\"-41.5\" width=\"64\" height=\"83\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r);stroke:#00f;fill:#ddf;\"/><path class=\"pele-divider\" d=\"M-32,-1.5H32M-32,31.5H32\" fill=\"none\" stroke=\"var(--_b)\" style=\"stroke:#00f\"/><text class=\"pele-label\" font-weight=\"var(--_hw)\" style=\"fill:#090;\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"0\" y=\"-15.9\">D</tspan></text><g class=\"pele-members\" font-size=\"14\"><text class=\"pele-member pele-attribute pele-static\" style=\"fill:#090;text-decoration:underline\" x=\"-20\" y=\"19.9\">+x</text></g></g></g></svg>",
+    "392 x 99 []\n<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-class\" viewBox=\"0 0 392 99\" width=\"392\" height=\"99\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_hw:var(--pele-heading-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"class\"><g class=\"pele-nodes\"><g class=\"pele-node pele-class\" data-id=\"A\" transform=\"translate(40,49.5)\"><rect x=\"-32\" y=\"-30\" width=\"64\" height=\"60\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r);stroke:#333;fill:#f9f;stroke-width:4px;\"/><path class=\"pele-divider\" d=\"M-32,10H32M-32,20H32\" fill=\"none\" stroke=\"var(--_b)\" style=\"stroke:#333\"/><text class=\"pele-label\" font-weight=\"var(--_hw)\" fill=\"var(--pele-fg-on-light,#1f1f1f)\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"0\" y=\"-4.4\">A</tspan></text></g><g class=\"pele-node pele-class hot\" data-id=\"B\" transform=\"translate(144,49.5)\"><rect x=\"-32\" y=\"-30\" width=\"64\" height=\"60\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r);stroke:#00f;fill:#fdd;\"/><path class=\"pele-divider\" d=\"M-32,10H32M-32,20H32\" fill=\"none\" stroke=\"var(--_b)\" style=\"stroke:#00f\"/><text class=\"pele-label\" font-weight=\"var(--_hw)\" style=\"fill:#900;\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"0\" y=\"-4.4\">B</tspan></text></g><g class=\"pele-node pele-class cold\" data-id=\"C\" transform=\"translate(248,49.5)\"><rect x=\"-32\" y=\"-30\" width=\"64\" height=\"60\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r);stroke:#00f;fill:#ddf;\"/><path class=\"pele-divider\" d=\"M-32,10H32M-32,20H32\" fill=\"none\" stroke=\"var(--_b)\" style=\"stroke:#00f\"/><text class=\"pele-label\" font-weight=\"var(--_hw)\" fill=\"var(--pele-fg-on-light,#1f1f1f)\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"0\" y=\"-4.4\">C</tspan></text></g><g class=\"pele-node pele-class cold\" data-id=\"D\" transform=\"translate(352,49.5)\"><rect x=\"-32\" y=\"-41.5\" width=\"64\" height=\"83\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r);stroke:#00f;fill:#ddf;\"/><path class=\"pele-divider\" d=\"M-32,-1.5H32M-32,31.5H32\" fill=\"none\" stroke=\"var(--_b)\" style=\"stroke:#00f\"/><text class=\"pele-label\" font-weight=\"var(--_hw)\" style=\"fill:#090;\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"0\" y=\"-15.9\">D</tspan></text><g class=\"pele-members\" font-size=\"14\"><text class=\"pele-member pele-attribute pele-static\" style=\"fill:#090;text-decoration:underline\" x=\"-20\" y=\"19.9\">+x</text></g></g></g></svg>",
   )
+}
+
+///|
+test "picks a contrasting text color on fills a style sets" {
+  let svg = svg_of(
+    "classDiagram\nclass A {\n  <<interface>>\n  +id int\n  +run()\n}\nclass B {\n  +x\n}\nclass C\nclassDef dark fill:#1f3a5f\nclass A:::dark\nstyle B fill:lightyellow,color:#900",
+  )
+  let dark = " fill=\"var(--pele-fg-on-dark,#fff)\""
+  let a = group_of(svg, "A")
+  assert_true(a.contains("font-size=\"13\"\{dark}>«interface»</text>"))
+  assert_true(
+    a.contains("<text class=\"pele-label\" font-weight=\"var(--_hw)\"\{dark}"),
+  )
+  assert_true(a.contains("<g class=\"pele-members\" font-size=\"14\"\{dark}>"))
+  inspect(count_of(a, dark), content="3")
+  let b = group_of(svg, "B")
+  assert_false(b.contains("--pele-fg-on"))
+  assert_true(
+    b.contains(
+      "<text class=\"pele-label\" font-weight=\"var(--_hw)\" style=\"fill:#900;\"",
+    ),
+  )
+  assert_false(group_of(svg, "C").contains("--pele-fg-on"))
 }
 
 ///|
@@ -395,7 +515,7 @@ test "lets the later of a style and a classDef win, as Mermaid does" {
         "classDiagram\nclass A:::c\nclassDef c fill:#111\nstyle A fill:#222",
       ),
     ),
-    "80 x 76 []\n<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-class\" viewBox=\"0 0 80 76\" width=\"80\" height=\"76\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_hw:var(--pele-heading-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"class\"><g class=\"pele-nodes\"><g class=\"pele-node pele-class c\" data-id=\"A\" transform=\"translate(40,38)\"><rect x=\"-32\" y=\"-30\" width=\"64\" height=\"60\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r);fill:#222;\"/><path class=\"pele-divider\" d=\"M-32,10H32M-32,20H32\" fill=\"none\" stroke=\"var(--_b)\"/><text class=\"pele-label\" font-weight=\"var(--_hw)\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"0\" y=\"-4.4\">A</tspan></text></g></g></svg>",
+    "80 x 76 []\n<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-class\" viewBox=\"0 0 80 76\" width=\"80\" height=\"76\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_hw:var(--pele-heading-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"class\"><g class=\"pele-nodes\"><g class=\"pele-node pele-class c\" data-id=\"A\" transform=\"translate(40,38)\"><rect x=\"-32\" y=\"-30\" width=\"64\" height=\"60\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r);fill:#222;\"/><path class=\"pele-divider\" d=\"M-32,10H32M-32,20H32\" fill=\"none\" stroke=\"var(--_b)\"/><text class=\"pele-label\" font-weight=\"var(--_hw)\" fill=\"var(--pele-fg-on-dark,#fff)\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"0\" y=\"-4.4\">A</tspan></text></g></g></svg>",
   )
   assert_eq(
     snapshot(
@@ -403,7 +523,7 @@ test "lets the later of a style and a classDef win, as Mermaid does" {
         "classDiagram\nclass A:::c\nstyle A fill:#222\nclassDef c fill:#111",
       ),
     ),
-    "80 x 76 []\n<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-class\" viewBox=\"0 0 80 76\" width=\"80\" height=\"76\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_hw:var(--pele-heading-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"class\"><g class=\"pele-nodes\"><g class=\"pele-node pele-class c\" data-id=\"A\" transform=\"translate(40,38)\"><rect x=\"-32\" y=\"-30\" width=\"64\" height=\"60\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r);fill:#111;\"/><path class=\"pele-divider\" d=\"M-32,10H32M-32,20H32\" fill=\"none\" stroke=\"var(--_b)\"/><text class=\"pele-label\" font-weight=\"var(--_hw)\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"0\" y=\"-4.4\">A</tspan></text></g></g></svg>",
+    "80 x 76 []\n<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-class\" viewBox=\"0 0 80 76\" width=\"80\" height=\"76\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_hw:var(--pele-heading-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"class\"><g class=\"pele-nodes\"><g class=\"pele-node pele-class c\" data-id=\"A\" transform=\"translate(40,38)\"><rect x=\"-32\" y=\"-30\" width=\"64\" height=\"60\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r);fill:#111;\"/><path class=\"pele-divider\" d=\"M-32,10H32M-32,20H32\" fill=\"none\" stroke=\"var(--_b)\"/><text class=\"pele-label\" font-weight=\"var(--_hw)\" fill=\"var(--pele-fg-on-dark,#fff)\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"0\" y=\"-4.4\">A</tspan></text></g></g></svg>",
   )
   assert_eq(
     snapshot(
@@ -411,11 +531,11 @@ test "lets the later of a style and a classDef win, as Mermaid does" {
         "classDiagram\nclassDef c fill:#111\nclass A:::c\nstyle A fill:#222",
       ),
     ),
-    "80 x 76 []\n<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-class\" viewBox=\"0 0 80 76\" width=\"80\" height=\"76\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_hw:var(--pele-heading-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"class\"><g class=\"pele-nodes\"><g class=\"pele-node pele-class c\" data-id=\"A\" transform=\"translate(40,38)\"><rect x=\"-32\" y=\"-30\" width=\"64\" height=\"60\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r);fill:#222;\"/><path class=\"pele-divider\" d=\"M-32,10H32M-32,20H32\" fill=\"none\" stroke=\"var(--_b)\"/><text class=\"pele-label\" font-weight=\"var(--_hw)\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"0\" y=\"-4.4\">A</tspan></text></g></g></svg>",
+    "80 x 76 []\n<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-class\" viewBox=\"0 0 80 76\" width=\"80\" height=\"76\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_hw:var(--pele-heading-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"class\"><g class=\"pele-nodes\"><g class=\"pele-node pele-class c\" data-id=\"A\" transform=\"translate(40,38)\"><rect x=\"-32\" y=\"-30\" width=\"64\" height=\"60\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r);fill:#222;\"/><path class=\"pele-divider\" d=\"M-32,10H32M-32,20H32\" fill=\"none\" stroke=\"var(--_b)\"/><text class=\"pele-label\" font-weight=\"var(--_hw)\" fill=\"var(--pele-fg-on-dark,#fff)\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"0\" y=\"-4.4\">A</tspan></text></g></g></svg>",
   )
   assert_eq(
     snapshot(drawn("classDiagram\nclassDef c fill:#111\nclass A:::c")),
-    "80 x 76 []\n<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-class\" viewBox=\"0 0 80 76\" width=\"80\" height=\"76\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_hw:var(--pele-heading-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"class\"><g class=\"pele-nodes\"><g class=\"pele-node pele-class c\" data-id=\"A\" transform=\"translate(40,38)\"><rect x=\"-32\" y=\"-30\" width=\"64\" height=\"60\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r);fill:#111;\"/><path class=\"pele-divider\" d=\"M-32,10H32M-32,20H32\" fill=\"none\" stroke=\"var(--_b)\"/><text class=\"pele-label\" font-weight=\"var(--_hw)\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"0\" y=\"-4.4\">A</tspan></text></g></g></svg>",
+    "80 x 76 []\n<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-class\" viewBox=\"0 0 80 76\" width=\"80\" height=\"76\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_hw:var(--pele-heading-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"class\"><g class=\"pele-nodes\"><g class=\"pele-node pele-class c\" data-id=\"A\" transform=\"translate(40,38)\"><rect x=\"-32\" y=\"-30\" width=\"64\" height=\"60\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r);fill:#111;\"/><path class=\"pele-divider\" d=\"M-32,10H32M-32,20H32\" fill=\"none\" stroke=\"var(--_b)\"/><text class=\"pele-label\" font-weight=\"var(--_hw)\" fill=\"var(--pele-fg-on-dark,#fff)\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"0\" y=\"-4.4\">A</tspan></text></g></g></svg>",
   )
 }
 

@@ -147,6 +147,76 @@ fn box_of(at : Map[String, Box], id : String) -> Box raise {
 }
 
 ///|
+/// The id and centered box of every edge label, in drawing order.
+fn edge_labels(svg : String) -> Array[(String, Box)] {
+  let out = []
+  let open = "class=\"pele-edge-label\" data-id=\""
+  let mut at = @util.index_of(svg, open)
+  while at != -1 {
+    let id = read_until(svg, at + open.length(), "\"")
+    let rect_at = @util.index_of(svg, "<rect ", from=at)
+    let attrs = read_until(svg, rect_at, ">")
+    let w = attribute(attrs, "width")
+    let h = attribute(attrs, "height")
+    out.push(
+      (
+        id,
+        {
+          x: attribute(attrs, "x") + w / 2,
+          y: attribute(attrs, "y") + h / 2,
+          w,
+          h,
+        },
+      ),
+    )
+    at = @util.index_of(svg, open, from=rect_at)
+  }
+  out
+}
+
+///|
+/// Checks that every labelled edge keeps one label inside the drawing, and that no two labels overlap.
+fn expect_separate_labels(source : String, count : Int32) -> Unit raise {
+  guard block_render(source) is Ok(result) else { fail("rejected \{source}") }
+  let db = parsed_db(source)
+  let labels = edge_labels(result.svg)
+  assert_eq(labels.length(), count, msg=source)
+  assert_eq(
+    labels.map(label => label.0),
+    db.edges.filter(edge => edge.label != "").map(edge => edge.id),
+    msg=source,
+  )
+  assert_eq(edge_paths(result.svg).length(), db.edges.length(), msg=source)
+  for i, label in labels {
+    let (id, a) = label
+    assert_true(a.w > 0, msg=id)
+    assert_true(a.h > 0, msg=id)
+    assert_true(a.x - a.w / 2 >= 0, msg=id)
+    assert_true(a.y - a.h / 2 >= 0, msg=id)
+    assert_true(a.x + a.w / 2 <= result.width, msg=id)
+    assert_true(a.y + a.h / 2 <= result.height, msg=id)
+    for j in (i + 1)..<labels.length() {
+      let (other, b) = labels[j]
+      let overlap_x = (a.w + b.w) / 2 - (a.x - b.x).abs()
+      let overlap_y = (a.h + b.h) / 2 - (a.y - b.y).abs()
+      assert_true(
+        @util.js_min(overlap_x, overlap_y) <= 0.01,
+        msg="\{id} overlaps \{other}",
+      )
+    }
+    // Labels paint last, so a label's center must belong to that label alone.
+    let hits = labels
+      .filter(entry => {
+        let b = entry.1
+        (a.x - b.x).abs() < b.w / 2 && (a.y - b.y).abs() < b.h / 2
+      })
+      .map(entry => entry.0)
+    assert_eq(hits, [id], msg=source)
+  }
+  assert_eq(block_svg(source), result.svg, msg=source)
+}
+
+///|
 test "draws blocks, composites, arrows and edges as pele does" {
   assert_eq(
     snapshot(
@@ -484,6 +554,210 @@ test "spreads edges between the same two blocks" {
 }
 
 ///|
+test "separates labels on opposite vertical edges" {
+  expect_separate_labels(
+    "block\n  columns 1\n  a[\"Upper layer\"]\n  space:3\n  b[\"Lower layer\"]\n  a -- \"12 production conforming\" --> b\n  b -- \"12 production deviation\" --> a",
+    2,
+  )
+}
+
+///|
+test "separates labels on opposite horizontal edges" {
+  expect_separate_labels(
+    "block\n  a[\"Left layer\"] space:3 b[\"Right layer\"]\n  a -- \"12 production<br>conforming\" --> b\n  b -- \"12 production<br>deviation\" --> a",
+    2,
+  )
+}
+
+///|
+test "keeps disjoint labels on their original straight parallel routes" {
+  let src = "block\n  a space:3 b\n  a -- \"forward\" --> b\n  b -- \"reverse\" --> a"
+  expect_separate_labels(src, 2)
+  for d in edge_paths(block_svg(src)) {
+    assert_true(line_ends(d) is Some(_), msg=d)
+  }
+}
+
+///|
+test "separates wide labels when narrow endpoints clamp the parallel routes" {
+  expect_separate_labels(
+    "block\n  columns 1\n  a[\"A\"]\n  space\n  b[\"B\"]\n  a -- \"144 production conforming\" --> b\n  b -- \"144 production deviation\" --> a",
+    2,
+  )
+}
+
+///|
+test "keeps every label for several edges between the same blocks" {
+  expect_separate_labels(
+    "block\n  columns 1\n  a[\"A\"]\n  space:2\n  b[\"B\"]\n  a -- \"7 production policy\" --> b\n  a -- \"7 test policy\" --> b\n  a -- \"7 production exception\" --> b\n  b -- \"7 production deviation\" --> a",
+    4,
+  )
+}
+
+///|
+test "keeps parallel edges straight while it stacks their labels" {
+  let src = "block\n  columns 3\n  l a r\n  space:3\n  m b n\n  a -- \"production conforming\" --> b\n  b -- \"production deviation\" --> a"
+  expect_separate_labels(src, 2)
+  for d in edge_paths(block_svg(src)) {
+    assert_true(line_ends(d) is Some(_), msg=d)
+  }
+}
+
+///|
+test "leaves parallel labels in place when stacking them would cover another block" {
+  let expect_clear = (src : String, ids : Array[String]) => {
+    let svg = block_svg(src)
+    let all = boxes(svg)
+    for id in ids {
+      let b = box_of(all, id)
+      for label in edge_labels(svg) {
+        let l = label.1
+        assert_true(
+          (l.x - b.x).abs() >= (l.w + b.w) / 2 ||
+          (l.y - b.y).abs() >= (l.h + b.h) / 2,
+          msg="\{label.0} covers \{id}",
+        )
+      }
+    }
+  }
+  expect_clear(
+    "block\n  columns 1\n  a\n  space\n  c[\"Middle\"]\n  space\n  b\n  a -- \"forward label\" --> b\n  a -- \"second label\" --> b",
+    ["c"],
+  )
+  expect_clear(
+    "block\n  columns 1\n  a c d e b\n  a -- \"one<br>two<br>three<br>four\" --> b\n  a -- \"one<br>two<br>three<br>four\" --> b",
+    ["c", "e"],
+  )
+}
+
+///|
+test "leaves parallel labels in place when stacking them would cover a composite title" {
+  let svg = block_svg(
+    "block\n  columns 1\n  b\n  space\n  block:g[\"Group\"]\n    x\n  end\n  a\n  a -- \"a long label\" --> b\n  a -- \"a long label\" --> b\n  a -- \"a long label\" --> b",
+  )
+  let title_at = @util.index_of(svg, "class=\"pele-cluster-label\"")
+  assert_true(title_at != -1)
+  let attrs = read_until(svg, title_at, ">")
+  let x = attribute(attrs, " x")
+  let baseline = attribute(attrs, " y")
+  for label in edge_labels(svg) {
+    let l = label.1
+    assert_true(
+      (l.x - x).abs() >= l.w / 2 || (l.y - (baseline - 6)).abs() >= l.h / 2,
+      msg=label.0,
+    )
+  }
+}
+
+///|
+/// Every point of every marker path.
+fn marker_points(svg : String) -> Array[(Double, Double)] {
+  let out = []
+  let open = "class=\"pele-marker\" d=\""
+  let mut at = @util.index_of(svg, open)
+  while at != -1 {
+    let d = read_until(svg, at + open.length(), "\"")
+    for part in d.split("M") {
+      for point in part.split("L") {
+        let xy = point.split(",").to_array()
+        if xy.length() == 2 {
+          out.push(
+            (
+              @util.parse_float(xy[0].to_owned()),
+              @util.parse_float(xy[1].to_owned()),
+            ),
+          )
+        }
+      }
+    }
+    at = @util.index_of(svg, open, from=at + open.length())
+  }
+  out
+}
+
+///|
+test "keeps stacked labels clear of arrowheads" {
+  let svg = block_svg(
+    "block\n  columns 1\n  a\n  space\n  b\n  a -- \"first label\" --> b\n  a -- \"second label\" --> b\n  b -- \"third label\" --> a",
+  )
+  let tips = marker_points(svg)
+  assert_true(tips.length() > 0)
+  for label in edge_labels(svg) {
+    let l = label.1
+    for tip in tips {
+      assert_true(
+        (tip.0 - l.x).abs() >= l.w / 2 || (tip.1 - l.y).abs() >= l.h / 2,
+        msg=label.0,
+      )
+    }
+  }
+}
+
+///|
+test "widens the gap between blocks whose parallel labels do not fit between them" {
+  let rows = "block\n  columns 1\n  a\n  b\n  a -- \"conforming\" --> b\n  b -- \"deviation\" --> a"
+  expect_separate_labels(rows, 2)
+  let near = layout_of("block\n  columns 1\n  a\n  b\n  a --> b\n  b --> a")
+  let far = layout_of(rows)
+  assert_true(
+    box_of(far, "b").y - box_of(far, "a").y >
+    box_of(near, "b").y - box_of(near, "a").y,
+  )
+  expect_separate_labels(
+    "block\n  a[\"Service\"] space b[\"Database\"]\n  a -- \"read\" --> b\n  a -- \"write rows\" --> b\n  b -- \"notify\" --> a",
+    3,
+  )
+  expect_separate_labels(
+    "block\n  columns 1\n  a\n  space\n  b\n  a -- \"one\" --> b\n  a -- \"two\" --> b\n  a -- \"three\" --> b\n  a -- \"four\" --> b\n  a -- \"five\" --> b",
+    5,
+  )
+  expect_separate_labels(
+    "block\n  columns 1\n  block:up[\"Up\"]\n    a b\n  end\n  c\n  up -- \"hi there\" --> c\n  c -- \"back again\" --> up",
+    2,
+  )
+  for d in edge_paths(block_svg(rows)) {
+    assert_true(line_ends(d) is Some(_), msg=d)
+  }
+  // The row is stretched by its neighbor, so the first gap it gets falls short.
+  expect_separate_labels(
+    "block\n  columns 2\n  block:g\n    columns 1\n    a{\"a\"} b\n  end\n  q[\"Q<br>Q<br>Q<br>Q<br>Q<br>Q\"]\n  a -- \"long label\" --> b\n  a -- \"long label\" --> b",
+    2,
+  )
+}
+
+///|
+test "keeps the gap between blocks when widening it leaves labels overlapping" {
+  guard block_render(
+      "block\n  columns 3\n  t1 t2 t3\n  a space b\n  b1 b2 b3\n  a -- \"line one<br>line two<br>line three\" --> b\n  b -- \"back one<br>back two<br>back three\" --> a",
+    )
+    is Ok(labelled) &&
+    block_render(
+      "block\n  columns 3\n  t1 t2 t3\n  a space b\n  b1 b2 b3\n  a --> b\n  b --> a",
+    )
+    is Ok(plain) else {
+    fail("rejected")
+  }
+  assert_eq(labelled.width, plain.width)
+}
+
+///|
+test "does not widen columns past maxWidth" {
+  let src = "block\n  a[\"Service\"] space b[\"Database\"]\n  a -- \"read\" --> b\n  a -- \"write rows\" --> b\n  b -- \"notify\" --> a"
+  for max_width in [380.0, 397.5] {
+    guard block_render(src, max_width~) is Ok(result) else { fail("rejected") }
+    assert_true(result.width <= max_width, msg="\{max_width}: \{result.width}")
+  }
+}
+
+///|
+test "stacks parallel labels without widening the drawing past maxWidth" {
+  let src = "block\n  columns 1\n  a\n  space:2\n  b\n  a -- \"a fairly long forward label\" --> b\n  b -- \"a fairly long backward label\" --> a"
+  expect_separate_labels(src, 2)
+  guard block_render(src, max_width=240) is Ok(result) else { fail("rejected") }
+  assert_true(result.width <= 240, msg=result.width.to_string())
+}
+
+///|
 test "draws a self-loop as an arc" {
   let svg = block_svg("block\n  a\n  a -- \"again\" --> a")
   assert_true(edge_paths(svg)[0].contains("A10,10 0 1 1 "))
@@ -536,6 +810,127 @@ test "styles a composite" {
   assert_true(
     read_until(svg, at, "/>").contains(
       "style=\"rx:var(--_r);fill:#fee;stroke:#f00;\"",
+    ),
+  )
+}
+
+///|
+test "draws a composite fill the author sets at full opacity" {
+  let svg = block_svg(
+    "block\n  block:g\n    a\n  end\n  block:h\n    b\n  end\n  style g fill:#fee",
+  )
+  let rect = (id : String) => {
+    let at = @util.index_of(svg, "data-id=\"\{id}\"><rect ")
+    assert_true(at != -1)
+    read_until(svg, at, "/>")
+  }
+  assert_true(rect("g").contains("fill=\"var(--_a)\" stroke="))
+  assert_true(rect("h").contains("fill-opacity=\"0.5\""))
+}
+
+///|
+test "picks a contrasting label color on fills a style sets" {
+  let svg = block_svg(
+    "block\n  block:g[\"Group\"]\n    a[\"Light\"]\n  end\n  b[\"Dark\"] c[\"Own\"] d[\"Plain\"]\n  e<[\"Go\"]>(right)\n  style g fill:#FFF9C4\n  style a fill:#BBDEFB\n  style b fill:#1f3a5f\n  style c fill:#1f3a5f,color:#eee\n  style e fill:black",
+  )
+  let label = (id : String) => {
+    let at = @util.index_of(
+      svg,
+      "<text ",
+      from=@util.index_of(svg, "data-id=\"\{id}\""),
+    )
+    read_until(svg, at, ">")
+  }
+  inspect(
+    ["g", "a", "b", "c", "d", "e"].map(label).join("\n"),
+    content=(
+      #|<text class="pele-cluster-label" fill="var(--pele-fg-on-light,#1f1f1f)" x="55.34" y="35.6" text-anchor="middle"
+      #|<text class="pele-label" fill="var(--pele-fg-on-light,#1f1f1f)" x="0" y="5.6" text-anchor="middle"
+      #|<text class="pele-label" fill="var(--pele-fg-on-dark,#fff)" x="0" y="5.6" text-anchor="middle"
+      #|<text class="pele-label" style="fill:#eee;" x="0" y="5.6" text-anchor="middle"
+      #|<text class="pele-label" x="0" y="5.6" text-anchor="middle"
+      #|<text class="pele-label" fill="var(--pele-fg-on-dark,#fff)" x="-10" y="5.6" text-anchor="middle"
+    ),
+  )
+}
+
+///|
+test "cases edges that cross a composite fill a style sets and inks those inside it" {
+  let source = "block\n  block:g\n    a b\n  end\n  c\n  a --> b\n  b --> c\n  c --> c\n  style g fill:#BBDEFB"
+  let svg = block_svg(source)
+  let at = @util.index_of(svg, "<g class=\"pele-casings\"")
+  let casings = read_until(svg, at, "</g><g class=\"pele-edges\"")
+  let paths = edge_paths(svg)
+  inspect(paths.length(), content="3")
+  inspect(
+    paths.map(d => casings.contains("<path d=\"\{d}\"/>").to_string()).join(" "),
+    content="false true false",
+  )
+  inspect(
+    edge_heads(svg),
+    content=(
+      #|<g class="pele-edge" data-id="1-a-b" stroke="var(--pele-fg-on-light,#1f1f1f)">
+      #|<g class="pele-edge" data-id="1-b-c">
+      #|<g class="pele-edge" data-id="1-c-c">
+    ),
+  )
+  let plain = block_svg(source.replace(old="\n  style g fill:#BBDEFB", new=""))
+  inspect(plain.contains("pele-casings"), content="false")
+  inspect(plain.contains("--pele-fg-on"), content="false")
+  // The second loop on a reaches out past the composite, so it is cased.
+  let loops = block_svg(
+    "block\n  block:g\n    a\n  end\n  a --> a\n  a --> a\n  style g fill:white",
+  )
+  inspect(
+    edge_heads(loops),
+    content=(
+      #|<g class="pele-edge" data-id="1-a-a" stroke="var(--pele-fg-on-light,#1f1f1f)">
+      #|<g class="pele-edge" data-id="2-a-a">
+    ),
+  )
+  let loop_casings = read_until(
+    loops,
+    @util.index_of(loops, "<g class=\"pele-casings\""),
+    "</g><g class=\"pele-edges\"",
+  )
+  inspect(
+    edge_paths(loops)
+    .map(d => loop_casings.contains("<path d=\"\{d}\"/>").to_string())
+    .join(" "),
+    content="false true",
+  )
+}
+
+///|
+/// The opening tag of every edge's group, one to a line.
+fn edge_heads(svg : String) -> String {
+  let heads = []
+  let open = "<g class=\"pele-edge\" data-id=\""
+  let mut at = @util.index_of(svg, open)
+  while at != -1 {
+    heads.push(read_until(svg, at, ">") + ">")
+    at = @util.index_of(svg, open, from=at + 1)
+  }
+  heads.join("\n")
+}
+
+///|
+test "cases a loop whose arc alone bulges over a composite fill" {
+  let svg = block_svg(
+    "block\n  columns 2\n  a\n  block:g\n    b\n  end\n  a --> a\n  a --> a\n  style g fill:black",
+  )
+  let at = @util.index_of(svg, "<g class=\"pele-casings\"")
+  let casings = if at == -1 {
+    ""
+  } else {
+    read_until(svg, at, "</g><g class=\"pele-edges\"")
+  }
+  inspect(
+    edge_paths(svg)
+    .map(d => casings.contains("<path d=\"\{d}\"/>").to_string())
+    .join(" "),
+    content=(
+      #|false true
     ),
   )
 }

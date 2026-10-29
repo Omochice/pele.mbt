@@ -69,8 +69,7 @@ fn agentflow_section(config : @types.Config) -> Map[String, Json] {
 /// A fill the author set replaces the wash and stays opaque.
 fn tint(slot : Int32, wash : String, style : @svg.ResolvedStyle) -> String {
   let color = @svg.series_color(slot)
-  let opacity = if style.shape.contains("\"fill:") ||
-    style.shape.contains(";fill:") {
+  let opacity = if @svg.sets_fill(style.shape) {
     ""
   } else {
     " fill-opacity=\"\{wash}\""
@@ -221,6 +220,12 @@ fn draw(
       None => -1
     }
   }
+  @layout.inherit_crossed_directions(
+    cnodes,
+    graph.edges.map(edge => {
+      (index.get(edge.start).unwrap_or(-1), index.get(edge.end).unwrap_or(-1))
+    }),
+  )
   let root_dir = if turned {
     @layout.Dir::TB
   } else {
@@ -420,6 +425,7 @@ fn draw(
   }
   let clusters = @svg.Markup::new()
   let nodes_out = @svg.Markup::new()
+  let fills : Array[@svg.Fill] = []
   for i, view in views {
     let c = cnodes[i]
     let node = view.node
@@ -427,6 +433,14 @@ fn draw(
     let id = @svg.esc_text(node.id)
     let container_slot = node.color_index.unwrap_or(KIND_COUNT)
     if c.is_group {
+      if @svg.paints(view.style.shape) {
+        fills.push(
+          @svg.Fill::new(
+            [c.x - c.w / 2, c.y - c.h / 2, c.x + c.w / 2, c.y + c.h / 2],
+            view.style.shape,
+          ),
+        )
+      }
       let title_x = @svg.cluster_title_x(
         c,
         view.label.width,
@@ -444,7 +458,7 @@ fn draw(
         view.label,
         title_x,
         c.y - c.h / 2 + 8 + view.label.height / 2,
-        " class=\"pele-cluster-label\" fill=\"var(--_m)\"\{view.style.text}",
+        " class=\"pele-cluster-label\"\{@svg.ink_fill(view.style, fallback="var(--_m)")}\{view.style.text}",
         icons?=options.icons,
       )
       clusters.write("</g>")
@@ -474,13 +488,18 @@ fn draw(
         " pele-kind-\{kind}",
       )
     }
+    let ink = if view.shape == COLLAPSED || @svg.shape_filled(view.shape) {
+      @svg.ink_fill(view.style)
+    } else {
+      ""
+    }
     let text = @svg.Markup::new()
     @svg.write_label(
       text,
       view.label,
       0,
       view.dy,
-      " class=\"pele-label\"\{view.style.text}",
+      " class=\"pele-label\"\{ink}\{view.style.text}",
       icons?=options.icons,
     )
     let body = @svg.Markup::new()
@@ -529,6 +548,7 @@ fn draw(
     }
     nodes_out.write("</g>")
   }
+  let casings = @svg.Markup::new()
   let edges_out = @svg.Markup::new()
   let labels_out = @svg.Markup::new()
   let put = (
@@ -545,8 +565,21 @@ fn draw(
       None
     }
     let end_type = edge.arrow_type_end
-    let color = match style {
-      Some({ stroke: Some(stroke), .. }) if stroke != "" => @svg.esc(stroke)
+    let line = match style {
+      Some(style) => style.line
+      None => ""
+    }
+    let over = @svg.over_fills(
+      path.d,
+      [path.ex, path.ey],
+      fills,
+      line~,
+      tokens?=path.tokens,
+    )
+    let color = match (over, style) {
+      (Some(ink), _) if ink != "" => ink
+      (_, Some({ stroke: Some(stroke), .. })) if stroke != "" =>
+        @svg.esc(stroke)
       _ => "var(--_l)"
     }
     let dotted = edge.thickness is Some("dotted")
@@ -557,12 +590,15 @@ fn draw(
     } else {
       "sequence"
     }
-    let line = match style {
-      Some(style) => style.line
-      None => ""
+    if over is Some("") {
+      casings.write(@svg.edge_casing(path, "none", end_type, line~))
+    }
+    let ink = match over {
+      Some(ink) if ink != "" => " stroke=\"\{ink}\""
+      _ => ""
     }
     edges_out.write(
-      "<g class=\"pele-edge pele-edge-\{kind}\{@flowchart.edge_classes(edge.classes)}\" data-id=\"\{@svg.esc_text(edge.id)}\"\{line}>",
+      "<g class=\"pele-edge pele-edge-\{kind}\{@flowchart.edge_classes(edge.classes)}\" data-id=\"\{@svg.esc_text(edge.id)}\"\{ink}\{line}>",
     )
     edges_out.write(
       "<path d=\"\{path.d}\"\{if dotted { " stroke-dasharray=\"3 4\"" } else { "" }}/>",
@@ -648,6 +684,7 @@ fn draw(
   if !clusters.is_empty() {
     content.write_group("<g class=\"pele-clusters\">", clusters, "</g>")
   }
+  @svg.write_casings(content, casings)
   if !edges_out.is_empty() {
     content.write_group(
       "<g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\">",

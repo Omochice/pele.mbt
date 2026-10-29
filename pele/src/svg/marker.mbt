@@ -16,6 +16,7 @@ pub fn marker_trim(type_ : String) -> Double {
 
 ///|
 /// Draws a marker of Mermaid's `type_` whose tip is at (`x`, `y`), pointing along (`dx`, `dy`).
+/// An arrowhead or circle is outlined in `stroke`; a cross is drawn in the line's own stroke.
 /// Returns an empty string for a type that draws nothing.
 pub fn marker(
   type_ : String,
@@ -24,6 +25,7 @@ pub fn marker(
   dx : Double,
   dy : Double,
   color : String,
+  stroke~ : String = "none",
 ) -> String {
   let nx = -dy
   let ny = dx
@@ -32,10 +34,10 @@ pub fn marker(
       let bx = x - dx * ARROW
       let by = y - dy * ARROW
       let half = ARROW * 0.42
-      "<path class=\"pele-marker\" d=\"M\{num(x)},\{num(y)}L\{num(bx + nx * half)},\{num(by + ny * half)}L\{num(bx - nx * half)},\{num(by - ny * half)}Z\" fill=\"\{color}\" stroke=\"none\"/>"
+      "<path class=\"pele-marker\" d=\"M\{num(x)},\{num(y)}L\{num(bx + nx * half)},\{num(by + ny * half)}L\{num(bx - nx * half)},\{num(by - ny * half)}Z\" fill=\"\{color}\" stroke=\"\{stroke}\"/>"
     }
     "arrow_circle" =>
-      "<circle class=\"pele-marker\" cx=\"\{num(x - dx * 4)}\" cy=\"\{num(y - dy * 4)}\" r=\"3.5\" fill=\"\{color}\" stroke=\"none\"/>"
+      "<circle class=\"pele-marker\" cx=\"\{num(x - dx * 4)}\" cy=\"\{num(y - dy * 4)}\" r=\"3.5\" fill=\"\{color}\" stroke=\"\{stroke}\"/>"
     "arrow_cross" => {
       let cx = x - dx * 4
       let cy = y - dy * 4

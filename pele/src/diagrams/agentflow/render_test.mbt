@@ -117,9 +117,19 @@ test "nests flows, and gives a flow without a bracketed title no title" {
 test "lays a flow out in its own direction" {
   assert_eq(
     snapshot(
-      "agentflow-beta TB\n  flow f[\"F\"]\n    direction LR\n    a --> b\n  end\n  b --> c",
+      "agentflow-beta TB\n  flow f[\"F\"]\n    direction LR\n    a --> b\n  end\n  f --> c",
     ),
-    "416x220 []\n<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-agentflow\" viewBox=\"0 0 416 220\" width=\"416\" height=\"220\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"agentflow\"><g class=\"pele-clusters\"><g class=\"pele-cluster pele-flow\" data-id=\"f\"><rect x=\"8\" y=\"8\" width=\"400\" height=\"108\" fill=\"var(--pele-series-8,#9d755d)\" fill-opacity=\"0.06\" stroke=\"var(--pele-series-8,#9d755d)\" style=\"rx:var(--_r)\"/><text class=\"pele-cluster-label\" fill=\"var(--_m)\" x=\"26.89\" y=\"33.6\" text-anchor=\"middle\">F</text></g></g><g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\"><g class=\"pele-edge pele-edge-sequence\" data-id=\"L_a_b_0\"><path d=\"M184,72L225,72\"/><path class=\"pele-marker\" d=\"M232,72L224,75.36L224,68.64Z\" fill=\"var(--_l)\" stroke=\"none\"/></g><g class=\"pele-edge pele-edge-sequence\" data-id=\"L_b_c_0\"><path d=\"M310,96L310,157\"/><path class=\"pele-marker\" d=\"M310,164L306.64,156L313.36,156Z\" fill=\"var(--_l)\" stroke=\"none\"/></g></g><g class=\"pele-nodes\"><g class=\"pele-node pele-shape-rounded pele-kind-task\" data-id=\"a\" transform=\"translate(106,72)\"><rect x=\"-78\" y=\"-24\" width=\"156\" height=\"48\" rx=\"12\" fill=\"var(--pele-series-2,#f58518)\" fill-opacity=\"0.14\" stroke=\"var(--pele-series-2,#f58518)\"/><text class=\"pele-label\" x=\"0\" y=\"5.6\" text-anchor=\"middle\">a</text></g><g class=\"pele-node pele-shape-rounded pele-kind-task\" data-id=\"b\" transform=\"translate(310,72)\"><rect x=\"-78\" y=\"-24\" width=\"156\" height=\"48\" rx=\"12\" fill=\"var(--pele-series-2,#f58518)\" fill-opacity=\"0.14\" stroke=\"var(--pele-series-2,#f58518)\"/><text class=\"pele-label\" x=\"0\" y=\"5.6\" text-anchor=\"middle\">b</text></g><g class=\"pele-node pele-shape-rounded pele-kind-task\" data-id=\"c\" transform=\"translate(310,188)\"><rect x=\"-78\" y=\"-24\" width=\"156\" height=\"48\" rx=\"12\" fill=\"var(--pele-series-2,#f58518)\" fill-opacity=\"0.14\" stroke=\"var(--pele-series-2,#f58518)\"/><text class=\"pele-label\" x=\"0\" y=\"5.6\" text-anchor=\"middle\">c</text></g></g></svg>",
+    "416x220 []\n<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-agentflow\" viewBox=\"0 0 416 220\" width=\"416\" height=\"220\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"agentflow\"><g class=\"pele-clusters\"><g class=\"pele-cluster pele-flow\" data-id=\"f\"><rect x=\"8\" y=\"8\" width=\"400\" height=\"108\" fill=\"var(--pele-series-8,#9d755d)\" fill-opacity=\"0.06\" stroke=\"var(--pele-series-8,#9d755d)\" style=\"rx:var(--_r)\"/><text class=\"pele-cluster-label\" fill=\"var(--_m)\" x=\"26.89\" y=\"33.6\" text-anchor=\"middle\">F</text></g></g><g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\"><g class=\"pele-edge pele-edge-sequence\" data-id=\"L_a_b_0\"><path d=\"M184,72L225,72\"/><path class=\"pele-marker\" d=\"M232,72L224,75.36L224,68.64Z\" fill=\"var(--_l)\" stroke=\"none\"/></g><g class=\"pele-edge pele-edge-sequence\" data-id=\"L_f_c_0\"><path d=\"M208,116L208,157\"/><path class=\"pele-marker\" d=\"M208,164L204.64,156L211.36,156Z\" fill=\"var(--_l)\" stroke=\"none\"/></g></g><g class=\"pele-nodes\"><g class=\"pele-node pele-shape-rounded pele-kind-task\" data-id=\"a\" transform=\"translate(106,72)\"><rect x=\"-78\" y=\"-24\" width=\"156\" height=\"48\" rx=\"12\" fill=\"var(--pele-series-2,#f58518)\" fill-opacity=\"0.14\" stroke=\"var(--pele-series-2,#f58518)\"/><text class=\"pele-label\" x=\"0\" y=\"5.6\" text-anchor=\"middle\">a</text></g><g class=\"pele-node pele-shape-rounded pele-kind-task\" data-id=\"b\" transform=\"translate(310,72)\"><rect x=\"-78\" y=\"-24\" width=\"156\" height=\"48\" rx=\"12\" fill=\"var(--pele-series-2,#f58518)\" fill-opacity=\"0.14\" stroke=\"var(--pele-series-2,#f58518)\"/><text class=\"pele-label\" x=\"0\" y=\"5.6\" text-anchor=\"middle\">b</text></g><g class=\"pele-node pele-shape-rounded pele-kind-task\" data-id=\"c\" transform=\"translate(208,188)\"><rect x=\"-78\" y=\"-24\" width=\"156\" height=\"48\" rx=\"12\" fill=\"var(--pele-series-2,#f58518)\" fill-opacity=\"0.14\" stroke=\"var(--pele-series-2,#f58518)\"/><text class=\"pele-label\" x=\"0\" y=\"5.6\" text-anchor=\"middle\">c</text></g></g></svg>",
+  )
+}
+
+///|
+test "ignores a flow's direction when its nodes link outside it" {
+  let flows = "agentflow-beta LR\nflow S\n direction TB\n s1\n s2\nend\nflow P\n direction TB\n p1\n p2\nend\n"
+  let links = "s1 --> p2\ns2 --> p1\n"
+  assert_eq(
+    snapshot(flows + links),
+    snapshot(flows.replace_all(old=" direction TB\n", new="") + links),
   )
 }
 
@@ -353,4 +363,106 @@ test "a metadata error after a directive is placed in the source as written" {
       #|syntax 5:16 Metadata of "b" is not valid YAML. YAML: unexpected end of the stream within a flow collection (5:16)
     ),
   )
+}
+
+///|
+test "picks a contrasting label color on fills a style sets" {
+  let svg = snapshot(
+    "agentflow-beta TB\n  flow f[\"Flow\"]\n    a[\"A\"] --> b[\"B\"]\n  end\n  flow p[\"Packed\"]\n    c[\"C\"]\n  end\n  p@{ view: \"collapsed\" }\n  b --> d[\"D\"]\n  style f fill:#FFF9C4\n  style a fill:#1f3a5f\n  style b fill:#1f3a5f,color:#eee\n  style p fill:navy",
+  )
+  let text_of = (id : String) => {
+    let at = @util.index_of(
+      svg,
+      "<text ",
+      from=@util.index_of(svg, "data-id=\"\{id}\""),
+    )
+    @util.slice(svg, at, end=@util.index_of(svg, ">", from=at) + 1)
+  }
+  inspect(
+    ["f", "a", "b", "p", "d"].map(text_of).join("\n"),
+    content=(
+      #|<text class="pele-cluster-label" fill="var(--pele-fg-on-light,#1f1f1f)" x="234.89" y="33.6" text-anchor="middle">
+      #|<text class="pele-label" fill="var(--pele-fg-on-dark,#fff)" x="0" y="5.6" text-anchor="middle">
+      #|<text class="pele-label" style="fill:#eee;" x="0" y="5.6" text-anchor="middle">
+      #|<text class="pele-label" fill="var(--pele-fg-on-dark,#fff)" x="0" y="-1.4" text-anchor="middle">
+      #|<text class="pele-label" x="0" y="5.6" text-anchor="middle">
+    ),
+  )
+}
+
+///|
+/// The `d` of every edge's line, in order.
+fn edge_paths(svg : String) -> Array[String] {
+  let paths = []
+  let head = "<g class=\"pele-edge "
+  let mut at = @util.index_of(svg, head)
+  while at != -1 {
+    let open = @util.index_of(svg, "<path d=\"", from=at) + 9
+    paths.push(@util.slice(svg, open, end=@util.index_of(svg, "\"", from=open)))
+    at = @util.index_of(svg, head, from=open)
+  }
+  paths
+}
+
+///|
+/// What the group of casings in a drawing holds, or an empty string when it has none.
+fn casings_of(svg : String) -> String {
+  let open = @util.index_of(svg, "<g class=\"pele-casings\"")
+  if open == -1 {
+    return ""
+  }
+  let start = @util.index_of(svg, ">", from=open) + 1
+  @util.slice(
+    svg,
+    start,
+    end=@util.index_of(svg, "</g><g class=\"pele-edges\"", from=start),
+  )
+}
+
+///|
+test "cases edges that cross a flow fill a style sets and inks those inside it" {
+  let source = "agentflow-beta TB\n  flow f[\"Flow\"]\n    a[\"A\"] --> b[\"B\"]\n  end\n  b --> c[\"C\"]\n  c --> d[\"D\"]\n  style f fill:#FFF9C4"
+  let svg = snapshot(source)
+  let casings = casings_of(svg)
+  let paths = edge_paths(svg)
+  inspect(paths.length(), content="3")
+  inspect(
+    paths.map(d => casings.contains("<path d=\"\{d}\"/>").to_string()).join(" "),
+    content="false true false",
+  )
+  inspect(
+    edge_heads(svg),
+    content=(
+      #|<g class="pele-edge pele-edge-sequence" data-id="L_a_b_0" stroke="var(--pele-fg-on-light,#1f1f1f)">
+      #|<g class="pele-edge pele-edge-sequence" data-id="L_b_c_0">
+      #|<g class="pele-edge pele-edge-sequence" data-id="L_c_d_0">
+    ),
+  )
+  let plain = snapshot(source.replace(old="\n  style f fill:#FFF9C4", new=""))
+  inspect(plain.contains("pele-casings"), content="false")
+  inspect(plain.contains("stroke=\"var(--pele-fg-on"), content="false")
+  // An edge from a flow to a node inside it starts on the flow's border and stays on its fill.
+  let held = snapshot(
+    "agentflow-beta TB\n  flow f[Flow]\n    a[A]\n  end\n  f --> a\n  style f fill:white",
+  )
+  inspect(
+    edge_heads(held),
+    content=(
+      #|<g class="pele-edge pele-edge-sequence" data-id="L_f_a_0" stroke="var(--pele-fg-on-light,#1f1f1f)">
+    ),
+  )
+  inspect(held.contains("pele-casings"), content="false")
+}
+
+///|
+/// The opening tag of every edge's group, one to a line.
+fn edge_heads(svg : String) -> String {
+  let heads = []
+  let head = "<g class=\"pele-edge "
+  let mut at = @util.index_of(svg, head)
+  while at != -1 {
+    heads.push(@util.slice(svg, at, end=@util.index_of(svg, ">", from=at) + 1))
+    at = @util.index_of(svg, head, from=at + 1)
+  }
+  heads.join("\n")
 }

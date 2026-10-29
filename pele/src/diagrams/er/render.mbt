@@ -88,6 +88,8 @@ priv struct NodeView {
   cols : Array[Double]
   row_size : Double
   key_size : Double
+  /// `@text.STYLE_MONO` when attribute types, names and keys are drawn in the monospace font, or 0.
+  mono : Int32
   /// Whether self-relationships loop out of the bottom side rather than the right.
   below : Bool
 }
@@ -110,6 +112,7 @@ fn write_text_left(
   y : Double,
   attrs : String,
   icons : @types.IconResolver?,
+  mono~ : Int32 = 0,
 ) -> Unit raise @errors.PeleError {
   let lines = label.lines
   if lines.length() == 0 {
@@ -119,8 +122,12 @@ fn write_text_left(
     lines[0].length() == 1 &&
     lines[0][0].icon is None &&
     lines[0][0].math is None &&
-    lines[0][0].style == 0 {
-    out.write("<text\{attrs} x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\">")
+    lines[0][0].style == mono &&
+    // The short form collapses repeated spaces in monospace text.
+    !(mono != 0 && lines[0][0].text.contains("  ")) {
+    out.write(
+      "<text\{@svg.text_style(attrs, mono)} x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\">",
+    )
     out.write_esc(lines[0][0].text)
     out.write("</text>")
     return
@@ -227,6 +234,7 @@ fn draw(
   turned : Bool,
 ) -> @types.Rendered raise @errors.PeleError {
   let graph = build_er_graph(db)
+  let monospaced = options.monospaces("attributes")
   let size = options.font_size.unwrap_or(16)
   let small_size = (size * 0.875).round()
   let measurer = options.text_measurer()
@@ -316,6 +324,11 @@ fn draw(
     )
     let base = (if style.bold { @text.STYLE_BOLD } else { 0 }) |
       (if style.italic { @text.STYLE_ITALIC } else { 0 })
+    let mono = if monospaced && !@svg.sets_font_family(style.text) {
+      @text.STYLE_MONO
+    } else {
+      0
+    }
     let name_size = style.font_size.unwrap_or(size)
     let row_size = style.font_size.unwrap_or(small_size)
     let key_size = style.font_size.unwrap_or((size * 0.75).round())
@@ -350,6 +363,7 @@ fn draw(
       cols: [],
       row_size,
       key_size,
+      mono,
       below,
     }
     let mut reach = 0.0
@@ -409,7 +423,7 @@ fn draw(
               measurer,
               row_size,
               NO_WRAP,
-              base~,
+              base=base | mono,
             ),
             @text.layout_label(
               Some(cell_text(attribute.name)),
@@ -417,7 +431,7 @@ fn draw(
               measurer,
               row_size,
               NO_WRAP,
-              base~,
+              base=base | mono,
             ),
             @text.layout_label(
               Some(attribute.keys.join(", ")),
@@ -425,7 +439,7 @@ fn draw(
               measurer,
               key_size,
               NO_WRAP,
-              base~,
+              base=base | mono,
             ),
             @text.layout_label(
               Some(cell_text(attribute.comment)),
@@ -548,6 +562,7 @@ fn draw(
     }
   }
   let clusters = @svg.Markup::new()
+  let fills : Array[@svg.Fill] = []
   let nodes_out = @svg.Markup::new()
   for i, view in views {
     let c = cnodes[i]
@@ -564,17 +579,25 @@ fn draw(
         crossings,
         GROUP_PAD,
       )
+      if @svg.paints(view.style.shape) {
+        fills.push(@svg.Fill::new([x, y, x + c.w, y + c.h], view.style.shape))
+      }
       clusters.write("<g class=\"pele-cluster\{classes}\"")
       clusters.write_data_id(node.id)
+      let wash = if @svg.sets_fill(view.style.shape) {
+        ""
+      } else {
+        " fill-opacity=\"0.5\""
+      }
       clusters.write(
-        "><rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(c.w)}\" height=\"\{@svg.num(c.h)}\" fill=\"var(--_a)\" fill-opacity=\"0.5\" stroke=\"var(--_b)\"\{@svg.rounded(view.style.shape)}/>",
+        "><rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(c.w)}\" height=\"\{@svg.num(c.h)}\" fill=\"var(--_a)\"\{wash} stroke=\"var(--_b)\"\{@svg.rounded(view.style.shape)}/>",
       )
       @svg.write_label(
         clusters,
         view.label,
         title_x,
         y + 8 + view.label.height / 2,
-        " class=\"pele-cluster-label\" fill=\"var(--_m)\"\{view.style.text}",
+        " class=\"pele-cluster-label\"\{@svg.ink_fill(view.style, fallback="var(--_m)")}\{view.style.text}",
         icons?=options.icons,
       )
       clusters.write("</g>")
@@ -585,6 +608,8 @@ fn draw(
     let x0 = -w / 2
     let y0 = -h / 2
     let text = view.style.text
+    let color = @svg.ink_fill(view.style)
+    let muted = @svg.ink_fill(view.style, fallback="var(--_m)")
     let shape = "x=\"\{@svg.num(x0)}\" y=\"\{@svg.num(y0)}\" width=\"\{@svg.num(w)}\" height=\"\{@svg.num(h)}\""
     let label = @svg.Markup::new()
     @svg.write_label(
@@ -596,7 +621,7 @@ fn draw(
       } else {
         0
       },
-      " class=\"pele-label\"\{text}",
+      " class=\"pele-label\"\{color}\{text}",
       icons?=options.icons,
     )
     let display = @text.decode_entities(
@@ -664,31 +689,34 @@ fn draw(
           row.cells[0],
           x0 + view.cols[0],
           baseline,
-          " class=\"pele-er-type\" fill=\"var(--_m)\"\{text}",
+          " class=\"pele-er-type\"\{muted}\{text}",
           options.icons,
+          mono=view.mono,
         )
         write_text_left(
           cells,
           row.cells[1],
           x0 + view.cols[1],
           baseline,
-          " class=\"pele-er-name\"\{text}",
+          " class=\"pele-er-name\"\{color}\{text}",
           options.icons,
+          mono=view.mono,
         )
         write_text_left(
           cells,
           row.cells[2],
           x0 + view.cols[2],
           baseline,
-          " class=\"pele-er-keys\" font-size=\"\{view.key_size}\" fill=\"var(--_m)\"\{text}",
+          " class=\"pele-er-keys\" font-size=\"\{view.key_size}\"\{muted}\{text}",
           options.icons,
+          mono=view.mono,
         )
         write_text_left(
           cells,
           row.cells[3],
           x0 + view.cols[3],
           baseline,
-          " class=\"pele-er-comment\" fill=\"var(--_m)\"\{text}",
+          " class=\"pele-er-comment\"\{muted}\{text}",
           options.icons,
         )
         y += row.h
@@ -704,8 +732,14 @@ fn draw(
       nodes_out.write(
         "<rect \{shape}\{@svg.rounded(BOX_ATTRS + view.style.shape)}/>",
       )
+      // Keep row shading light on light fills and dark on dark fills to preserve text contrast.
+      let shade = match @svg.ink(view.style.shape) {
+        Some(@svg.ON_LIGHT) => @svg.ON_DARK
+        Some(@svg.ON_DARK) => @svg.ON_LIGHT
+        _ => "var(--_bg)"
+      }
       nodes_out.write_group(
-        "<g class=\"pele-er-stripes\" fill=\"var(--_bg)\"\{tint}>",
+        "<g class=\"pele-er-stripes\" fill=\"\{shade}\"\{tint}>",
         stripes,
         "</g>",
       )
@@ -740,6 +774,7 @@ fn draw(
     }
   }
   let edges_out = @svg.Markup::new()
+  let casings = @svg.Markup::new()
   let labels_out = @svg.Markup::new()
   for i, ce in cedges {
     let edge = drawn[i]
@@ -814,11 +849,30 @@ fn draw(
         )
       }
     }
+    let ink = match @svg.fill_under(d, [], fills) {
+      On(fill) =>
+        match @svg.edge_ink(fill) {
+          "" => {
+            casings.write(@svg.casing(d, start + end))
+            ""
+          }
+          ink => {
+            start = @svg.hollow_on(start, fill)
+            end = @svg.hollow_on(end, fill)
+            " stroke=\"\{ink}\""
+          }
+        }
+      Across => {
+        casings.write(@svg.casing(d, start + end))
+        ""
+      }
+      Off => ""
+    }
     let kind = if edge.dashed { "non-identifying" } else { "identifying" }
     let dash = if edge.dashed { " stroke-dasharray=\"4 3\"" } else { "" }
     edges_out.write("<g class=\"pele-edge pele-er-\{kind}\"")
     edges_out.write_data_id(edge.id)
-    edges_out.write("><path d=\"\{d}\"\{dash}/>" + start + end + "</g>")
+    edges_out.write("\{ink}><path d=\"\{d}\"\{dash}/>" + start + end + "</g>")
     if label.width > 0 {
       @svg.write_edge_label_with_id(
         labels_out,
@@ -842,6 +896,7 @@ fn draw(
   if !clusters.is_empty() {
     content.write_group("<g class=\"pele-clusters\">", clusters, "</g>")
   }
+  @svg.write_casings(content, casings)
   if !edges_out.is_empty() {
     content.write_group(
       "<g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\">",

@@ -88,6 +88,18 @@ test "rounded corners come first in an existing style so it can override them" {
 }
 
 ///|
+test "a shape style sets a fill only through the fill property" {
+  let sets = (declarations : Array[String]) => {
+    @svg.sets_fill(@svg.resolve_style(declarations).shape)
+  }
+  inspect(sets(["fill:#fee"]), content="true")
+  inspect(sets(["stroke:red", "fill:#fee"]), content="true")
+  inspect(sets(["stroke:red"]), content="false")
+  inspect(sets(["fill-opacity:0.2"]), content="false")
+  inspect(sets([]), content="false")
+}
+
+///|
 test "class names keep word characters and hyphens, one space apart" {
   inspect(@svg.class_names(""), content="")
   inspect(@svg.class_names("  "), content="")

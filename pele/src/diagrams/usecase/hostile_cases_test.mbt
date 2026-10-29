@@ -1,4 +1,4 @@
-// pele's usecase-security templates and payloads (tests/render/usecase-security.test.ts, tests/support/inert.ts), with a hash of what pele v1.10.0's render gives each pair.
+// pele's usecase-security templates and payloads (tests/render/usecase-security.test.ts, tests/support/inert.ts), with a hash of what pele's render gives each pair, taken from pele v1.12.0.
 
 ///|
 /// Each template as the text around the places its payload goes.
@@ -566,7 +566,7 @@ let hostile_outcomes : Array[String] = [
   "f9f16405", "1b98e5d9", "53acbb18", "7103dbd1", "7103dbd1", "7103dbd1", "93c62772",
   "93c62772", "15f3484b", "15f3484b", "c4343487", "a18ee07f", "28de0e56", "c520cfc1",
   "1be2ab2a", "79d6571b", "7209b1aa", "cd4d0863", "344133ba", "cd4d0863", "20085655",
-  "2a1415d0", "8d9eaf26", "bd4d0293", "9bfd6655", "2dfd0213", "53857dd3", "4f7b4d64",
+  "2a1415d0", "8d9eaf26", "bd4d0293", "0b2d7334", "80d253f6", "7e3615b6", "ca0dc2b3",
   "9da68778", "3f9e40a1", "fdb55042", "0c297d74", "d8c5b9f4", "a3b35049", "7103dbd1",
   "c7146d6b", "d77c24e5", "06d630b6", "6e335b64", "24a0dee9", "98810ca9", "24a0dee9",
   "24a0dee9", "24a0dee9", "24a0dee9", "24a0dee9", "fbc2f627", "fbc2f627", "fbc2f627",
@@ -625,8 +625,8 @@ let hostile_outcomes : Array[String] = [
   "8430852f", "37498689", "b41aee34", "5d481ebf", "87095980", "a2580482", "e3bb7fe8",
   "ba35667a", "e3bb7fe8", "7047c93d", "7047c93d", "7ed43880", "50e83890", "c0ac6695",
   "7823b7f0", "7ed43880", "ef8e940b", "f1665223", "58428dea", "88afb2bf", "3299b5f3",
-  "ca2adabe", "3299b5f3", "b8329f4d", "d7ac8cbe", "4e85dcfc", "8bfc3641", "e566cfed",
-  "ac690529", "11fea8a9", "dc82a2a1", "83ca498c", "b5cadd7b", "26981278", "74c2af22",
+  "ca2adabe", "3299b5f3", "b8329f4d", "d7ac8cbe", "4e85dcfc", "8bfc3641", "ef5d488e",
+  "7c4f61c6", "5540db30", "a89fe43e", "83ca498c", "b5cadd7b", "26981278", "74c2af22",
   "e22d7c86", "ceec3ce1", "e3bb7fe8", "1f681b19", "593727d7", "2afc77a8", "92014ca2",
   "d663e4a8", "d4608a27", "d663e4a8", "d663e4a8", "d663e4a8", "d663e4a8", "d663e4a8",
   "ad0586ee", "ad0586ee", "ad0586ee", "b6fe7b08", "11495260", "699f14d2", "0e06d415",

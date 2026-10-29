@@ -1,4 +1,4 @@
-// pele's er-security templates and payloads (tests/render/er-security.test.ts, tests/support/inert.ts), with a hash of what pele v1.10.0's render gives each pair.
+// pele's er-security templates and payloads (tests/render/er-security.test.ts, tests/support/inert.ts), with a hash of what pele's render gives each pair, taken from pele v1.12.0.
 
 ///|
 /// Each template as the text around the places its payload goes.
@@ -282,8 +282,8 @@ let hostile_outcomes : Array[String] = [
   "7368763f", "8831061f", "ffe88e56", "69e7a0bf", "a0a3f715", "a0d486a2", "b36911dc",
   "64a2e20f", "fcf415d5", "c6bf58ee", "2cec72f6", "48652fb9", "6316109f", "cced66ff",
   "fe4c8e6b", "88528635", "87d1ec3a", "71e828d1", "eaf8d213", "53be3316", "44b82dbb",
-  "33e948d5", "56d1ac17", "8ce4dad9", "bb3fe175", "d3457061", "b974002b", "ec8848c0",
-  "c440fe46", "f958cb21", "5a1dfa19", "d153d81b", "87134403", "6cb8591a", "9883c036",
+  "33e948d5", "56d1ac17", "5022d8e0", "bb3fe175", "d3457061", "b974002b", "ec8848c0",
+  "c440fe46", "f958cb21", "0e6cd620", "9f5d000e", "f34a2506", "594be5b5", "9883c036",
   "9db51338", "e8c3d3a1", "329019d5", "72952196", "5359b837", "22a1b051", "1f13c0ca",
   "d0a26872", "25a8acfa", "fd5e7307", "eff00952", "9f9c4016", "dc38326b", "7f447483",
   "5856fe8b", "26b143f9", "7250df13", "f31705d4", "26caeeb4", "fe1e33b3", "1efeb152",
@@ -372,7 +372,7 @@ let hostile_outcomes : Array[String] = [
   "a3ab88a4", "f7effe5d", "a593de11", "e16f2600", "34a2de66", "f70deb61", "5435bf4f",
   "3097a18f", "a155b619", "88c53997", "594fc8b0", "61105fc3", "ad8705d0", "9614554c",
   "a290b0b1", "fdb9a273", "f2e38955", "257e4b1a", "294cbb9d", "e1c6595f", "d4d54225",
-  "8a8071ee", "28f57ec0", "63f758e3", "fa05be8d", "f550d22d", "0a31c1d3", "6c946499",
+  "8a8071ee", "28f57ec0", "63f758e3", "054635f2", "6620c656", "e09c04b6", "100fbfea",
   "c9478366", "8f1a7abc", "184cf817", "4420d285", "681aba6a", "408b0641", "b0a67be5",
   "5919103c", "7eac62d2", "26de4c68", "b983655d", "074cd19b", "e85c383d", "16350b61",
   "dc02686c", "a981b3e6", "908ce1cd", "ca94d77e", "05616194", "3efafa6f", "e13cfc40",

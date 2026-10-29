@@ -41,7 +41,8 @@ pele colors its SVG with CSS custom properties, which typst does not resolve, so
 #mermaid(theme: (bg: rgb("#1e1e2e"), fg: white, accent: blue, radius: 8pt, series-1: teal), "pie\n  \"A\": 1")
 ```
 
-The keys are `bg`, `fg`, `muted`, `line`, `surface`, `surface-alt`, `border`, `accent`, `critical`, `radius`, `font`, `font-mono`, `heading-weight`, `title-weight`, `bold-weight` and `series-1` to `series-8`.
+The keys are `bg`, `fg`, `fg-on-light`, `fg-on-dark`, `muted`, `line`, `surface`, `surface-alt`, `border`, `accent`, `critical`, `radius`, `font`, `font-mono`, `heading-weight`, `title-weight`, `bold-weight` and `series-1` to `series-8`.
+`fg-on-light` and `fg-on-dark` color a label on a fill the source sets, whichever contrasts more with that fill, unless the source sets the label's color too.
 A color is written as its hex code, a length as a number of the SVG's units, and anything else as its string.
 An absent key keeps pele's own value.
 A value holding `;`, `{` or `}` is ignored, as it could end the declaration it is written into.
@@ -81,6 +82,27 @@ Any other character takes the mean advance of the lowercase Latin letters, or th
 The `measurer` option can also be written by hand, as a dictionary of `unitsPerEm` and `styles`, which maps each of pele's styles to its `advances`, `default` and `wide` advance in font units.
 The section "Callback options" of the repository's `golden/README.md` gives its exact rules.
 It is a table rather than a function because a plugin cannot call back into typst, so kerning and ligatures are not part of it.
+
+## Monospace parts
+
+`monospace` lists the parts of a diagram that are code, which pele measures and draws in the monospace font so that their boxes fit them.
+That font is the theme's `font-mono`, `DejaVu Sans Mono` by default.
+
+```typ
+#mermaid(monospace: ("members",), "classDiagram\n  class A {\n    +title: string\n  }")
+```
+
+Each part names the text of one kind of diagram, as the following table lists.
+
+| Part         | Text                                           |
+| ------------ | ---------------------------------------------- |
+| `members`    | Attributes and methods in class diagrams       |
+| `attributes` | Attribute types, names and keys in ER diagrams |
+| `files`      | File and directory names in tree view diagrams |
+| `messages`   | Message text on arrows in sequence diagrams    |
+
+A class or entity whose `style` or `classDef` sets a `font-family` keeps that font.
+typst writes a list of one item with a trailing comma, so `("members")` is a string, which pele ignores as it ignores any value that is not a list and any part it does not know.
 
 ## Icons
 

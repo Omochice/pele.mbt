@@ -293,11 +293,12 @@ fn mark(
   dx : Double,
   dy : Double,
   color : String,
+  stroke~ : String = "none",
 ) -> String {
   if kind == "extension" {
     extension(x, y, dx, dy, color)
   } else {
-    @svg.marker(kind, x, y, dx, dy, color)
+    @svg.marker(kind, x, y, dx, dy, color, stroke~)
   }
 }
 
@@ -729,6 +730,7 @@ fn draw(
   }
   attach_ends(cedges, cnodes, views)
   let clusters = @svg.Markup::new()
+  let fills : Array[@svg.Fill] = []
   let nodes_out = @svg.Markup::new()
   for i, view in views {
     let c = cnodes[i]
@@ -740,11 +742,21 @@ fn draw(
     let shape = view.style.shape
     let w = view.w
     let h = view.h
+    let color = @svg.raw_ink_fill(view.css)
+    let muted = @svg.raw_ink_fill(view.css, fallback="var(--_m)")
     if view.kind == Boundary {
       let x = c.x - c.w / 2
       let y = c.y - c.h / 2
-      let box = " fill=\"var(--_a)\" fill-opacity=\"0.5\" stroke=\"var(--_b)\"\{shape}"
-      let title_attrs = " class=\"pele-cluster-label\" fill=\"var(--_m)\""
+      if @svg.raw_paints(view.css.shape) {
+        fills.push(@svg.Fill::raw([x, y, x + c.w, y + c.h], view.css.shape))
+      }
+      let wash = if @svg.sets_raw_fill(view.css.shape) {
+        ""
+      } else {
+        " fill-opacity=\"0.5\""
+      }
+      let box = " fill=\"var(--_a)\"\{wash} stroke=\"var(--_b)\"\{shape}"
+      let title_attrs = " class=\"pele-cluster-label\"\{muted}"
       clusters.write(
         "<g class=\"pele-cluster pele-boundary\{classes}\" data-id=\"\{id}\">",
       )
@@ -837,7 +849,7 @@ fn draw(
             key,
             x0 + CELL_PAD + key.width / 2,
             y + row_h / 2,
-            " class=\"pele-json-key\" fill=\"var(--_m)\"",
+            " class=\"pele-json-key\"\{muted}",
             icons?=options.icons,
           )
           write_left_label(
@@ -845,7 +857,7 @@ fn draw(
             value,
             x0 + view.key_w + CELL_PAD,
             y + row_h / 2,
-            " class=\"pele-json-value\"",
+            " class=\"pele-json-value\"\{color}",
             view.css.text,
             icons?=options.icons,
           )
@@ -862,7 +874,7 @@ fn draw(
           view.label,
           0,
           -h / 2 + view.head_h / 2,
-          " class=\"pele-label\" font-weight=\"var(--_hw)\"",
+          " class=\"pele-label\" font-weight=\"var(--_hw)\"\{color}",
           view.css.text,
           icons?=options.icons,
         )
@@ -905,7 +917,7 @@ fn draw(
           view.stereotype,
           0,
           -view.label.height / 2,
-          " class=\"pele-stereotype\" font-size=\"\{tiny}\" fill=\"var(--_m)\"",
+          " class=\"pele-stereotype\" font-size=\"\{tiny}\"\{muted}",
           icons?=options.icons,
         )
         @svg.write_label_styled(
@@ -913,7 +925,7 @@ fn draw(
           view.label,
           0,
           view.stereotype.height / 2,
-          " class=\"pele-label\"\{note_size}",
+          " class=\"pele-label\"\{note_size}\{color}",
           view.css.text,
           icons?=options.icons,
         )
@@ -926,6 +938,7 @@ fn draw(
       "</g>",
     )
   }
+  let casings = @svg.Markup::new()
   let edges_out = @svg.Markup::new()
   let labels_out = @svg.Markup::new()
   let loop_seen : Map[Int32, Int32] = Map([])
@@ -979,6 +992,7 @@ fn draw(
         d: "M\{@svg.num(sx)},\{@svg.num(sy)}C\{out(ax, ay, -1, reach)} \{out(bx, by, 1, reach)} \{@svg.num(ex)},\{@svg.num(ey)}",
         sx: ax,
         sy: ay,
+        tokens: None,
         sdx: if sideways {
           ux
         } else {
@@ -1000,9 +1014,32 @@ fn draw(
       }
       @svg.route_path(ce.route, None, trim(start_type), trim(end_type))
     }
-    let color = match css.stroke {
-      Some(stroke) if stroke != "" => @svg.STROKE_CSS
+    let (over, under) = match
+      @svg.fill_under(
+        path.d,
+        [path.sx, path.sy, path.ex, path.ey],
+        fills,
+        tokens?=path.tokens,
+      ) {
+      On(fill) => (Some(@svg.raw_edge_ink(fill, css=css.line)), Some(fill))
+      Across => (Some(""), None)
+      Off => (None, None)
+    }
+    let color = match (over, css.stroke) {
+      (Some(ink), _) if ink != "" => ink
+      (_, Some(stroke)) if stroke != "" => @svg.STROKE_CSS
       _ => "var(--_l)"
+    }
+    if over is Some("") {
+      let bg = "var(--_bg)"
+      casings.write(
+        @svg.raw_casing(
+          path.d,
+          mark(start_type, path.sx, path.sy, path.sdx, path.sdy, bg, stroke=bg) +
+          mark(end_type, path.ex, path.ey, path.edx, path.edy, bg, stroke=bg),
+          css=css.line,
+        ),
+      )
     }
     // Mermaid animates these dashes.
     // A still picture keeps the dashes.
@@ -1018,12 +1055,18 @@ fn draw(
     let edge_classes = @svg.class_names(
       strip_prefix(edge.classes, "default relationship relationship-", true),
     )
+    let marks = mark(start_type, path.sx, path.sy, path.sdx, path.sdy, color) +
+      mark(end_type, path.ex, path.ey, path.edx, path.edy, color)
+    let (ink, marks) = match (over, under) {
+      (Some(ink), Some(fill)) if ink != "" =>
+        (" stroke=\"\{ink}\"", @svg.hollow_on(marks, fill))
+      _ => ("", marks)
+    }
     @svg.write_styled(
       edges_out,
-      "<g class=\"pele-edge pele-\{edge.relationship_type}\{edge_classes}\" data-id=\"\{@svg.esc_text(edge.id)}\"\{style.line}>" +
+      "<g class=\"pele-edge pele-\{edge.relationship_type}\{edge_classes}\" data-id=\"\{@svg.esc_text(edge.id)}\"\{ink}\{style.line}>" +
       "<path d=\"\{path.d}\"\{dashes}/>" +
-      mark(start_type, path.sx, path.sy, path.sdx, path.sdy, color) +
-      mark(end_type, path.ex, path.ey, path.edx, path.edy, color) +
+      marks +
       "</g>",
       css,
     )
@@ -1057,6 +1100,7 @@ fn draw(
   if !clusters.is_empty() {
     content.write_group("<g class=\"pele-clusters\">", clusters, "</g>")
   }
+  @svg.write_casings(content, casings)
   if !edges_out.is_empty() {
     content.write_group(
       "<g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\">",

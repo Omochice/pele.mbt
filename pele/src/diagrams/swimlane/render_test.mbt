@@ -237,6 +237,53 @@ test "draws one lane per top-level subgraph and keeps each node in its lane" {
 }
 
 ///|
+/// The opening tag of the first text drawn after `data-id="id"`.
+fn text_tag_after(svg : String, id : String) -> String {
+  let from = @util.index_of(
+    svg,
+    "<text",
+    from=@util.index_of(svg, "data-id=\"\{id}\""),
+  )
+  @util.slice(svg, from, end=@util.index_of(svg, ">", from~) + 1)
+}
+
+///|
+test "picks a contrasting lane title color on a fill a style sets" {
+  let svg = svg_of(
+    "swimlane-beta LR\n  subgraph L[Light]\n    a\n  end\n  subgraph D[Dark]\n    b\n  end\n  subgraph P[Plain]\n    c\n  end\n  style L fill:#BBDEFB\n  style D fill:#1f3a5f",
+  )
+  inspect(
+    ["L", "D", "P", "a"].map(id => text_tag_after(svg, id)).join("\n"),
+    content=(
+      #|<text class="pele-cluster-label" fill="var(--pele-fg-on-light,#1f1f1f)" x="28" y="61.6" text-anchor="middle">
+      #|<text class="pele-cluster-label" fill="var(--pele-fg-on-dark,#fff)" x="28" y="157.6" text-anchor="middle">
+      #|<text class="pele-cluster-label" fill="var(--_m)" x="28" y="253.6" text-anchor="middle">
+      #|<text class="pele-label" x="0" y="5.6" text-anchor="middle">
+    ),
+  )
+}
+
+///|
+test "inks or cases edges on a lane band a style fills" {
+  let source = "swimlane-beta TB\nsubgraph S[\"one<br/>two<br/>three<br/>four<br/>five<br/>six<br/>seven<br/>eight\"]\n  A\nend\nS --> S\nstyle S fill:black"
+  let svg = svg_of(source)
+  let at = @util.index_of(
+    svg,
+    "<g class=\"pele-edge",
+    from=@util.index_of(svg, "<g class=\"pele-edges\"") + 1,
+  )
+  inspect(
+    @util.slice(svg, at, end=@util.index_of(svg, ">", from=at) + 1),
+    content=(
+      #|<g class="pele-edge" data-id="L_S_S_0" stroke="var(--pele-fg-on-dark,#fff)">
+    ),
+  )
+  let plain = svg_of(source.replace(old="\nstyle S fill:black", new=""))
+  assert_false(plain.contains("pele-casings"))
+  assert_false(plain.contains("--pele-fg-on"))
+}
+
+///|
 test "stacks lanes down the page when the flow runs sideways, and across it otherwise" {
   let sideways = svg_of(order)
   assert_true(lane(sideways, "Customer").y < lane(sideways, "Warehouse").y)

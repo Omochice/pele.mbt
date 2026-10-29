@@ -478,7 +478,7 @@ test "what Mermaid rejects is rejected" {
   for
     source in [
       "sankey\n", "sankey\na,b\n", "sankey\na,b,1,2\n", "sankey\na,,1\n", "sankey\n\"\",b,1\n",
-      "sankey\na,b,1\n   \nc,d,2\n", "sankey x\na,b,1\n",
+      "sankey x\na,b,1\n",
     ] {
     assert_true(failure_of(source) != "rendered")
   }

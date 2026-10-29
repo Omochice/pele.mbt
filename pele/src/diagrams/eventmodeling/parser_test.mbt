@@ -216,6 +216,20 @@ test "a title, an accessible title and description are read after an identifier"
 }
 
 ///|
+test "a name may start with title" {
+  let source = "eventmodeling\ntf 01 ui titles\ntf 02 cmd title_x\nentity titles\n"
+  inspect(frames_of(source), content="tf 01 ui titles\ntf 02 cmd title_x")
+  inspect(
+    @eventmodeling.read_event_model(source).model_entities.join(","),
+    content="titles",
+  )
+  inspect(
+    message_of("eventmodeling\ntf 01 evt title\n"),
+    content="syntax 2:10 Parse error on line 2:\ntf 01 evt title\n---------^\nExpecting token of type 'EM_ID' but found ` title`.",
+  )
+}
+
+///|
 test "a title at the start of a line is an identifier, as in Mermaid" {
   inspect(
     message_of("eventmodeling\ntitle T"),
@@ -289,6 +303,14 @@ test "a source needs a frame number" {
   inspect(
     message_of("eventmodeling\ntf 01 evt A\ntf 02 evt B ->>"),
     content="syntax 3:16 Parse error on line 3:\ntf 02 evt B ->>\n---------------^\nExpecting token of type 'EM_FID' but found end of input.",
+  )
+}
+
+///|
+test "the end of input is reported before trailing comments and blank lines" {
+  inspect(
+    message_of("eventmodeling\ntf 01 cmd\n%% a comment line\n\n"),
+    content="syntax 2:10 Parse error on line 2:\ntf 01 cmd\n---------^\nExpecting token of type 'EM_ID' but found end of input.",
   )
 }
 

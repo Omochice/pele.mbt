@@ -53,6 +53,13 @@ let abnf_name : @common.TokenType = @common.pattern(
 )
 
 ///|
+/// Whether `[A-Za-z0-9-]` matches at `at`, that is, whether a rule name goes on there.
+fn continues_abnf_name(src : String, at : Int32) -> Bool {
+  let c = @util.code_at(src, at)
+  @util.is_letter(c) || @util.is_digit(c) || c == '-'.to_int()
+}
+
+///|
 /// A semicolon closes a rule only at the end of its line; with anything after it, it starts a comment.
 let closing_semicolon : @common.TokenType = @common.pattern(
   ";",
@@ -121,7 +128,7 @@ fn hex_run(src : String, from : Int32) -> Int32 {
 let abnf_numval : @common.TokenType = {
   name: "ABNF_NUMVAL",
   scanner: () => {
-    (src, p) => {
+    (src, p, _) => {
       if @util.code_at(src, p) != '%'.to_int() {
         return @common.NO_MATCH
       }
@@ -199,7 +206,7 @@ let abnf_tokens : Array[@common.TokenType] = [
   @common.literal(")", ")"),
   @common.literal("[", "["),
   @common.literal("]", "]"),
-  title,
+  title(continues_abnf_name),
   acc_title,
   acc_descr,
   abnf_name,

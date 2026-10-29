@@ -108,7 +108,7 @@ test "metadata that is invalid YAML is a syntax error" {
   )
   inspect(
     model("kanban\n  todo\n    a@{ label: \"x }"),
-    content="syntax: Parse error on line 4:\n\n^\nExpecting 'SPACELINE', 'NL', 'EOF', 'SHAPE_DATA', got '1' kanban",
+    content="syntax: Parse error on line 3:\n    a@{ label: \"x }\n-------------------^\nExpecting 'SPACELINE', 'NL', 'EOF', 'SHAPE_DATA', got '1' kanban",
   )
 }
 

@@ -1540,7 +1540,7 @@ let spec_sessions : Array[Array[(String, String, String)]] = [
   ],
   [
     (
-      "parse", "classDiagram\n                   note call ", "error: Parse error on line 2:\n                   note call \n-----------------------------^\nExpecting 'STR', got 'CALLBACK_NAME'",
+      "parse", "classDiagram\n                   note call ", "error: Parse error on line 2:\n                   note call \n----------------------------^\nExpecting 'STR', got 'CALLBACK_NAME'",
     ),
   ],
   [

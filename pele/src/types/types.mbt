@@ -12,6 +12,9 @@ pub type IconResolver = (String) -> String?
 pub(all) struct RenderOptions {
   font_family : String?
   font_family_mono : String?
+  /// pele's `monospace`: the parts of a diagram measured and drawn in the monospace font, by the
+  /// names of pele's `MonospacePart`.
+  monospace : Array[String]?
   font_size : Double?
   id_prefix : String?
   responsive : Bool?
@@ -42,6 +45,7 @@ pub fn RenderOptions::default() -> RenderOptions {
   {
     font_family: None,
     font_family_mono: None,
+    monospace: None,
     font_size: None,
     id_prefix: None,
     responsive: None,
@@ -70,6 +74,15 @@ pub fn RenderOptions::default() -> RenderOptions {
 /// pele's default falls back to its Arial table where no canvas exists, as in a plugin, so the font family never changes a width.
 pub fn RenderOptions::text_measurer(self : RenderOptions) -> @text.TextMeasurer {
   self.measurer.unwrap_or(@text.metrics_measurer)
+}
+
+///|
+/// Whether `monospace` lists `part`, so that the part is measured and drawn in the monospace font.
+pub fn RenderOptions::monospaces(self : RenderOptions, part : String) -> Bool {
+  match self.monospace {
+    Some(parts) => parts.contains(part)
+    None => false
+  }
 }
 
 ///|

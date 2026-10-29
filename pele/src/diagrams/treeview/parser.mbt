@@ -130,8 +130,8 @@ fn keyword_token() -> @common.TokenType {
     ..keyword,
     scanner: () => {
       let scan = (keyword.scanner)()
-      (src, p) => {
-        let end = scan(src, p)
+      (src, p, previous) => {
+        let end = scan(src, p, previous)
         if end > p && match_bare_name(src, p) > end {
           @common.NO_MATCH
         } else {
@@ -253,11 +253,21 @@ fn scan_newline(src : String, p : Int32) -> Int32 {
 }
 
 ///|
+/// Whether `(?!%%)[^\n\r]` matches at `at`, that is, whether a name goes on there.
+fn continues_line(src : String, at : Int32) -> Bool {
+  let c = @util.code_at(src, at)
+  c != -1 &&
+  c != '\n'.to_int() &&
+  c != '\r'.to_int() &&
+  !@util.starts_with_at(src, "%%", at)
+}
+
+///|
 let treeview_tokens : Array[@common.TokenType] = [
   keyword_token(),
   @common.acc_descr,
   @common.acc_title,
-  @common.title,
+  @common.title_before(continues_line),
   @common.pattern("CLASS_ANNOTATION", scan_class_annotation, first="\t "),
   @common.pattern("ICON_ANNOTATION", scan_icon_annotation, first="\t "),
   @common.pattern("DESC_ANNOTATION", scan_desc_annotation, first="\t "),

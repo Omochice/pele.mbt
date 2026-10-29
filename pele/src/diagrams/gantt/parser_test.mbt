@@ -186,7 +186,7 @@ test "reads links and callbacks in either order" {
       #|setLink("cl4", "x")
       #|setClickEvent("cl5", "h", "2")
       #|setLink("cl5", "y")
-      #|error: Parse error on line 8: /  / ^ / Expecting 'EOF', 'SPACE', 'NL', 'weekday_monday', 'weekday_tuesday', 'weekday_wednesday', 'weekday_thursday', 'weekday_friday', 'weekday_saturday', 'weekday_sunday', 'weekend_friday', 'weekend_saturday', 'dateFormat', 'inclusiveEndDates', 'topAxis', 'axisFormat', 'tickInterval', 'excludes', 'includes', 'todayMarker', 'title', 'acc_title', 'acc_descr', 'acc_descr_multiline_value', 'section', 'taskTxt', 'click', 'callbackargs', 'href', got 'callbackname'
+      #|error: Parse error on line 7: / click cl6 call k / ----------------^ / Expecting 'EOF', 'SPACE', 'NL', 'weekday_monday', 'weekday_tuesday', 'weekday_wednesday', 'weekday_thursday', 'weekday_friday', 'weekday_saturday', 'weekday_sunday', 'weekend_friday', 'weekend_saturday', 'dateFormat', 'inclusiveEndDates', 'topAxis', 'axisFormat', 'tickInterval', 'excludes', 'includes', 'todayMarker', 'title', 'acc_title', 'acc_descr', 'acc_descr_multiline_value', 'section', 'taskTxt', 'click', 'callbackargs', 'href', got 'callbackname'
     ),
   )
 }
@@ -227,7 +227,7 @@ test "needs a link or callback after click" {
   inspect(
     calls("gantt\nclick a\n"),
     content=(
-      #|error: Parse error on line 3: /  / ^ / Expecting 'callbackname', 'href', got 'EOF'
+      #|error: Parse error on line 2: / click a / -------^ / Expecting 'callbackname', 'href', got 'EOF'
     ),
   )
 }

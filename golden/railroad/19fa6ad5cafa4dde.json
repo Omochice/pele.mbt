@@ -2,7 +2,7 @@
   "error": {
     "name": "PeleError",
     "code": "syntax",
-    "message": "Parse error on line 5:\n\n^\nExpecting token of type ';' but found end of input.",
+    "message": "Parse error on line 3:\n        rule = terminal(\"a\")\n----------------------------^\nExpecting token of type ';' but found end of input.",
     "type": "railroad",
     "mermaidType": "railroad"
   }

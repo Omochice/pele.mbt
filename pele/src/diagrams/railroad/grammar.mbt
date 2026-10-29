@@ -22,11 +22,11 @@ fn without_leading_blanks(
     name: base.name,
     scanner: () => {
       let scan = (base.scanner)()
-      (src, p) => {
+      (src, p, previous) => {
         if is_blank_at(src, p) {
           @common.NO_MATCH
         } else {
-          scan(src, p)
+          scan(src, p, previous)
         }
       }
     },
@@ -36,7 +36,17 @@ fn without_leading_blanks(
 }
 
 ///|
-let title : @common.TokenType = without_leading_blanks(@common.title, "t")
+/// The title, which gives way to a name that `continues` answers goes on after `title`.
+fn title(continues : (String, Int32) -> Bool) -> @common.TokenType {
+  without_leading_blanks(@common.title_before(continues), "t")
+}
+
+///|
+/// Whether `[\w-]` matches at `at`, that is, whether a name of EBNF, PEG or the railroad grammar goes on there.
+fn continues_identifier(src : String, at : Int32) -> Bool {
+  let c = @util.code_at(src, at)
+  @util.is_word(c) || c == '-'.to_int()
+}
 
 ///|
 let acc_title : @common.TokenType = without_leading_blanks(
@@ -51,7 +61,7 @@ let acc_descr : @common.TokenType = {
   name: "ACC_DESCR",
   scanner: () => {
     let mut unclosed = 0x7fffffff
-    (src, at) => {
+    (src, at, _) => {
       if !@util.starts_with_at(src, "accDescr", at) {
         return @common.NO_MATCH
       }

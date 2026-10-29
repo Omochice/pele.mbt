@@ -162,6 +162,12 @@ pub fn style_attribute(css : String) -> String {
 }
 
 ///|
+/// Whether the `style` attribute `attrs` names a font family, as pele tests it with `/[";]font-family:/`.
+pub fn sets_font_family(attrs : String) -> Bool {
+  attrs.contains("\"font-family:") || attrs.contains(";font-family:")
+}
+
+///|
 /// Mermaid style declarations split as `resolve_raw_style` splits them, with the CSS of each part made into a `style` attribute.
 pub fn resolve_style(declarations : Array[String]) -> ResolvedStyle {
   let raw = resolve_raw_style(declarations)

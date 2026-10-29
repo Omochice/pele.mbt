@@ -105,6 +105,7 @@ fn figure(kind : String, cx : Double, top : Double) -> String {
 ///|
 /// Writes a participant whose bounding box has its top center at (`cx`, `top`) to `out`, with its
 /// label written piece by piece and `icons` drawing the icons in it.
+/// `ink` is the `fill` attribute of a figure's label, which sits on whatever is behind the figure rather than on a box of its own.
 pub fn write_actor(
   out : @svg.Markup,
   kind : String,
@@ -113,6 +114,7 @@ pub fn write_actor(
   size : ActorSize,
   label : @text.Label,
   icons? : @types.IconResolver,
+  ink~ : String = "",
 ) -> Unit raise @errors.PeleError {
   let n = @svg.num
   let { w, h, } = size
@@ -124,7 +126,7 @@ pub fn write_actor(
       label,
       cx,
       top + GLYPH + GLYPH_GAP + label.height / 2,
-      text,
+      text + ink,
       icons?,
     )
     return

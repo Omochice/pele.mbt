@@ -5,16 +5,26 @@ fn drawn(
   source : String,
   max_width? : Double,
   responsive? : Bool,
+  monospace? : Array[String],
 ) -> Result[@types.RenderResult, @errors.Failure] {
-  let options = { ..@types.RenderOptions::default(), max_width, responsive, }
+  let options = {
+    ..@types.RenderOptions::default(),
+    max_width,
+    responsive,
+    monospace,
+  }
   Ok(@core.render([@sequence.sequence], source, options)) catch {
     @errors.PeleError(failure) => Err(failure)
   }
 }
 
 ///|
-fn svg_of(source : String, max_width? : Double) -> String {
-  match drawn(source, max_width?) {
+fn svg_of(
+  source : String,
+  max_width? : Double,
+  monospace? : Array[String],
+) -> String {
+  match drawn(source, max_width?, monospace?) {
     Ok(result) => result.svg
     Err(failure) => failure.message
   }
@@ -386,6 +396,103 @@ test "starts the next row below a message to self whose label is taller than its
 }
 
 ///|
+test "widens gaps within maxWidth before wrapping a message" {
+  let lines = (svg : String, id : String) => {
+    let label = between(
+      svg,
+      "<g class=\"pele-edge-label\" data-id=\"\{id}\">",
+      "</g>",
+    )
+    let spans = count(label, "<tspan")
+    if spans == 0 {
+      1
+    } else {
+      spans
+    }
+  }
+  let reported = "sequenceDiagram\n  participant U as UE\n  participant M as MeNB (LTE anchor)\n  participant S as SgNB (5G, NR leg)\n" +
+    "  M->>S: SgNB Addition Request (DRB-ID, CG-ConfigInfo)\n  M->>U: RRCConnectionReconfiguration (carries the NR SCG config)\n  U->>M: RRCConnectionReconfigurationComplete"
+  let long = "thisIsAnExtremelyLongMessageIdentifierThatShouldHaveRoomToFit"
+  let cases : Array[(String, String, Double, Array[String]?)] = [
+    (reported, "i2", 760, None),
+    (reported, "i2", 760.5, None),
+    (reported, "i2", 760, Some(["messages"])),
+    (reported, "i2", 400, None),
+    (
+      "sequenceDiagram\n  participant A\n  participant B\n  participant C\n  B->>A: \{"x".repeat(168)}\n  C->>A: \{"x".repeat(89)}",
+      "i1",
+      709,
+      None,
+    ),
+    ("sequenceDiagram\n  A->>B: \{long}", "i0", 300.25, None),
+    (
+      "sequenceDiagram\n  participant A\n  participant B\n  participant C\n  participant D\n  A->>D: \{long}",
+      "i0",
+      450,
+      None,
+    ),
+    (
+      "sequenceDiagram\n  A->>+B: \{long}\n  Note right of B: note\n  B-->>-A: ok",
+      "i0",
+      400,
+      None,
+    ),
+  ]
+  let drawn_lines = cases.map(case => {
+    let (source, id, max_width, monospace) = case
+    guard drawn(source, max_width~, monospace?) is Ok(result) else {
+      return "failed"
+    }
+    "\{result.width <= max_width} \{lines(result.svg, id)}"
+  })
+  inspect(
+    drawn_lines.join(" | "),
+    content=(
+      #|true 1 | true 1 | true 1 | true 2 | true 1 | true 3 | true 2 | true 2
+    ),
+  )
+}
+
+///|
+test "measures messages in the monospace font when monospace lists them" {
+  let src = "sequenceDiagram\n  A->>B: a message in the monospace font\n  B->>B: a message to itself\n  Note over A,B: a note"
+  let plain = drawn(src).unwrap()
+  let mono = drawn(src, monospace=["messages"]).unwrap()
+  inspect(
+    mono.svg.contains(
+      "<g class=\"pele-edge-labels\" font-size=\"14\" font-family=\"var(--_fm)\">",
+    ),
+    content="true",
+  )
+  inspect(plain.svg.contains("font-family=\"var(--_fm)\""), content="false")
+  inspect(count(mono.svg, "font-family=\"var(--_fm)\""), content="1")
+  let gap = (svg : String) => lifeline(svg, "B") - lifeline(svg, "A")
+  inspect(gap(mono.svg) > gap(plain.svg), content="true")
+  inspect(
+    mono.width - gap(mono.svg) > plain.width - gap(plain.svg),
+    content="true",
+  )
+  for monospace in [[], ["message"], ["members"]] {
+    assert_eq(svg_of(src, monospace~), plain.svg)
+  }
+}
+
+///|
+test "widens gaps within maxWidth for messages measured in the monospace font" {
+  let source = "sequenceDiagram\n  participant UE\n  participant gNB\n  participant AMF\n  gNB->>UE: RRCConnectionReconfigurationComplete\n  UE->>gNB: ok"
+  let mono = drawn(source, max_width=760, monospace=["messages"]).unwrap()
+  inspect(mono.width <= 760, content="true")
+  inspect(
+    mono.width > drawn(source, max_width=760).unwrap().width,
+    content="true",
+  )
+  inspect(
+    mono.svg.contains(">RRCConnectionReconfigurationComplete<"),
+    content="true",
+  )
+}
+
+///|
 test "draws activations, nested ones offset, and ends arrows at their edges" {
   let svg = svg_of(
     "sequenceDiagram\n  A->>+B: one\n  A->>+B: two\n  B-->>-A: three\n  B-->>-A: four",
@@ -522,6 +629,140 @@ test "shades rect blocks with the given color, the inner one on top" {
     @util.index_of(svg, "class=\"pele-rects\"") <
     @util.index_of(svg, "class=\"pele-lifelines\""),
     content="true",
+  )
+}
+
+///|
+/// The text element that reads `text`, or `[text]` as a block's title does.
+fn text_reading(svg : String, text : String) -> String {
+  let mut end = @util.index_of(svg, ">\{text}</text>")
+  if end == -1 {
+    end = @util.index_of(svg, ">[\{text}]</text>")
+  }
+  let start = @util.last_index_of(svg, "<text", from=end)
+  @util.slice(svg, start, end=@util.index_of(svg, "</text>", from=end) + 7)
+}
+
+///|
+test "picks a contrasting text color for labels on a rect or box fill" {
+  let svg = svg_of(
+    "sequenceDiagram\n  box rgb(34, 56, 0) Group\n  participant A\n  participant B\n  end\n  participant C\n  participant D\n" +
+    "  A->>B: boxed\n  C->>D: open\n  rect rgb(191, 223, 255)\n  C->>D: light\n  C->>C: self\n  loop Often\n  D->>C: looped\n  end\n  rect black\n  C->>D: dark\n  end\n  rect rgba(0, 0, 0, .2)\n  C->>D: faint\n  end\n  A->>D: crossing two of the lifelines\n  end",
+  )
+  let light = "fill=\"var(--pele-fg-on-light,#1f1f1f)\""
+  let dark = "fill=\"var(--pele-fg-on-dark,#fff)\""
+  assert_true(text_reading(svg, "boxed").contains(dark))
+  assert_true(svg.contains("<text class=\"pele-cluster-label\" \{dark}"))
+  assert_false(text_reading(svg, "open").contains("fill="))
+  assert_true(text_reading(svg, "light").contains(light))
+  assert_true(text_reading(svg, "self").contains(light))
+  assert_true(
+    text_reading(svg, "Often").contains(
+      "class=\"pele-frame-label\" \{light} stroke=\"none\"",
+    ),
+  )
+  assert_true(text_reading(svg, "looped").contains(light))
+  assert_true(text_reading(svg, "dark").contains(dark))
+  assert_false(text_reading(svg, "faint").contains("fill="))
+  // A label across a lifeline sits on a plate in the page color.
+  let crossing = @util.index_of(svg, ">crossing two of the lifelines<")
+  let plate = @util.last_index_of(svg, "<rect ", from=crossing)
+  inspect(
+    @util.slice(
+      svg,
+      plate,
+      end=@util.index_of(
+        svg,
+        " x=",
+        from=@util.index_of(svg, "<text", from=plate),
+      ),
+    ),
+    content=(
+      #|<rect x="74.36" y="452" width="173.29" height="17" rx="3" fill="var(--_bg)" stroke="none"/><text
+    ),
+  )
+}
+
+///|
+test "draws arrows on a rect or box fill in their label color" {
+  let svg = svg_of(
+    "sequenceDiagram\n  box black Group\n  participant A\n  participant B\n  end\n  participant C\n  A->>B: boxed\n  B->>C: open\n  rect rgb(191, 223, 255)\n  A-->>C: light\n  C-xC: self\n  A-|\\B: solid\n  A-\\\\B: stick\n  end",
+  )
+  let message = (text : String) => {
+    let label = @util.last_index_of(
+      svg,
+      "data-id=\"i",
+      from=@util.index_of(svg, ">\{text}</text>"),
+    )
+    let id = between(@util.slice(svg, label), "data-id=\"", "\"")
+    let at = @util.index_of(
+      svg,
+      "<g class=\"pele-edge pele-message\" data-id=\"\{id}\"",
+    )
+    @util.slice(svg, at, end=@util.index_of(svg, "</g>", from=at) + 4)
+  }
+  let dark = "var(--pele-fg-on-dark,#fff)"
+  let light = "var(--pele-fg-on-light,#1f1f1f)"
+  let opening = (text : String) => {
+    let group = message(text)
+    @util.slice(group, 0, end=@util.index_of(group, ">") + 1)
+  }
+  assert_true(opening("boxed").has_suffix(" stroke=\"\{dark}\">"))
+  assert_true(message("boxed").contains("class=\"pele-marker\""))
+  assert_true(message("boxed").contains(" fill=\"\{dark}\""))
+  assert_false(message("open").contains("--pele-fg-on"))
+  assert_true(opening("light").has_suffix(" stroke=\"\{light}\">"))
+  assert_true(
+    @util.slice(message("light"), opening("light").length()).has_prefix(
+      "<path ",
+    ),
+  )
+  assert_true(message("light").contains("stroke-dasharray"))
+  assert_true(opening("self").has_suffix(" stroke=\"\{light}\">"))
+  assert_false(message("self").contains("var(--_l)"))
+  assert_true(message("solid").contains("Z\" fill=\"\{light}\""))
+  assert_true(opening("stick").has_suffix(" stroke=\"\{light}\">"))
+  assert_false(message("stick").contains("var(--_l)"))
+  let lifelines = between(svg, "class=\"pele-lifelines\"", "</g>")
+  assert_false(lifelines.contains("--pele-fg-on"))
+}
+
+///|
+test "keeps the theme color for a self-message that reaches past its box" {
+  let svg = svg_of(
+    "sequenceDiagram\n  autonumber 1000\n  box black\n  participant A\n  end\n  A->>A: x",
+  )
+  let at = @util.index_of(svg, "<g class=\"pele-edge pele-message\"")
+  let opening = @util.slice(svg, at, end=@util.index_of(svg, ">", from=at))
+  assert_false(opening.contains(" stroke="))
+}
+
+///|
+test "picks a contrasting name color for figures in a box" {
+  let svg = svg_of(
+    "sequenceDiagram\n  box black Group\n  actor A\n  participant B\n  end\n  actor C\n  A->>B: hi\n  B->>C: yo",
+  )
+  inspect(
+    count(
+      svg, "<text class=\"pele-label\" fill=\"var(--pele-fg-on-dark,#fff)\"",
+    ),
+    content="2",
+  )
+  let name = (id : String) => {
+    let at = @util.index_of(
+      svg,
+      "<text class=\"pele-label\"",
+      from=@util.index_of(svg, "data-id=\"\{id}\">"),
+    )
+    @util.slice(svg, at, end=@util.index_of(svg, " x=", from=at))
+  }
+  inspect(
+    ["A", "B", "C"].map(name).join("\n"),
+    content=(
+      #|<text class="pele-label" fill="var(--pele-fg-on-dark,#fff)"
+      #|<text class="pele-label"
+      #|<text class="pele-label"
+    ),
   )
 }
 
@@ -1017,7 +1258,7 @@ test "draws blocks with sections, a shaded rect, and a box" {
       #|<g class="pele-boxes" font-size="14">
       #|<g class="pele-cluster pele-box" data-id="Team">
       #|<rect x="-42" y="0" width="164" height="607" fill="var(--_a)" stroke="var(--_b)" style="rx:var(--_r);fill:Aqua;"/>
-      #|<text class="pele-cluster-label" fill="var(--_m)" x="40" y="22.4" text-anchor="middle">Team</text>
+      #|<text class="pele-cluster-label" fill="var(--pele-fg-on-light,#1f1f1f)" x="40" y="22.4" text-anchor="middle">Team</text>
       #|</g>
       #|</g>
       #|<g class="pele-rects" fill="var(--_a)">
@@ -1043,7 +1284,7 @@ test "draws blocks with sections, a shaded rect, and a box" {
       #|<text class="pele-frame-label" fill="var(--_m)" stroke="none" x="3.57" y="308.4" text-anchor="middle">[bad]</text>
       #|<rect x="-20" y="219" width="28" height="20" fill="var(--_s)" style="rx:var(--_r)"/>
       #|<text class="pele-frame-kind" x="-6" y="233.2" text-anchor="middle" font-size="12" font-weight="var(--_hw)" fill="var(--_m)" stroke="none">alt</text>
-      #|<text class="pele-frame-label" fill="var(--_m)" stroke="none" x="27.29" y="234.4" text-anchor="middle">[ok]</text>
+      #|<text class="pele-frame-label" fill="var(--pele-fg-on-light,#1f1f1f)" stroke="none" x="27.29" y="234.4" text-anchor="middle">[ok]</text>
       #|</g>
       #|<g class="pele-frame pele-frame-par">
       #|<rect x="-20" y="373" width="240" height="142" fill="none" style="rx:var(--_r)"/>
@@ -1052,13 +1293,13 @@ test "draws blocks with sections, a shaded rect, and a box" {
       #|<text class="pele-frame-label" fill="var(--_m)" stroke="none" x="2.78" y="462.4" text-anchor="middle">[two]</text>
       #|<rect x="-20" y="373" width="32.67" height="20" fill="var(--_s)" style="rx:var(--_r)"/>
       #|<text class="pele-frame-kind" x="-3.66" y="387.2" text-anchor="middle" font-size="12" font-weight="var(--_hw)" fill="var(--_m)" stroke="none">par</text>
-      #|<text class="pele-frame-label" fill="var(--_m)" stroke="none" x="36.24" y="388.4" text-anchor="middle">[one]</text>
+      #|<text class="pele-frame-label" fill="var(--pele-fg-on-light,#1f1f1f)" stroke="none" x="36.24" y="388.4" text-anchor="middle">[one]</text>
       #|</g>
       #|</g>
       #|<g class="pele-edges" fill="none" stroke="var(--_l)" stroke-linecap="round">
-      #|<g class="pele-edge pele-message" data-id="i2">
+      #|<g class="pele-edge pele-message" data-id="i2" stroke="var(--pele-fg-on-light,#1f1f1f)">
       #|<path d="M0,183H85"/>
-      #|<path class="pele-marker" d="M92,183L84,186.36L84,179.64Z" fill="var(--_l)" stroke="none"/>
+      #|<path class="pele-marker" d="M92,183L84,186.36L84,179.64Z" fill="var(--pele-fg-on-light,#1f1f1f)" stroke="none"/>
       #|</g>
       #|<g class="pele-edge pele-message" data-id="i6">
       #|<path d="M92,279H193"/>
@@ -1079,19 +1320,19 @@ test "draws blocks with sections, a shaded rect, and a box" {
       #|</g>
       #|<g class="pele-edge-labels" font-size="14">
       #|<g class="pele-edge-label" data-id="i2">
-      #|<text x="46" y="173.4" text-anchor="middle">a</text>
+      #|<text fill="var(--pele-fg-on-light,#1f1f1f)" x="46" y="173.4" text-anchor="middle">a</text>
       #|</g>
       #|<g class="pele-edge-label" data-id="i6">
       #|<text x="146" y="269.4" text-anchor="middle">b</text>
       #|</g>
       #|<g class="pele-edge-label" data-id="i8">
-      #|<text x="100" y="339.4" text-anchor="middle">c</text>
+      #|<text fill="var(--pele-fg-on-light,#1f1f1f)" x="100" y="339.4" text-anchor="middle">c</text>
       #|</g>
       #|<g class="pele-edge-label" data-id="i11">
-      #|<text x="100" y="423.4" text-anchor="middle">d</text>
+      #|<text fill="var(--pele-fg-on-light,#1f1f1f)" x="100" y="423.4" text-anchor="middle">d</text>
       #|</g>
       #|<g class="pele-edge-label" data-id="i13">
-      #|<text x="100" y="493.4" text-anchor="middle">e</text>
+      #|<text fill="var(--pele-fg-on-light,#1f1f1f)" x="100" y="493.4" text-anchor="middle">e</text>
       #|</g>
       #|</g>
       #|<g class="pele-nodes">
@@ -1102,7 +1343,7 @@ test "draws blocks with sections, a shaded rect, and a box" {
       #|<g class="pele-node pele-actor pele-actor-actor pele-actor-footer" data-id="B">
       #|<circle cx="92" cy="542" r="6" fill="var(--_s)" stroke="var(--_b)"/>
       #|<path d="M92,548V559M82,552H102M84,569L92,559L100,569" fill="none" stroke="var(--_b)"/>
-      #|<text class="pele-label" x="92" y="590.6" text-anchor="middle">B</text>
+      #|<text class="pele-label" fill="var(--pele-fg-on-light,#1f1f1f)" x="92" y="590.6" text-anchor="middle">B</text>
       #|</g>
       #|<g class="pele-node pele-actor pele-actor-queue pele-actor-footer" data-id="C">
       #|<path d="M168,535H232A6,22 0 0 1 232,579H168A6,22 0 0 1 168,535Z" fill="var(--_s)" stroke="var(--_b)"/>
@@ -1116,7 +1357,7 @@ test "draws blocks with sections, a shaded rect, and a box" {
       #|<g class="pele-node pele-actor pele-actor-actor" data-id="B">
       #|<circle cx="92" cy="42" r="6" fill="var(--_s)" stroke="var(--_b)"/>
       #|<path d="M92,48V59M82,52H102M84,69L92,59L100,69" fill="none" stroke="var(--_b)"/>
-      #|<text class="pele-label" x="92" y="90.6" text-anchor="middle">B</text>
+      #|<text class="pele-label" fill="var(--pele-fg-on-light,#1f1f1f)" x="92" y="90.6" text-anchor="middle">B</text>
       #|</g>
       #|<g class="pele-node pele-actor pele-actor-queue" data-id="C">
       #|<path d="M168,53H232A6,22 0 0 1 232,97H168A6,22 0 0 1 168,53Z" fill="var(--_s)" stroke="var(--_b)"/>
@@ -1347,94 +1588,86 @@ test "fits a wide diagram to a narrow host" {
       max_width=400,
     ),
     content=(
-      #|273x459
+      #|400x393
       #|<g transform="translate(33.34,8)">
       #|<g class="pele-lifelines" fill="none" stroke="var(--_b)">
-      #|<path class="pele-lifeline" data-id="Alice" d="M0,44V399"/>
-      #|<path class="pele-lifeline" data-id="Bob" d="M102,44V399"/>
-      #|<path class="pele-lifeline" data-id="Carol" d="M204,44V399"/>
+      #|<path class="pele-lifeline" data-id="Alice" d="M0,44V333"/>
+      #|<path class="pele-lifeline" data-id="Bob" d="M165.5,44V333"/>
+      #|<path class="pele-lifeline" data-id="Carol" d="M331,44V333"/>
       #|</g>
       #|<g class="pele-frames" font-size="14" stroke="var(--_b)">
       #|<g class="pele-frame pele-frame-loop">
-      #|<rect x="-12" y="292" width="228" height="87" fill="none" style="rx:var(--_r)"/>
-      #|<rect x="-12" y="292" width="39.33" height="20" fill="var(--_s)" style="rx:var(--_r)"/>
-      #|<text class="pele-frame-kind" x="7.67" y="306.2" text-anchor="middle" font-size="12" font-weight="var(--_hw)" fill="var(--_m)" stroke="none">loop</text>
-      #|<rect x="32.33" y="294" width="135.95" height="32" rx="3" fill="var(--_bg)" stroke="none"/>
-      #|<text class="pele-frame-label" fill="var(--_m)" stroke="none" text-anchor="middle" xml:space="preserve">
-      #|<tspan x="100.31" y="305.9">[retry the whole thing</tspan>
-      #|<tspan x="100.31" y="323.9">again]</tspan>
-      #|</text>
+      #|<rect x="-12" y="241" width="355" height="72" fill="none" style="rx:var(--_r)"/>
+      #|<rect x="-12" y="241" width="39.33" height="20" fill="var(--_s)" style="rx:var(--_r)"/>
+      #|<text class="pele-frame-kind" x="7.67" y="255.2" text-anchor="middle" font-size="12" font-weight="var(--_hw)" fill="var(--_m)" stroke="none">loop</text>
+      #|<rect x="32.33" y="243" width="177.98" height="17" rx="3" fill="var(--_bg)" stroke="none"/>
+      #|<text class="pele-frame-label" fill="var(--_m)" stroke="none" x="121.32" y="256.4" text-anchor="middle">[retry the whole thing again]</text>
       #|</g>
       #|</g>
       #|<g class="pele-edges" fill="none" stroke="var(--_l)" stroke-linecap="round">
       #|<g class="pele-edge pele-message" data-id="i0">
-      #|<path d="M0,138H95"/>
-      #|<path class="pele-marker" d="M102,138L94,141.36L94,134.64Z" fill="var(--_l)" stroke="none"/>
+      #|<path d="M0,120H158.5"/>
+      #|<path class="pele-marker" d="M165.5,120L157.5,123.36L157.5,116.64Z" fill="var(--_l)" stroke="none"/>
       #|</g>
       #|<g class="pele-edge pele-message" data-id="i1">
-      #|<path d="M102,226H197"/>
-      #|<path class="pele-marker" d="M204,226L196,229.36L196,222.64Z" fill="var(--_l)" stroke="none"/>
+      #|<path d="M165.5,190H324"/>
+      #|<path class="pele-marker" d="M331,190L323,193.36L323,186.64Z" fill="var(--_l)" stroke="none"/>
       #|</g>
       #|<g class="pele-edge pele-message" data-id="i4">
-      #|<path d="M204,367H7" stroke-dasharray="4 4"/>
-      #|<path class="pele-marker" d="M0,367L8,363.64L8,370.36Z" fill="var(--_l)" stroke="none"/>
+      #|<path d="M331,301H7" stroke-dasharray="4 4"/>
+      #|<path class="pele-marker" d="M0,301L8,297.64L8,304.36Z" fill="var(--_l)" stroke="none"/>
       #|</g>
       #|</g>
       #|<g class="pele-edge-labels" font-size="14">
       #|<g class="pele-edge-label" data-id="i0">
       #|<text text-anchor="middle" xml:space="preserve">
-      #|<tspan x="51" y="75.9">a message that</tspan>
-      #|<tspan x="51" y="93.9">is far too long</tspan>
-      #|<tspan x="51" y="111.9">to fit the</tspan>
-      #|<tspan x="51" y="129.9">narrow width</tspan>
+      #|<tspan x="82.75" y="75.9">a message that is far</tspan>
+      #|<tspan x="82.75" y="93.9">too long to fit the</tspan>
+      #|<tspan x="82.75" y="111.9">narrow width</tspan>
       #|</text>
       #|</g>
       #|<g class="pele-edge-label" data-id="i1">
       #|<text text-anchor="middle" xml:space="preserve">
-      #|<tspan x="153" y="163.9">another long</tspan>
-      #|<tspan x="153" y="181.9">message that</tspan>
-      #|<tspan x="153" y="199.9">wraps in the</tspan>
-      #|<tspan x="153" y="217.9">narrow profile</tspan>
+      #|<tspan x="248.25" y="145.9">another long message</tspan>
+      #|<tspan x="248.25" y="163.9">that wraps in the</tspan>
+      #|<tspan x="248.25" y="181.9">narrow profile</tspan>
       #|</text>
       #|</g>
       #|<g class="pele-edge-label" data-id="i4">
-      #|<rect x="83.43" y="344" width="37.14" height="17" rx="3" fill="var(--_bg)" stroke="none"/>
-      #|<text x="102" y="357.4" text-anchor="middle">done</text>
+      #|<rect x="146.93" y="278" width="37.14" height="17" rx="3" fill="var(--_bg)" stroke="none"/>
+      #|<text x="165.5" y="291.4" text-anchor="middle">done</text>
       #|</g>
       #|</g>
       #|<g class="pele-notes" font-size="14" fill="var(--_a)" stroke="var(--_b)">
       #|<g class="pele-note" data-id="i2">
-      #|<rect x="-8" y="236" width="220" height="44" style="rx:var(--_r)"/>
-      #|<text class="pele-label" stroke="none" fill="var(--_fg)" text-anchor="middle" xml:space="preserve">
-      #|<tspan x="102" y="253.9">a note across all of them that is</tspan>
-      #|<tspan x="102" y="271.9">also long</tspan>
-      #|</text>
+      #|<rect x="-8" y="200" width="347" height="29" style="rx:var(--_r)"/>
+      #|<text class="pele-label" stroke="none" fill="var(--_fg)" x="165.5" y="219.4" text-anchor="middle">a note across all of them that is also long</text>
       #|</g>
       #|</g>
       #|<g class="pele-nodes">
       #|<g class="pele-node pele-actor pele-actor-participant pele-actor-footer" data-id="Alice">
-      #|<rect x="-25.34" y="399" width="50.67" height="44" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/>
-      #|<text class="pele-label" x="0" y="426.6" text-anchor="middle">Alice</text>
+      #|<rect x="-25.34" y="333" width="50.67" height="44" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/>
+      #|<text class="pele-label" x="0" y="360.6" text-anchor="middle">Alice</text>
       #|</g>
       #|<g class="pele-node pele-actor pele-actor-participant pele-actor-footer" data-id="Bob">
-      #|<rect x="78" y="399" width="48" height="44" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/>
-      #|<text class="pele-label" x="102" y="426.6" text-anchor="middle">Bob</text>
+      #|<rect x="141.5" y="333" width="48" height="44" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/>
+      #|<text class="pele-label" x="165.5" y="360.6" text-anchor="middle">Bob</text>
       #|</g>
       #|<g class="pele-node pele-actor pele-actor-participant pele-actor-footer" data-id="Carol">
-      #|<rect x="176.89" y="399" width="54.22" height="44" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/>
-      #|<text class="pele-label" x="204" y="426.6" text-anchor="middle">Carol</text>
+      #|<rect x="303.89" y="333" width="54.22" height="44" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/>
+      #|<text class="pele-label" x="331" y="360.6" text-anchor="middle">Carol</text>
       #|</g>
       #|<g class="pele-node pele-actor pele-actor-participant" data-id="Alice">
       #|<rect x="-25.34" y="0" width="50.67" height="44" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/>
       #|<text class="pele-label" x="0" y="27.6" text-anchor="middle">Alice</text>
       #|</g>
       #|<g class="pele-node pele-actor pele-actor-participant" data-id="Bob">
-      #|<rect x="78" y="0" width="48" height="44" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/>
-      #|<text class="pele-label" x="102" y="27.6" text-anchor="middle">Bob</text>
+      #|<rect x="141.5" y="0" width="48" height="44" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/>
+      #|<text class="pele-label" x="165.5" y="27.6" text-anchor="middle">Bob</text>
       #|</g>
       #|<g class="pele-node pele-actor pele-actor-participant" data-id="Carol">
-      #|<rect x="176.89" y="0" width="54.22" height="44" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/>
-      #|<text class="pele-label" x="204" y="27.6" text-anchor="middle">Carol</text>
+      #|<rect x="303.89" y="0" width="54.22" height="44" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/>
+      #|<text class="pele-label" x="331" y="27.6" text-anchor="middle">Carol</text>
       #|</g>
       #|</g>
       #|</g>
@@ -1464,7 +1697,7 @@ test "a hinted message splits at its hints on a narrow screen" {
   inspect(
     spans.join(" | "),
     content=(
-      #|RRCConnection | Reconfiguration | Complete
+      #|RRCConnectionReconfiguration | Complete
     ),
   )
 }

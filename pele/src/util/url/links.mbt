@@ -39,19 +39,25 @@ fn is_slash(c : Int32) -> Bool {
 
 ///|
 /// Stricter than Mermaid, which lets any scheme but three through: a diagram in a shared note could otherwise open a local file, a network share, or another application.
-fn allow(url : String, schemes : Array[String]) -> String? {
+fn allowed(url : String, schemes : Array[String]) -> Bool {
   if is_slash(@util.code_at(url, 0)) && is_slash(@util.code_at(url, 1)) {
-    return None
+    return false
   }
   match scheme_name(url) {
-    None => Some(url)
-    Some(scheme) =>
-      if schemes.contains(scheme.to_lower()) {
-        Some(url)
-      } else {
-        None
-      }
+    None => true
+    Some(scheme) => schemes.contains(scheme.to_lower())
   }
+}
+
+///|
+/// The decoded URL is checked too, for an app that decodes the href before opening it.
+fn allow(url : String, schemes : Array[String]) -> String? {
+  guard unwrap(url, percent=true) is Some(decoded) &&
+    allowed(url, schemes) &&
+    allowed(decoded, schemes) else {
+    return None
+  }
+  Some(url)
 }
 
 ///|

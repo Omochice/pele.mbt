@@ -58,6 +58,24 @@ test "a series color takes the theme's value over pele's fallback" {
 }
 
 ///|
+test "a label on a fill the source sets takes the theme's color for that fill" {
+  let body =
+    #|<text fill="var(--pele-fg-on-light,#1f1f1f)">a</text><text fill="var(--pele-fg-on-dark,#fff)">b</text>
+  inspect(
+    resolve_body(body),
+    content=(
+      #|<text fill="#1f1f1f">a</text><text fill="#fff">b</text>
+    ),
+  )
+  inspect(
+    resolve_body(body, theme={ "fg-on-light": "#111", "fg-on-dark": "#eee" }),
+    content=(
+      #|<text fill="#111">a</text><text fill="#eee">b</text>
+    ),
+  )
+}
+
+///|
 test "an alias of an alias resolves through both" {
   let body =
     #|<text font-family="var(--_fm)" font-weight="var(--_hw)">x</text>

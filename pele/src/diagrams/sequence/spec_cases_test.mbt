@@ -1618,9 +1618,9 @@ test "should fail for missing closing brace" {
       "\n    sequenceDiagram\n      participant E@{ \"type\": \"entity\"\n      E ->> E: process\n  ",
     ),
     content=(
-      #|error: Parse error on line 6:
-      #|
-      #|^
+      #|error: Parse error on line 4:
+      #|      E ->> E: process
+      #|----------------------^
       #|Expecting 'CONFIG_END', got '$end'
     ),
   )

@@ -24,7 +24,7 @@ fn section(
 }
 
 ///|
-let insets : @treemap.Insets = { gap: 4, header: 28, side: 6, }
+let insets : @treemap.Insets = { gap: 4, header: 28, short: 18, side: 6, }
 
 ///|
 fn describe_box(b : @treemap.Box) -> String {
@@ -52,7 +52,12 @@ fn overlap(a : @treemap.Box, b : @treemap.Box) -> Bool {
 test "boxes are placed in rows along the shorter side, largest first" {
   let nodes = [40.0, 30.0, 20.0, 8.0, 2.0].mapi((i, v) => leaf("n\{i}", v))
   inspect(
-    laid_out(nodes, 1000, 600, insets={ gap: 0, header: 28, side: 6, }),
+    laid_out(nodes, 1000, 600, insets={
+      gap: 0,
+      header: 28,
+      short: 18,
+      side: 6,
+    }),
     content=(
       #|n0 s0 v40 @0,0 400x600
       #|n1 s1 v30 @400,0 300x600
@@ -87,6 +92,7 @@ test "each box has an area in proportion to its value and no two boxes overlap" 
   let boxes = @treemap.layout_treemap(nodes, 1000, 600, {
     gap: 0,
     header: 28,
+    short: 18,
     side: 6,
   })
   inspect(boxes.length(), content="5")
@@ -106,6 +112,7 @@ test "boxes stay close to square" {
   let boxes = @treemap.layout_treemap(nodes, 800, 500, {
     gap: 0,
     header: 28,
+    short: 18,
     side: 6,
   })
   let mut sum = 0.0
@@ -125,6 +132,7 @@ test "the boxes fill the frame and the gap lies between siblings" {
     laid_out([leaf("a", 1), leaf("b", 1)], 400, 200, insets={
       gap: 10,
       header: 28,
+      short: 18,
       side: 6,
     }),
     content=(
@@ -191,15 +199,87 @@ test "what has no positive value is left out" {
 }
 
 ///|
-test "a section too small for its header is placed without its children" {
+test "a section too small for its header gives its children its whole box" {
   inspect(
     laid_out([section("s", [leaf("a", 1)])], 50, 20),
-    content="s s0 v1 @0,0 50x20",
+    content=(
+      #|s s0 v1 @0,0 50x20
+      #|a s0 v1 @0,0 50x20
+    ),
+  )
+  let tree = [
+    section("s", [leaf("a", 2), section("t", [leaf("b", 1), leaf("c", 1)])]),
+  ]
+  let boxes = @treemap.layout_treemap(tree, 300, 30, insets)
+  inspect(boxes.map(b => b.node.name).join(" "), content="s a t b c")
+  let s = boxes[0]
+  inspect(s.headed, content="false")
+  for b in boxes[1:] {
+    inspect(
+      b.w * b.h > 0 &&
+      b.x >= s.x &&
+      b.y >= s.y &&
+      b.x + b.w <= s.x + s.w &&
+      b.y + b.h <= s.y + s.h,
+      content="true",
+    )
+  }
+  inspect(
+    @treemap.layout_treemap(tree, 300, 300, insets)[0].headed,
+    content="true",
   )
 }
 
 ///|
-test "a frame with no area places nothing" {
-  inspect(laid_out([leaf("a", 1)], 0, 100), content="")
-  inspect(laid_out([leaf("a", 1)], 100, -1), content="")
+test "a box thinner than the gap is kept, and so is one with no room at all" {
+  let thin = @treemap.layout_treemap(
+    [leaf("big", 397), leaf("thin", 3)],
+    400,
+    100,
+    insets,
+  )
+  inspect(thin.map(b => b.node.name).join(" "), content="big thin")
+  inspect(thin[1].w > 0, content="true")
+  inspect(overlap(thin[0], thin[1]), content="false")
+  let speck = @treemap.layout_treemap(
+    [leaf("big", 1.0e6), section("s", [leaf("speck", 1)])],
+    100,
+    100,
+    insets,
+  )
+  inspect(speck.map(b => b.node.name).join(" "), content="big s speck")
+  for b in speck[1:] {
+    inspect(b.w * b.h, content="0")
+  }
+}
+
+///|
+test "every box stays inside its area, with a finite size" {
+  let wide = @treemap.layout_treemap(
+    [leaf("big", 397), leaf("thin", 3)],
+    400,
+    100,
+    { ..insets, gap: 40, },
+  )
+  for b in wide {
+    inspect(b.x + b.w <= 400, content="true")
+  }
+  let huge = @treemap.layout_treemap(
+    [leaf("big", 1.0e20), leaf("small", 1)],
+    640,
+    400,
+    insets,
+  )
+  inspect(huge.map(b => b.node.name).join(" "), content="big small")
+  for b in huge {
+    for n in [b.x, b.y, b.w, b.h] {
+      inspect(!n.is_nan() && !n.is_inf() && n >= 0, content="true")
+    }
+  }
+}
+
+///|
+test "a frame with no area keeps its boxes with no size" {
+  inspect(laid_out([leaf("a", 1)], 0, 100), content="a s0 v1 @0,0 0x0")
+  inspect(laid_out([leaf("a", 1)], 100, -1), content="a s0 v1 @0,0 0x0")
 }

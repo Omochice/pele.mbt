@@ -201,7 +201,7 @@ let spec_cases : Array[(String, String)] = [
     "erDiagram\n \"Blorf]\"\n", "ok\ndir \"TB\"\nentity \"Blorf]\" id=\"entity-Blorf]-0\" label=\"Blorf]\" alias=\"\" classes=\"default\" styles=[]",
   ),
   (
-    "erDiagram\n Blo{rf\n", "error syntax 3:1\nParse error on line 3:\n\n^\nExpecting 'ATTRIBUTE_WORD', '?', got '$end'",
+    "erDiagram\n Blo{rf\n", "error syntax 2:8\nParse error on line 2:\n Blo{rf\n-------^\nExpecting 'ATTRIBUTE_WORD', '?', got '$end'",
   ),
   (
     "erDiagram\n \"Blo{rf\"\n", "ok\ndir \"TB\"\nentity \"Blo{rf\" id=\"entity-Blo{rf-0\" label=\"Blo{rf\" alias=\"\" classes=\"default\" styles=[]",

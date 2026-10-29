@@ -728,6 +728,7 @@ fn draw(
     }
   }
   let clusters = @svg.Markup::new()
+  let fills : Array[@svg.Fill] = []
   let dividers = @svg.Markup::new()
   let nodes_out = @svg.Markup::new()
   let notes_out = @svg.Markup::new()
@@ -817,17 +818,28 @@ fn draw(
     let w = view.w
     let h = view.h
     let body = @svg.Markup::new()
+    let ink = @svg.raw_ink_fill(style)
     match view.kind {
       K_COMPOSITE => {
         let left = x - c.w / 2
         let top = y - c.h / 2
+        if @svg.raw_paints(style.shape) {
+          fills.push(
+            @svg.Fill::raw([left, top, left + c.w, top + c.h], style.shape),
+          )
+        }
+        let wash = if @svg.sets_raw_fill(style.shape) {
+          ""
+        } else {
+          " fill-opacity=\"0.5\""
+        }
         write_rect(
           body,
           left,
           top,
           c.w,
           c.h,
-          " rx=\"\{CORNER}\" fill=\"var(--_a)\" fill-opacity=\"0.5\" stroke=\"var(--_b)\"",
+          " rx=\"\{CORNER}\" fill=\"var(--_a)\"\{wash} stroke=\"var(--_b)\"",
           style.shape,
         )
         if view.title_h > 0 {
@@ -841,7 +853,7 @@ fn draw(
             view.label,
             title_x(c, view.label.width, crossings) + pad,
             top + view.title_h / 2,
-            " class=\"pele-cluster-label\"",
+            " class=\"pele-cluster-label\"\{ink}",
             style.text,
             icons?=options.icons,
           )
@@ -911,7 +923,7 @@ fn draw(
             view.label,
             0,
             0,
-            " class=\"pele-label\"",
+            " class=\"pele-label\"\{ink}",
             style.text,
             icons?=options.icons,
           )
@@ -927,7 +939,7 @@ fn draw(
             view.label,
             0,
             at - view.label.height / 2,
-            " class=\"pele-label\"",
+            " class=\"pele-label\"\{ink}",
             style.text,
             icons?=options.icons,
           )
@@ -938,7 +950,7 @@ fn draw(
               line,
               0,
               at + line.height / 2,
-              " class=\"pele-state-description\" font-size=\"\{small}\"",
+              " class=\"pele-state-description\" font-size=\"\{small}\"\{ink}",
               style.text,
               icons?=options.icons,
             )
@@ -1035,6 +1047,7 @@ fn draw(
       "arrow_point",
     )
   }
+  let casings = @svg.Markup::new()
   let edges_out = @svg.Markup::new()
   let labels_out = @svg.Markup::new()
   let loop_seen = FixedArray::make(states, 0)
@@ -1045,6 +1058,7 @@ fn draw(
     let note = edge.dashed
     let end_type = if note { "none" } else { "arrow_point" }
     let mut d = ""
+    let mut tokens : Array[Double]? = None
     let mut ex = 0.0
     let mut ey = 0.0
     let mut edx = 0.0
@@ -1144,21 +1158,37 @@ fn draw(
         end_reach=arrives,
       )
       d = path.d
+      tokens = path.tokens
       ex = path.ex
       ey = path.ey
       edx = path.edx
       edy = path.edy
     }
-    let kind = if note {
-      "pele-note-edge\" stroke=\"var(--_b)\" stroke-dasharray=\"3 4"
-    } else {
-      "pele-transition"
+    let ink = match @svg.over_fills(d, [ex, ey], fills, tokens?) {
+      Some("") => {
+        casings.write(
+          @svg.edge_casing(
+            { d, tokens, sx: 0, sy: 0, sdx: 0, sdy: 0, ex, ey, edx, edy, },
+            "none",
+            end_type,
+          ),
+        )
+        None
+      }
+      Some(ink) => Some(ink)
+      None => None
+    }
+    let kind = match (note, ink) {
+      (true, _) =>
+        "pele-note-edge\" stroke=\"\{ink.unwrap_or("var(--_b)")}\" stroke-dasharray=\"3 4"
+      (false, Some(ink)) => "pele-transition\" stroke=\"\{ink}"
+      (false, None) => "pele-transition"
     }
     edges_out.write("<g class=\"pele-edge \{kind}\" data-id=\"")
     edges_out.write_esc_text(edge.id)
     edges_out.write(
       "\"><path d=\"\{d}\"/>" +
-      @svg.marker(end_type, ex, ey, edx, edy, "var(--_l)") +
+      @svg.marker(end_type, ex, ey, edx, edy, ink.unwrap_or("var(--_l)")) +
       "</g>",
     )
     if label.width > 0 {
@@ -1184,6 +1214,7 @@ fn draw(
       "</g>",
     )
   }
+  @svg.write_casings(content, casings)
   if !edges_out.is_empty() {
     content.write_group(
       "<g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\">",

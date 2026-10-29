@@ -22,6 +22,9 @@ const LINE_ATTRS : String = " stroke=\"var(--_b)\""
 const OBSTACLE_BUDGET : Double = 2000000
 
 ///|
+const LABEL_GAP : Double = 4
+
+///|
 /// The outline each shape of Mermaid's is drawn with.
 fn shape_name(kind : String) -> String {
   match kind {
@@ -109,14 +112,23 @@ fn View::is_diamond(self : View) -> Bool {
 }
 
 ///|
+/// A composite title as a box that stacked labels keep clear of.
+priv struct Box {
+  x : Double
+  y : Double
+  bw : Double
+  bh : Double
+}
+
+///|
 /// An edge with its route: two points for a straight line, three for a bend, none for a self-loop.
 priv struct Route {
   edge : Block
   points : Array[Double]
   loop_count : Int32
   label : @text.Label
-  lx : Double
-  ly : Double
+  mut lx : Double
+  mut ly : Double
 }
 
 ///|
@@ -445,7 +457,18 @@ fn trace(
   d.write_string(
     "L\{@svg.num(ex - bx * end_trim)},\{@svg.num(ey - by * end_trim)}",
   )
-  { d: d.to_string(), sx, sy, sdx: -ax, sdy: -ay, ex, ey, edx: bx, edy: by, }
+  {
+    d: d.to_string(),
+    tokens: None,
+    sx,
+    sy,
+    sdx: -ax,
+    sdy: -ay,
+    ex,
+    ey,
+    edx: bx,
+    edy: by,
+  }
 }
 
 ///|
@@ -507,6 +530,7 @@ fn loop_path(
     d: "M\{@svg.num(x1)},\{@svg.num(y1)}A\{@svg.num(r)},\{@svg.num(r)} 0 \{large} 1 \{@svg.num(x2)},\{@svg.num(y2)}",
     sx,
     sy,
+    tokens: None,
     sdx: if sl > 0 {
       (sx - x1) / sl
     } else {
@@ -536,6 +560,36 @@ fn loop_path(
 let spots : Array[Double] = [0.5, 0.3, 0.7, 0.15, 0.85]
 
 ///|
+/// Whether a box of the given size centered at (x, y) covers a block other than `s` and `t`, or one of `titles`.
+/// Nothing is covered without obstacles, since a diagram too large to check its blocks does not check its titles either.
+fn covers(
+  x : Double,
+  y : Double,
+  w : Double,
+  h : Double,
+  s : View,
+  t : View,
+  obstacles : Array[View]?,
+  titles : Array[Box],
+) -> Bool {
+  guard obstacles is Some(obstacles) else { return false }
+  for v in obstacles {
+    if !physical_equal(v, s) &&
+      !physical_equal(v, t) &&
+      (x - v.x()).abs() < (w + v.bw) / 2 &&
+      (y - v.y()).abs() < (h + v.bh) / 2 {
+      return true
+    }
+  }
+  for v in titles {
+    if (x - v.x).abs() < (w + v.bw) / 2 && (y - v.y).abs() < (h + v.bh) / 2 {
+      return true
+    }
+  }
+  false
+}
+
+///|
 /// Picks the point on a leg where a label of the given size covers no block other than the two it joins.
 fn label_spot(
   p : Array[Double],
@@ -546,25 +600,170 @@ fn label_spot(
   t : View,
   obstacles : Array[View]?,
 ) -> Double {
-  guard obstacles is Some(obstacles) else { return 0.5 }
+  guard obstacles is Some(_) else { return 0.5 }
   for spot in spots {
     let x = p[at] + (p[at + 2] - p[at]) * spot
     let y = p[at + 1] + (p[at + 3] - p[at + 1]) * spot
-    let mut clear = true
-    for v in obstacles {
-      if !physical_equal(v, s) &&
-        !physical_equal(v, t) &&
-        (x - v.x()).abs() < (w + v.bw) / 2 &&
-        (y - v.y()).abs() < (h + v.bh) / 2 {
-        clear = false
-        break
-      }
-    }
-    if clear {
+    if !covers(x, y, w, h, s, t, obstacles, []) {
       return spot
     }
   }
   0.5
+}
+
+///|
+/// Stacks overlapping labels along their shared line, if they fit between its markers and cover no other block or title.
+/// Gives the extra length the line needs to fit the labels, or 0 when it needs none or more length would not help.
+fn stack_labels(
+  stack : Array[Int32],
+  routes : Array[Route],
+  legs : Array[Array[Double]],
+  s : View,
+  t : View,
+  obstacles : Array[View]?,
+  titles : Array[Box],
+) -> Double {
+  let vertical = legs[stack[0]][0] == legs[stack[0]][2]
+  let mut lo = -@double.infinity
+  let mut hi = @double.infinity
+  let mut need = -LABEL_GAP
+  let mut crowded = false
+  for a in 0..<stack.length() {
+    let leg = legs[stack[a]]
+    if (if vertical { leg[0] != leg[2] } else { leg[1] != leg[3] }) {
+      return 0
+    }
+    lo = @util.js_max(
+      lo,
+      if vertical {
+        @util.js_min(leg[1], leg[3])
+      } else {
+        @util.js_min(leg[0], leg[2])
+      },
+    )
+    hi = @util.js_min(
+      hi,
+      if vertical {
+        @util.js_max(leg[1], leg[3])
+      } else {
+        @util.js_max(leg[0], leg[2])
+      },
+    )
+    let p = routes[stack[a]]
+    need += (if vertical { p.label.height } else { p.label.width + 8 }) +
+      LABEL_GAP
+    for b in 0..<a {
+      let q = routes[stack[b]]
+      if (p.lx - q.lx).abs() < (p.label.width + q.label.width) / 2 + 8 &&
+        (p.ly - q.ly).abs() < (p.label.height + q.label.height) / 2 {
+        crowded = true
+      }
+    }
+  }
+  if !crowded {
+    return 0
+  }
+  if need > hi - lo - 2 * @svg.ARROW {
+    return need - (hi - lo - 2 * @svg.ARROW)
+  }
+  let along = []
+  let mut next = (lo + hi - need) / 2
+  for i in stack {
+    let route = routes[i]
+    let label = route.label
+    let size = if vertical { label.height } else { label.width + 8 }
+    let at = next + size / 2
+    if covers(
+        if vertical {
+          route.lx
+        } else {
+          at
+        },
+        if vertical {
+          at
+        } else {
+          route.ly
+        },
+        label.width + 8,
+        label.height,
+        s,
+        t,
+        obstacles,
+        titles,
+      ) {
+      return 0
+    }
+    along.push(at)
+    next += size + LABEL_GAP
+  }
+  for k, i in stack {
+    if vertical {
+      routes[i].ly = along[k]
+    } else {
+      routes[i].lx = along[k]
+    }
+  }
+  0
+}
+
+///|
+/// Widens the gap between `s` and `t` in their nearest shared container, by `short` beyond the gap it had when the labels were measured.
+/// `base` keeps those gaps, by container and direction, so several stacks across one gap widen it once by the most any of them needs.
+/// Gives false when one block holds the other or they are not apart in that direction.
+fn widen(
+  parents : Array[View?],
+  s : View,
+  t : View,
+  vertical : Bool,
+  short : Double,
+  base : Map[(Int32, Bool), Array[Double]],
+) -> Bool {
+  let chain : Set[Int32] = Set([])
+  let mut up : View? = Some(s)
+  while up is Some(v) {
+    chain.add(v.index)
+    up = parents[v.index]
+  }
+  let mut tb : View? = None
+  let mut found : View? = Some(t)
+  while found is Some(v) && !chain.contains(v.index) {
+    tb = Some(v)
+    found = parents[v.index]
+  }
+  guard found is Some(box) && tb is Some(tb) && !physical_equal(box, s) else {
+    return false
+  }
+  let mut sb = s
+  while parents[sb.index] is Some(parent) && !physical_equal(parent, box) {
+    sb = parent
+  }
+  let at = if vertical {
+    if sb.cell.row == tb.cell.row {
+      return false
+    }
+    (if sb.cell.row > tb.cell.row { sb.cell.row } else { tb.cell.row }) - 1
+  } else {
+    let (l, r) = if sb.cell.col < tb.cell.col { (sb, tb) } else { (tb, sb) }
+    if r.cell.col < l.cell.col + l.cell.span {
+      return false
+    }
+    (r.cell.col - 1).to_int()
+  }
+  let gaps = if vertical { box.cell.row_gaps } else { box.cell.col_gaps }
+  let key = (box.index, vertical)
+  let measured = match base.get(key) {
+    Some(measured) => measured
+    None => {
+      let measured = gaps.copy()
+      base.set(key, measured)
+      measured
+    }
+  }
+  while gaps.length() <= at {
+    gaps.push(0)
+  }
+  gaps[at] = @util.js_max(gaps[at], gap_at(measured, at.to_double()) + short)
+  true
 }
 
 ///|
@@ -762,6 +961,7 @@ fn draw(
   root.cell.nw = 0
   root.cell.nh = 0
   let order = [root]
+  let parents : Array[View?] = [None]
   let by_id : Map[String, View] = Map([])
   let mut i = 0
   while i < order.length() {
@@ -774,32 +974,56 @@ fn draw(
       let v = view(child, order.length())
       parent.children.push(v)
       parent.cell.children.push(v.cell)
+      parents.push(Some(parent))
       order.push(v)
       if !(v.kind is Space) {
         by_id.set(child.id, v)
       }
     }
   }
-  let (content_width, content_height) = layout(root.cell, gap)
   let obstacles = []
-  for v in order {
-    if v.is_leaf() && is_fixed(v.shape) {
-      v.bw = v.cell.nw
-      v.bh = v.cell.nh
-    } else if v.kind is Arrow {
-      v.bw = if v.cell.span > 1 { v.cell.w } else { v.cell.nw }
-      v.bh = v.cell.nh
-    } else {
-      v.bw = v.cell.w
-      v.bh = if v.is_leaf() && is_wide(v.shape) { v.cell.nh } else { v.cell.h }
+  let titles : Array[Box] = []
+  // Layout keeps the widest a container has been, so each run starts from the widths it needs.
+  let widths = order.map(v => v.cell.nw)
+  fn place() -> (Double, Double) raise @errors.PeleError {
+    for v in order {
+      v.cell.nw = widths[v.index]
     }
-    if v.is_leaf() && v.shape == "cyl" {
-      v.dy = @util.js_min(12, @util.js_max(6, v.bw / 14)) / 2
+    let content = layout(root.cell, gap)
+    obstacles.clear()
+    titles.clear()
+    for v in order {
+      if v.is_leaf() && is_fixed(v.shape) {
+        v.bw = v.cell.nw
+        v.bh = v.cell.nh
+      } else if v.kind is Arrow {
+        v.bw = if v.cell.span > 1 { v.cell.w } else { v.cell.nw }
+        v.bh = v.cell.nh
+      } else {
+        v.bw = v.cell.w
+        v.bh = if v.is_leaf() && is_wide(v.shape) {
+          v.cell.nh
+        } else {
+          v.cell.h
+        }
+      }
+      if v.is_leaf() && v.shape == "cyl" {
+        v.dy = @util.js_min(12, @util.js_max(6, v.bw / 14)) / 2
+      }
+      if v.kind is (Leaf | Arrow) {
+        obstacles.push(v)
+      } else if v.cell.head > 0 {
+        titles.push({
+          x: v.x(),
+          y: v.y() - v.cell.h / 2 + (v.cell.head + gap) / 2 + 2,
+          bw: v.label.width,
+          bh: v.label.height,
+        })
+      }
     }
-    if v.kind is (Leaf | Arrow) {
-      obstacles.push(v)
-    }
+    content
   }
+  let mut content = place()
 
   // Edges between the same two blocks are spread apart instead of drawn on top of each other.
   let count = order.length().to_int64()
@@ -830,12 +1054,128 @@ fn draw(
   } else {
     None
   }
-  let seen : Map[Int64, Int32] = Map([])
   let routes : Array[Route] = []
+  let stacks : Map[Int64, Array[Int32]] = Map([])
+  let legs : Array[Array[Double]] = Array::make(drawn.length(), [])
+  fn route() -> Unit {
+    let seen : Map[Int64, Int32] = Map([])
+    routes.clear()
+    stacks.clear()
+    for j, edge in drawn {
+      let (s, t) = ends[j]
+      let key = pair_key(s, t)
+      let total = pairs.get(key).unwrap_or(1)
+      let k = seen.get(key).unwrap_or(0)
+      seen.set(key, k + 1)
+      let label = @text.layout_label(
+        Some(edge.label),
+        false,
+        measurer,
+        edge_size,
+        WRAP,
+      )
+      let mut points = []
+      let mut lx = 0.0
+      let mut ly = 0.0
+      if physical_equal(s, t) {
+        let (px, py, r, _, _) = loop_arc(s, k + 1)
+        lx = px + r + 6 + label.width / 2
+        ly = py - r / 2
+      } else {
+        let step = if labelled.contains(key) {
+          (edge_size * 1.5).round() + 2
+        } else {
+          14
+        }
+        points = route_edge(
+          s,
+          t,
+          (k.to_double() - (total - 1).to_double() / 2) * step,
+          check,
+        )
+        let n = points.length()
+        // The label goes on the longer leg.
+        let first_leg = (points[2] - points[0]).abs() +
+          (points[3] - points[1]).abs()
+        let last_leg = (points[n - 2] - points[n - 4]).abs() +
+          (points[n - 1] - points[n - 3]).abs()
+        let at = if n == 6 && last_leg > first_leg { 2 } else { 0 }
+        let spot = if label.width > 0 {
+          label_spot(points, at, label.width + 8, label.height, s, t, check)
+        } else {
+          0.5
+        }
+        lx = points[at] + (points[at + 2] - points[at]) * spot
+        ly = points[at + 1] + (points[at + 3] - points[at + 1]) * spot
+        if label.width > 0 && total > 1 {
+          legs[j] = [points[at], points[at + 1], points[at + 2], points[at + 3]]
+          match stacks.get(key) {
+            Some(stack) => stack.push(j)
+            None => stacks.set(key, [j])
+          }
+        }
+      }
+      routes.push({
+        edge,
+        points,
+        loop_count: if physical_equal(s, t) {
+          k + 1
+        } else {
+          0
+        },
+        label,
+        lx,
+        ly,
+      })
+    }
+  }
+  fn settle(allow : Bool) -> Bool {
+    route()
+    let base : Map[(Int32, Bool), Array[Double]] = Map([])
+    let mut grown = false
+    for _, stack in stacks {
+      if stack.length() < 2 {
+        continue
+      }
+      let (s, t) = ends[stack[0]]
+      let short = stack_labels(stack, routes, legs, s, t, check, titles)
+      let vertical = legs[stack[0]][0] == legs[stack[0]][2]
+      // Keep columns narrow to fit the host in tight layouts.
+      if allow &&
+        short > 0 &&
+        (vertical || !tight) &&
+        widen(parents, s, t, vertical, short.ceil(), base) {
+        grown = true
+      }
+    }
+    grown
+  }
+  fn overlap() -> Double {
+    let mut area = 0.0
+    for i in 0..<routes.length() {
+      let p = routes[i]
+      for j in (i + 1)..<routes.length() {
+        let q = routes[j]
+        let pw = (p.label.width + 8) / 2
+        let qw = (q.label.width + 8) / 2
+        let w = @util.js_min(p.lx + pw, q.lx + qw) -
+          @util.js_max(p.lx - pw, q.lx - qw)
+        let h = @util.js_min(
+            p.ly + p.label.height / 2,
+            q.ly + q.label.height / 2,
+          ) -
+          @util.js_max(p.ly - p.label.height / 2, q.ly - q.label.height / 2)
+        if p.label.width > 0 && q.label.width > 0 && w > 0 && h > 0 {
+          area += w * h
+        }
+      }
+    }
+    area
+  }
   let mut min_x = 0.0
   let mut min_y = 0.0
-  let mut max_x = content_width
-  let mut max_y = content_height
+  let mut max_x = 0.0
+  let mut max_y = 0.0
   let grow = (x : Double, y : Double, w : Double, h : Double) => {
     if x - w / 2 < min_x {
       min_x = x - w / 2
@@ -850,70 +1190,53 @@ fn draw(
       max_y = y + h / 2
     }
   }
-  for j, edge in drawn {
-    let (s, t) = ends[j]
-    let key = pair_key(s, t)
-    let total = pairs.get(key).unwrap_or(1)
-    let k = seen.get(key).unwrap_or(0)
-    seen.set(key, k + 1)
-    let label = @text.layout_label(
-      Some(edge.label),
-      false,
-      measurer,
-      edge_size,
-      WRAP,
-    )
-    let mut points = []
-    let mut lx = 0.0
-    let mut ly = 0.0
-    if physical_equal(s, t) {
-      let (px, py, r, _, _) = loop_arc(s, k + 1)
-      grow(px, py, 2 * r + 2, 2 * r + 2)
-      lx = px + r + 6 + label.width / 2
-      ly = py - r / 2
-    } else {
-      let step = if labelled.contains(key) {
-        (edge_size * 1.5).round() + 2
-      } else {
-        14
+  // Finds the drawing's extent and gives its width.
+  fn bound() -> Double {
+    min_x = 0
+    min_y = 0
+    max_x = content.0
+    max_y = content.1
+    for j, route in routes {
+      if route.loop_count > 0 {
+        let (px, py, r, _, _) = loop_arc(ends[j].0, route.loop_count)
+        grow(px, py, 2 * r + 2, 2 * r + 2)
       }
-      points = route_edge(
-        s,
-        t,
-        (k.to_double() - (total - 1).to_double() / 2) * step,
-        check,
-      )
-      let n = points.length()
-      // The label goes on the longer leg.
-      let first_leg = (points[2] - points[0]).abs() +
-        (points[3] - points[1]).abs()
-      let last_leg = (points[n - 2] - points[n - 4]).abs() +
-        (points[n - 1] - points[n - 3]).abs()
-      let at = if n == 6 && last_leg > first_leg { 2 } else { 0 }
-      let spot = if label.width > 0 {
-        label_spot(points, at, label.width + 8, label.height, s, t, check)
-      } else {
-        0.5
+      if route.label.width > 0 {
+        grow(route.lx, route.ly, route.label.width + 8, route.label.height)
       }
-      lx = points[at] + (points[at + 2] - points[at]) * spot
-      ly = points[at + 1] + (points[at + 3] - points[at + 1]) * spot
     }
-    if label.width > 0 {
-      grow(lx, ly, label.width + 8, label.height)
-    }
-    routes.push({
-      edge,
-      points,
-      loop_count: if physical_equal(s, t) {
-        k + 1
-      } else {
-        0
-      },
-      label,
-      lx,
-      ly,
-    })
+    max_x - min_x
   }
+  if settle(
+      drawn.length().to_double() * drawn.length().to_double() <= OBSTACLE_BUDGET,
+    ) {
+    let before = overlap()
+    let narrow = bound()
+    // A container stretched by its row gives some of a new gap back, so the gap may take a few rounds.
+    let mut grown = true
+    let mut round = 0
+    while round < 3 && grown {
+      content = place()
+      grown = settle(round < 2)
+      round += 1
+    }
+    // The drawing only grows if that leaves less of the labels covering each other, and within maxWidth.
+    let wide = bound()
+    let room = match options.max_width {
+      Some(max_width) if max_width > 0 => max_width
+      _ => @double.infinity
+    }
+    if overlap() > before - 1 ||
+      (wide > narrow && (wide + 2 * pad).ceil() > room) {
+      for v in order {
+        v.cell.row_gaps = []
+        v.cell.col_gaps = []
+      }
+      content = place()
+      settle(false) |> ignore
+    }
+  }
+  bound() |> ignore
   let title = @svg.title_label(
     db.title,
     measurer,
@@ -936,6 +1259,7 @@ fn draw(
   let height = (max_y - min_y + title_height + 2 * pad).ceil()
   let clusters = @svg.Markup::new()
   let nodes = @svg.Markup::new()
+  let fills : Array[@svg.Fill] = []
   for j in 1..<order.length() {
     let v = order[j]
     if v.kind is Space {
@@ -945,10 +1269,23 @@ fn draw(
     if v.kind is Composite {
       let c = v.cell
       let top = c.y - c.h / 2
+      if @svg.raw_paints(v.style.shape) {
+        fills.push(
+          @svg.Fill::raw(
+            [c.x - c.w / 2, top, c.x + c.w / 2, top + c.h],
+            v.style.shape,
+          ),
+        )
+      }
       clusters.write("<g class=\"pele-cluster\{classes}\" data-id=\"")
       clusters.write_esc_text(v.block.id)
+      let wash = if @svg.sets_raw_fill(v.style.shape) {
+        ""
+      } else {
+        " fill-opacity=\"0.5\""
+      }
       clusters.write(
-        "\"><rect x=\"\{@svg.num(c.x - c.w / 2)}\" y=\"\{@svg.num(top)}\" width=\"\{@svg.num(c.w)}\" height=\"\{@svg.num(c.h)}\" fill=\"var(--_a)\" fill-opacity=\"0.5\" stroke=\"var(--_b)\"",
+        "\"><rect x=\"\{@svg.num(c.x - c.w / 2)}\" y=\"\{@svg.num(top)}\" width=\"\{@svg.num(c.w)}\" height=\"\{@svg.num(c.h)}\" fill=\"var(--_a)\"\{wash} stroke=\"var(--_b)\"",
       )
       @svg.write_rounded_style(clusters, v.style.shape)
       clusters.write("/>")
@@ -957,7 +1294,7 @@ fn draw(
         v.label,
         c.x,
         top + (c.head + gap) / 2 + 2,
-        " class=\"pele-cluster-label\" fill=\"var(--_m)\"",
+        " class=\"pele-cluster-label\"\{@svg.raw_ink_fill(v.style, fallback="var(--_m)")}",
         v.style.text,
         icons?=options.icons,
       )
@@ -993,17 +1330,23 @@ fn draw(
         v.style,
       )
     }
+    let ink = if arrow || @svg.shape_filled(v.shape) {
+      @svg.raw_ink_fill(v.style)
+    } else {
+      ""
+    }
     @svg.write_label_styled(
       nodes,
       v.label,
       v.dx,
       v.dy,
-      " class=\"pele-label\"",
+      " class=\"pele-label\"\{ink}",
       v.style.text,
       icons?=options.icons,
     )
     nodes.write("</g>")
   }
+  let casings = @svg.Markup::new()
   let edges = @svg.Markup::new()
   let labels = @svg.Markup::new()
   for j, route in routes {
@@ -1027,6 +1370,25 @@ fn draw(
       }
       trace(points, @svg.marker_trim(start_type), @svg.marker_trim(end_type))
     }
+    let over = @svg.over_fills(
+      path.d,
+      [path.sx, path.sy, path.ex, path.ey],
+      fills,
+    )
+    if over is Some("") {
+      casings.write(
+        @svg.edge_casing(
+          path,
+          start_type,
+          end_type,
+          thick=edge.thickness == "thick",
+        ),
+      )
+    }
+    let (ink, color) = match over {
+      Some(ink) if ink != "" => (" stroke=\"\{ink}\"", ink)
+      _ => ("", "var(--_l)")
+    }
     let thick = if edge.thickness == "thick" {
       " stroke-width=\"2.5\""
     } else {
@@ -1039,12 +1401,12 @@ fn draw(
     }
     edges.write("<g class=\"pele-edge\" data-id=\"")
     edges.write_esc_text(edge.id)
-    edges.write("\"><path d=\"\{path.d}\"\{thick}\{dotted}/>")
+    edges.write("\"\{ink}><path d=\"\{path.d}\"\{thick}\{dotted}/>")
     edges.write(
-      @svg.marker(start_type, path.sx, path.sy, path.sdx, path.sdy, "var(--_l)"),
+      @svg.marker(start_type, path.sx, path.sy, path.sdx, path.sdy, color),
     )
     edges.write(
-      @svg.marker(end_type, path.ex, path.ey, path.edx, path.edy, "var(--_l)"),
+      @svg.marker(end_type, path.ex, path.ey, path.edx, path.edy, color),
     )
     edges.write("</g>")
     if route.label.width > 0 {
@@ -1070,6 +1432,7 @@ fn draw(
   if !clusters.is_empty() {
     body.write_group("<g class=\"pele-clusters\">", clusters, "</g>")
   }
+  @svg.write_casings(body, casings)
   if !edges.is_empty() {
     body.write_group(
       "<g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\">",

@@ -332,6 +332,27 @@ test "a point label goes where it is inside the chart and free" {
 }
 
 ///|
+test "a point label may sit where an empty quadrant label would be" {
+  let source = "quadrantChart\n  P: [0.25, 0.4375]\n  Q: [0.25, 0.4175]"
+  inspect(
+    tags("circle", source),
+    content=(
+      #|500x500
+      #|<circle class="pele-point" data-id="Q" cx="129" cy="289.93" r="5"/>
+      #|<circle class="pele-point" data-id="P" cx="129" cy="280.25" r="5"/>
+    ),
+  )
+  inspect(
+    tags("text", source),
+    content=(
+      #|500x500
+      #|<text class="pele-label" x="129" y="267.25" text-anchor="middle">
+      #|<text class="pele-label" x="129" y="311.33" text-anchor="middle">
+    ),
+  )
+}
+
+///|
 let crowded_chart : String = "quadrantChart\n  title Q4 candidates by effort and impact\n  x-axis Low effort --> High effort\n  y-axis Low impact --> High impact\n  quadrant-1 Plan carefully\n  quadrant-2 Do first\n  quadrant-3 Reconsider\n  quadrant-4 Quick wins\n"
 
 ///|

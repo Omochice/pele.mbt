@@ -205,7 +205,7 @@ test "a quadrant text can be a markdown string" {
   )
   inspect(
     read("quadrantChart\nquadrant-2 \"`unclosed"),
-    content="syntax: Parse error on line 3:\n\n^\nExpecting 'NEWLINE', 'SEMI', 'EOF', got '$end'",
+    content="syntax: Parse error on line 2:\nquadrant-2 \"`unclosed\n---------------------^\nExpecting 'NEWLINE', 'SEMI', 'EOF', got '$end'",
   )
   inspect(
     read("quadrantChart\nquadrant-2 \"`a\"b`\""),
@@ -281,7 +281,7 @@ test "accessibility statements are read" {
   )
   inspect(
     read("quadrantChart\naccDescr {\nunclosed\n"),
-    content="syntax: Parse error on line 5:\n\n^\nExpecting 'NEWLINE', 'SEMI', 'EOF', got 'acc_descr_multiline_value'",
+    content="syntax: Parse error on line 3:\nunclosed\n--------^\nExpecting 'NEWLINE', 'SEMI', 'EOF', got 'acc_descr_multiline_value'",
   )
   inspect(
     read("quadrantChart\naccTitle"),
@@ -429,7 +429,7 @@ test "a point can be placed with odd coordinates" {
   )
   inspect(
     read("quadrantChart\nA: ["),
-    content="syntax: Parse error on line 3:\n\n^\nExpecting 'point_x', got '$end'",
+    content="syntax: Parse error on line 2:\nA: [\n----^\nExpecting 'point_x', got '$end'",
   )
   inspect(
     read("quadrantChart\nA: []"),
@@ -537,7 +537,7 @@ test "a class defines styles for points" {
   )
   inspect(
     read("quadrantChart\nclassDef c "),
-    content="syntax: Parse error on line 2:\nclassDef c \n-----------^\nExpecting 'ALPHA', 'NUM', 'COLON', 'SPACE', 'BRKT', 'MINUS', got 'NEWLINE'",
+    content="syntax: Parse error on line 2:\nclassDef c \n----------^\nExpecting 'ALPHA', 'NUM', 'COLON', 'SPACE', 'BRKT', 'MINUS', got 'NEWLINE'",
   )
   inspect(
     read("quadrantChart\nclassDef"),
@@ -761,7 +761,7 @@ test "a string can hold anything up to its closing quote" {
   )
   inspect(
     read("quadrantChart\nquadrant-1 \"unclosed"),
-    content="syntax: Parse error on line 3:\n\n^\nExpecting 'NEWLINE', 'SEMI', 'EOF', got 'STR'",
+    content="syntax: Parse error on line 2:\nquadrant-1 \"unclosed\n--------------------^\nExpecting 'NEWLINE', 'SEMI', 'EOF', got 'STR'",
   )
   inspect(
     read("quadrantChart\nquadrant-1 \"\""),

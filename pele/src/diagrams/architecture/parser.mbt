@@ -169,6 +169,23 @@ fn id_end(src : String, at : Int32) -> Int32 {
 }
 
 ///|
+/// Whether `[-\w]*\w` matches at `at`, that is, whether an id goes on there.
+fn continues_name(src : String, at : Int32) -> Bool {
+  let mut i = at
+  while true {
+    let c = @util.code_at(src, i)
+    if @util.is_word(c) {
+      return true
+    }
+    if c != '-'.to_int() {
+      break
+    }
+    i += 1
+  }
+  false
+}
+
+///|
 /// A fixed word with Chevrotain's LONGER_ALT of an id: where an id matches more text, the id wins.
 /// Every type between the two in the order fails where the word matches, so declining here is
 /// the same as choosing the id.
@@ -199,13 +216,13 @@ fn dashes(text : String) -> @common.TokenType {
     scanner: () => {
       let front_matter = (@common.yaml.scanner)()
       let mut closerless = false
-      (src, p) => {
+      (src, p, previous) => {
         if !@util.starts_with_at(src, text, p) {
           return @common.NO_MATCH
         }
         let end = p + text.length()
         if !closerless {
-          let fence = front_matter(src, p)
+          let fence = front_matter(src, p, previous)
           if fence == @common.NO_CLOSER {
             closerless = true
           } else if fence > end {
@@ -312,7 +329,7 @@ let architecture_tokens : Array[@common.TokenType] = [
   one_char("ARROW_INTO", "<>"),
   @common.acc_descr,
   @common.acc_title,
-  @common.title,
+  @common.title_before(continues_name),
   @common.string,
   @common.pattern("ID", id_end, first=ID_FIRST),
   @common.newline,
@@ -323,7 +340,7 @@ let architecture_tokens : Array[@common.TokenType] = [
   @common.pattern("ARCH_ICON", scan_icon, first="("),
   {
     name: "ARCH_TITLE",
-    scanner: () => (src, p) => scan_label(src, p),
+    scanner: () => (src, p, _) => scan_label(src, p),
     first: Some("["),
     hidden: false,
   },

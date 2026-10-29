@@ -1,5 +1,5 @@
 // What pele makes of each agentflow input of its reference corpus, its documentation corpus, Mermaid's fixtures and the goldens.
-// Generated from pele 1.10.0: a success is a hash of the dump written as `dump_model` writes it.
+// Generated from pele 1.12.0: a success is a hash of the dump written as `dump_model` writes it.
 
 ///|
 let model_cases : Array[(String, String)] = [
@@ -237,7 +237,7 @@ let model_cases : Array[(String, String)] = [
   ),
   (
     "agentflow-beta TB\n  call[\"call\"]@{ shape: action, connectorRef: \"nonexistent.op\" }\n  input[\"in\"]@{ shape: input }\n  input --> call",
-    "error syntax agentflow agentflow\nParse error on line 5:\n\n^\nExpecting 'NODE_STRING', got 'CALLBACKNAME'",
+    "error syntax agentflow agentflow\nParse error on line 4:\n  input --> call\n----------------^\nExpecting 'NODE_STRING', got 'CALLBACKNAME'",
   ),
   (
     "agentflow-beta TB\n  a[\"First\"]\n  a[\"Second\"]\n  a --> b", "ok 246a5f33",
@@ -503,7 +503,7 @@ let model_cases : Array[(String, String)] = [
     "ok 1b121153",
   ),
   (
-    "agentflow-beta TB\n  flow orphan[\"Orphan\"]\n    a[\"Alpha\"]", "error syntax agentflow agentflow\nParse error on line 4:\n\n^\nExpecting 'end', got '$end'",
+    "agentflow-beta TB\n  flow orphan[\"Orphan\"]\n    a[\"Alpha\"]", "error syntax agentflow agentflow\nParse error on line 3:\n    a[\"Alpha\"]\n--------------^\nExpecting 'end', got '$end'",
   ),
   (
     "agentflow-beta TB\n  flow reviewer[\"Review Agent\"]\n    changes[\"Gather changes\"]@{ shape: input }\n    analyse[\"Analyse diff\"]@{ shape: task }\n    lint[\"run_linter\"]@{ shape: tool }\n    ok[\"Clean?\"]@{ shape: decision }\n\n    changes --> analyse --> lint --> ok\n  end\n",
@@ -563,7 +563,7 @@ let model_cases : Array[(String, String)] = [
   ),
   (
     "%% A `flow` block with no `end`. The JISON parser raises, so no semantic model\n%% is produced and the outcome is `parse-error` rather than any diagnostic.\nagentflow-beta TB\n  flow orphan[\"Orphan\"]\n    a[\"Alpha\"]\n    b[\"Beta\"]\n    a --> b\n",
-    "error syntax agentflow agentflow\nParse error on line 9:\n\n^\nExpecting 'end', got '$end'",
+    "error syntax agentflow agentflow\nParse error on line 7:\n    a --> b\n-----------^\nExpecting 'end', got '$end'",
   ),
   (
     "%% Connector reference validator — dotted-operation form uses\n%% prefix-before-first-dot for resolution. With a declared `github`\n%% connector, `github.create_issue` resolves cleanly.\nagentflow-beta TB\n  connector github[\"GitHub\"]\n  payload[\"payload\"]\n  payload@{ shape: input }\n  create_issue[\"Create Issue\"]\n  create_issue@{ shape: tool, connectorRef: \"github.create_issue\" }\n  payload --> create_issue\n",
@@ -599,7 +599,7 @@ let model_cases : Array[(String, String)] = [
   ),
   (
     "agentflow-beta TB\n  call[\"call\"]@{ shape: action, connectorRef: \"nonexistent.op\" }\n  input[\"in\"]@{ se: input }\n  input --> call",
-    "error syntax agentflow agentflow\nParse error on line 5:\n\n^\nExpecting 'NODE_STRING', got 'CALLBACKNAME'",
+    "error syntax agentflow agentflow\nParse error on line 4:\n  input --> call\n----------------^\nExpecting 'NODE_STRING', got 'CALLBACKNAME'",
   ),
   (
     "agentflow-beta TB\n  flow )outer[\"Outer\"]\n    flow inner[\"Inner\"]\n      n1 --> n2\n    end\n  end",
@@ -616,7 +616,7 @@ let model_cases : Array[(String, String)] = [
   ("agentflow-beta TB\n  &r[\"Guide\"]\n  r@{ shape: refdoc }", "ok 106b5803"),
   (
     "agentflow-beta TB\nflow   [\"Alpha\"]\n  a@{ description: \"alpha ne\", instruction: \"be careful\" }",
-    "error syntax agentflow agentflow\nParse error on line 4:\n\n^\nExpecting 'end', got '$end'",
+    "error syntax agentflow agentflow\nParse error on line 3:\n  a@{ description: \"alpha ne\", instruction: \"be careful\" }\n----------------------------------------------------------^\nExpecting 'end', got '$end'",
   ),
   (
     "agentflow-beta TB\n  ow f@{ model: \"claude-opus-4\", memory: \"sred\" }\n    a --> b\n  end",
@@ -624,7 +624,7 @@ let model_cases : Array[(String, String)] = [
   ),
   (
     "agentflow-beta LR\n  connector github[\"GitHub API\"]\n  github@{ protocol: \"http\", endpoint: \"https://api.github.com\" }\n\n  title[\"Issue title\"]@{ shape: input }\n  create[\"create_issue\"]@{ shape: tool, connectorRef: \"github.create_issue\" }\nflow f\n  title --> create\n",
-    "error syntax agentflow agentflow\nParse error on line 10:\n\n^\nExpecting 'end', got '$end'",
+    "error syntax agentflow agentflow\nParse error on line 8:\n  title --> create\n------------------^\nExpecting 'end', got '$end'",
   ),
   (
     "agentflow-beta TB\n  global\n    corpus[\"Shared corpus\"]@{ shape: refdoc   end\n\n  flow summariser[\"Summariser\"]\n    summarise[\"Summarise\"]@{ shape: task }\n    summarise -.- corpus\n  end\n\n  flow indexer[\"Indexer\"]\n    index[\"Build index\"]@{ shape: task }\n    index -.- corpus\n  end\n",
@@ -648,7 +648,7 @@ let model_cases : Array[(String, String)] = [
   ),
   (
     "agentflow-beta TB\n  flow f@{ model: \"claude-opus-4memory: \"shared\" }\n    a --> b\n  end",
-    "error syntax agentflow agentflow\nParse error on line 5:\n\n^\nExpecting 'COMMENT', 'SEMI', 'NEWLINE', 'EOF', 'SHAPE_DATA', got '$end'",
+    "error syntax agentflow agentflow\nParse error on line 4:\n  end\n-----^\nExpecting 'COMMENT', 'SEMI', 'NEWLINE', 'EOF', 'SHAPE_DATA', got '$end'",
   ),
   (
     "agentflow-beta TB\n  a[\"a\"]\n  a@{ shape: subrout end\n  endine }\n  b[\"b\"]\n  b@{ Beta\"shape: tool }\n  c[\"c\"]\n  d[\"d\"]\n  d@{ shape: framed-rectangle }",
@@ -675,7 +675,7 @@ let model_cases : Array[(String, String)] = [
   ),
   (
     "agentflow-beta TB\n  a[\"a\"]\n  a@{ shape: subprocess }\n  b[\"\n  b@{ shape:e&: framed-rectangle }",
-    "error syntax agentflow agentflow\nParse error on line 6:\n\n^\nExpecting 'SQE', 'UNICODE_TEXT', 'TEXT', 'TAGSTART', got '$end'",
+    "error syntax agentflow agentflow\nParse error on line 5:\n  b@{ shape:e&: framed-rectangle }\n----------------------------------^\nExpecting 'SQE', 'UNICODE_TEXT', 'TEXT', 'TAGSTART', got '$end'",
   ),
   (
     "agentflow-beta B\n  a[\"A\"]@{ img: \"https://example.com/x.png\", w: 40, h: 40 }\n  b[\"B\"]\n  a --> b",
@@ -703,7 +703,7 @@ let model_cases : Array[(String, String)] = [
   ),
   (
     "agentflow-beta TB\n  flow intakd\n      flow sie[\"Intake\"]\n    receive[\"Receive request\"]@{ shape: input }\n  end\n\n  flow processing[\"Processing\"]\n    validate[\"Validate\"]@{ shape: task }\n    enrich[\"Enrich\"]@{ shape: task }\n    validate --> enrich\n  end\n  processing@{ view: warn\"collapsed\" }\n\n  flow output[\"Output\"]\n   publish[\"Publish\"]@{ shape: action }\n  end\n\n  receive --> validate\n  enrich --> publish\n",
-    "error syntax agentflow agentflow\nParse error on line 21:\n\n^\nExpecting 'end', got '$end'",
+    "error syntax agentflow agentflow\nParse error on line 19:\n  enrich --> publish\n--------------------^\nExpecting 'end', got '$end'",
   ),
   (
     "agentflow-beta TB\n    a[[\"Alpha\"]\n  a --> b", "error syntax agentflow agentflow\nParse error on line 2:\n    a[[\"Alpha\"]\n--------------^\nExpecting 'SUBROUTINEEND', 'UNICODE_TEXT', 'TEXT', 'TAGSTART', got 'SQE'",
@@ -714,7 +714,7 @@ let model_cases : Array[(String, String)] = [
   ),
   (
     "agentflow-beta TB\n  flow f@{ model: \"m\", memory: y: \"sy: \"shared\", exxecution: \"parallel\", custom: 1 }\n    a --> b\n  end",
-    "error syntax agentflow agentflow\nParse error on line 5:\n\n^\nExpecting 'COMMENT', 'SEMI', 'NEWLINE', 'EOF', 'SHAPE_DATA', got '$end'",
+    "error syntax agentflow agentflow\nParse error on line 4:\n  end\n-----^\nExpecting 'COMMENT', 'SEMI', 'NEWLINE', 'EOF', 'SHAPE_DATA', got '$end'",
   ),
   (
     "agentflow-beta TB\n  i[\"i\"]\n  i@{ shape: input }\n  h[\"h\"]\n  h@{ ape: action }",
@@ -761,7 +761,7 @@ let model_cases : Array[(String, String)] = [
   ),
   (
     "%% A `flow` block with no `end`. The JISON parser raises, so no semantic model\n\n%% is produced and the outcome is `parse-error` rather than any diagnostic.\nagentflow-beta TB\n  flow orphan[\"Orphan\"]\n    a[\"Alpha\"]\n    b[\"Beta\"]\n    a --> b\n",
-    "error syntax agentflow agentflow\nParse error on line 10:\n\n^\nExpecting 'end', got '$end'",
+    "error syntax agentflow agentflow\nParse error on line 8:\n    a --> b\n-----------^\nExpecting 'end', got '$end'",
   ),
   (
     "agentflow-beta TB\n      flow outer[\"Outer\"]\n        flow inner[\"Inner\"]\n         a[\"a\"]\n        end\n      end  end\n      flow sibling[\"Sibling\"]\n        b[\"b\"]\n      end\n    ",

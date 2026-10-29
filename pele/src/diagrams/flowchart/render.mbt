@@ -69,6 +69,8 @@ pub(all) struct FlowVariant {
     @layout.Dir,
     @types.IconResolver?,
   ) -> Unit raise @errors.PeleError)?
+  /// The part of a group `draw_group` draws that takes its fill, as left, top, right and bottom, from its laid out box and the diagram's direction.
+  filled_box : ((@layout.CNode, @layout.Dir) -> Array[Double])?
 }
 
 ///|
@@ -240,6 +242,12 @@ fn draw(
       None => -1
     }
   }
+  @layout.inherit_crossed_directions(
+    cnodes,
+    graph.edges.map(edge => {
+      (index.get(edge.start).unwrap_or(-1), index.get(edge.end).unwrap_or(-1))
+    }),
+  )
   let root_dir = if turned {
     @layout.Dir::TB
   } else {
@@ -356,6 +364,7 @@ fn draw(
   let clusters = @svg.Markup::new()
   let struck_titles = @svg.Markup::new()
   let nodes_out = @svg.Markup::new()
+  let fills : Array[@svg.Fill] = []
   for i, view in views {
     let c = cnodes[i]
     let node = view.node
@@ -363,6 +372,10 @@ fn draw(
     if c.is_group &&
       c.parent < 0 &&
       variant is Some({ draw_group: Some(draw_group), .. }) {
+      if @svg.paints(view.style.shape) &&
+        variant is Some({ filled_box: Some(filled_box), .. }) {
+        fills.push(@svg.Fill::new(filled_box(c, root_dir), view.style.shape))
+      }
       draw_group(
         clusters,
         c,
@@ -376,6 +389,14 @@ fn draw(
       continue
     }
     if c.is_group {
+      if @svg.paints(view.style.shape) {
+        fills.push(
+          @svg.Fill::new(
+            [c.x - c.w / 2, c.y - c.h / 2, c.x + c.w / 2, c.y + c.h / 2],
+            view.style.shape,
+          ),
+        )
+      }
       let title_x = @svg.cluster_title_x(
         c,
         view.label.width,
@@ -383,8 +404,14 @@ fn draw(
         group_pad,
       )
       let title_y = c.y - c.h / 2 + 8 + view.label.height / 2
-      let title_attrs = " class=\"pele-cluster-label\" fill=\"var(--_m)\"\{view.style.text}"
       let struck = @svg.title_crossed(c, view.label.width, title_x, crossings)
+      // A title drawn over the edges sits on a halo in the theme's colors.
+      let title_ink = if struck {
+        " fill=\"var(--_m)\""
+      } else {
+        @svg.ink_fill(view.style, fallback="var(--_m)")
+      }
+      let title_attrs = " class=\"pele-cluster-label\"\{title_ink}\{view.style.text}"
       if struck {
         @svg.write_struck_title(
           struck_titles,
@@ -401,8 +428,13 @@ fn draw(
       clusters.write("<g class=\"pele-cluster\{classes}\"")
       clusters.write_data_id(node.id)
       clusters.write(">")
+      let wash = if @svg.sets_fill(view.style.shape) {
+        ""
+      } else {
+        " fill-opacity=\"0.5\""
+      }
       clusters.write(
-        "<rect x=\"\{@svg.num(c.x - c.w / 2)}\" y=\"\{@svg.num(c.y - c.h / 2)}\" width=\"\{@svg.num(c.w)}\" height=\"\{@svg.num(c.h)}\" fill=\"var(--_a)\" fill-opacity=\"0.5\" stroke=\"var(--_b)\"\{@svg.rounded(view.style.shape)}/>",
+        "<rect x=\"\{@svg.num(c.x - c.w / 2)}\" y=\"\{@svg.num(c.y - c.h / 2)}\" width=\"\{@svg.num(c.w)}\" height=\"\{@svg.num(c.h)}\" fill=\"var(--_a)\"\{wash} stroke=\"var(--_b)\"\{@svg.rounded(view.style.shape)}/>",
       )
       if !struck {
         @svg.write_label(
@@ -418,11 +450,15 @@ fn draw(
       continue
     }
     let inner = @svg.Markup::new()
+    let mut ink = ""
     if node.img is Some(img) && img != "" {
       write_picture(inner, node, img, view, options)
     } else if node.icon is Some(icon) && icon != "" {
       write_icon(inner, node, icon, view, options.icons)
     } else {
+      if @svg.shape_filled(view.shape) {
+        ink = @svg.ink_fill(view.style)
+      }
       inner.write(
         @svg.draw_shape(
           view.shape,
@@ -439,7 +475,7 @@ fn draw(
       view.label,
       0,
       view.dy,
-      " class=\"pele-label\"\{view.style.text}",
+      " class=\"pele-label\"\{ink}\{view.style.text}",
       icons?=options.icons,
     )
     let body = @svg.Markup::new()
@@ -508,6 +544,7 @@ fn draw(
       drawn[i].arrow_type_end,
     )
   }
+  let casings = @svg.Markup::new()
   let edges_out = @svg.Markup::new()
   let labels_out = @svg.Markup::new()
   let loop_seen : Map[Int32, Int32] = Map([])
@@ -575,8 +612,21 @@ fn draw(
           end_reach=arrives,
         )
       }
-      let color = match style {
-        Some({ stroke: Some(stroke), .. }) if stroke != "" => @svg.esc(stroke)
+      let line = match style {
+        Some(style) => style.line
+        None => ""
+      }
+      let over = @svg.over_fills(
+        path.d,
+        [path.sx, path.sy, path.ex, path.ey],
+        fills,
+        line~,
+        tokens?=path.tokens,
+      )
+      let color = match (over, style) {
+        (Some(ink), _) if ink != "" => ink
+        (_, Some({ stroke: Some(stroke), .. })) if stroke != "" =>
+          @svg.esc(stroke)
         _ => "var(--_l)"
       }
       let attrs = match edge.thickness {
@@ -584,12 +634,23 @@ fn draw(
         Some("dotted") => " stroke-dasharray=\"3 4\""
         _ => ""
       }
-      let line = match style {
-        Some(style) => style.line
-        None => ""
+      if over is Some("") {
+        casings.write(
+          @svg.edge_casing(
+            path,
+            start_type,
+            end_type,
+            line~,
+            thick=edge.thickness == Some("thick"),
+          ),
+        )
+      }
+      let ink = match over {
+        Some(ink) if ink != "" => " stroke=\"\{ink}\""
+        _ => ""
       }
       edges_out.write(
-        "<g class=\"pele-edge\{edge_classes(edge.classes)}\" data-id=\"\{@svg.esc_text(edge.id)}\"\{line}>",
+        "<g class=\"pele-edge\{edge_classes(edge.classes)}\" data-id=\"\{@svg.esc_text(edge.id)}\"\{ink}\{line}>",
       )
       edges_out.write("<path d=\"\{path.d}\"\{attrs}/>")
       edges_out.write(
@@ -627,6 +688,7 @@ fn draw(
   if !clusters.is_empty() {
     content.write_group("<g class=\"pele-clusters\">", clusters, "</g>")
   }
+  @svg.write_casings(content, casings)
   if !edges_out.is_empty() {
     content.write_group(
       "<g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\">",

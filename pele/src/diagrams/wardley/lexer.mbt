@@ -128,7 +128,7 @@ fn digits_end(src : String, from : Int32) -> Int32 {
 fn number_scanner() -> @common.Scanner {
   let mut from = 0
   let mut end = 0
-  (src, p) => {
+  (src, p, _) => {
     if p < from || p >= end {
       from = p
       end = digits_end(src, p)
@@ -185,7 +185,7 @@ fn link_arrow_end(src : String, p : Int32) -> Int32 {
 fn dash() -> @common.Scanner {
   let front_matter = (@common.yaml.scanner)()
   let mut closerless = false
-  (src, p) => {
+  (src, p, previous) => {
     if @util.code_at(src, p) != '-'.to_int() {
       return @common.NO_MATCH
     }
@@ -193,7 +193,7 @@ fn dash() -> @common.Scanner {
       return @common.NO_MATCH
     }
     if !closerless {
-      let end = front_matter(src, p)
+      let end = front_matter(src, p, previous)
       if end == @common.NO_CLOSER {
         closerless = true
       } else if end > p + 1 {
@@ -388,7 +388,7 @@ pub let wardley_tokens : Array[@common.TokenType] = [
   @common.literal("KW_DEACCELERATOR", "deaccelerator"),
   {
     name: "NAME_WITH_SPACES",
-    scanner: () => (src, p) => name_end(src, p),
+    scanner: () => (src, p, _) => name_end(src, p),
     first: Some(LETTERS),
     hidden: false,
   },

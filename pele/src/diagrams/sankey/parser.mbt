@@ -1,25 +1,73 @@
 ///|
-/// Strips blanks at both ends of the text and collapses runs of line breaks, so that no row is empty.
-/// Mermaid's first step is a regex that rescans every run of blanks; this does the same in one pass.
+/// The blank runs at the edges of rows outside quoted fields, which are removed, and where the
+/// blanks at the end of the text start.
+/// A blank first field is kept, because Mermaid reads it as an empty name.
+fn row_edges(text : String) -> (Array[@errors.Edit], Int32) {
+  let mut end = text.length()
+  while end > 0 && @util.is_inline_space(@util.code_at(text, end - 1)) {
+    end -= 1
+  }
+  let removed = []
+  let mut quoted = false
+  let mut i = 0
+  while i < end {
+    let c = @util.code_at(text, i)
+    if quoted {
+      if c == '"'.to_int() {
+        if @util.code_at(text, i + 1) == '"'.to_int() {
+          i += 1
+        } else {
+          quoted = false
+        }
+      }
+      i += 1
+    } else if c == '"'.to_int() {
+      quoted = true
+      i += 1
+    } else if @util.is_inline_space(c) {
+      let mut j = i + 1
+      while @util.is_inline_space(@util.code_at(text, j)) {
+        j += 1
+      }
+      let p = @util.code_at(text, i - 1)
+      let q = @util.code_at(text, j)
+      if i == 0 ||
+        q == 10 ||
+        q == 13 ||
+        ((p == 10 || p == 13) && q != ','.to_int()) {
+        removed.push((i, j, 0))
+      }
+      i = j
+    } else {
+      i += 1
+    }
+  }
+  (removed, end)
+}
+
+///|
+/// Strips blanks at the edges of rows and collapses runs of line breaks, so that no row is empty.
+/// Unlike Mermaid, which strips blanks only at both ends of the text, it also trims the edges of
+/// rows outside quoted fields, as pele does.
 /// The edits are appended to `steps`, as three passes, when it is given.
 pub fn prepare_text_for_parsing(
   text : String,
   steps? : Array[Array[@errors.Edit]],
 ) -> String {
-  let mut start = 0
-  let mut end = text.length()
-  while start < end && @util.is_inline_space(@util.code_at(text, start)) {
-    start += 1
-  }
-  while end > start && @util.is_inline_space(@util.code_at(text, end - 1)) {
-    end -= 1
-  }
+  let (removed, end) = row_edges(text)
   // The text is measured before it is copied, and trimmed only when it has to be, because a
   // source of hundreds of millions of characters copied into a doubling builder, or copied again
   // whole, would need more than wasm allocates.
   let mut length = 0
   let mut in_break = false
-  for i in start..<end {
+  let mut r = 0
+  let mut i = 0
+  while i < end {
+    if r < removed.length() && removed[r].0 == i {
+      i = removed[r].1
+      r += 1
+      continue
+    }
     let c = @util.code_at(text, i)
     if c == 10 || c == 13 {
       if !in_break {
@@ -30,36 +78,51 @@ pub fn prepare_text_for_parsing(
       in_break = false
       length += 1
     }
+    i += 1
   }
   let recording = steps is Some(_)
   let collapsing = []
-  let mut run = start
+  // Positions in the text with the row edges removed, where line breaks are collapsed.
+  let mut at = 0
+  let mut run = 0
   let out = StringBuilder(size_hint=length * 2)
   in_break = false
-  for i in start..<end {
+  r = 0
+  i = 0
+  while i < end {
+    if r < removed.length() && removed[r].0 == i {
+      i = removed[r].1
+      r += 1
+      continue
+    }
     let c = @util.code_at(text, i)
     if c == 10 || c == 13 {
       if !in_break {
         out.write_char('\n')
-        run = i
+        run = at
       }
       in_break = true
     } else {
       if recording && in_break {
-        collapsing.push((run - start, i - start, 1))
+        collapsing.push((run, at, 1))
       }
       in_break = false
       @util.write_range(out, text, i, i + 1)
     }
+    i += 1
+    at += 1
   }
   let out = out.to_string()
   if steps is Some(steps) {
     if in_break {
-      collapsing.push((run - start, end - start, 1))
+      collapsing.push((run, at, 1))
     }
     let lead = out.length() - @util.trim_start(out).length()
     let trimmed = @util.trim(out).length()
-    steps.push([(0, start, 0), (end, text.length(), 0)])
+    if end < text.length() {
+      removed.push((end, text.length(), 0))
+    }
+    steps.push(removed)
     steps.push(collapsing)
     steps.push([(0, lead, 0), (lead + trimmed, out.length(), 0)])
   }

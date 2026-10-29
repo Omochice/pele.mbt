@@ -27,6 +27,8 @@ priv struct ShapeDef {
   /// A shape without one keeps its edges at the middle.
   span : ((Double, Double, Bool) -> Double)?
   no_label : Bool
+  /// Whether the shape draws no fill of its own, so a style fill never lies under its label.
+  bare : Bool
 }
 
 ///|
@@ -36,8 +38,9 @@ fn ShapeDef::new(
   inset? : (Double, Double, Int32, Double) -> Double,
   span? : (Double, Double, Bool) -> Double,
   no_label~ : Bool = false,
+  bare~ : Bool = false,
 ) -> ShapeDef {
-  { size, draw, inset, span, no_label, }
+  { size, draw, inset, span, no_label, bare, }
 }
 
 ///|
@@ -271,6 +274,7 @@ let shapes : Map[String, ShapeDef] = {
     },
   ),
   "text": ShapeDef::new(
+    bare=true,
     span=flat,
     size=(tw, th) => { w: tw + 8, h: th + 8, dy: 0, },
     draw=(w, h, _, _) => rect(w, h, hidden_box),
@@ -809,18 +813,21 @@ let shapes : Map[String, ShapeDef] = {
     },
   ),
   "brace": ShapeDef::new(
+    bare=true,
     size=(tw, th) => { w: tw + 2 * PAD_X + 12, h: th + 2 * PAD_Y, dy: 0, },
     draw=(w, h, _, line) => {
       rect(w, h, hidden_box) + brace(-w / 2 + 12, h, -1, line)
     },
   ),
   "brace-r": ShapeDef::new(
+    bare=true,
     size=(tw, th) => { w: tw + 2 * PAD_X + 12, h: th + 2 * PAD_Y, dy: 0, },
     draw=(w, h, _, line) => {
       rect(w, h, hidden_box) + brace(w / 2 - 12, h, 1, line)
     },
   ),
   "braces": ShapeDef::new(
+    bare=true,
     size=(tw, th) => { w: tw + 2 * PAD_X + 24, h: th + 2 * PAD_Y, dy: 0, },
     draw=(w, h, _, line) => {
       rect(w, h, hidden_box) +
@@ -925,6 +932,12 @@ pub fn shape_has_label(shape : String) -> Bool {
     Some(def) => !def.no_label
     None => true
   }
+}
+
+///|
+/// Whether the named shape is drawn with the fill a style sets, which an unknown shape is, as a rectangle.
+pub fn shape_filled(shape : String) -> Bool {
+  !shape_def(shape).bare
 }
 
 ///|

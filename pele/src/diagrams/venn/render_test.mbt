@@ -8,6 +8,54 @@ fn svg(source : String, max_width? : Double) -> String {
 }
 
 ///|
+/// The opening tag of the text that reads `text`.
+fn tag_reading(svg : String, text : String) -> String {
+  let end = @util.index_of(svg, ">\{text}</text>")
+  @util.slice(svg, @util.last_index_of(svg, "<text", from=end), end=end + 1)
+}
+
+///|
+test "picks a contrasting text color on an overlap a style fills" {
+  let drawn = svg(
+    "venn-beta\nset A\nset B\nset C\nunion A,B[\"ab\"]\n  text T[\"note\"]\nunion B,C[\"bc\"]\nstyle A,B fill:#1f3a5f\nstyle A fill:navy\nstyle B,C fill:#1f3a5f,color:#eee",
+  )
+  inspect(
+    ["ab", "note", "bc", "A"].map(text => tag_reading(drawn, text)).join("\n"),
+    content=(
+      #|<text class="pele-label" font-size="14" fill="var(--pele-fg-on-dark,#fff)" x="171.47" y="102.9" text-anchor="middle">
+      #|<text class="pele-venn-text" data-id="T" font-size="13" fill="var(--pele-fg-on-dark,#fff)" x="171.47" y="123.05" text-anchor="middle">
+      #|<text class="pele-label" font-size="14" style="fill:#eee;" x="262.51" y="170.07" text-anchor="middle">
+      #|<text class="pele-label" x="71.54" y="110.81" text-anchor="middle">
+    ),
+  )
+}
+
+///|
+test "reads the fill under the text from what is drawn last there" {
+  let covered = svg(
+    "venn-beta\nset A: 100\nset B: 100\nset C: 100\nunion A,B,C[\"triple\"]: 50\nunion A,B[\"ab\"]: 70\nunion A,C[\"ac\"]: 70\nunion B,C[\"bc\"]: 70\nstyle A,B,C fill:black\nstyle A,B fill:white",
+  )
+  assert_true(
+    tag_reading(covered, "triple").contains(
+      "fill=\"var(--pele-fg-on-light,#1f1f1f)\"",
+    ),
+  )
+  assert_true(
+    tag_reading(svg("venn-beta\nset A\nstyle A fill:black,fill-opacity:1"), "A").contains(
+      "fill=\"var(--pele-fg-on-dark,#fff)\"",
+    ),
+  )
+  assert_true(
+    tag_reading(
+      svg(
+        "venn-beta\nset A: 100\nset B: 100\nunion A,B[\"x\"]: 5\nstyle A,B fill:black",
+      ),
+      "x",
+    ).contains("fill=\"var(--pele-fg-on-dark,#fff)\""),
+  )
+}
+
+///|
 test "renders two sets and their overlap" {
   inspect(
     svg("venn-beta\nset A\nset B\nunion A,B"),
@@ -31,7 +79,9 @@ test "renders overlap fill" {
     svg(
       "venn-beta\nset A\nset B\nset C\nunion A,B[\"ab\"]\nunion A,B,C[\"abc\"]\nstyle A,B fill:gold\nstyle A,B,C fill:#333",
     ),
-    content="343x326 <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-venn\" viewBox=\"0 0 343 326\" width=\"343\" height=\"326\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"venn\"><g class=\"pele-venn-sets\"><circle class=\"pele-venn-set\" data-id=\"A\" cx=\"108\" cy=\"108\" r=\"100\" fill=\"var(--pele-series-1,#4c78a8)\" fill-opacity=\"0.2\" stroke=\"var(--pele-series-1,#4c78a8)\"/><circle class=\"pele-venn-set\" data-id=\"B\" cx=\"234.94\" cy=\"108\" r=\"100\" fill=\"var(--pele-series-2,#f58518)\" fill-opacity=\"0.2\" stroke=\"var(--pele-series-2,#f58518)\"/><circle class=\"pele-venn-set\" data-id=\"C\" cx=\"171.47\" cy=\"217.93\" r=\"100\" fill=\"var(--pele-series-3,#54a24b)\" fill-opacity=\"0.2\" stroke=\"var(--pele-series-3,#54a24b)\"/></g><g class=\"pele-venn-overlaps\"><path class=\"pele-venn-overlap\" data-id=\"A|B\" d=\"M171.47,30.72A100,100 0 0 1 171.47,185.28A100,100 0 0 1 171.47,30.72Z\" fill=\"none\" style=\"fill:gold;\"/><path class=\"pele-venn-overlap\" data-id=\"A|B|C\" d=\"M136.28,124.33A100,100 0 0 1 206.66,124.33A100,100 0 0 1 171.47,185.28A100,100 0 0 1 136.28,124.33Z\" fill=\"none\" style=\"fill:#333;\"/></g><g class=\"pele-venn-labels\"><g class=\"pele-venn-region\" data-id=\"A\"><text class=\"pele-label\" x=\"74.63\" y=\"94.33\" text-anchor=\"middle\">A</text></g><g class=\"pele-venn-region\" data-id=\"B\"><text class=\"pele-label\" x=\"268.31\" y=\"94.33\" text-anchor=\"middle\">B</text></g><g class=\"pele-venn-region\" data-id=\"C\"><text class=\"pele-label\" x=\"171.47\" y=\"262.07\" text-anchor=\"middle\">C</text></g><g class=\"pele-venn-region\" data-id=\"A|B\"><text class=\"pele-label\" font-size=\"14\" x=\"171.47\" y=\"90.23\" text-anchor=\"middle\">ab</text></g><g class=\"pele-venn-region\" data-id=\"A|B|C\"><text class=\"pele-label\" font-size=\"14\" x=\"171.47\" y=\"149.54\" text-anchor=\"middle\">abc</text></g></g></svg>",
+    content=(
+      #|343x326 <svg xmlns="http://www.w3.org/2000/svg" class="pele pele-venn" viewBox="0 0 343 326" width="343" height="326" style="max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)" fill="var(--_fg)" role="graphics-document document" aria-roledescription="venn"><g class="pele-venn-sets"><circle class="pele-venn-set" data-id="A" cx="108" cy="108" r="100" fill="var(--pele-series-1,#4c78a8)" fill-opacity="0.2" stroke="var(--pele-series-1,#4c78a8)"/><circle class="pele-venn-set" data-id="B" cx="234.94" cy="108" r="100" fill="var(--pele-series-2,#f58518)" fill-opacity="0.2" stroke="var(--pele-series-2,#f58518)"/><circle class="pele-venn-set" data-id="C" cx="171.47" cy="217.93" r="100" fill="var(--pele-series-3,#54a24b)" fill-opacity="0.2" stroke="var(--pele-series-3,#54a24b)"/></g><g class="pele-venn-overlaps"><path class="pele-venn-overlap" data-id="A|B" d="M171.47,30.72A100,100 0 0 1 171.47,185.28A100,100 0 0 1 171.47,30.72Z" fill="none" style="fill:gold;"/><path class="pele-venn-overlap" data-id="A|B|C" d="M136.28,124.33A100,100 0 0 1 206.66,124.33A100,100 0 0 1 171.47,185.28A100,100 0 0 1 136.28,124.33Z" fill="none" style="fill:#333;"/></g><g class="pele-venn-labels"><g class="pele-venn-region" data-id="A"><text class="pele-label" x="74.63" y="94.33" text-anchor="middle">A</text></g><g class="pele-venn-region" data-id="B"><text class="pele-label" x="268.31" y="94.33" text-anchor="middle">B</text></g><g class="pele-venn-region" data-id="C"><text class="pele-label" x="171.47" y="262.07" text-anchor="middle">C</text></g><g class="pele-venn-region" data-id="A|B"><text class="pele-label" font-size="14" fill="var(--pele-fg-on-light,#1f1f1f)" x="171.47" y="90.23" text-anchor="middle">ab</text></g><g class="pele-venn-region" data-id="A|B|C"><text class="pele-label" font-size="14" fill="var(--pele-fg-on-dark,#fff)" x="171.47" y="149.54" text-anchor="middle">abc</text></g></g></svg>
+    ),
   )
 }
 

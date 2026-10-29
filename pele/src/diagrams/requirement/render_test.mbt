@@ -241,6 +241,30 @@ test "spreads the ends of edges that share a side" {
 }
 
 ///|
+test "picks a contrasting text color on fills a style sets" {
+  let drawn = drawing(
+    "requirementDiagram\nrequirement a {\nid: 1\ntext: words\n}\nelement b {\ntype: t\n}\nelement c {\n}\nstyle a fill:#1f3a5f\nstyle b fill:#1f3a5f,color:#eee\n",
+  )
+  let node = (id : String) => {
+    let at = @util.index_of(drawn, "data-id=\"\{id}\"")
+    @util.slice(drawn, at, end=@util.index_of(drawn, "</g></g>", from=at))
+  }
+  let tag = (part : String, text : String) => {
+    let at = @util.index_of(text, "<text class=\"\{part}\"")
+    @util.slice(text, at, end=@util.index_of(text, ">", from=at) + 1)
+  }
+  for part in ["pele-stereotype", "pele-label", "pele-field", "pele-value"] {
+    assert_true(
+      tag(part, node("a")).contains(" fill=\"var(--pele-fg-on-dark,#fff)\""),
+      msg=part,
+    )
+  }
+  assert_true(tag("pele-label", node("b")).contains(" style=\"fill:#eee;\""))
+  assert_false(node("b").contains("--pele-fg-on"))
+  assert_true(tag("pele-stereotype", node("c")).contains(" fill=\"var(--_m)\""))
+}
+
+///|
 test "reads markdown emphasis in names and values" {
   inspect(
     svg(
@@ -256,7 +280,9 @@ test "styles nodes by style, classDef, class and the ::: shorthand" {
     svg(
       "requirementDiagram\nrequirement a:::hot {\nid: 1\n}\nelement b {\ntype: t\n}\nelement c {\n}\nclassDef hot fill:#f96,stroke:#333,stroke-width:4px\nclassDef cold color:blue\nclass b cold\nc:::hot,cold\nstyle c stroke:#0a0\n",
     ),
-    content="461x122 <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-requirement\" viewBox=\"0 0 461 122\" width=\"461\" height=\"122\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_hw:var(--pele-heading-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"requirement\"><g class=\"pele-nodes\"><g class=\"pele-node pele-requirement hot\" data-id=\"a\" transform=\"translate(70.19,61)\"><rect x=\"-62.19\" y=\"-53\" width=\"124.38\" height=\"106\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r);fill:#f96;stroke:#333;stroke-width:4px;\"/><text class=\"pele-stereotype\" font-size=\"14\" fill=\"var(--_m)\" x=\"0\" y=\"-27.6\" text-anchor=\"middle\">«Requirement»</text><text class=\"pele-label\" font-size=\"16\" font-weight=\"var(--_hw)\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"0\" y=\"-4.4\">a</tspan></text><path class=\"pele-divider\" d=\"M-62.19,12H62.19\" stroke=\"var(--_b)\" style=\"stroke:#333;stroke-width:4px;\"/><g class=\"pele-fields\" font-size=\"14\"><text class=\"pele-field\" fill=\"var(--_m)\" text-anchor=\"start\" xml:space=\"preserve\"><tspan x=\"-48.19\" y=\"37.4\">ID</tspan></text><text class=\"pele-value\" text-anchor=\"start\" xml:space=\"preserve\"><tspan x=\"-22.19\" y=\"37.4\">1</tspan></text></g></g><g class=\"pele-node pele-element cold\" data-id=\"b\" transform=\"translate(232.38,61)\"><rect x=\"-60\" y=\"-53\" width=\"120\" height=\"106\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-stereotype\" font-size=\"14\" fill=\"var(--_m)\" style=\"fill:blue;\" x=\"0\" y=\"-27.6\" text-anchor=\"middle\">«Element»</text><text class=\"pele-label\" font-size=\"16\" font-weight=\"var(--_hw)\" style=\"fill:blue;\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"0\" y=\"-4.4\">b</tspan></text><path class=\"pele-divider\" d=\"M-60,12H60\" stroke=\"var(--_b)\"/><g class=\"pele-fields\" font-size=\"14\"><text class=\"pele-field\" fill=\"var(--_m)\" style=\"fill:blue;\" text-anchor=\"start\" xml:space=\"preserve\"><tspan x=\"-46\" y=\"37.4\">Type</tspan></text><text class=\"pele-value\" style=\"fill:blue;\" text-anchor=\"start\" xml:space=\"preserve\"><tspan x=\"-2.88\" y=\"37.4\">t</tspan></text></g></g><g class=\"pele-node pele-element hot cold\" data-id=\"c\" transform=\"translate(392.38,61)\"><rect x=\"-60\" y=\"-32.5\" width=\"120\" height=\"65\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r);fill:#f96;stroke:#0a0;stroke-width:4px;\"/><text class=\"pele-stereotype\" font-size=\"14\" fill=\"var(--_m)\" style=\"fill:blue;\" x=\"0\" y=\"-7.1\" text-anchor=\"middle\">«Element»</text><text class=\"pele-label\" font-size=\"16\" font-weight=\"var(--_hw)\" style=\"fill:blue;\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"0\" y=\"16.1\">c</tspan></text></g></g></svg>",
+    content=(
+      #|461x122 <svg xmlns="http://www.w3.org/2000/svg" class="pele pele-requirement" viewBox="0 0 461 122" width="461" height="122" style="max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_hw:var(--pele-heading-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)" fill="var(--_fg)" role="graphics-document document" aria-roledescription="requirement"><g class="pele-nodes"><g class="pele-node pele-requirement hot" data-id="a" transform="translate(70.19,61)"><rect x="-62.19" y="-53" width="124.38" height="106" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r);fill:#f96;stroke:#333;stroke-width:4px;"/><text class="pele-stereotype" font-size="14" fill="var(--pele-fg-on-light,#1f1f1f)" x="0" y="-27.6" text-anchor="middle">«Requirement»</text><text class="pele-label" font-size="16" font-weight="var(--_hw)" fill="var(--pele-fg-on-light,#1f1f1f)" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.4">a</tspan></text><path class="pele-divider" d="M-62.19,12H62.19" stroke="var(--_b)" style="stroke:#333;stroke-width:4px;"/><g class="pele-fields" font-size="14"><text class="pele-field" fill="var(--pele-fg-on-light,#1f1f1f)" text-anchor="start" xml:space="preserve"><tspan x="-48.19" y="37.4">ID</tspan></text><text class="pele-value" fill="var(--pele-fg-on-light,#1f1f1f)" text-anchor="start" xml:space="preserve"><tspan x="-22.19" y="37.4">1</tspan></text></g></g><g class="pele-node pele-element cold" data-id="b" transform="translate(232.38,61)"><rect x="-60" y="-53" width="120" height="106" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r)"/><text class="pele-stereotype" font-size="14" fill="var(--_m)" style="fill:blue;" x="0" y="-27.6" text-anchor="middle">«Element»</text><text class="pele-label" font-size="16" font-weight="var(--_hw)" style="fill:blue;" text-anchor="middle" xml:space="preserve"><tspan x="0" y="-4.4">b</tspan></text><path class="pele-divider" d="M-60,12H60" stroke="var(--_b)"/><g class="pele-fields" font-size="14"><text class="pele-field" fill="var(--_m)" style="fill:blue;" text-anchor="start" xml:space="preserve"><tspan x="-46" y="37.4">Type</tspan></text><text class="pele-value" style="fill:blue;" text-anchor="start" xml:space="preserve"><tspan x="-2.88" y="37.4">t</tspan></text></g></g><g class="pele-node pele-element hot cold" data-id="c" transform="translate(392.38,61)"><rect x="-60" y="-32.5" width="120" height="65" fill="var(--_s)" stroke="var(--_b)" style="rx:var(--_r);fill:#f96;stroke:#0a0;stroke-width:4px;"/><text class="pele-stereotype" font-size="14" fill="var(--_m)" style="fill:blue;" x="0" y="-7.1" text-anchor="middle">«Element»</text><text class="pele-label" font-size="16" font-weight="var(--_hw)" style="fill:blue;" text-anchor="middle" xml:space="preserve"><tspan x="0" y="16.1">c</tspan></text></g></g></svg>
+    ),
   )
 }
 

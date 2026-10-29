@@ -19,6 +19,10 @@ pub const LEAD : Double = 6
 
 pub const LINE_CSS : String = "\x00l"
 
+pub const ON_DARK : String = "var(--pele-fg-on-dark,#fff)"
+
+pub const ON_LIGHT : String = "var(--pele-fg-on-light,#1f1f1f)"
+
 pub const PAD_X : Double = 18
 
 pub const PAD_Y : Double = 12
@@ -35,6 +39,8 @@ pub const STROKE_CSS : String = "\x00k"
 
 pub const TEXT_CSS : String = "\x00t"
 
+pub fn casing(String, String, line? : String, thick? : Bool) -> String
+
 pub fn class_names(String) -> String
 
 pub fn cluster_title_x(@layout.CNode, Double, Crossings, Double) -> Double
@@ -43,15 +49,27 @@ pub fn document_length(String) -> Int64
 
 pub fn draw_shape(String, Double, Double, String, String) -> String
 
+pub fn edge_casing(EdgePath, String, String, line? : String, thick? : Bool) -> String
+
+pub fn edge_ink(Fill, line? : String) -> String
+
 pub fn end_side(Array[Double], Int32, @layout.CNode) -> Int32
 
 pub fn esc(String) -> String
 
 pub fn esc_text(String) -> String
 
+pub fn fill_under(String, Array[Double], Array[Fill], tokens? : Array[Double]) -> FillUnder
+
 pub fn font_style(Double, String?, String?) -> String
 
 pub fn has_invalid_xml(String) -> Bool
+
+pub fn hollow_on(String, Fill) -> String
+
+pub fn ink(String, text? : String) -> String?
+
+pub fn ink_fill(ResolvedStyle, fallback? : String) -> String
 
 pub fn inset_route(Array[Double], Int32, @layout.CNode, shape~ : String, w~ : Double, h~ : Double) -> Unit
 
@@ -61,7 +79,7 @@ pub fn loop_path(@layout.CNode, Double, Double, Int32, Bool, Double, Double, @la
 
 pub fn mark_crossings(Crossings, Array[Double]) -> Unit
 
-pub fn marker(String, Double, Double, Double, Double, String) -> String
+pub fn marker(String, Double, Double, Double, Double, String, stroke? : String) -> String
 
 pub fn marker_trim(String) -> Double
 
@@ -70,6 +88,24 @@ pub fn markup_document(String, Double, Double, Double, @types.RenderOptions, Str
 pub fn node_class_names(String) -> String
 
 pub fn num(Double) -> String
+
+pub fn over_fills(String, Array[Double], Array[Fill], line? : String, tokens? : Array[Double]) -> String?
+
+pub fn paints(String) -> Bool
+
+pub fn raw_casing(String, String, css~ : String, thick? : Bool) -> String
+
+pub fn raw_edge_casing(EdgePath, String, String, css~ : String, thick? : Bool) -> String
+
+pub fn raw_edge_ink(Fill, css~ : String) -> String
+
+pub fn raw_ink(String, text? : String) -> String?
+
+pub fn raw_ink_fill(RawStyle, fallback? : String) -> String
+
+pub fn raw_over_fills(String, Array[Double], Array[Fill], css~ : String) -> String?
+
+pub fn raw_paints(String) -> Bool
 
 pub fn resolve_raw_style(Array[String]) -> RawStyle
 
@@ -80,6 +116,14 @@ pub fn rounded(String) -> String
 pub fn route_path(Array[Double], String?, Double, Double, start_reach? : Double, end_reach? : Double) -> EdgePath
 
 pub fn series_color(Int32) -> String
+
+pub fn sets_fill(String) -> Bool
+
+pub fn sets_font_family(String) -> Bool
+
+pub fn sets_raw_fill(String) -> Bool
+
+pub fn shape_filled(String) -> Bool
 
 pub fn shape_has_label(String) -> Bool
 
@@ -108,6 +152,8 @@ pub fn too_large_to_hold() -> @errors.PeleError
 pub fn with_title(String?, @text.TextMeasurer, Double, Double, Double, Double, Markup) -> Titled raise @errors.PeleError
 
 pub fn without_invalid_xml(String) -> String
+
+pub fn write_casings(Markup, Markup) -> Unit
 
 pub fn write_edge_label(Markup, String, @text.Label, Double, Double, String, icons? : (String) -> String?) -> Unit raise @errors.PeleError
 
@@ -138,6 +184,7 @@ pub fn Crossings::new() -> Self
 
 pub(all) struct EdgePath {
   d : String
+  tokens : Array[Double]?
   sx : Double
   sy : Double
   sdx : Double
@@ -146,6 +193,20 @@ pub(all) struct EdgePath {
   ey : Double
   edx : Double
   edy : Double
+}
+
+pub(all) struct Fill {
+  box : Array[Double]
+  ink : String?
+  color : String?
+}
+pub fn Fill::new(Array[Double], String) -> Self
+pub fn Fill::raw(Array[Double], String) -> Self
+
+pub(all) enum FillUnder {
+  Off
+  Across
+  On(Fill)
 }
 
 type Markup

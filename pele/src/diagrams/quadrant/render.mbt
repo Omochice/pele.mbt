@@ -154,6 +154,11 @@ fn render_quadrant(
   ) => {
     let mut k = from
     while k < taken.length() {
+      // An empty quadrant label takes no room, so it must not block point labels.
+      if taken[k] >= taken[k + 2] || taken[k + 1] >= taken[k + 3] {
+        k += 4
+        continue
+      }
       if x0 < taken[k + 2] &&
         x1 > taken[k] &&
         y0 < taken[k + 3] &&

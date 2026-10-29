@@ -1,6 +1,7 @@
 ///|
-/// Pairs of a click target and what `sanitizeUrl` makes of it, from pele v1.10.0.
-/// Each answer also agrees with @braintree/sanitize-url, which Mermaid applies to click targets.
+/// Pairs of a click target and what `sanitizeUrl` makes of it, from pele 1.12.0.
+/// Each answer also agrees with @braintree/sanitize-url, which Mermaid applies to click targets,
+/// apart from the percent escapes pele keeps.
 let sanitized : Array[(String, String)] = [
   ("https://example.com", "https://example.com/"),
   ("http://EXAMPLE.com/Path?q=1#frag", "http://example.com/Path?q=1#frag"),
@@ -45,18 +46,18 @@ let sanitized : Array[(String, String)] = [
   ("a%5Cnb", "ab"),
   ("a\\%6Eb", "ab"),
   ("a%5c%72b", "ab"),
-  ("%2525252541", "%252541"),
+  ("%2525252541", "%2525252541"),
   (
     "%25252525252525252525252525252525252525252525252525252525252525252525252525252525",
-    "%2525252525252525252525252525252525252525252525252525252525252525252525252525",
+    "%25252525252525252525252525252525252525252525252525252525252525252525252525252525",
   ),
   ("x%%%%", "x%%%%"),
   ("%C0%AF", "%C0%AF"),
   ("%ED%A0%80", "%ED%A0%80"),
   ("%F4%90%80%80", "%F4%90%80%80"),
   ("%E2%82", "%E2%82"),
-  ("%e2%82%ac", "\u{20ac}"),
-  (" %20http://x ", "http://x/"),
+  ("%e2%82%ac", "%e2%82%ac"),
+  (" %20http://x ", "about:blank"),
   ("http:x", "http://x/"),
   ("http:/x", "http://x/"),
   ("http:\\\\x", "http://x/"),
@@ -77,7 +78,7 @@ let sanitized : Array[(String, String)] = [
   ("http://XN--LS8H.la/", "http://xn--ls8h.la/"),
   ("http://\u{c9}XAMPLE.com/", "http://xn--xample-9ua.com/"),
   ("http://m\u{fc}ller.de/", "http://xn--mller-kva.de/"),
-  ("http://a%2541.com/", "http://aa.com/"),
+  ("http://a%2541.com/", "about:blank"),
   ("http://a%252.com/", "about:blank"),
   ("http://a b/", "about:blank"),
   ("http://a<b/", "about:blank"),
@@ -87,11 +88,11 @@ let sanitized : Array[(String, String)] = [
   (
     "http://x/'\"<>^`{}|?'\"<>^`{}|#'\"<>^`{}|", "http://x/'%22%3C%3E%5E%60%7B%7D|?%27%22%3C%3E^`{}|#'%22%3C%3E^%60{}|",
   ),
-  ("http://x/a%252/b", "http://x/a%2/b"),
+  ("http://x/a%252/b", "http://x/a%252/b"),
   ("http://x/..", "http://x/"),
   ("http://x/a/..", "http://x/"),
   ("http://x/a/.", "http://x/a/"),
-  ("http://x/.%252e/", "http://x/"),
+  ("http://x/.%252e/", "http://x/.%252e/"),
   ("http://[1]/", "about:blank"),
   ("http://a..b/", "http://a..b/"),
   ("http://.a/", "http://.a/"),
@@ -109,7 +110,7 @@ let sanitized : Array[(String, String)] = [
   (".\u{2028}javascript:x", ".\u{2028}javascript:x"),
   ("\u{a0}javascript:x", "about:blank"),
   ("https://example.com/\u{e9}", "https://example.com/%C3%A9"),
-  ("ht%74p://x", "http://x/"),
+  ("ht%74p://x", "about:blank"),
   ("mailto:A@B.c", "mailto:A@B.c"),
   ("MAILTO:a@b", "MAILTO:a@b"),
   ("tel:1", "tel:1"),
@@ -128,7 +129,7 @@ let sanitized : Array[(String, String)] = [
 ]
 
 ///|
-test "click targets are sanitized as @braintree/sanitize-url does" {
+test "click targets are sanitized as pele 1.12.0 does" {
   let wrong = []
   for pair in sanitized {
     let (url, expected) = pair
@@ -140,6 +141,32 @@ test "click targets are sanitized as @braintree/sanitize-url does" {
     }
   }
   inspect(wrong.join("\n"), content="")
+}
+
+///|
+test "percent escapes are kept" {
+  for
+    url in [
+      "obsidian://open?vault=V&file=A%26B%23C", "https://example.com/?q=a%26b", "mailto:a@example.com?subject=a%20b",
+      "Note%20name", "./a%23b.html",
+    ] {
+    assert_eq(@url.sanitize_url(url), url)
+  }
+}
+
+///|
+test "percent escapes cannot hide a scheme or a network path" {
+  inspect(
+    @url.sanitize_url("%6A%61%76%61%73%63%72%69%70%74:alert(1)"),
+    content="about:blank",
+  )
+  let options = @types.RenderOptions::default()
+  for
+    url in [
+      "fi%6ce:///etc/passwd", "%2F%2Fevil.example/share", "obs%69dian://open",
+    ] {
+    assert_eq(@url.link_url(@url.sanitize_url(url), options), None)
+  }
 }
 
 ///|

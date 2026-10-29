@@ -36,6 +36,7 @@ pub(all) struct Parsed {
 pub(all) struct RenderOptions {
   font_family : String?
   font_family_mono : String?
+  monospace : Array[String]?
   font_size : Double?
   id_prefix : String?
   responsive : Bool?
@@ -58,6 +59,7 @@ pub(all) struct RenderOptions {
   math : ((String, Double) -> Json?)?
 }
 pub fn RenderOptions::default() -> Self
+pub fn RenderOptions::monospaces(Self, String) -> Bool
 pub fn RenderOptions::text_measurer(Self) -> @text.TextMeasurer
 
 pub(all) struct RenderResult {

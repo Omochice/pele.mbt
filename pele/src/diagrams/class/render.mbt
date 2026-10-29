@@ -20,6 +20,9 @@ const PAD_X : Double = 12
 const TITLE_PAD : Double = 8
 
 ///|
+const FONT_MONO : String = "var(--_fm)"
+
+///|
 const SECTION_PAD : Double = 6
 
 ///|
@@ -106,6 +109,7 @@ fn member_line(
   item : ClassMember,
   measurer : @text.TextMeasurer,
   size : Double,
+  mono : Bool,
 ) -> Line {
   let text = @util.trim(
     @text.decode_entities(item.display_details().display_text),
@@ -115,14 +119,19 @@ fn member_line(
     width: measurer.width(
       text,
       size,
-      if item.classifier == "*" {
-        @text.STYLE_ITALIC
-      } else {
-        0
-      },
+      (if item.classifier == "*" { @text.STYLE_ITALIC } else { 0 }) |
+      (if mono { @text.STYLE_MONO } else { 0 }),
     ),
     classifier: item.classifier,
   }
+}
+
+///|
+/// Whether the members of a class with `style` are measured and drawn in the monospace font.
+fn mono_members(options : @types.RenderOptions, style : @svg.RawStyle) -> Bool {
+  // A font the author names in a style or classDef is a choice about this class, so it outranks a diagram-wide option.
+  options.monospaces("members") &&
+  !@svg.sets_font_family(@svg.style_attribute(style.text))
 }
 
 ///|
@@ -316,8 +325,13 @@ fn draw(
         None => Literal("«" + @util.trim(@text.decode_entities(a)) + "»")
       }
     })
-    let attributes = cls.members.map(m => member_line(m, measurer, member_size))
-    let methods = cls.methods.map(m => member_line(m, measurer, member_size))
+    let mono = mono_members(options, style)
+    let attributes = cls.members.map(m => {
+      member_line(m, measurer, member_size, mono)
+    })
+    let methods = cls.methods.map(m => {
+      member_line(m, measurer, member_size, mono)
+    })
     let mut inner = label.width
     let mut annotations_h = 0.0
     for a in annotations {
@@ -1014,6 +1028,7 @@ fn draw(
         d: "M\{num(x + start_trim)},\{num(y - spread)}C\{num(x + reach + start_trim)},\{num(y - spread)} \{num(x + reach + end_trim)},\{num(y + spread)} \{num(x + end_trim)},\{num(y + spread)}",
         sx: x,
         sy: y - spread,
+        tokens: None,
         sdx: -1,
         sdy: 0,
         ex: x,
@@ -1166,6 +1181,8 @@ fn write_class(
   )
   @svg.write_rounded_style(body, style.shape)
   body.write("/>")
+  let ink = @svg.raw_ink_fill(style)
+  let muted = @svg.raw_ink_fill(style, fallback="var(--_m)")
   let first = top + view.title_h
   let second = first + view.attributes_h
   if h > view.title_h {
@@ -1184,7 +1201,7 @@ fn write_class(
     match annotation {
       Literal(text) => {
         body.write(
-          "<text class=\"pele-annotation\" x=\"0\" y=\"\{num(y + tiny_height / 2 + tiny * 0.35)}\" text-anchor=\"middle\" font-size=\"\{tiny}\" fill=\"var(--_m)\">",
+          "<text class=\"pele-annotation\" x=\"0\" y=\"\{num(y + tiny_height / 2 + tiny * 0.35)}\" text-anchor=\"middle\" font-size=\"\{tiny}\"\{muted}>",
         )
         body.write_esc(text)
         body.write("</text>")
@@ -1197,7 +1214,7 @@ fn write_class(
           math,
           0,
           y + h / 2,
-          " class=\"pele-annotation\" font-size=\"\{tiny}\" fill=\"var(--_m)\"",
+          " class=\"pele-annotation\" font-size=\"\{tiny}\"\{muted}",
           icons?=options.icons,
         )
         y += h
@@ -1214,7 +1231,7 @@ fn write_class(
     view.label,
     0,
     (y + first - TITLE_PAD) / 2,
-    " class=\"pele-label\"\{title_size} font-weight=\"var(--_hw)\"",
+    " class=\"pele-label\"\{title_size} font-weight=\"var(--_hw)\"\{ink}",
     style.text,
     icons?=options.icons,
   )
@@ -1247,7 +1264,11 @@ fn write_class(
     }
   }
   if view.attributes.length() > 0 || view.methods.length() > 0 {
-    body.write("<g class=\"pele-members\" font-size=\"\{member_size}\">")
+    body.write("<g class=\"pele-members\" font-size=\"\{member_size}\"\{ink}")
+    if mono_members(options, style) {
+      body.write(" font-family=\"\{FONT_MONO}\"")
+    }
+    body.write(">")
     lines(view.attributes, "attribute", first)
     lines(view.methods, "method", second)
     body.write("</g>")

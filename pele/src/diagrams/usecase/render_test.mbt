@@ -93,7 +93,9 @@ test "render_usecase: notes, JSON tables, classes and styles" {
     svg_of(
       "usecase-beta\nactor A:::hot\nU(Use)\nsystemBoundary S\n  V\nend\nA e@--> U\nclassDef hot fill:#fee,stroke:#c33,color:#900,font-weight:bold\nclassDef default stroke-width:2px\nclass U,S,e hot\nstyle U stroke:#06c\nstyle e stroke-width:4px\nA f@--> V\nf@{ animation: slow }",
     ),
-    content="<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-usecase\" viewBox=\"0 0 276 212\" width=\"276\" height=\"212\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_w:var(--pele-bold-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"usecase\"><g class=\"pele-clusters\"><g class=\"pele-cluster pele-boundary system-boundary system-boundary-rect hot\" data-id=\"S\"><rect x=\"120\" y=\"92\" width=\"148\" height=\"112\" fill=\"var(--_a)\" fill-opacity=\"0.5\" stroke=\"var(--_b)\" style=\"rx:var(--_r);stroke-width:2px;fill:#fee;stroke:#c33;\"/><text class=\"pele-cluster-label\" fill=\"var(--_m)\" style=\"fill:#900;font-weight:bold;\" font-weight=\"var(--_w)\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"194\" y=\"117.6\">S</tspan></text></g></g><g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\"><g class=\"pele-edge pele-association hot\" data-id=\"e\" style=\"stroke-width:4px;stroke:#c33;\"><path d=\"M51,74C94,74 94,34 137,34L143,34\"/><path class=\"pele-marker\" d=\"M150,34L142,37.36L142,30.64Z\" fill=\"#c33\" stroke=\"none\"/></g><g class=\"pele-edge pele-association edge-animation-slow\" data-id=\"f\" style=\"stroke-width:2px;\"><path d=\"M51,88C85.5,88 85.5,158 120,158L153,158\" stroke-dasharray=\"9 5\"/><path class=\"pele-marker\" d=\"M160,158L152,161.36L152,154.64Z\" fill=\"var(--_l)\" stroke=\"none\"/></g></g><g class=\"pele-nodes\"><g class=\"pele-node pele-actor usecase-actor usecase-actor-normal hot\" data-id=\"A\" transform=\"translate(28,96)\"><g class=\"pele-actor-figure\" transform=\"translate(0,-15)\"><circle cy=\"-21\" r=\"9\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"stroke-width:2px;fill:#fee;stroke:#c33;\"/><path d=\"M0,-12V10M-14,-3H14M0,10L-12,30M0,10L12,30\" fill=\"none\" stroke=\"var(--_b)\" style=\"stroke-width:2px;stroke:#c33;\"/></g><text class=\"pele-label\" style=\"fill:#900;font-weight:bold;\" font-weight=\"var(--_w)\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"0\" y=\"38.6\">A</tspan></text></g><g class=\"pele-node pele-usecase usecase-element usecase-ellipse hot\" data-id=\"U\" transform=\"translate(194,34)\"><ellipse rx=\"44\" ry=\"26\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"stroke-width:2px;fill:#fee;stroke:#06c;\"/><text class=\"pele-label\" style=\"fill:#900;font-weight:bold;\" font-weight=\"var(--_w)\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"0\" y=\"5.6\">Use</tspan></text></g><g class=\"pele-node pele-usecase usecase-element usecase-ellipse\" data-id=\"V\" transform=\"translate(204,158)\"><ellipse rx=\"44\" ry=\"26\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"stroke-width:2px;\"/><text class=\"pele-label\" x=\"0\" y=\"5.6\" text-anchor=\"middle\">V</text></g></g></svg>",
+    content=(
+      #|<svg xmlns="http://www.w3.org/2000/svg" class="pele pele-usecase" viewBox="0 0 276 212" width="276" height="212" style="max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_w:var(--pele-bold-weight,bold);--_fm:var(--pele-font-mono,monospace);font:16px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,sans-serif)" fill="var(--_fg)" role="graphics-document document" aria-roledescription="usecase"><g class="pele-clusters"><g class="pele-cluster pele-boundary system-boundary system-boundary-rect hot" data-id="S"><rect x="120" y="92" width="148" height="112" fill="var(--_a)" stroke="var(--_b)" style="rx:var(--_r);stroke-width:2px;fill:#fee;stroke:#c33;"/><text class="pele-cluster-label" fill="var(--_m)" style="fill:#900;font-weight:bold;" font-weight="var(--_w)" text-anchor="middle" xml:space="preserve"><tspan x="194" y="117.6">S</tspan></text></g></g><g class="pele-casings" fill="none" stroke="var(--_bg)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"><g stroke-width="6"><path d="M51,88C85.5,88 85.5,158 120,158L153,158"/><path d="M160,158L152,161.36L152,154.64Z" fill="var(--_bg)" stroke="var(--_bg)"/></g></g><g class="pele-edges" fill="none" stroke="var(--_l)" stroke-linecap="round"><g class="pele-edge pele-association hot" data-id="e" style="stroke-width:4px;stroke:#c33;"><path d="M51,74C94,74 94,34 137,34L143,34"/><path class="pele-marker" d="M150,34L142,37.36L142,30.64Z" fill="#c33" stroke="none"/></g><g class="pele-edge pele-association edge-animation-slow" data-id="f" style="stroke-width:2px;"><path d="M51,88C85.5,88 85.5,158 120,158L153,158" stroke-dasharray="9 5"/><path class="pele-marker" d="M160,158L152,161.36L152,154.64Z" fill="var(--_l)" stroke="none"/></g></g><g class="pele-nodes"><g class="pele-node pele-actor usecase-actor usecase-actor-normal hot" data-id="A" transform="translate(28,96)"><g class="pele-actor-figure" transform="translate(0,-15)"><circle cy="-21" r="9" fill="var(--_s)" stroke="var(--_b)" style="stroke-width:2px;fill:#fee;stroke:#c33;"/><path d="M0,-12V10M-14,-3H14M0,10L-12,30M0,10L12,30" fill="none" stroke="var(--_b)" style="stroke-width:2px;stroke:#c33;"/></g><text class="pele-label" style="fill:#900;font-weight:bold;" font-weight="var(--_w)" text-anchor="middle" xml:space="preserve"><tspan x="0" y="38.6">A</tspan></text></g><g class="pele-node pele-usecase usecase-element usecase-ellipse hot" data-id="U" transform="translate(194,34)"><ellipse rx="44" ry="26" fill="var(--_s)" stroke="var(--_b)" style="stroke-width:2px;fill:#fee;stroke:#06c;"/><text class="pele-label" style="fill:#900;font-weight:bold;" font-weight="var(--_w)" text-anchor="middle" xml:space="preserve"><tspan x="0" y="5.6">Use</tspan></text></g><g class="pele-node pele-usecase usecase-element usecase-ellipse" data-id="V" transform="translate(204,158)"><ellipse rx="44" ry="26" fill="var(--_s)" stroke="var(--_b)" style="stroke-width:2px;"/><text class="pele-label" x="0" y="5.6" text-anchor="middle">V</text></g></g></svg>
+    ),
   )
 }
 
@@ -194,4 +196,141 @@ test "a JSON error after an entity code is reported in the text as written" {
       #|2:25 Invalid JSON: Unexpected token '}', "{"a":"#35;", "b":}" is not valid JSON (line 2, column 25)
     ),
   )
+}
+
+///|
+test "draws a boundary fill the author sets at full opacity" {
+  let svg = svg_of(
+    "usecase-beta\nsystemBoundary S\n  U\nend\nsystemBoundary T\n  V\nend\nstyle S fill:#fee",
+  )
+  let body = (id : String) => {
+    let mut at = @util.index_of(
+      svg,
+      "<rect ",
+      from=@util.index_of(svg, "data-id=\"\{id}\">"),
+    )
+    while at != -1 {
+      let rect = @util.slice(svg, at, end=@util.index_of(svg, ">", from=at) + 1)
+      if rect.contains("fill=\"var(--_a)\"") {
+        return rect
+      }
+      at = @util.index_of(svg, "<rect ", from=at + 1)
+    }
+    ""
+  }
+  assert_true(body("S") != "" && !body("S").contains("fill-opacity"))
+  assert_true(body("T").contains("fill-opacity=\"0.5\""))
+}
+
+///|
+test "picks a contrasting text color on fills a style sets" {
+  let svg = svg_of(
+    "usecase-beta\nactor A <<Human>>\nU(Use) <<Core>>\nW(Own)\nX(Plain)\njson J@{ \"k\": \"v\" }\nsystemBoundary S\n  V\nend\nstyle U fill:#1f3a5f\nstyle A fill:#1f3a5f\nstyle W fill:#1f3a5f,color:#eee\nstyle J fill:navy\nstyle S fill:#FFF9C4",
+  )
+  let texts = (id : String) => {
+    let from = @util.index_of(svg, "data-id=\"\{id}\"")
+    let next = @util.index_of(svg, "</g><g", from~)
+    let last = @util.index_of(svg, "</g></g>", from~)
+    let end = if next != -1 && (last == -1 || next < last) {
+      next
+    } else {
+      last
+    }
+    let tags = []
+    let mut at = @util.index_of(svg, "<text ", from~)
+    while at != -1 && at < end {
+      tags.push(@util.slice(svg, at, end=@util.index_of(svg, ">", from=at) + 1))
+      at = @util.index_of(svg, "<text ", from=at + 1)
+    }
+    "\{id}: " + tags.join(" ")
+  }
+  inspect(
+    ["U", "A", "W", "J", "S", "X"].map(texts).join("\n"),
+    content=(
+      #|U: <text class="pele-stereotype" font-size="13" fill="var(--pele-fg-on-dark,#fff)" x="0" y="-7.45" text-anchor="middle"> <text class="pele-label" fill="var(--pele-fg-on-dark,#fff)" x="0" y="15.6" text-anchor="middle">
+      #|A: <text class="pele-stereotype" font-size="13" fill="var(--_m)" x="0" y="25.55" text-anchor="middle"> <text class="pele-label" x="0" y="48.6" text-anchor="middle">
+      #|W: <text class="pele-label" style="fill:#eee;" x="0" y="5.6" text-anchor="middle">
+      #|J: <text class="pele-label" font-weight="var(--_hw)" fill="var(--pele-fg-on-dark,#fff)" text-anchor="middle" xml:space="preserve"> <text class="pele-json-key" fill="var(--pele-fg-on-dark,#fff)" x="-22.5" y="20.9" text-anchor="middle"> <text class="pele-json-value" fill="var(--pele-fg-on-dark,#fff)" x="4.5" y="20.9" text-anchor="middle">
+      #|S: <text class="pele-cluster-label" fill="var(--pele-fg-on-light,#1f1f1f)" x="72" y="447.6" text-anchor="middle">
+      #|X: <text class="pele-label" x="0" y="5.6" text-anchor="middle">
+    ),
+  )
+}
+
+///|
+/// The `d` of every edge's line, in order.
+fn edge_paths(svg : String) -> Array[String] {
+  let paths = []
+  let head = "<g class=\"pele-edge "
+  let mut at = @util.index_of(svg, head)
+  while at != -1 {
+    let open = @util.index_of(svg, "<path d=\"", from=at) + 9
+    paths.push(@util.slice(svg, open, end=@util.index_of(svg, "\"", from=open)))
+    at = @util.index_of(svg, head, from=open)
+  }
+  paths
+}
+
+///|
+/// What the group of casings in a drawing holds, or an empty string when it has none.
+fn casings_of(svg : String) -> String {
+  let open = @util.index_of(svg, "<g class=\"pele-casings\"")
+  if open == -1 {
+    return ""
+  }
+  let start = @util.index_of(svg, ">", from=open) + 1
+  @util.slice(
+    svg,
+    start,
+    end=@util.index_of(svg, "</g><g class=\"pele-edges\"", from=start),
+  )
+}
+
+///|
+test "cases edges that cross a boundary fill a style sets and inks those inside it" {
+  let source = "usecase-beta\nactor User\nsystemBoundary S\n  Pay\n  Ship\nend\nPay --> Ship\nUser --> Pay\nUser --> Other\nstyle S fill:#BBDEFB"
+  let svg = svg_of(source)
+  let casings = casings_of(svg)
+  let paths = edge_paths(svg)
+  inspect(paths.length(), content="3")
+  // Pay --> Ship lies inside the boundary and takes its ink; User --> Pay crosses into it.
+  inspect(
+    paths.map(d => casings.contains("<path d=\"\{d}\"/>").to_string()).join(" "),
+    content="false true false",
+  )
+  inspect(
+    edge_heads(svg),
+    content=(
+      #|<g class="pele-edge pele-association" data-id="edge-0" stroke="var(--pele-fg-on-light,#1f1f1f)">
+      #|<g class="pele-edge pele-association" data-id="edge-1">
+      #|<g class="pele-edge pele-association" data-id="edge-2">
+    ),
+  )
+  let plain = svg_of(source.replace(old="\nstyle S fill:#BBDEFB", new=""))
+  inspect(plain.contains("pele-casings"), content="false")
+  inspect(plain.contains("stroke=\"var(--pele-fg-on"), content="false")
+  // A hollow triangle keeps the fill's color inside it.
+  let hollow = svg_of(
+    "usecase-beta\nsystemBoundary S\n  Pay\n  Ship\nend\nPay --|> Ship\nstyle S fill:black",
+  )
+  let at = @util.index_of(hollow, "<path class=\"pele-marker\"")
+  inspect(
+    @util.slice(hollow, at, end=@util.index_of(hollow, "/>", from=at) + 2),
+    content=(
+      #|<path class="pele-marker" d="M188,74L176,80L176,68Z" fill="black" stroke="var(--pele-fg-on-dark,#fff)" stroke-linejoin="round"/>
+    ),
+  )
+}
+
+///|
+/// The opening tag of every edge's group, one to a line.
+fn edge_heads(svg : String) -> String {
+  let heads = []
+  let head = "<g class=\"pele-edge "
+  let mut at = @util.index_of(svg, head)
+  while at != -1 {
+    heads.push(@util.slice(svg, at, end=@util.index_of(svg, ">", from=at) + 1))
+    at = @util.index_of(svg, head, from=at + 1)
+  }
+  heads.join("\n")
 }

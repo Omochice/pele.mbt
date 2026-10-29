@@ -92,7 +92,7 @@ test "the keyword takes the longest form that ends at a word boundary" {
 test "what Mermaid rejects is rejected with its message" {
   inspect(
     parsed("ishikawa-beta"),
-    content="Parse error on line 2:\n\n^\nExpecting 'SPACELINE', 'SPACELIST', 'TEXT', got 'EOF'",
+    content="Parse error on line 1:\nishikawa-beta\n-------------^\nExpecting 'SPACELINE', 'SPACELIST', 'TEXT', got 'EOF'",
   )
   inspect(
     parsed("ishikawa-beta\n\n  Effect\n"),

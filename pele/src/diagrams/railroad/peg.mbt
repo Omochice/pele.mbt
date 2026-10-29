@@ -56,7 +56,7 @@ let peg_tokens : Array[@common.TokenType] = [
   @common.literal("(", "("),
   @common.literal(")", ")"),
   @common.literal(".", "."),
-  title,
+  title(continues_identifier),
   acc_title,
   acc_descr,
   identifier("PEG_ID"),

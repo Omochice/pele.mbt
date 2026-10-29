@@ -154,7 +154,7 @@ test "what Mermaid rejects is rejected with its message" {
   )
   inspect(
     parse_dump("timeline\n  accDescr {\n  never closed\n"),
-    content="ERROR syntax \"Parse error on line 4:\\n\\n^\\nExpecting 'EOF', 'SPACE', 'NEWLINE', 'title', 'acc_title', 'acc_descr', 'acc_descr_multiline_value', 'section', 'period', 'event', got '1'\"",
+    content="ERROR syntax \"Parse error on line 3:\\n  never closed\\n--------------^\\nExpecting 'EOF', 'SPACE', 'NEWLINE', 'title', 'acc_title', 'acc_descr', 'acc_descr_multiline_value', 'section', 'period', 'event', got '1'\"",
   )
   inspect(
     parse_dump("timeline\n  section\n  section :\n"),
@@ -184,7 +184,7 @@ test "models and errors match pele for every text of up to four statement pieces
     "timeline", " ", "\n", ":", "a", "title", "section", " TD", "#", "accTitle:",
     "accDescr {", "}", "\t",
   ]
-  let expected = ["f24886eb", "e1cbf153", "b29e86ca", "5adef41c", "8ad05141"]
+  let expected = ["f24886eb", "e1cbf153", "b29e86ca", "f3512b4d", "caf98c8b"]
   for length in 0..<=4 {
     let outputs = strings_over(pieces, length).map(piece => {
       parse_dump("timeline" + piece)

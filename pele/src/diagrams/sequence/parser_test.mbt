@@ -560,9 +560,9 @@ test "rejects an unclosed config object" {
       "sequenceDiagram\nparticipant E@{ \"type\": \"entity\"\nE ->> E: process\n",
     ),
     content=(
-      #|error: Parse error on line 4:
-      #|
-      #|^
+      #|error: Parse error on line 3:
+      #|E ->> E: process
+      #|----------------^
       #|Expecting 'CONFIG_END', got '$end'
     ),
   )

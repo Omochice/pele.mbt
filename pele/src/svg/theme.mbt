@@ -13,6 +13,12 @@ pub const RADIUS : String = "var(--pele-radius,4px)"
 pub const ROUNDED : String = " style=\"rx:var(--_r)\""
 
 ///|
+/// Whether a shape style from `resolve_style` sets a fill.
+pub fn sets_fill(shape : String) -> Bool {
+  shape.contains("\"fill:") || shape.contains(";fill:")
+}
+
+///|
 /// Adds the rounded corner radius to shape attributes, ahead of any style they already have so that
 /// style can override it.
 pub fn rounded(attrs : String) -> String {

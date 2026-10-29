@@ -46,3 +46,31 @@ test "icons that are not an object install no resolver" {
   assert_eq(icons_of("{\"icons\":null}") is None, true)
   assert_eq(icons_of("{}") is None, true)
 }
+
+///|
+/// The `monospace` option the plugin reads from the options written as `json`.
+fn monospace_of(json : String) -> Array[String]? {
+  let options = @util.parse_json(json) catch {
+    _ => abort("invalid JSON: \{json}")
+  }
+  decode_options(options).monospace
+}
+
+///|
+test "monospace is read as the list of parts it names" {
+  assert_eq(monospace_of("{\"monospace\":[\"members\"]}"), Some(["members"]))
+  assert_eq(
+    monospace_of("{\"monospace\":[\"attributes\",\"members\"]}"),
+    Some(["attributes", "members"]),
+  )
+  assert_eq(monospace_of("{\"monospace\":[]}"), Some([]))
+}
+
+///|
+test "monospace that is not a list lists no part" {
+  assert_eq(monospace_of("{\"monospace\":\"members\"}"), None)
+  assert_eq(monospace_of("{\"monospace\":{\"members\":true}}"), None)
+  assert_eq(monospace_of("{\"monospace\":true}"), None)
+  assert_eq(monospace_of("{\"monospace\":null}"), None)
+  assert_eq(monospace_of("{}"), None)
+}

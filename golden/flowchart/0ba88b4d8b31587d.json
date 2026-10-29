@@ -2,7 +2,7 @@
   "error": {
     "name": "PeleError",
     "code": "syntax",
-    "message": "Parse error on line 2:\n\n^\nExpecting 'PE', 'UNICODE_TEXT', 'TEXT', 'TAGSTART', got '$end'",
+    "message": "Parse error on line 1:\ngraph TD;A(\n-----------^\nExpecting 'PE', 'UNICODE_TEXT', 'TEXT', 'TAGSTART', got '$end'",
     "type": "flowchart",
     "mermaidType": "flowchart-v2"
   }

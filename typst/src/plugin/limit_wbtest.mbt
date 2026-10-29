@@ -61,7 +61,7 @@ test "a failure is answered as the JSON of its error" {
   inspect(
     text_of(out),
     content=(
-      #|{"error":{"name":"PeleError","code":"syntax","message":"Parse error on line 3:\n\n^\nExpecting 'NODE_STRING', got 'EOF'","type":"flowchart","mermaidType":"flowchart-v2"}}
+      #|{"error":{"name":"PeleError","code":"syntax","message":"Parse error on line 2:\nA-->\n----^\nExpecting 'NODE_STRING', got 'EOF'","type":"flowchart","mermaidType":"flowchart-v2"}}
     ),
   )
 }

@@ -192,10 +192,10 @@ const BADGE_H : Double = 16
 const CENTRAL_R : Double = 4
 
 ///|
-const DASH : String = " stroke-dasharray=\"4 4\""
+const FONT_MONO : String = "var(--_fm)"
 
 ///|
-const FRAME_LABEL : String = " class=\"pele-frame-label\" fill=\"var(--_m)\" stroke=\"none\""
+const DASH : String = " stroke-dasharray=\"4 4\""
 
 ///|
 priv struct Column {
@@ -282,13 +282,14 @@ fn half(
   dir : Double,
   up : Double,
   stick : Bool,
+  color : String,
 ) -> String {
   let n = @svg.num
   let bx = n(x - dir * @svg.ARROW)
   if stick {
     return "<path class=\"pele-marker\" d=\"M\{n(x)},\{n(y)}L\{bx},\{n(y + up * 5)}\"/>"
   }
-  "<path class=\"pele-marker\" d=\"M\{n(x)},\{n(y)}L\{bx},\{n(y + up * 4.5)}V\{n(y)}Z\" fill=\"var(--_l)\" stroke=\"none\"/>"
+  "<path class=\"pele-marker\" d=\"M\{n(x)},\{n(y)}L\{bx},\{n(y + up * 4.5)}V\{n(y)}Z\" fill=\"\{color}\" stroke=\"none\"/>"
 }
 
 ///|
@@ -300,15 +301,16 @@ fn head(
   y : Double,
   dir : Double,
   up : Double,
+  color : String,
 ) -> String {
   let n = @svg.num
   match kind {
-    Arrow => @svg.marker("arrow_point", x, y, dir, 0, "var(--_l)")
-    Cross => @svg.marker("arrow_cross", x, y, dir, 0, "var(--_l)")
+    Arrow => @svg.marker("arrow_point", x, y, dir, 0, color)
+    Cross => @svg.marker("arrow_cross", x, y, dir, 0, color)
     Open =>
       "<path class=\"pele-marker\" d=\"M\{n(x - dir * @svg.ARROW)},\{n(y - 4.5)}L\{n(x)},\{n(y)}L\{n(x - dir * @svg.ARROW)},\{n(y + 4.5)}\" stroke-linejoin=\"round\"/>"
-    HalfSolid => half(x, y, dir, up, false)
-    HalfStick => half(x, y, dir, up, true)
+    HalfSolid => half(x, y, dir, up, false, color)
+    HalfStick => half(x, y, dir, up, true, color)
     NoHead => ""
   }
 }
@@ -338,6 +340,8 @@ fn draw(
   config : @types.Config,
   options : @types.RenderOptions,
   tight : Bool,
+  hold~ : Double = 0,
+  by_need~ : Bool = true,
 ) -> @types.Rendered raise @errors.PeleError {
   let n = @svg.num
   let infinity = @double.infinity
@@ -349,6 +353,14 @@ fn draw(
   let small = (size * 0.875).round()
   let tiny = (size * 0.75).round()
   let measurer = options.text_measurer()
+  let monospaced = options.monospaces("messages")
+  let message_measurer : @text.TextMeasurer = if monospaced {
+    {
+      width_of: (t, s, style) => measurer.width(t, s, style | @text.STYLE_MONO),
+    }
+  } else {
+    measurer
+  }
   let pad = options.padding.unwrap_or(8)
   let mirror = !(conf.get("mirrorActors") is Some(False))
   let right_angles = conf.get("rightAngles") is Some(True)
@@ -417,11 +429,17 @@ fn draw(
     messages,
     conf.get("showSequenceNumbers") is Some(True),
   )
-  let text = (raw : String?, font_size : Double, wrap : Bool, width : Double) => {
+  let text_by = (
+    by : @text.TextMeasurer,
+    raw : String?,
+    font_size : Double,
+    wrap : Bool,
+    width : Double,
+  ) => {
     let label = @text.layout_label(
       raw,
       false,
-      measurer,
+      by,
       font_size,
       if tight || wrap {
         width
@@ -430,10 +448,16 @@ fn draw(
       },
     )
     if tight {
-      @common.break_label(label, measurer, @util.js_max(120, width))
+      @common.break_label(label, by, @util.js_max(120, width))
     } else {
       label
     }
+  }
+  let text = (raw : String?, font_size : Double, wrap : Bool, width : Double) => {
+    text_by(measurer, raw, font_size, wrap, width)
+  }
+  let message_text = (raw : String, wrap : Bool, width : Double) => {
+    text_by(message_measurer, Some(raw), small, wrap, width)
   }
   let used : Set[String?]? = if conf.get("hideUnusedParticipants") is Some(True) {
     let used = Set([])
@@ -525,6 +549,29 @@ fn draw(
     }
   }
   let views : Array[View?] = Array::make(count, None)
+  let sized : Array[Map[Double, @text.Label]?] = Array::make(count, None)
+  let sized_text = (i : Int32, room : Double) => {
+    let known = match sized[i] {
+      Some(known) => known
+      None => {
+        let label = views[i].unwrap().label
+        if room == wrap_w {
+          return label
+        }
+        let known = Map::from_array([(wrap_w, label)])
+        sized[i] = Some(known)
+        known
+      }
+    }
+    match known.get(room) {
+      Some(label) => label
+      None => {
+        let label = message_text(messages[i].message, true, room)
+        known.set(room, label)
+        label
+      }
+    }
+  }
   for i in 0..<count {
     let m = messages[i]
     let a = m.from.bind(id => col_of.get(id))
@@ -547,7 +594,7 @@ fn draw(
       }
       views[i] = Some({ kind: NoteView, a, b, label, x: 0, w, })
     } else if is_line_message(m.kind) {
-      let label = text(Some(m.message), small, m.wrap, wrap_w)
+      let label = message_text(m.message, m.wrap, wrap_w)
       let badge = badge_width(i)
       if a == b {
         need(a, a + 1, SELF_W + 8 + label.width + 16 + ACT_W + badge)
@@ -663,7 +710,6 @@ fn draw(
       gaps[run.last] += run.grow
     }
   }
-  place()
   let mut min_x = infinity
   let mut max_x = -infinity
   let widen = (x0 : Double, x1 : Double) => {
@@ -674,9 +720,6 @@ fn draw(
       max_x = x1
     }
   }
-  for col in cols {
-    widen(col.x - col.size.w / 2, col.x + col.size.w / 2)
-  }
   let run_left = (run : BoxRun) => {
     let first = cols[run.first]
     first.x - first.size.w / 2 - box_pad - run.grow
@@ -685,151 +728,254 @@ fn draw(
     let end = cols[run.last]
     end.x + end.size.w / 2 + box_pad + run.grow
   }
-  for run in runs {
-    widen(run_left(run), run_right(run))
-  }
-
-  // Horizontal extents of every block, from what it holds.
   let frames : Array[Frame?] = Array::make(count, None)
-  let open : Array[Frame] = []
-  let span_all = () => {
-    if last < 0 {
-      (0.0, 120.0)
-    } else {
-      (cols[0].x - frame_pad, cols[last].x + frame_pad)
+  let layout = () => {
+    place()
+    min_x = infinity
+    max_x = -infinity
+    for col in cols {
+      widen(col.x - col.size.w / 2, col.x + col.size.w / 2)
     }
-  }
-  for i in 0..<count {
-    let m = messages[i]
-    let kind = m.kind
-    if frame_kind(kind) is Some(name) {
-      let frame = {
-        kind: name,
-        x0: infinity,
-        x1: -infinity,
-        top: 0,
-        title: no_label(),
-        tab_w: 0,
-        fill: if name == "rect" {
-          m.message
-        } else {
-          ""
-        },
-        dividers: [i],
-        divider_y: [],
-        divider_labels: [],
+    for run in runs {
+      widen(run_left(run), run_right(run))
+    }
+
+    // Horizontal extents of every block, from what it holds.
+    let open : Array[Frame] = []
+    let span_all = () => {
+      if last < 0 {
+        (0.0, 120.0)
+      } else {
+        (cols[0].x - frame_pad, cols[last].x + frame_pad)
       }
-      frames[i] = Some(frame)
-      open.push(frame)
-    } else if is_divider(kind) {
-      if open.last() is Some(frame) {
-        frame.dividers.push(i)
-      }
-    } else if is_frame_end(kind) {
-      guard open.pop() is Some(frame) else { continue }
-      frames[i] = Some(frame)
-      if frame.x0 > frame.x1 {
-        let (x0, x1) = span_all()
-        frame.x0 = x0
-        frame.x1 = x1
-      }
-      if frame.kind != "rect" {
-        frame.tab_w = measurer.width(frame.kind, tiny, @text.STYLE_BOLD) + 14
-        // A block grows to the right to give its texts up to FRAME_TEXT of width before they wrap.
-        for k, divider in frame.dividers {
-          let raw = messages[divider].message
-          let tab = if k == 0 { frame.tab_w + 8 } else { 0 }
-          let room = frame.x1 - frame.x0 - 16 - tab
-          let label = if raw != "" {
-            text(
-              Some("[" + raw + "]"),
-              small,
-              true,
-              @util.js_max(
-                room,
-                if tight {
-                  @util.js_min(FRAME_TEXT, wrap_w)
-                } else {
-                  FRAME_TEXT
-                },
-              ),
-            )
+    }
+    for i in 0..<count {
+      let m = messages[i]
+      let kind = m.kind
+      if frame_kind(kind) is Some(name) {
+        let frame = {
+          kind: name,
+          x0: infinity,
+          x1: -infinity,
+          top: 0,
+          title: no_label(),
+          tab_w: 0,
+          fill: if name == "rect" {
+            m.message
           } else {
-            no_label()
-          }
-          if label.width > room {
-            frame.x1 += label.width - room
-          }
-          if k == 0 {
-            frame.title = label
-          } else {
-            frame.divider_labels.push(label)
-          }
+            ""
+          },
+          dividers: [i],
+          divider_y: [],
+          divider_labels: [],
         }
-      }
-      widen(frame.x0, frame.x1)
-      if open.last() is Some(parent) {
-        parent.x0 = @util.js_min(parent.x0, frame.x0 - frame_nest)
-        parent.x1 = @util.js_max(parent.x1, frame.x1 + frame_nest)
-      }
-    } else if views[i] is Some(view) {
-      let a = cols[view.a]
-      let b = cols[view.b]
-      let mut x0 = 0.0
-      let mut x1 = 0.0
-      match view.kind {
-        NoteView => {
-          if m.placement == Some(LEFTOF) {
-            view.x = a.x - NOTE_GAP - view.w
-          } else if m.placement == Some(RIGHTOF) {
-            view.x = a.x + NOTE_GAP
-          } else if view.a == view.b {
-            view.x = a.x - view.w / 2
-          } else {
-            let lo = @util.js_min(a.x, b.x) - note_over
-            let hi = @util.js_max(a.x, b.x) + note_over
-            if tight || m.wrap {
-              view.label = text(
-                Some(m.message),
+        frames[i] = Some(frame)
+        open.push(frame)
+      } else if is_divider(kind) {
+        if open.last() is Some(frame) {
+          frame.dividers.push(i)
+        }
+      } else if is_frame_end(kind) {
+        guard open.pop() is Some(frame) else { continue }
+        frames[i] = Some(frame)
+        if frame.x0 > frame.x1 {
+          let (x0, x1) = span_all()
+          frame.x0 = x0
+          frame.x1 = x1
+        }
+        if frame.kind != "rect" {
+          frame.tab_w = measurer.width(frame.kind, tiny, @text.STYLE_BOLD) + 14
+          // A block grows to the right to give its texts up to FRAME_TEXT of width before they wrap.
+          for k, divider in frame.dividers {
+            let raw = messages[divider].message
+            let tab = if k == 0 { frame.tab_w + 8 } else { 0 }
+            let room = frame.x1 - frame.x0 - 16 - tab
+            let label = if raw != "" {
+              text(
+                Some("[" + raw + "]"),
                 small,
                 true,
-                @util.js_max(wrap_w, hi - lo - 2 * note_pad),
+                @util.js_max(
+                  room,
+                  if tight {
+                    @util.js_min(FRAME_TEXT, wrap_w)
+                  } else {
+                    FRAME_TEXT
+                  },
+                ),
+              )
+            } else {
+              no_label()
+            }
+            if label.width > room {
+              frame.x1 += label.width - room
+            }
+            if k == 0 {
+              frame.title = label
+            } else {
+              frame.divider_labels.push(label)
+            }
+          }
+        }
+        widen(frame.x0, frame.x1)
+        if open.last() is Some(parent) {
+          parent.x0 = @util.js_min(parent.x0, frame.x0 - frame_nest)
+          parent.x1 = @util.js_max(parent.x1, frame.x1 + frame_nest)
+        }
+      } else if views[i] is Some(view) {
+        let a = cols[view.a]
+        let b = cols[view.b]
+        let mut x0 = 0.0
+        let mut x1 = 0.0
+        match view.kind {
+          NoteView => {
+            if m.placement == Some(LEFTOF) {
+              view.x = a.x - NOTE_GAP - view.w
+            } else if m.placement == Some(RIGHTOF) {
+              view.x = a.x + NOTE_GAP
+            } else if view.a == view.b {
+              view.x = a.x - view.w / 2
+            } else {
+              let lo = @util.js_min(a.x, b.x) - note_over
+              let hi = @util.js_max(a.x, b.x) + note_over
+              if tight || m.wrap {
+                view.label = text(
+                  Some(m.message),
+                  small,
+                  true,
+                  @util.js_max(wrap_w, hi - lo - 2 * note_pad),
+                )
+              }
+              view.w = @util.js_max(hi - lo, view.label.width + 2 * note_pad)
+              view.x = (lo + hi - view.w) / 2
+            }
+            x0 = view.x
+            x1 = view.x + view.w
+          }
+          SelfView => {
+            x0 = a.x
+            x1 = a.x + ACT_W + SELF_W + 8 + view.label.width + badge_width(i)
+          }
+          LineView => {
+            x0 = @util.js_min(a.x, b.x)
+            x1 = @util.js_max(a.x, b.x)
+            if tight || m.wrap {
+              view.label = sized_text(
+                i,
+                @util.js_max(wrap_w, x1 - x0 - 2 * msg_pad - ACT_W),
               )
             }
-            view.w = @util.js_max(hi - lo, view.label.width + 2 * note_pad)
-            view.x = (lo + hi - view.w) / 2
-          }
-          x0 = view.x
-          x1 = view.x + view.w
-        }
-        SelfView => {
-          x0 = a.x
-          x1 = a.x + ACT_W + SELF_W + 8 + view.label.width + badge_width(i)
-        }
-        LineView => {
-          x0 = @util.js_min(a.x, b.x)
-          x1 = @util.js_max(a.x, b.x)
-          if tight || m.wrap {
-            view.label = text(
-              Some(m.message),
-              small,
-              true,
-              @util.js_max(wrap_w, x1 - x0 - 2 * msg_pad - ACT_W),
-            )
-          }
-          if b.create_at == i {
-            if b.x > a.x {
-              x1 += b.size.w / 2
-            } else {
-              x0 -= b.size.w / 2
+            if b.create_at == i {
+              if b.x > a.x {
+                x1 += b.size.w / 2
+              } else {
+                x0 -= b.size.w / 2
+              }
             }
           }
         }
+        widen(x0, x1)
+        if open.last() is Some(frame) {
+          frame.x0 = @util.js_min(frame.x0, x0 - frame_pad)
+          frame.x1 = @util.js_max(frame.x1, x1 + frame_pad)
+        }
       }
-      widen(x0, x1)
-      if open.last() is Some(frame) {
-        frame.x0 = @util.js_min(frame.x0, x0 - frame_pad)
-        frame.x1 = @util.js_max(frame.x1, x1 + frame_pad)
+    }
+  }
+  layout()
+
+  // Widen gaps only if it reduces message wrapping.
+  let mut grown = false
+  let mut uneven = false
+  if tight && options.max_width is Some(max_width) {
+    let spare = max_width.floor() - (max_x - min_x + 2 * pad).ceil() - hold
+    let stretch = FixedArray::make(col_count, 0)
+    let want = FixedArray::make(gaps.length(), 0.0)
+    let wrapped : Array[Int32] = []
+    let mut lines = 0
+    for i = 0; spare > 0 && i < views.length(); i = i + 1 {
+      guard views[i] is Some(view) && view.kind is LineView else { continue }
+      let natural = message_text(messages[i].message, false, infinity)
+      if view.label.lines.length() <= natural.lines.length() {
+        continue
+      }
+      wrapped.push(i)
+      lines += view.label.lines.length()
+      let lo = if view.a < view.b { view.a } else { view.b }
+      let hi = if view.a < view.b { view.b } else { view.a }
+      stretch[lo] += 1
+      stretch[hi] -= 1
+      let short = (
+          natural.width - (cols[hi].x - cols[lo].x - 2 * msg_pad - ACT_W)
+        ) /
+        (hi - lo).to_double()
+      for g in lo..<hi {
+        want[g] = @util.js_max(want[g], short)
+      }
+    }
+    let mut active = 0
+    let mut crossed = 0
+    for i in 0..<gaps.length() {
+      active += stretch[i]
+      stretch[i] = if active > 0 { 1 } else { 0 }
+      crossed += stretch[i]
+    }
+    if crossed > 0 {
+      let before = gaps.copy()
+      let spread = (share : (Int32) -> Double) => {
+        for g in 0..<gaps.length() {
+          gaps[g] = before[g] + share(g)
+        }
+        layout()
+        wrapped.map(i => {
+          match views[i] {
+            Some(view) => view.label.lines.length()
+            None => 0
+          }
+        })
+      }
+      let sum = (counts : Array[Int32]) => {
+        let mut total = 0
+        for n in counts {
+          total += n
+        }
+        total
+      }
+      let even = (g : Int32) => {
+        stretch[g].to_double() * spare / crossed.to_double()
+      }
+      let mut counts = spread(even)
+      let mut missing = 0.0
+      for w in want {
+        missing += w
+      }
+      // Allow for rounding error.
+      let needs = (g : Int32) => want[g] * (spare - 0.01) / missing
+      // Reducing wrapping requires at least one gap wider than the even split.
+      let wider = () => {
+        for g in 0..<gaps.length() {
+          if needs(g) > even(g) {
+            break true
+          }
+        } nobreak {
+          false
+        }
+      }
+      if by_need && crossed > 1 && missing > 0 && wider() {
+        let first = counts
+        counts = spread(needs)
+        uneven = sum(counts) < sum(first) &&
+          counts.mapi((k, n) => n <= first[k]).iter().all(kept => kept)
+        if !uneven {
+          counts = spread(even)
+        }
+      }
+      grown = sum(counts) < lines
+      if !grown {
+        for i, gap in before {
+          gaps[i] = gap
+        }
+        layout()
       }
     }
   }
@@ -870,21 +1016,61 @@ fn draw(
     }
     lo < xs.length() && xs[lo] < x1
   }
+  let stack : Array[Frame] = []
+  let inks : Map[String, String?] = Map([])
+  let ink_of = (fill : String?) => {
+    guard fill is Some(fill) && fill != "" else { return None }
+    if inks.get(fill) is Some(known) {
+      return known
+    }
+    let picked = @svg.raw_ink(@svg.resolve_raw_style(["fill:" + fill]).shape)
+    inks[fill] = picked
+    picked
+  }
+  let ink_on = (fill : String?) => {
+    match ink_of(fill) {
+      Some(color) => " fill=\"\{color}\""
+      None => ""
+    }
+  }
+  // A rect is painted over the box that holds it, so the innermost rect is what the text actually sits on.
+  let fill_under = (l : Double, r : Double) => {
+    for k = stack.length() - 1; k >= 0; k = k - 1 {
+      if stack[k].kind == "rect" {
+        return Some(stack[k].fill)
+      }
+    }
+    for run in runs {
+      if l >= run_left(run) && r <= run_right(run) {
+        return Some(run.box.fill)
+      }
+    }
+    None
+  }
+  let under = (l : Double, r : Double) => ink_on(fill_under(l, r))
   fn write_backed(
     out : @svg.Markup,
     label : @text.Label,
     cx : Double,
     cy : Double,
-    attrs : String,
+    frame : Bool,
   ) -> Unit raise @errors.PeleError {
     if label.width == 0 {
       return
     }
     let l = cx - label.width / 2
-    if crosses(l, l + label.width) {
+    let plate = crosses(l, l + label.width)
+    if plate {
       out.write(
         "<rect x=\"\{n(l - 3)}\" y=\"\{n(cy - label.height / 2 + 2)}\" width=\"\{n(label.width + 6)}\" height=\"\{n(label.height - 4)}\" rx=\"3\" fill=\"var(--_bg)\" stroke=\"none\"/>",
       )
+    }
+    let fill = if plate { "" } else { under(l, l + label.width) }
+    let attrs = if frame {
+      let color = if fill == "" { " fill=\"var(--_m)\"" } else { fill }
+      " class=\"pele-frame-label\"\{color} stroke=\"none\""
+    } else {
+      fill
     }
     @svg.write_label(out, label, cx, cy, attrs, icons?=options.icons)
   }
@@ -963,6 +1149,11 @@ fn draw(
       col.size,
       col.label,
       icons?=options.icons,
+      ink=if is_figure(col.kind) {
+        ink_on(col.actor.box.map(b => b.fill))
+      } else {
+        ""
+      },
     )
     actors_out.write("</g>")
   }
@@ -970,7 +1161,6 @@ fn draw(
     "<g class=\"pele-sequence-number\"><rect x=\"\{n(cx - w / 2)}\" y=\"\{n(cy - BADGE_H / 2)}\" width=\"\{n(w)}\" height=\"\{BADGE_H}\" rx=\"\{BADGE_H / 2}\" fill=\"var(--_l)\" stroke=\"none\"/><text x=\"\{n(cx)}\" y=\"\{n(cy + tiny * 0.35)}\" text-anchor=\"middle\" font-size=\"\{tiny}\" fill=\"var(--_bg)\" stroke=\"none\">\{@svg.esc(numbering.index[i].to_string())}</text></g>"
   }
   let mut y = head_bottom + 6
-  let stack : Array[Frame] = []
   for i in 0..<count {
     let m = messages[i]
     let kind = m.kind
@@ -1027,7 +1217,7 @@ fn draw(
             label,
             frame.x0 + 8 + label.width / 2,
             dy + 2 + label.height / 2,
-            FRAME_LABEL,
+            true,
           )
         }
         inner.write(
@@ -1041,7 +1231,7 @@ fn draw(
           frame.title,
           frame.x0 + frame.tab_w + 8 + frame.title.width / 2,
           frame.top + @util.js_max(TAB_H, frame.title.height) / 2,
-          FRAME_LABEL,
+          true,
         )
         frames_out.write_group(
           "<g class=\"pele-frame pele-frame-\{frame.kind}\">",
@@ -1106,8 +1296,10 @@ fn draw(
       let circle_to = cc == CENTRAL_CONNECTION || cc == CENTRAL_CONNECTION_DUAL
       let circle_from = cc == CENTRAL_CONNECTION_REVERSE ||
         cc == CENTRAL_CONNECTION_DUAL
+      let mut line = None
+      let mut color = "var(--_l)"
       let circle = (cx : Double, cy : Double) => {
-        "<circle class=\"pele-central\" cx=\"\{n(cx)}\" cy=\"\{n(cy)}\" r=\"\{CENTRAL_R}\" fill=\"var(--_l)\" stroke=\"none\"/>"
+        "<circle class=\"pele-central\" cx=\"\{n(cx)}\" cy=\"\{n(cy)}\" r=\"\{CENTRAL_R}\" fill=\"\{color}\" stroke=\"none\"/>"
       }
       let tail_at_end = st.at_start && !st.at_end
       let head_trim = trim(st.head)
@@ -1127,6 +1319,8 @@ fn draw(
           right_edge(a, starting)
         }
         let out = @util.js_max(x0, x1) + SELF_W + bw / 2
+        line = ink_of(fill_under(a.x, out))
+        color = line.unwrap_or(color)
         if circle_from {
           inner.write_string(circle(a.x, top))
         }
@@ -1158,11 +1352,15 @@ fn draw(
         }
         // The loop leaves to the right and comes back heading left, which turns a half head over.
         let heads = (if st.at_start {
-            head(st.head, x0, top, -1, up)
+            head(st.head, x0, top, -1, up, color)
           } else {
             ""
           }) +
-          (if st.at_end { head(st.head, x1, bottom, -1, -up) } else { "" })
+          (if st.at_end {
+            head(st.head, x1, bottom, -1, -up, color)
+          } else {
+            ""
+          })
         let from = n(x0 + (if st.at_start { head_trim } else { 0 }))
         let to = n(x1 + (if st.at_end { head_trim } else { 0 }))
         let d = if right_angles {
@@ -1183,7 +1381,7 @@ fn draw(
             label,
             out + 8 + label.width / 2,
             (top + bottom) / 2,
-            "",
+            under(out + 8, out + 8 + label.width),
             icons?=options.icons,
           )
           labels_out.write("</g>")
@@ -1193,6 +1391,10 @@ fn draw(
       } else {
         let dir = if b.x > a.x { 1.0 } else { -1.0 }
         let creating = b.create_at == i
+        line = ink_of(
+          fill_under(@util.js_min(a.x, b.x), @util.js_max(a.x, b.x)),
+        )
+        color = line.unwrap_or(color)
         line_y = y +
           msg_gap +
           @util.js_max(
@@ -1240,12 +1442,12 @@ fn draw(
           }
         }
         let heads = (if st.at_start {
-            head(st.head, x0, line_y, -dir, up * dir)
+            head(st.head, x0, line_y, -dir, up * dir, color)
           } else {
             ""
           }) +
           (if st.at_end {
-            head(st.head, x1, line_y, dir, up * dir)
+            head(st.head, x1, line_y, dir, up * dir, color)
           } else {
             ""
           })
@@ -1272,15 +1474,25 @@ fn draw(
           labels_out.write(
             "<g class=\"pele-edge-label\" data-id=\"i\{@svg.esc_text(m.id)}\">",
           )
-          write_backed(labels_out, label, cx, line_y - 4 - label.height / 2, "")
+          write_backed(
+            labels_out,
+            label,
+            cx,
+            line_y - 4 - label.height / 2,
+            false,
+          )
           labels_out.write("</g>")
         }
         if creating {
           y = line_y + b.size.h / 2 - 6
         }
       }
+      let line_stroke = match line {
+        Some(line) => " stroke=\"\{line}\""
+        None => ""
+      }
       edges_out.write(
-        "<g class=\"pele-edge pele-message\" data-id=\"i\{@svg.esc_text(m.id)}\">\{inner}</g>",
+        "<g class=\"pele-edge pele-message\" data-id=\"i\{@svg.esc_text(m.id)}\"\{line_stroke}>\{inner}</g>",
       )
       y = @util.js_max(y, line_y)
       if a.destroy_at == i {
@@ -1328,6 +1540,10 @@ fn draw(
     } else {
       @svg.resolve_style(["fill:" + run.box.fill]).shape
     }
+    let box_ink = match ink_on(Some(run.box.fill)) {
+      "" => " fill=\"var(--_m)\""
+      color => color
+    }
     let opacity = if fill != "" { "" } else { " fill-opacity=\"0.5\"" }
     boxes_out.write("<g class=\"pele-cluster pele-box\"")
     if run.box.name is Some(name) && name != "" {
@@ -1343,7 +1559,7 @@ fn draw(
       run.title,
       (x0 + x1) / 2,
       box_pad / 2 + 2 + run.title.height / 2,
-      " class=\"pele-cluster-label\" fill=\"var(--_m)\"",
+      " class=\"pele-cluster-label\"\{box_ink}",
       icons?=options.icons,
     )
     boxes_out.write("</g>")
@@ -1386,6 +1602,23 @@ fn draw(
     )
   }
   let width = (max_x - min_x + 2 * pad).ceil()
+  if grown && options.max_width is Some(max_width) && width > max_width {
+    // Retry with equal shares or room for activation notes and rounding.
+    return draw(
+      db,
+      config,
+      options,
+      tight,
+      hold=if uneven {
+        hold
+      } else if hold > 0 {
+        infinity
+      } else {
+        width - max_width.floor()
+      },
+      by_need=false,
+    )
+  }
   let height = (bottom - min_y + 2 * pad).ceil()
   let content = @svg.Markup::new()
   content.write(
@@ -1430,7 +1663,15 @@ fn draw(
     "<g class=\"pele-destroys\" fill=\"none\" stroke=\"var(--_l)\" stroke-width=\"1.5\" stroke-linecap=\"round\">",
     crosses_out,
   )
-  group("<g class=\"pele-edge-labels\" font-size=\"\{small}\">", labels_out)
+  let labels_family = if monospaced {
+    " font-family=\"\{FONT_MONO}\""
+  } else {
+    ""
+  }
+  group(
+    "<g class=\"pele-edge-labels\" font-size=\"\{small}\"\{labels_family}>",
+    labels_out,
+  )
   group(
     "<g class=\"pele-notes\" font-size=\"\{small}\" fill=\"var(--_a)\" stroke=\"var(--_b)\">",
     notes_out,

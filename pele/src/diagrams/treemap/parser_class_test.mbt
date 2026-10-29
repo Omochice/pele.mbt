@@ -70,6 +70,20 @@ test "a section or a leaf takes a class with three colons" {
 }
 
 ///|
+test "a class name may start with title" {
+  inspect(
+    parse(
+      "treemap\nclassDef titles fill:red\nclassDef title_2 fill:blue\n\"A\":::titles\n  \"B\": 1:::title_2",
+    ),
+    content="D titles \"fill:red\"; D title_2 \"fill:blue\"; S \"A\" :::titles; @2 L \"B\" 1 :::title_2",
+  )
+  inspect(
+    parse("treemap\n\"A\":::title"),
+    content="error: Parse error on line 2:\n\"A\":::title\n------^\nExpecting token of type 'ID2' but found `title`.",
+  )
+}
+
+///|
 test "text that is not a row is reported with the token that was expected" {
   inspect(
     parse("\"a\": 1"),
@@ -81,7 +95,7 @@ test "text that is not a row is reported with the token that was expected" {
   )
   inspect(
     parse("treemap\n\"a\": "),
-    content="error: Parse error on line 3:\n\n^\nExpecting token of type 'NUMBER2' but found end of input.",
+    content="error: Parse error on line 2:\n\"a\": \n----^\nExpecting token of type 'NUMBER2' but found end of input.",
   )
   inspect(
     parse("treemap\n\"a\": x"),
@@ -93,7 +107,7 @@ test "text that is not a row is reported with the token that was expected" {
   )
   inspect(
     parse("treemap\n\"a\":::"),
-    content="error: Parse error on line 3:\n\n^\nExpecting token of type 'ID2' but found end of input.",
+    content="error: Parse error on line 2:\n\"a\":::\n------^\nExpecting token of type 'ID2' but found end of input.",
   )
   inspect(
     parse("treemap\n\"a\": 1:::1x"),
@@ -105,7 +119,7 @@ test "text that is not a row is reported with the token that was expected" {
 test "a comment after a row leaves blanks that no row follows" {
   inspect(
     parse("treemap\n\"a\": 1 %% note"),
-    content="error: Parse error on line 3:\n\n^\nExpecting token of type 'STRING2' but found end of input.",
+    content="error: Parse error on line 2:\n\"a\": 1 %% note\n------^\nExpecting token of type 'STRING2' but found end of input.",
   )
 }
 

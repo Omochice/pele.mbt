@@ -393,6 +393,16 @@ test "keywords give way to longer ids" {
 }
 
 ///|
+test "ids may start with title" {
+  inspect(
+    ast(
+      "architecture-beta\ngroup titles(cloud)[G]\nservice title-db(database)[DB] in titles\nservice title_2 in titles\ntitle-db:R -- L:title_2",
+    ),
+    content="title=- accTitle=- accDescr=-\ngroup titles(\"cloud\")[\"G\"] in -\nservice title-db(\"database\")-[\"DB\"] in \"titles\"\nservice title_2(-)-[-] in \"titles\"\nedge title-db:R --- L:title_2",
+  )
+}
+
+///|
 test "alignments take a direction and at least two members" {
   inspect(
     ast("architecture-beta\nalign row a b c"),

@@ -128,10 +128,10 @@ test "an unclosed subgraph expects its end" {
   inspect(
     outcome("erDiagram\nsubgraph s\nA\n"),
     content=(
-      #|error syntax 4:1
-      #|Parse error on line 4:
-      #|
-      #|^
+      #|error syntax 3:2
+      #|Parse error on line 3:
+      #|A
+      #|-^
       #|Expecting 'END', 'EOF', 'NEWLINE', 'title', 'acc_title', 'acc_descr', 'acc_descr_multiline_value', 'SUBGRAPH', 'direction_tb', 'direction_bt', 'direction_rl', 'direction_lr', 'CLASSDEF', 'CLASS', 'STYLE', 'UNICODE_TEXT', 'NUM', 'ENTITY_NAME', 'DECIMAL_NUM', 'ENTITY_ONE', got '$end'
     ),
   )

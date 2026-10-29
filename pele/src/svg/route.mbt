@@ -184,14 +184,26 @@ pub fn route_path(
     last += 1
   }
   let d = StringBuilder()
-  d.write_string("M\{num(at(xs, 0))},\{num(at(ys, 0))}")
+  // Keeping the numbers as they are written spares `fill_under` reading them back out of `d`.
+  let tokens : Array[Double] = []
+  let command = fn(c : Char, count : Double) {
+    tokens.push(c.to_int().to_double())
+    tokens.push(count)
+  }
+  let tok = fn(v : Double) {
+    tokens.push(written(v))
+    num(v)
+  }
+  command('M', 2)
+  d.write_string("M\{tok(at(xs, 0))},\{tok(at(ys, 0))}")
   let mut at_x = at(xs, 0)
   let mut at_y = at(ys, 0)
   let line_to = fn(x : Double, y : Double) {
     if near(x, y, at_x, at_y) {
       return
     }
-    d.write_string("L\{num(x)},\{num(y)}")
+    command('L', 2)
+    d.write_string("L\{tok(x)},\{tok(y)}")
     at_x = x
     at_y = y
   }
@@ -205,8 +217,9 @@ pub fn route_path(
         @layout.ease(if down { x - at_x } else { y - at_y }, along)
       let ux = if down { 0.0 } else { js_sign(along) * k }
       let uy = if down { js_sign(along) * k } else { 0.0 }
+      command('C', 6)
       d.write_string(
-        "C\{num(at_x + ux)},\{num(at_y + uy)} \{num(x - ux)},\{num(y - uy)} \{num(x)},\{num(y)}",
+        "C\{tok(at_x + ux)},\{tok(at_y + uy)} \{tok(x - ux)},\{tok(y - uy)} \{tok(x)},\{tok(y)}",
       )
       at_x = x
       at_y = y
@@ -237,12 +250,25 @@ pub fn route_path(
     at_x = x + vx * after
     at_y = y + vy * after
     if stepped {
-      d.write_string("Q\{num(x)},\{num(y)} \{num(at_x)},\{num(at_y)}")
+      command('Q', 4)
+      d.write_string("Q\{tok(x)},\{tok(y)} \{tok(at_x)},\{tok(at_y)}")
     } else {
+      command('C', 6)
       d.write_string(
-        "C\{num(x - ux * before * (1 - HANDLE))},\{num(y - uy * before * (1 - HANDLE))} \{num(x + vx * after * (1 - HANDLE))},\{num(y + vy * after * (1 - HANDLE))} \{num(at_x)},\{num(at_y)}",
+        "C\{tok(x - ux * before * (1 - HANDLE))},\{tok(y - uy * before * (1 - HANDLE))} \{tok(x + vx * after * (1 - HANDLE))},\{tok(y + vy * after * (1 - HANDLE))} \{tok(at_x)},\{tok(at_y)}",
       )
     }
   }
-  { d: d.to_string(), sx, sy, sdx: -sdx, sdy: -sdy, ex, ey, edx, edy, }
+  {
+    d: d.to_string(),
+    tokens: Some(tokens),
+    sx,
+    sy,
+    sdx: -sdx,
+    sdy: -sdy,
+    ex,
+    ey,
+    edx,
+    edy,
+  }
 }

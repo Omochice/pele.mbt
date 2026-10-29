@@ -449,6 +449,8 @@ fn draw(
   let nodes_out = @svg.Markup::new()
   for i, view in views {
     let { w, h, style, .. } = view
+    let color = @svg.ink_fill(style)
+    let muted = @svg.ink_fill(style, fallback="var(--_m)")
     let left = -w / 2
     let top = -h / 2
     let body = @svg.Markup::new()
@@ -460,14 +462,14 @@ fn draw(
       view.kind,
       0,
       top + PAD_Y + view.kind.height / 2,
-      " class=\"pele-stereotype\" font-size=\"\{view.kind.size}\" fill=\"var(--_m)\"\{style.text}",
+      " class=\"pele-stereotype\" font-size=\"\{view.kind.size}\"\{muted}\{style.text}",
     )
     @svg.write_label(
       body,
       view.name,
       0,
       top + PAD_Y + view.kind.height + view.name.height / 2,
-      " class=\"pele-label\" font-size=\"\{view.name.size}\" font-weight=\"var(--_hw)\"\{style.text}",
+      " class=\"pele-label\" font-size=\"\{view.name.size}\" font-weight=\"var(--_hw)\"\{color}\{style.text}",
     )
     if view.rows.length() > 0 {
       let divider = top + view.head_height
@@ -482,14 +484,14 @@ fn draw(
           row.key,
           left + PAD_X,
           y,
-          " class=\"pele-field\" fill=\"var(--_m)\"\{style.text}",
+          " class=\"pele-field\"\{muted}\{style.text}",
         )
         write_start_text(
           rows,
           row.value,
           left + PAD_X + view.key_width + COLUMN_GAP,
           y,
-          " class=\"pele-value\"\{style.text}",
+          " class=\"pele-value\"\{color}\{style.text}",
         )
         y += row.height + ROW_GAP
       }
@@ -561,6 +563,7 @@ fn draw(
         } else {
           cy - spread
         },
+        tokens: None,
         sdx: if sideways {
           0
         } else {

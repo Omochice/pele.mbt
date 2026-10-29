@@ -5,8 +5,9 @@
 
 ///|
 /// Matches a token at an index: returns where the match ends, `NO_MATCH`, or `NO_CLOSER`.
+/// The last argument is the type index of the last visible token, or -1 at the start.
 /// Raises where pele's pattern for the token throws instead of answering.
-pub type Scanner = (String, Int32) -> Int32 raise @errors.PeleError
+pub type Scanner = (String, Int32, Int32) -> Int32 raise @errors.PeleError
 
 ///|
 /// The token does not match here.
@@ -48,7 +49,7 @@ fn stateless(scan : Scanner) -> () -> Scanner {
 pub fn literal(name : String, text : String) -> TokenType {
   {
     name,
-    scanner: stateless((src, p) => {
+    scanner: stateless((src, p, _) => {
       if @util.starts_with_at(src, text, p) {
         p + text.length()
       } else {
@@ -65,7 +66,7 @@ pub fn literal(name : String, text : String) -> TokenType {
 pub fn keyword(word : String) -> TokenType {
   {
     name: word,
-    scanner: stateless((src, p) => {
+    scanner: stateless((src, p, _) => {
       if !@util.starts_with_at(src, word, p) {
         return NO_MATCH
       }
@@ -92,7 +93,7 @@ pub fn pattern(
   first? : String,
   hidden~ : Bool = false,
 ) -> TokenType {
-  { name, scanner: stateless((src, p) => scan(src, p)), first, hidden, }
+  { name, scanner: stateless((src, p, _) => scan(src, p)), first, hidden, }
 }
 
 ///|
@@ -195,22 +196,32 @@ pub let acc_title : TokenType = pattern(
 
 ///|
 /// `[\t ]*title(?:[\t ][^\n\r]*?(?=%%)|[\t ][^\n\r]*|)`
-pub let title : TokenType = pattern(
-  "TITLE",
-  (src, p) => {
-    let start = skip_blanks(src, p)
-    if !@util.starts_with_at(src, "title", start) {
-      return NO_MATCH
-    }
-    let after = start + "title".length()
-    if @util.is_blank(@util.code_at(src, after)) {
-      line_or_comment_end(src, after + 1)
-    } else {
-      after
-    }
-  },
-  first="\t t",
-)
+pub let title : TokenType = title_before((_, _) => false)
+
+///|
+/// `title` that does not match a bare `title` where `rest` answers that a name goes on at the
+/// index after it, so that `title` does not split a longer name.
+/// `rest` stands for the lookahead of `[\t ]*title(?:[\t ][^\n\r]*?(?=%%)|[\t ][^\n\r]*|(?!rest))`.
+pub fn title_before(rest : (String, Int32) -> Bool) -> TokenType {
+  pattern(
+    "TITLE",
+    (src, p) => {
+      let start = skip_blanks(src, p)
+      if !@util.starts_with_at(src, "title", start) {
+        return NO_MATCH
+      }
+      let after = start + "title".length()
+      if @util.is_blank(@util.code_at(src, after)) {
+        line_or_comment_end(src, after + 1)
+      } else if rest(src, after) {
+        NO_MATCH
+      } else {
+        after
+      }
+    },
+    first="\t t",
+  )
+}
 
 ///|
 /// Where `"([^"\\]|\\.)*"`, or its single-quoted twin, matches the string whose quote is at `p`: its end, or -1.
@@ -239,7 +250,7 @@ pub fn quoted_span(src : String, p : Int32) -> Int32 {
 /// `"([^"\\]|\\.)*"|'([^'\\]|\\.)*'`
 pub let string : TokenType = {
   name: "STRING",
-  scanner: stateless((src, p) => {
+  scanner: stateless((src, p, _) => {
     let quote = @util.code_at(src, p)
     if quote != '"'.to_int() && quote != '\''.to_int() {
       return NO_MATCH
@@ -390,12 +401,16 @@ pub fn tokenize(
   while p < n {
     let c = @util.code_at(src, p)
     let candidates = if c < 128 { starting[c] } else { every }
+    let previous = match kinds.last() {
+      Some(kind) => kind
+      None => -1
+    }
     let mut matched = false
     for k in candidates {
       if dead[k] {
         continue
       }
-      let end = scanners[k](src, p)
+      let end = scanners[k](src, p, previous)
       if end == NO_CLOSER {
         dead[k] = true
         continue
@@ -485,6 +500,16 @@ pub fn TokenReader::expect(
 }
 
 ///|
+fn is_only_space(src : String, from : Int32, to : Int32) -> Bool {
+  for i in from..<to {
+    if !@util.is_space(src.unsafe_get(i).to_int()) {
+      return false
+    }
+  }
+  true
+}
+
+///|
 /// Raises a parse error saying what was expected at the current token.
 pub fn[T] TokenReader::fail(
   self : TokenReader,
@@ -495,10 +520,23 @@ pub fn[T] TokenReader::fail(
   } else {
     "`\{self.text()}`"
   }
+  let { src, starts, ends, .. } = self.tokens
+  let mut at = starts[self.i]
+  if self.kind() == -1 {
+    // Hidden comments leave no token, so the end of input is placed after the last token with
+    // content rather than at the end of the text.
+    let mut k = self.i
+    while k > 0 && is_only_space(src, starts[k - 1], ends[k - 1]) {
+      k -= 1
+    }
+    if k > 0 {
+      at = ends[k - 1]
+    }
+  }
   raise @errors.syntax_error(
     self.diagram,
-    self.tokens.src,
-    self.tokens.starts[self.i],
+    src,
+    at,
     "Expecting \{expected} but found \{found}.",
   )
 }

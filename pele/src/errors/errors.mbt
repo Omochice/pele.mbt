@@ -125,7 +125,18 @@ pub fn written(src : String, offset : Int32) -> (String, Int32) {
 ///|
 /// Where `offset` is in `src`: its line and column from 1, and its line with a caret under it.
 pub fn locate(src : String, offset : Int32) -> (Int32, Int32, String) {
-  let (src, offset) = written(src, offset)
+  let mut end = src.length()
+  while end > 0 && @util.is_space(src.unsafe_get(end - 1).to_int()) {
+    end -= 1
+  }
+  // The end of input is reported on the last line with content rather than after the trailing
+  // blank lines, which would show an empty snippet.
+  let (src, offset) = if end > 0 && offset >= end {
+    let (src, last) = written(src, end - 1)
+    (src, last + 1)
+  } else {
+    written(src, offset)
+  }
   let mut line = 1
   let mut line_start = 0
   let mut i = @util.index_of(src, "\n")

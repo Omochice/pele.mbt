@@ -146,8 +146,8 @@ test "a reserved value cannot be a name" {
     content="Parse error on line 2:\naxis true\n-----^\nExpecting token of type 'ID' but found `true`.",
   )
   inspect(
-    ast("radar-beta\naxis circles"),
-    content="Parse error on line 2:\naxis circles\n-----^\nExpecting token of type 'ID' but found `circle`.",
+    ast("radar-beta\n axis circle, b"),
+    content="Parse error on line 2:\n axis circle, b\n------^\nExpecting token of type 'ID' but found `circle`.",
   )
 }
 
@@ -218,6 +218,14 @@ test "malformed statements are parse errors" {
 }
 
 ///|
+test "the end of input is reported before a trailing comment" {
+  inspect(
+    ast("radar-beta\ncurve a{1 %% c\n"),
+    content="Parse error on line 2:\ncurve a{1 %% c\n---------^\nExpecting token of type '}' but found end of input.",
+  )
+}
+
+///|
 test "a name that starts with a digit lexes as a number first" {
   inspect(
     ast("radar-beta\naxis 1a"),
@@ -256,5 +264,33 @@ test "unknown text is a lexical error" {
   inspect(
     ast("radar-beta\naxis A@"),
     content="Lexical error on line 2. Unrecognized text.\naxis A@\n------^",
+  )
+}
+
+///|
+test "a name may start with circle, polygon, true, false or title" {
+  inspect(
+    ast(
+      "radar-beta\n axis circles, polygonal, trueNorth, falsey, titles\n curve titles{1, 2, 3, 4, 5}, circles{ circles: 1, polygonal 2, trueNorth: 3, falsey 4, titles: 5 }",
+    ),
+    content="title=- accTitle=- accDescr=- axes=circles[-],polygonal[-],trueNorth[-],falsey[-],titles[-] curves=titles[-]{1 2 3 4 5},circles[-]{circles:1 polygonal:2 trueNorth:3 falsey:4 titles:5} options=",
+  )
+  inspect(
+    ast("radar-beta\ntitleaxis a"),
+    content="Parse error on line 2:\ntitleaxis a\n^\nExpecting an axis, a curve, an option, a title, or a line break but found `titleaxis`.",
+  )
+}
+
+///|
+test "an option value right after its option is read even when a name goes on" {
+  inspect(
+    ast(
+      "radar-beta\n axis a, b\n showLegend falsecurve x{1, 2}\n graticule polygonaxis c",
+    ),
+    content="title=- accTitle=- accDescr=- axes=a[-],b[-],c[-] curves=x[-]{1 2} options=showLegend=false,graticule=polygon",
+  )
+  inspect(
+    ast("radar-beta\ngraticule %%{init: {}}%% circlecurve x{1}"),
+    content="title=- accTitle=- accDescr=- axes= curves=x[-]{1} options=graticule=circle",
   )
 }

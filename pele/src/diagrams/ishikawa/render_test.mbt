@@ -187,6 +187,6 @@ test "what Mermaid rejects is rejected with its message" {
   )
   inspect(
     svg("ishikawa-beta"),
-    content="Parse error on line 2:\n\n^\nExpecting 'SPACELINE', 'SPACELIST', 'TEXT', got 'EOF'",
+    content="Parse error on line 1:\nishikawa-beta\n-------------^\nExpecting 'SPACELINE', 'SPACELIST', 'TEXT', got 'EOF'",
   )
 }
