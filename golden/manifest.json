@@ -667,6 +667,28 @@
           }
         }
       }
+    },
+    "mono": {
+      "fontFamily": "sans-serif",
+      "fontFamilyMono": "monospace",
+      "fontSize": 16,
+      "idPrefix": "pele",
+      "padding": 8,
+      "autoDirection": true,
+      "directionBreakpoint": 640,
+      "limit": 50000,
+      "outputLimit": 4000000,
+      "maxEdges": 5000,
+      "links": true,
+      "images": true,
+      "linkRel": "noopener",
+      "now": 1767225600000,
+      "monospace": [
+        "members",
+        "attributes",
+        "files",
+        "messages"
+      ]
     }
   },
   "diagrams": {
@@ -677,7 +699,8 @@
       "narrow": 3,
       "icons": 0,
       "math": 0,
-      "metrics": 52
+      "metrics": 52,
+      "mono": 0
     },
     "architecture": {
       "total": 27,
@@ -686,7 +709,8 @@
       "narrow": 2,
       "icons": 14,
       "math": 0,
-      "metrics": 14
+      "metrics": 14,
+      "mono": 0
     },
     "block": {
       "total": 85,
@@ -695,7 +719,8 @@
       "narrow": 8,
       "icons": 0,
       "math": 1,
-      "metrics": 49
+      "metrics": 49,
+      "mono": 0
     },
     "c4": {
       "total": 56,
@@ -704,7 +729,8 @@
       "narrow": 11,
       "icons": 0,
       "math": 0,
-      "metrics": 13
+      "metrics": 13,
+      "mono": 0
     },
     "class": {
       "total": 90,
@@ -713,7 +739,8 @@
       "narrow": 8,
       "icons": 0,
       "math": 2,
-      "metrics": 76
+      "metrics": 76,
+      "mono": 44
     },
     "cynefin": {
       "total": 19,
@@ -722,7 +749,8 @@
       "narrow": 0,
       "icons": 0,
       "math": 0,
-      "metrics": 17
+      "metrics": 17,
+      "mono": 0
     },
     "er": {
       "total": 144,
@@ -731,7 +759,8 @@
       "narrow": 2,
       "icons": 0,
       "math": 1,
-      "metrics": 100
+      "metrics": 100,
+      "mono": 21
     },
     "eventmodeling": {
       "total": 25,
@@ -740,7 +769,8 @@
       "narrow": 12,
       "icons": 0,
       "math": 0,
-      "metrics": 21
+      "metrics": 21,
+      "mono": 0
     },
     "flowchart": {
       "total": 462,
@@ -749,7 +779,8 @@
       "narrow": 13,
       "icons": 5,
       "math": 16,
-      "metrics": 238
+      "metrics": 238,
+      "mono": 0
     },
     "gantt": {
       "total": 34,
@@ -758,7 +789,8 @@
       "narrow": 12,
       "icons": 0,
       "math": 0,
-      "metrics": 18
+      "metrics": 18,
+      "mono": 0
     },
     "git": {
       "total": 114,
@@ -767,7 +799,8 @@
       "narrow": 25,
       "icons": 0,
       "math": 0,
-      "metrics": 80
+      "metrics": 80,
+      "mono": 0
     },
     "info": {
       "total": 8,
@@ -776,7 +809,8 @@
       "narrow": 0,
       "icons": 0,
       "math": 0,
-      "metrics": 4
+      "metrics": 4,
+      "mono": 0
     },
     "ishikawa": {
       "total": 6,
@@ -785,7 +819,8 @@
       "narrow": 1,
       "icons": 0,
       "math": 0,
-      "metrics": 4
+      "metrics": 4,
+      "mono": 0
     },
     "journey": {
       "total": 14,
@@ -794,7 +829,8 @@
       "narrow": 1,
       "icons": 0,
       "math": 0,
-      "metrics": 2
+      "metrics": 2,
+      "mono": 0
     },
     "kanban": {
       "total": 43,
@@ -803,7 +839,8 @@
       "narrow": 3,
       "icons": 7,
       "math": 2,
-      "metrics": 3
+      "metrics": 3,
+      "mono": 0
     },
     "mindmap": {
       "total": 48,
@@ -812,7 +849,8 @@
       "narrow": 4,
       "icons": 5,
       "math": 1,
-      "metrics": 39
+      "metrics": 39,
+      "mono": 0
     },
     "packet": {
       "total": 24,
@@ -821,7 +859,8 @@
       "narrow": 9,
       "icons": 0,
       "math": 0,
-      "metrics": 2
+      "metrics": 2,
+      "mono": 0
     },
     "pie": {
       "total": 31,
@@ -830,7 +869,8 @@
       "narrow": 2,
       "icons": 0,
       "math": 0,
-      "metrics": 14
+      "metrics": 14,
+      "mono": 0
     },
     "quadrant": {
       "total": 60,
@@ -839,7 +879,8 @@
       "narrow": 33,
       "icons": 0,
       "math": 0,
-      "metrics": 9
+      "metrics": 9,
+      "mono": 0
     },
     "radar": {
       "total": 23,
@@ -848,7 +889,8 @@
       "narrow": 12,
       "icons": 0,
       "math": 0,
-      "metrics": 12
+      "metrics": 12,
+      "mono": 0
     },
     "railroad": {
       "total": 96,
@@ -857,7 +899,8 @@
       "narrow": 1,
       "icons": 0,
       "math": 0,
-      "metrics": 78
+      "metrics": 78,
+      "mono": 0
     },
     "requirement": {
       "total": 16,
@@ -866,7 +909,8 @@
       "narrow": 1,
       "icons": 0,
       "math": 1,
-      "metrics": 12
+      "metrics": 12,
+      "mono": 0
     },
     "sankey": {
       "total": 19,
@@ -875,7 +919,8 @@
       "narrow": 8,
       "icons": 0,
       "math": 0,
-      "metrics": 2
+      "metrics": 2,
+      "mono": 0
     },
     "sequence": {
       "total": 202,
@@ -884,7 +929,8 @@
       "narrow": 19,
       "icons": 0,
       "math": 2,
-      "metrics": 174
+      "metrics": 174,
+      "mono": 160
     },
     "state": {
       "total": 121,
@@ -893,7 +939,8 @@
       "narrow": 1,
       "icons": 0,
       "math": 1,
-      "metrics": 98
+      "metrics": 98,
+      "mono": 0
     },
     "swimlane": {
       "total": 15,
@@ -902,7 +949,8 @@
       "narrow": 12,
       "icons": 0,
       "math": 2,
-      "metrics": 14
+      "metrics": 14,
+      "mono": 0
     },
     "timeline": {
       "total": 26,
@@ -911,7 +959,8 @@
       "narrow": 20,
       "icons": 0,
       "math": 0,
-      "metrics": 3
+      "metrics": 3,
+      "mono": 0
     },
     "treemap": {
       "total": 8,
@@ -920,7 +969,8 @@
       "narrow": 8,
       "icons": 0,
       "math": 0,
-      "metrics": 0
+      "metrics": 0,
+      "mono": 0
     },
     "treeview": {
       "total": 24,
@@ -929,7 +979,8 @@
       "narrow": 0,
       "icons": 6,
       "math": 0,
-      "metrics": 23
+      "metrics": 23,
+      "mono": 23
     },
     "usecase": {
       "total": 108,
@@ -938,7 +989,8 @@
       "narrow": 24,
       "icons": 3,
       "math": 2,
-      "metrics": 63
+      "metrics": 63,
+      "mono": 0
     },
     "venn": {
       "total": 25,
@@ -947,7 +999,8 @@
       "narrow": 0,
       "icons": 0,
       "math": 0,
-      "metrics": 6
+      "metrics": 6,
+      "mono": 0
     },
     "wardley": {
       "total": 39,
@@ -956,7 +1009,8 @@
       "narrow": 39,
       "icons": 0,
       "math": 0,
-      "metrics": 11
+      "metrics": 11,
+      "mono": 0
     },
     "xychart": {
       "total": 74,
@@ -965,7 +1019,8 @@
       "narrow": 26,
       "icons": 0,
       "math": 0,
-      "metrics": 26
+      "metrics": 26,
+      "mono": 0
     }
   }
 }

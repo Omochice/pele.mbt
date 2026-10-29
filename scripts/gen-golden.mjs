@@ -250,6 +250,7 @@ const profiles = {
   icons: { ...options, icons: iconMap },
   math: { ...options, math: mathMap },
   metrics: { ...options, measurer: metricsMeasurer },
+  mono: { ...options, monospace: ['members', 'attributes', 'files', 'messages'] },
 };
 // What a comparison tool reads back from the manifest is what the goldens are rendered from.
 const stored = JSON.parse(JSON.stringify(profiles));
