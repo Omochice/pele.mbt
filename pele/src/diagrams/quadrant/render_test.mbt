@@ -327,7 +327,10 @@ test "a point label goes where it is inside the chart and free" {
     tags(
       "text", "quadrantChart\n A very long point label that wraps around: [0.5, 0.5]",
     ),
-    content="500x500\n<text class=\"pele-label\" text-anchor=\"middle\" xml:space=\"preserve\">",
+    content=(
+      #|500x500
+      #|<text class="pele-label" x="250" y="271.4" text-anchor="middle">
+    ),
   )
 }
 
@@ -565,4 +568,16 @@ test "text follows the quadrantChart font size settings" {
     content="true",
   )
   inspect(svg(config("    pointLabelFontSize: .inf")) == plain, content="true")
+}
+
+///|
+test "a point label stays on one line when it fits in the plot" {
+  let name = "Drip irrigation for the whole orchard and the vegetable beds"
+  let options = { ..@types.RenderOptions::default(), font_size: Some(22), }
+  let result = @core.render(
+    [@quadrant.quadrant],
+    "quadrantChart\n \{name}: [0.5, 0.5]",
+    options,
+  )
+  inspect(result.svg.contains(">\{name}</text>"), content="true")
 }

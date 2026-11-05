@@ -320,7 +320,8 @@ fn render_quadrant(
           @util.js_min(@util.parse_float(stroke_width), 400) / 2
         None => 0
       }),
-      text: label(Some(point.text), point_size, 200),
+      // Mermaid keeps point labels on one line; wrap only what is wider than the plot.
+      text: label(Some(point.text), point_size, w),
     })
     let circle = @svg.Markup::new()
     circle.write(
