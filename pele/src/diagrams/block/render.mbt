@@ -1302,6 +1302,25 @@ fn draw(
       continue
     }
     let arrow = v.kind is Arrow
+    // Reuse a wider cell without changing the node size or the routes computed from it.
+    let label = if v.cell.span > 1 &&
+      v.label.width > 0 &&
+      v.label.lines.length() > 1 &&
+      v.bw > v.cell.nw &&
+      (arrow || !is_fixed(v.shape)) {
+      let text_style = (if v.style.bold { @text.STYLE_BOLD } else { 0 }) |
+        (if v.style.italic { @text.STYLE_ITALIC } else { 0 })
+      @text.layout_label(
+        Some(v.block.label),
+        false,
+        measurer,
+        v.label.size,
+        v.label.width + (v.bw - v.cell.nw),
+        base=text_style,
+      )
+    } else {
+      v.label
+    }
     let shape_class = if arrow { "block-arrow" } else { v.shape }
     nodes.write(
       "<g class=\"pele-node pele-shape-\{shape_class}\{classes}\" data-id=\"",
@@ -1337,7 +1356,7 @@ fn draw(
     }
     @svg.write_label_styled(
       nodes,
-      v.label,
+      label,
       v.dx,
       v.dy,
       " class=\"pele-label\"\{ink}",
