@@ -1,5 +1,5 @@
 ///|
-/// Pairs of a click target and what `sanitizeUrl` makes of it, from pele 1.12.0.
+/// Pairs of a click target and what `sanitizeUrl` makes of it, from pele 1.13.0.
 /// Each answer also agrees with @braintree/sanitize-url, which Mermaid applies to click targets,
 /// apart from the percent escapes pele keeps.
 let sanitized : Array[(String, String)] = [
@@ -129,7 +129,7 @@ let sanitized : Array[(String, String)] = [
 ]
 
 ///|
-test "click targets are sanitized as pele 1.12.0 does" {
+test "click targets are sanitized as pele 1.13.0 does" {
   let wrong = []
   for pair in sanitized {
     let (url, expected) = pair

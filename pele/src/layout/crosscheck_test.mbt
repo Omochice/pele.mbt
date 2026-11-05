@@ -21,7 +21,7 @@ type Layout = (
 /// Lays out a graph written as space-separated fields, and writes the result the same way.
 /// The input is the direction, the options, then each node and each edge.
 /// The output is the size, each node's center and size, then each edge's route and label center.
-/// The expectations below are pele v1.8.0's own output for the same input, run in Node and written with `String`, so the strings match only when every coordinate is the same double.
+/// The expectations below are pele v1.13.0's own output for the same input, run in Node and written with `String`, so the strings match only when every coordinate is the same double.
 /// They cover layouts that flowchart, class and state goldens make, and pele's random test graphs.
 fn run_oracle(
   input : String,
