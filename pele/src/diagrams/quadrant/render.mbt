@@ -34,6 +34,16 @@ fn length(
 }
 
 ///|
+/// Mermaid's quadrantChart font size keys; without them the sizes follow the font size.
+fn text_size(config : @types.Config, key : String, fallback : Double) -> Double {
+  match setting(config, key) {
+    Some(Number(value, ..)) if !value.is_nan() && !value.is_inf() =>
+      @util.js_min(72, @util.js_max(4, value))
+    _ => fallback
+  }
+}
+
+///|
 /// What `first ?? second` gives.
 fn[T] either(first : T?, second : T?) -> T? {
   match first {
@@ -59,8 +69,31 @@ fn render_quadrant(
   options : @types.RenderOptions,
 ) -> @types.Rendered raise @errors.PeleError {
   let size = options.font_size.unwrap_or(16)
-  let axis_size = (size * 0.875).round()
-  let point_size = (size * 0.75).round()
+  let title_size = text_size(config, "titleFontSize", size)
+  let quadrant_size = text_size(config, "quadrantLabelFontSize", size)
+  let x_axis_size = text_size(
+    config,
+    "xAxisLabelFontSize",
+    (size * 0.875).round(),
+  )
+  let y_axis_size = text_size(
+    config,
+    "yAxisLabelFontSize",
+    (size * 0.875).round(),
+  )
+  let point_size = text_size(
+    config,
+    "pointLabelFontSize",
+    (size * 0.75).round(),
+  )
+  // Sizes that differ from the one a label inherits.
+  let size_attr = (own : Double, inherited : Double) => {
+    if own == inherited {
+      ""
+    } else {
+      " font-size=\"\{own}\""
+    }
+  }
   let measurer = options.text_measurer()
   let natural = @util.js_max(100, length(config, "chartWidth", 500, 4000)).round()
   let width = @common.cap_width(options, natural, 280).round()
@@ -89,7 +122,7 @@ fn render_quadrant(
     model.title,
     false,
     measurer,
-    size,
+    title_size,
     @util.js_max(width - 2 * outer, 40),
     base=@text.STYLE_BOLD,
   )
@@ -104,27 +137,27 @@ fn render_quadrant(
   let side = width - 2 * outer
   let x_left = label(
     model.x_axis_left,
-    axis_size,
+    x_axis_size,
     if model.x_axis_right is Some(_) {
       side / 2 - 16
     } else {
       side
     },
   )
-  let x_right = label(model.x_axis_right, axis_size, side / 2 - 16)
+  let x_right = label(model.x_axis_right, x_axis_size, side / 2 - 16)
   let x_height = @util.js_max(x_left.height, x_right.height)
   let x_space = if has_x { x_height + x_pad } else { 0 }
   let tall = height - 2 * outer - title_space - x_space
   let y_bottom = label(
     model.y_axis_bottom,
-    axis_size,
+    y_axis_size,
     if model.y_axis_top is Some(_) {
       tall / 2 - 16
     } else {
       tall
     },
   )
-  let y_top = label(model.y_axis_top, axis_size, tall / 2 - 16)
+  let y_top = label(model.y_axis_top, y_axis_size, tall / 2 - 16)
   let y_height = @util.js_max(y_bottom.height, y_top.height)
   let y_space = if has_y { y_height + y_pad } else { 0 }
   let left = outer + (if y_right { 0 } else { y_space })
@@ -174,7 +207,7 @@ fn render_quadrant(
   for k in 0..<4 {
     let x = if k == 0 || k == 3 { left + w - tile_w } else { left }
     let y = if k < 2 { top } else { top + h - tile_h }
-    let text = label(model.quadrants[k], size, tile_w - 16)
+    let text = label(model.quadrants[k], quadrant_size, tile_w - 16)
     let cx = x + tile_w / 2
     let cy = if has_points {
       y + text_top + text.height / 2
@@ -190,7 +223,11 @@ fn render_quadrant(
       "<rect x=\"\{@svg.num(x)}\" y=\"\{@svg.num(y)}\" width=\"\{@svg.num(tile_w)}\" height=\"\{@svg.num(tile_h)}\"\{@svg.ROUNDED}/>",
     )
     @svg.write_label(
-      quadrants, text, cx, cy, " class=\"pele-label\" fill=\"var(--_fg)\" stroke=\"none\"",
+      quadrants,
+      text,
+      cx,
+      cy,
+      " class=\"pele-label\"\{size_attr(quadrant_size, size)} fill=\"var(--_fg)\" stroke=\"none\"",
     )
     quadrants.write("</g>")
   }
@@ -223,7 +260,7 @@ fn render_quadrant(
     fn turned(text : @text.Label, y : Double) -> Unit raise @errors.PeleError {
       if text.height > 0 {
         axes.write(
-          "<g transform=\"translate(\{@svg.num(x)},\{@svg.num(y)}) rotate(-90)\">",
+          "<g transform=\"translate(\{@svg.num(x)},\{@svg.num(y)}) rotate(-90)\"\{size_attr(y_axis_size, x_axis_size)}>",
         )
         @svg.write_label(axes, text, 0, 0, "")
         axes.write("</g>")
@@ -400,7 +437,7 @@ fn render_quadrant(
     title,
     width / 2,
     title_pad / 2 + title.height / 2,
-    " class=\"pele-title\" font-weight=\"var(--_tw)\"",
+    " class=\"pele-title\"\{size_attr(title_size, size)} font-weight=\"var(--_tw)\"",
   )
   content.write_group(
     "<g class=\"pele-quadrants\" fill=\"var(--_s)\" stroke=\"var(--_b)\">", quadrants,
@@ -408,7 +445,7 @@ fn render_quadrant(
   )
   if !axes.is_empty() {
     content.write_group(
-      "<g class=\"pele-axis-labels\" font-size=\"\{axis_size}\" fill=\"var(--_m)\">",
+      "<g class=\"pele-axis-labels\" font-size=\"\{x_axis_size}\" fill=\"var(--_m)\">",
       axes,
       "</g>",
     )
