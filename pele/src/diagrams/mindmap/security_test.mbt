@@ -215,6 +215,12 @@ let templates : Array[(String) -> String] = [
   p => {
     "%%{init: {\"mindmap\": {\"maxNodeWidth\": \"\{p}\"}, \"themeVariables\": {\"fontFamily\": \"\{p}\"}}}%%\nmindmap\n  root"
   },
+  p => {
+    "%%{init: {\"themeVariables\": {\"cScale1\": \"\{p}\", \"cScale2\": \"red\"}}}%%\nmindmap\n  root\n    a\n    b"
+  },
+  p => {
+    "---\nconfig:\n  themeVariables:\n    cScale1: \"\{p}\"\n    cScale2: '\{p}'\n---\nmindmap\n  root\n    a\n    b"
+  },
 ]
 
 ///|
@@ -251,6 +257,17 @@ test "the checker accepts what pele draws and rejects what it must not" {
     inert_problem("<svg><rect x=\"a\"/></svg>"),
     Some("x=\"a\" is not a number"),
   )
+}
+
+///|
+test "the checker accepts the series colors a palette declares on the root" {
+  let result = @core.render(
+    [@mindmap.mindmap],
+    "%%{init: {\"themeVariables\": {\"cScale1\": \"rgb(0, 0, 0)\", \"cScale2\": \"var(--pele-accent)\"}}}%%\nmindmap\n  root\n    a\n    b",
+    @types.RenderOptions::default(),
+  )
+  assert_true(result.svg.contains(";--pele-series-1:rgb(0, 0, 0)"))
+  assert_eq(inert_problem(result.svg), None)
 }
 
 ///|
