@@ -181,13 +181,19 @@ fn draw(
   let event_height = (label : @text.Label) => {
     @util.js_max(label.height, (small * 1.5).round()) + 2 * PAD_Y
   }
-  let color_of = (group : Group, period : Int32) => {
+  let series_of = (group : Group, period : Int32) => {
     if group.section >= 0 {
-      @svg.series_color(group.section)
+      Some(group.section)
     } else if has_sections {
-      "var(--_m)"
+      None
     } else {
-      @svg.series_color(if multicolor { period } else { 0 })
+      Some(if multicolor { period } else { 0 })
+    }
+  }
+  let color_of = (group : Group, period : Int32) => {
+    match series_of(group, period) {
+      Some(series) => @svg.series_color(series)
+      None => "var(--_m)"
     }
   }
 
