@@ -86,7 +86,6 @@ fn render_quadrant(
     "pointLabelFontSize",
     (size * 0.75).round(),
   )
-  // Sizes that differ from the one a label inherits.
   let size_attr = (own : Double, inherited : Double) => {
     if own == inherited {
       ""
