@@ -140,6 +140,59 @@ fn follow(
 }
 
 ///|
+/// Aligns border ports with the ends on their nodes so edges run straight across the gap.
+/// Ports are kept `edge_sep` apart while placed, more than ends on a short side get, so without this an edge turns outside the border and again in the gap.
+/// Leaves a rank alone unless every port can move without passing or meeting its neighbors.
+fn align_ports(
+  g : Graph,
+  xs : FixedArray[Double],
+  empty : FixedArray[Bool]?,
+) -> Unit {
+  for side in [(0, true), (g.max_rank, false)] {
+    let (r, start) = side
+    let s = g.layer_start[r]
+    let end = g.layer_start[r + 1]
+    let to : Array[Double] = []
+    for i in s..<end {
+      let v = g.order[i]
+      let port = if start {
+        g.kind[v] is StartPort
+      } else {
+        g.kind[v] is EndPort
+      }
+      let degree = if start {
+        g.succ_start[v + 1] - g.succ_start[v]
+      } else {
+        g.pred_start[v + 1] - g.pred_start[v]
+      }
+      if !port || degree != 1 {
+        break
+      }
+      let e = if start {
+        follow(g, empty, g.succ_e[g.succ_start[v]], 1)
+      } else {
+        follow(g, empty, g.pred_e[g.pred_start[v]], 0)
+      }
+      let at = if start {
+        xs[g.et[e]] + g.etd[e]
+      } else {
+        xs[g.ef[e]] + g.efd[e]
+      }
+      if to.length() > 0 && at < to[to.length() - 1] + in_line {
+        break
+      }
+      to.push(at)
+    }
+    if to.length() == 0 || to.length() != end - s {
+      continue
+    }
+    for i in s..<end {
+      xs[g.order[i]] = to[i - s]
+    }
+  }
+}
+
+///|
 /// How many ends that may move along it each node has on the side its edges arrive at, and on the other.
 /// An end that has a side to itself keeps to the middle; ends that share one cannot all be there, so those may move.
 fn free_ends(

@@ -100,6 +100,51 @@ test "orders the ports on the far side of a group by where their edges go, so th
 }
 
 ///|
+test "runs an edge straight across the gap between a group border and the node it meets inside" {
+  for dir in [@layout.Dir::TB, LR] {
+    let nodes = [group(100), group(101)]
+    let from = Array::makei(3, _ => {
+      nodes.push(@layout.cnode(60, 30, parent=0))
+      nodes.length() - 1
+    })
+    let to = Array::makei(5, _ => {
+      nodes.push(@layout.cnode(60, 30, parent=1))
+      nodes.length() - 1
+    })
+    for i, node in nodes {
+      if node.is_group {
+        continue
+      }
+      node.seq = i.to_double()
+      node.span = @util.js_min(node.w, node.h) - 8
+    }
+    let edges = []
+    for b in to {
+      for a in from {
+        edges.push(edge(a, b, label_w=40, label_h=16))
+      }
+    }
+    ignore(@layout.compound_layout(nodes, edges, dir, options()))
+    let across = if dir is TB { 0 } else { 1 }
+    for e in edges {
+      let last = e.route.length() - 3
+      let mut k = 0
+      while k < last && !on_border(nodes[1], e.route[k], e.route[k + 1]) {
+        k += 3
+      }
+      assert_true(k < last)
+      assert_true(near(e.route[k + across], e.route[last + across]))
+      k = last
+      while k > 0 && !on_border(nodes[0], e.route[k], e.route[k + 1]) {
+        k -= 3
+      }
+      assert_true(k > 0)
+      assert_true(near(e.route[k + across], e.route[across]))
+    }
+  }
+}
+
+///|
 test "orders the nodes of a row of groups as one drawing, so that the edges between them do not cross" {
   let nodes = [group(100), group(101), group(102)]
   let stage = fn(g : Int32) {

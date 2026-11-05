@@ -606,6 +606,7 @@ pub fn layered(
       e.head_dx = if e.reversed { a_dx } else { b_dx }
     }
   }
+  align_ports(g, xs, empty)
 
   // A rank that holds nothing but the bends of edges is only there because some other edge has a label or a twin.
   // Its bends move onto the straight line between the ends of their edges, and one that gets there is left out of the route, so that the edge is drawn as a single curve.
