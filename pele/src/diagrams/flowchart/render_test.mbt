@@ -316,6 +316,15 @@ test "ignores a subgraph's direction when its nodes link outside it" {
 }
 
 ///|
+test "lines up unlinked subgraph members with the member an outside edge enters" {
+  let drawn = svg(
+    "flowchart TB\n  subgraph S\n    a\n    b\n    c\n  end\n  x --> a",
+  )
+  assert_eq(node_at(drawn, "b").1, node_at(drawn, "a").1)
+  assert_eq(node_at(drawn, "c").1, node_at(drawn, "a").1)
+}
+
+///|
 /// The label of node `id`, from its `<text` to its `</text>`.
 fn node_text(svg : String, id : String) -> String {
   let node = @util.index_of(svg, "data-id=\"\{id}\"")

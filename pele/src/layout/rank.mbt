@@ -87,6 +87,12 @@ pub fn rank(nodes : Array[LNode], edges : Array[LEdge], step : Int32) -> Unit {
     inf[to[i]] += 1
   }
   let r = FixedArray::make(n, 0)
+  // Start ports go above every node later, so they don't push their targets down a rank.
+  for i in 0..<n {
+    if nodes[i].kind is StartPort {
+      r[i] = -step
+    }
+  }
   let indeg = FixedArray::makei(n, i => in_start[i + 1] - in_start[i])
   let topo = FixedArray::make(n, 0)
   let mut count = 0
