@@ -89,8 +89,8 @@ fn straighten(
       let twins : Array[Int32] = []
       let mut j = i
       while j < row.length() &&
-            (from[row[j]] - from[row[i]]).abs() < 1 &&
-            (to[row[j]] - to[row[i]]).abs() < 1 {
+            (from[row[j]] - from[row[i]]).abs() < twin &&
+            (to[row[j]] - to[row[i]]).abs() < twin {
         twins.push(row[j])
         j += 1
       }

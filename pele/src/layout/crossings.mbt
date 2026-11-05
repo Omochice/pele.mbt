@@ -26,6 +26,10 @@ let fan_room = 24.0
 let in_line : Double = 0.5
 
 ///|
+/// How far apart two edges may be at both ends and still count as twins.
+let twin : Double = 1.0
+
+///|
 let curve_pieces = 3
 
 ///|
