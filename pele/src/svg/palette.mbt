@@ -3,10 +3,12 @@
 pub struct Palette {
   /// The `--pele-series-*` declarations for the root `style` attribute, escaped.
   style : String
+  /// The label color for text on each series, where the contrast of its color is known.
+  inks : Array[String?]
 }
 
 ///|
-let no_palette : Palette = { style: "", }
+let no_palette : Palette = { style: "", inks: [], }
 
 ///|
 /// How many series colors a palette sets.
@@ -90,11 +92,41 @@ fn calls_only_colors(color : String) -> Bool {
 }
 
 ///|
-/// A color that can't load a resource or end its declaration.
+/// Whether every name `/var\(\s*([\w-]*)/gi` finds is one of pele's own properties.
+fn reads_only_pele_vars(color : String) -> Bool {
+  let n = color.length()
+  let mut at = 0
+  while at + 4 <= n {
+    if lower_ascii(@util.slice(color, at, end=at + 4)) != "var(" {
+      at += 1
+      continue
+    }
+    let mut start = at + 4
+    while start < n && @util.is_space(@util.code_at(color, start)) {
+      start += 1
+    }
+    let mut end = start
+    while end < n && is_name_char(@util.code_at(color, end)) {
+      end += 1
+    }
+    if !@util.slice(color, start, end~).has_prefix("--pele-") {
+      return false
+    }
+    at = end
+  }
+  true
+}
+
+///|
+/// A color that can't load a resource, end its declaration or read the page's own variables.
+/// Values outside functions are checked as colors, so a typo keeps the theme color.
 fn safe_color(value : Json?) -> String? {
   guard value is Some(String(raw)) else { return None }
   let color = @util.trim(raw)
   guard has_color_chars(color) else { return None }
+  if !color.contains("(") {
+    return if plain_color(color) { Some(color) } else { None }
+  }
   let mut depth = 0
   for i in 0..<color.length() {
     match @util.code_at(color, i) {
@@ -108,7 +140,9 @@ fn safe_color(value : Json?) -> String? {
       _ => ()
     }
   }
-  guard depth == 0 && calls_only_colors(color) else { return None }
+  guard depth == 0 && calls_only_colors(color) && reads_only_pele_vars(color) else {
+    return None
+  }
   Some(color)
 }
 
@@ -173,15 +207,19 @@ pub fn palette(kind : String, config : @types.Config) -> Palette {
     return no_palette
   }
   let style = StringBuilder()
+  let inks : Array[String?] = Array::make(SLOTS, None)
   for i in 0..<SLOTS {
     if !repeat && i >= list.length() {
       break
     }
-    if safe_color(list[i % list.length()]) is Some(color) {
-      style.write_string(";--pele-series-\{i + 1}:\{color}")
-    }
+    guard safe_color(list[i % list.length()]) is Some(color) else { continue }
+    style.write_string(";--pele-series-\{i + 1}:\{color}")
+    inks[i] = ink(";fill:" + color)
   }
-  { style: esc(style.to_string()), }
+  if style.is_empty() {
+    return no_palette
+  }
+  { style: esc(style.to_string()), inks, }
 }
 
 ///|
@@ -205,4 +243,14 @@ pub fn[T] with_palette(palette : Palette, run : () -> T raise?) -> T raise? {
 /// The root element's declarations of the palette of the render in progress.
 fn palette_style() -> String {
   current_palette.val.style
+}
+
+///|
+/// The `fill` attribute of a label on the color of series `index`, when the palette sets a color
+/// whose contrast is known, or nothing.
+pub fn series_ink_fill(index : Int32) -> String {
+  match current_palette.val.inks.get((index % SLOTS + SLOTS) % SLOTS) {
+    Some(Some(color)) => " fill=\"\{color}\""
+    _ => ""
+  }
 }

@@ -38,6 +38,17 @@ fn has_own_fill(css : String) -> Bool {
 }
 
 ///|
+/// The `fill` attribute of a label on a box of series `series` drawn in `style`.
+/// A class's own fill decides the label's color, as the series color is then hidden under it.
+fn label_ink(style : @svg.RawStyle, series : Int32) -> String {
+  if has_own_fill(style.shape) {
+    @svg.raw_ink_fill(style)
+  } else {
+    @svg.series_ink_fill(series)
+  }
+}
+
+///|
 /// Writes a text element whose attributes end with the `style` attribute of `css`.
 fn write_text(
   out : @svg.Markup,
@@ -148,7 +159,7 @@ fn draw_section(
   // An inline font size overrides the size attributes, so text is truncated instead of shrunk.
   let fixed = style.font_size
   let emphasis = text_style(style)
-  let ink = @svg.raw_ink_fill(style)
+  let ink = label_ink(style, b.series)
   let tint = if has_own_fill(style.shape) {
     ""
   } else {
@@ -214,7 +225,7 @@ fn draw_section(
   if with_value && value_size * LINE <= HEADER {
     write_text(
       out,
-      " class=\"pele-value\" x=\"\{@svg.num(x + b.w - SIDE - 2)}\" y=\"\{@svg.num(baseline + value_size * 0.35)}\" font-size=\"\{tiny}\" text-anchor=\"end\"\{@svg.raw_ink_fill(style, fallback="var(--_m)")}",
+      " class=\"pele-value\" x=\"\{@svg.num(x + b.w - SIDE - 2)}\" y=\"\{@svg.num(baseline + value_size * 0.35)}\" font-size=\"\{tiny}\" text-anchor=\"end\"\{if ink == "" { " fill=\"var(--_m)\"" } else { ink }}",
       style.text,
       value,
     )
@@ -240,7 +251,7 @@ fn draw_leaf(
   let least = (size * 0.5625).round()
   let fixed = style.font_size
   let emphasis = text_style(style)
-  let ink = @svg.raw_ink_fill(style)
+  let ink = label_ink(style, b.series)
   let room = b.w - 8
   let smallest = fixed.unwrap_or(least)
   // A class's font size is kept whole, since flooring the room would refuse a fractional size that fits.

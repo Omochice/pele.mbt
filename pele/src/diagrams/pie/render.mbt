@@ -232,7 +232,7 @@ fn draw(
     } else {
       let r = radius * text_position
       labels.write(
-        "<text x=\"\{@svg.num(@math.sin(mid) * r)}\" y=\"\{@svg.num(-@math.cos(mid) * r + small * 0.35)}\">\{text}</text>",
+        "<text x=\"\{@svg.num(@math.sin(mid) * r)}\" y=\"\{@svg.num(-@math.cos(mid) * r + small * 0.35)}\"\{@svg.series_ink_fill(index)}>\{text}</text>",
       )
     }
     angle = end

@@ -95,6 +95,8 @@ pub fn paints(String) -> Bool
 
 pub fn palette(String, Map[String, Json]) -> Palette
 
+pub fn plain_color(String) -> Bool
+
 pub fn raw_casing(String, String, css~ : String, thick? : Bool) -> String
 
 pub fn raw_edge_casing(EdgePath, String, String, css~ : String, thick? : Bool) -> String
@@ -118,6 +120,8 @@ pub fn rounded(String) -> String
 pub fn route_path(Array[Double], String?, Double, Double, start_reach? : Double, end_reach? : Double) -> EdgePath
 
 pub fn series_color(Int32) -> String
+
+pub fn series_ink_fill(Int32) -> String
 
 pub fn sets_fill(String) -> Bool
 
@@ -227,6 +231,7 @@ pub fn Markup::write_markup(Self, Self) -> Unit
 
 pub struct Palette {
   style : String
+  inks : Array[String?]
 }
 
 pub(all) struct RawStyle {

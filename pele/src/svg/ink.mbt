@@ -259,6 +259,18 @@ fn color_function(value : String) -> (String, String)? {
 }
 
 ///|
+/// Whether `raw` is a hex color or one of CSS's named colors.
+pub fn plain_color(raw : String) -> Bool {
+  let value = lower_ascii(@util.trim(raw), kelvin=true)
+  let name = value.replace(old="grey", new="gray")
+  hex_digits(value) is Some(_) ||
+  dark_names.contains(name) ||
+  light_names.contains(name) ||
+  value == "transparent" ||
+  value == "currentcolor"
+}
+
+///|
 /// The luminance and alpha of a color; named colors use 0 or 1 to preserve the contrast choice.
 fn tone(raw : String) -> (Double, Double)? {
   let value = lower_ascii(@util.trim(raw), kelvin=true)
