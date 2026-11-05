@@ -791,6 +791,13 @@ pub fn render_block(
 }
 
 ///|
+/// The bold and italic bits of the text drawn in `style`.
+fn text_style(style : @svg.RawStyle) -> Int32 {
+  (if style.bold { @text.STYLE_BOLD } else { 0 }) |
+  (if style.italic { @text.STYLE_ITALIC } else { 0 })
+}
+
+///|
 /// The style of a block: its classes, or the default class when it has none, and then its own styles.
 /// A style list is split on commas only, so one entry can still hold several declarations.
 fn style_of(db : BlockDb, block : Block) -> @svg.RawStyle {
@@ -856,8 +863,7 @@ fn draw(
     } else {
       style_of(db, block)
     }
-    let text_style = (if style.bold { @text.STYLE_BOLD } else { 0 }) |
-      (if style.italic { @text.STYLE_ITALIC } else { 0 })
+    let text_style = text_style(style)
     let font_size = style.font_size.unwrap_or(size)
     let mut kind = Leaf
     let mut shape = ""
@@ -1308,15 +1314,13 @@ fn draw(
       v.label.lines.length() > 1 &&
       v.bw > v.cell.nw &&
       (arrow || !is_fixed(v.shape)) {
-      let text_style = (if v.style.bold { @text.STYLE_BOLD } else { 0 }) |
-        (if v.style.italic { @text.STYLE_ITALIC } else { 0 })
       @text.layout_label(
         Some(v.block.label),
         false,
         measurer,
         v.label.size,
         v.label.width + (v.bw - v.cell.nw),
-        base=text_style,
+        base=text_style(v.style),
       )
     } else {
       v.label
