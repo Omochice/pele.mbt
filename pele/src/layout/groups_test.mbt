@@ -179,6 +179,47 @@ test "keeps edges straight when their ends on a node are less than a twin apart"
 }
 
 ///|
+test "runs an edge into a group straight when only its bends need to move" {
+  let nodes = [group(100), group(101)]
+  let leaf = fn(parent : Int32) {
+    let v = nodes.length()
+    nodes.push(@layout.cnode(54, 48, parent~))
+    nodes[v].seq = v.to_double()
+    nodes[v].span = 24
+    v
+  }
+  let a1 = leaf(0)
+  let a2 = leaf(0)
+  let a3 = leaf(0)
+  let b1 = leaf(1)
+  let b2 = leaf(1)
+  let c = leaf(-1)
+  let d = leaf(-1)
+  let edges = [
+    edge(a1, a2),
+    edge(a1, a3),
+    edge(b1, b2),
+    edge(a2, b1),
+    edge(a3, b1),
+    edge(b2, a1),
+    edge(c, 0),
+    edge(c, 1),
+    edge(0, d),
+    edge(1, d),
+  ]
+  ignore(@layout.compound_layout(nodes, edges, TB, options()))
+  let route = edges[7].route
+  let x = route[route.length() - 3]
+  let mut k = 0
+  while k < route.length() {
+    if route[k + 1] > nodes[c].y + nodes[c].h / 2 + 24 {
+      assert_true(near(route[k], x))
+    }
+    k += 3
+  }
+}
+
+///|
 test "orders the nodes of a row of groups as one drawing, so that the edges between them do not cross" {
   let nodes = [group(100), group(101), group(102)]
   let stage = fn(g : Int32) {
