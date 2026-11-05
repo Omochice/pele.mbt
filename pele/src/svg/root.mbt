@@ -67,7 +67,7 @@ fn document_tag(
   let fonts = esc(
     font_style(font_size, options.font_family, options.font_family_mono),
   )
-  "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-\{kind}\" viewBox=\"0 0 \{width} \{height}\" width=\"\{width}\" height=\"\{height}\" style=\"\{fit}\{ROOT_STYLE}\{extra.to_string()}\{fonts}\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"\{kind}\"\{aria.to_string()}>"
+  "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-\{kind}\" viewBox=\"0 0 \{width} \{height}\" width=\"\{width}\" height=\"\{height}\" style=\"\{fit}\{ROOT_STYLE}\{extra.to_string()}\{fonts}\{palette_style()}\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"\{kind}\"\{aria.to_string()}>"
 }
 
 ///|

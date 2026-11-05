@@ -10,8 +10,18 @@ import {
 
 import {
   "Omochice/pele/diagrams/common",
+  "Omochice/pele/diagrams/flowchart",
+  "Omochice/pele/diagrams/git",
+  "Omochice/pele/diagrams/journey",
+  "Omochice/pele/diagrams/mindmap",
   "Omochice/pele/diagrams/pie",
+  "Omochice/pele/diagrams/radar",
+  "Omochice/pele/diagrams/timeline",
+  "Omochice/pele/diagrams/treemap",
+  "Omochice/pele/diagrams/venn",
+  "Omochice/pele/diagrams/xychart",
   "Omochice/pele/errors",
   "Omochice/pele/svg",
   "Omochice/pele/types",
+  "Omochice/pele/util",
 } for "test"
