@@ -178,7 +178,7 @@ fn align_ports(
       } else {
         xs[g.ef[e]] + g.efd[e]
       }
-      if to.length() > 0 && at < to[to.length() - 1] + in_line {
+      if to.length() > 0 && at < to[to.length() - 1] + twin {
         break
       }
       to.push(at)

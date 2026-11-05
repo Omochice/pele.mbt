@@ -145,6 +145,40 @@ test "runs an edge straight across the gap between a group border and the node i
 }
 
 ///|
+test "keeps edges straight when their ends on a node are less than a twin apart" {
+  let nodes = [
+    group(100),
+    @layout.cnode(48, 48, parent=0),
+    @layout.cnode(70, 66, parent=0),
+    @layout.cnode(48, 48),
+  ]
+  for i, node in nodes {
+    if i > 0 {
+      node.seq = i.to_double()
+    }
+  }
+  nodes[1].span = 24
+  nodes[2].span = 0.995
+  nodes[3].span = 24
+  let edges = [edge(1, 2, label_w=40, label_h=16), edge(2, 3), edge(3, 2)]
+  ignore(@layout.compound_layout(nodes, edges, TB, options()))
+  for e in edges[1:] {
+    let xs = []
+    let mut k = 0
+    while k < e.route.length() {
+      xs.push(e.route[k])
+      k += 3
+    }
+    let lo = @util.js_min(xs[0], xs[xs.length() - 1])
+    let hi = @util.js_max(xs[0], xs[xs.length() - 1])
+    for x in xs {
+      assert_true(x >= lo - 1)
+      assert_true(x <= hi + 1)
+    }
+  }
+}
+
+///|
 test "orders the nodes of a row of groups as one drawing, so that the edges between them do not cross" {
   let nodes = [group(100), group(101), group(102)]
   let stage = fn(g : Int32) {
