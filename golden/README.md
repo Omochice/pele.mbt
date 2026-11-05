@@ -1,6 +1,6 @@
 # Golden fixtures
 
-The files in this directory are the reference outputs of pele v1.12.0, rendered from pele's own test corpus.
+The files in this directory are the reference outputs of pele v1.13.0, rendered from pele's own test corpus.
 A port is correct when it reproduces every file here.
 The directory is generated, so it MUST NOT be edited by hand.
 The port's output ceiling, its known constraints, and how it is tested beyond these fixtures are described under [doc/](../doc/README.md).
