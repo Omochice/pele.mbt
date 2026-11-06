@@ -1,4 +1,4 @@
-// pele's state-security templates and payloads (tests/render/state-security.test.ts, tests/support/inert.ts), with a hash of what pele's render gives each pair, taken from pele v1.12.0.
+// pele's state-security templates and payloads (tests/render/state-security.test.ts, tests/support/inert.ts), with a hash of what pele's render gives each pair, taken from pele v1.13.0.
 
 ///|
 /// Each template as the text around the places its payload goes.
@@ -229,7 +229,7 @@ let hostile_outcomes : Array[String] = [
   "d65db016", "ab06b62a", "7da1910e", "3b4bc07b", "56f98748", "5a91d318", "51a4bc43",
   "6621afc7", "b630ecec", "61c6f3d0", "b630ecec", "b7247b2b", "663bb4d4", "afadc4e3",
   "888986e8", "b76c2096", "9725bfb7", "002ab735", "b630ecec", "628b44f1", "d48022a0",
-  "1d5b1dd3", "8d6e20aa", "787c2275", "d48022a0", "704e9f73", "21c4bf54", "59d84cd7",
+  "1d5b1dd3", "3629c3d4", "787c2275", "d48022a0", "704e9f73", "e1de51f5", "59d84cd7",
   "a753a915", "94dcbb38", "3792a858", "394f6cd3", "cdb14ae3", "7070e90b", "bc2043f6",
   "fe2cdcc2", "b630ecec", "b200f548", "6877b086", "163dc438", "85f8289e", "e0d7cf3a",
   "3a81f06a", "da0db155", "66f02e3d", "c64e284b", "970c1933", "fc806fc7", "1ed80fec",

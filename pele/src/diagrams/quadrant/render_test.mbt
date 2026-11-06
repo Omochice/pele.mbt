@@ -327,7 +327,10 @@ test "a point label goes where it is inside the chart and free" {
     tags(
       "text", "quadrantChart\n A very long point label that wraps around: [0.5, 0.5]",
     ),
-    content="500x500\n<text class=\"pele-label\" text-anchor=\"middle\" xml:space=\"preserve\">",
+    content=(
+      #|500x500
+      #|<text class="pele-label" x="250" y="271.4" text-anchor="middle">
+    ),
   )
 }
 
@@ -511,4 +514,70 @@ test "extreme numbers are kept within bounds" {
     ),
     content="500x100",
   )
+}
+
+///|
+test "text follows the quadrantChart font size settings" {
+  let src = "quadrantChart\n  title Garden plan\n  x-axis Low effort --> High effort\n  y-axis Low value --> High value\n  quadrant-1 Big bets\n  Herb spiral: [0.3, 0.7]"
+  let config = (body : String) => {
+    "---\nconfig:\n  quadrantChart:\n\{body}\n---\n\{src}"
+  }
+  let plain = svg(src)
+  inspect(plain.contains("class=\"pele-title\" font-weight"), content="true")
+  inspect(
+    plain.contains("<g class=\"pele-axis-labels\" font-size=\"14\""),
+    content="true",
+  )
+  inspect(
+    plain.contains("<g class=\"pele-point-labels\" font-size=\"12\""),
+    content="true",
+  )
+  let sized = svg(
+    config(
+      "    titleFontSize: 30\n    quadrantLabelFontSize: 20\n    xAxisLabelFontSize: 11\n    yAxisLabelFontSize: 13\n    pointLabelFontSize: 9",
+    ),
+  )
+  inspect(
+    sized.contains("class=\"pele-title\" font-size=\"30\" font-weight"),
+    content="true",
+  )
+  inspect(
+    sized.contains("class=\"pele-label\" font-size=\"20\" fill=\"var(--_fg)\""),
+    content="true",
+  )
+  inspect(
+    sized.contains("<g class=\"pele-axis-labels\" font-size=\"11\""),
+    content="true",
+  )
+  inspect(sized.split("rotate(-90)\" font-size=\"13\"").count(), content="3")
+  inspect(
+    sized.contains("<g class=\"pele-point-labels\" font-size=\"9\""),
+    content="true",
+  )
+  inspect(svg(config("    titleFontSize: \"big\"")) == plain, content="true")
+  inspect(
+    svg(config("    pointLabelFontSize: 0")).contains(
+      "<g class=\"pele-point-labels\" font-size=\"4\"",
+    ),
+    content="true",
+  )
+  inspect(
+    svg(config("    pointLabelFontSize: 12.5")).contains(
+      "<g class=\"pele-point-labels\" font-size=\"12.5\"",
+    ),
+    content="true",
+  )
+  inspect(svg(config("    pointLabelFontSize: .inf")) == plain, content="true")
+}
+
+///|
+test "a point label stays on one line when it fits in the plot" {
+  let name = "Drip irrigation for the whole orchard and the vegetable beds"
+  let options = { ..@types.RenderOptions::default(), font_size: Some(22), }
+  let result = @core.render(
+    [@quadrant.quadrant],
+    "quadrantChart\n \{name}: [0.5, 0.5]",
+    options,
+  )
+  inspect(result.svg.contains(">\{name}</text>"), content="true")
 }

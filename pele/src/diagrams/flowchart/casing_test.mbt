@@ -106,7 +106,7 @@ test "cases edges that cross into a subgraph fill a style sets and inks edges in
 ///|
 test "cases an edge whose curve runs into a filled subgraph" {
   let drawn = svg(
-    "flowchart LR\nsubgraph S\n  A\n  B\nend\nD\nE --> A\nD --> F\nF --> C\nB --> C\nstyle S fill:white",
+    "flowchart LR\nsubgraph S\n  A\n  B --> G\nend\nD\nE --> A\nD --> F\nF --> C\nB --> C\nstyle S fill:white",
   )
   inspect(cased(drawn, "L_F_C_0"), content="true")
   inspect(cased(drawn, "L_D_F_0"), content="false")

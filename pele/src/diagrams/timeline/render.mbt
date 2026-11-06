@@ -181,13 +181,25 @@ fn draw(
   let event_height = (label : @text.Label) => {
     @util.js_max(label.height, (small * 1.5).round()) + 2 * PAD_Y
   }
-  let color_of = (group : Group, period : Int32) => {
+  let series_of = (group : Group, period : Int32) => {
     if group.section >= 0 {
-      @svg.series_color(group.section)
+      Some(group.section)
     } else if has_sections {
-      "var(--_m)"
+      None
     } else {
-      @svg.series_color(if multicolor { period } else { 0 })
+      Some(if multicolor { period } else { 0 })
+    }
+  }
+  let color_of = (group : Group, period : Int32) => {
+    match series_of(group, period) {
+      Some(series) => @svg.series_color(series)
+      None => "var(--_m)"
+    }
+  }
+  let on_color = (series : Int32?) => {
+    match series.map(@svg.series_ink_fill) {
+      None | Some("") => ON_COLOR
+      Some(ink) => ink
     }
   }
 
@@ -256,19 +268,26 @@ fn draw(
       label,
       x + w / 2,
       y + h / 2,
-      " font-weight=\"var(--_hw)\"" + ON_COLOR,
+      " font-weight=\"var(--_hw)\"" + on_color(Some(group.section)),
     )
   }
   fn period(
     out : @svg.Markup,
     i : Int32,
+    group : Group,
     color : String,
     x : Double,
     y : Double,
     h : Double,
   ) -> Unit raise @errors.PeleError {
     out.write(box(x, y, col_w, h, " fill=\"\{color}\""))
-    @svg.write_label(out, period_labels[i], x + col_w / 2, y + h / 2, ON_COLOR)
+    @svg.write_label(
+      out,
+      period_labels[i],
+      x + col_w / 2,
+      y + h / 2,
+      on_color(series_of(group, i)),
+    )
   }
   fn event(
     out : @svg.Markup,
@@ -354,7 +373,7 @@ fn draw(
           )
         }
         open_period(body, i)
-        period(body, i, color, left, cy - h / 2, h)
+        period(body, i, group, color, left, cy - h / 2, h)
         body.write_group("<path class=\"pele-edge\" d=\"", d, "\"\{LINE}/>")
         body.write(dot(axis_x, cy, color))
         body.write_markup(cards)
@@ -443,7 +462,7 @@ fn draw(
         }
         bottom = @util.js_max(bottom, ey - EVENT_GAP)
         open_period(body, i)
-        period(body, i, color, x, periods_y, chip_h)
+        period(body, i, group, color, x, periods_y, chip_h)
         body.write_group("<path class=\"pele-edge\" d=\"", d, "\"\{LINE}/>")
         body.write(dot(cx, axis_y, color))
         body.write_markup(cards)

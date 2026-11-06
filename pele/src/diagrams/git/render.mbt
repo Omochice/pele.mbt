@@ -377,9 +377,11 @@ fn draw(
         branches.write(
           "<rect x=\"\{@svg.num(cx - w / 2)}\" y=\"\{@svg.num(cy - h / 2)}\" width=\"\{@svg.num(w)}\" height=\"\{@svg.num(h)}\" fill=\"\{color}\"\{@svg.ROUNDED}/>",
         )
-        @svg.write_label(
-          branches, name, cx, cy, " class=\"pele-label\" fill=\"var(--_bg)\"",
-        )
+        let ink = match @svg.series_ink_fill(i) {
+          "" => " fill=\"var(--_bg)\""
+          ink => ink
+        }
+        @svg.write_label(branches, name, cx, cy, " class=\"pele-label\"" + ink)
       }
       branches.write("</g>")
     }

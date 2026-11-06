@@ -63,6 +63,34 @@ fn attribute(attrs : String, name : String) -> Double {
 }
 
 ///|
+/// The lines of the label drawn in the block with the given id.
+fn node_label(svg : String, id : String) -> Array[String] {
+  let at = @util.index_of(svg, "data-id=\"\{id}\"")
+  let body = @util.slice(
+    svg,
+    @util.last_index_of(svg, "<g class=\"pele-node", from=at),
+    end=@util.index_of(svg, "</g>", from=at),
+  )
+  let open = @util.index_of(body, "<text class=\"pele-label\"")
+  if open == -1 {
+    return []
+  }
+  let inner_at = @util.index_of(body, ">", from=open) + 1
+  let inner = read_until(body, inner_at, "</text>")
+  let lines = []
+  let mut from = @util.index_of(inner, "<tspan")
+  while from != -1 {
+    let start = @util.index_of(inner, ">", from~) + 1
+    lines.push(read_until(inner, start, "</tspan>"))
+    from = @util.index_of(inner, "<tspan", from=start)
+  }
+  if lines.is_empty() && inner != "" {
+    lines.push(inner)
+  }
+  lines
+}
+
+///|
 /// The center of every drawn block and the box of every composite, by id.
 fn boxes(svg : String) -> Map[String, Box] {
   let out : Map[String, Box] = Map([])
@@ -323,6 +351,31 @@ test "spans columns, with the gap between them included" {
   assert_true((box_of(at, "c").x - (a.x + (a.w + 12) / 2)).abs() < 0.05)
   assert_true((d.x - (a.x + 2 * (a.w + 12))).abs() < 0.05)
   assert_eq(d.y, box_of(at, "c").y)
+}
+
+///|
+test "uses the wider cell to wrap a spanning block label" {
+  let text = "Something long long long long long long"
+  let svg = block_svg(
+    "block\n  1[\"Something\"]\n  2[\"\{text}\"]:2\n  3[\"\{text}\"]:5\n  4[\"\{text}\"]:2\n  5[\"Something\"]",
+  )
+  assert_eq(node_label(svg, "3"), [text])
+  assert_eq(node_label(svg, "2").length(), 2)
+}
+
+///|
+test "keeps fixed shapes and explicit line breaks when a block spans columns" {
+  let text = "Something long long long long long long"
+  let fixed = block_svg(
+    "block\n  a((\"\{text}\")) c{\"\{text}\"} d[\"\{text}\"]:5",
+  )
+  assert_eq(node_label(fixed, "a").length(), 2)
+  assert_eq(node_label(fixed, "c").length(), 2)
+  assert_eq(node_label(fixed, "d"), [text])
+  let broken = block_svg("block\n  a[\"\{text}<br>tail\"]:5 b c d e")
+  assert_eq(node_label(broken, "a"), [
+    "Something long long long long long", "long", "tail",
+  ])
 }
 
 ///|

@@ -47,6 +47,9 @@ A color is written as its hex code, a length as a number of the SVG's units, and
 An absent key keeps pele's own value.
 A value holding `;`, `{` or `}` is ignored, as it could end the declaration it is written into.
 
+A diagram whose source sets Mermaid's palette theme variables, such as `pie1` or `cScale0`, has pele declare those colors as `--pele-series-N` on its root element.
+That declaration wins over `series-N` in `theme`, as it does over a page's own values in a browser.
+
 pele outlines a cluster title that edges run through with `color-mix(in srgb, …)` of `surface-alt` and `bg`, which typst does not evaluate, so the plugin computes the mix to a hex code as CSS Color 5 defines it.
 It reads the colors written as a hex code of 3, 4, 6 or 8 digits, `rgb()` or `rgba()` in either the comma or the space separated form, a named color, `transparent`, or another such mix in sRGB.
 A mix in another color space, or of any other color such as `hsl()`, `oklch()` or `currentColor`, is left as written, and typst draws nothing where it paints.
