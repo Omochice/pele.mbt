@@ -13,6 +13,16 @@ node scripts/build-typst.mjs
 
 The script runs `moon build --target wasm --release` with the `moon` found on `PATH`, or the one `$MOON` names.
 
+The flake at the repository root builds the same package with nix, needing no development shell.
+`typst-examples` compiles each document under `examples/` against it into a PDF of the same name.
+
+```sh
+nix build .#typst-package
+nix build .#typst-examples
+```
+
+`typst-package` is also the flake's default package, and holds what `typst.toml` publishes: `lib.typ`, `typst.toml`, this README and the plugin.
+
 ## Usage
 
 `mermaid` renders Mermaid text and places it as an image.
