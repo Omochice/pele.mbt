@@ -46,7 +46,6 @@
       enabled: false,
     },
     {
-      description: "Only a notice of a new pele release; CI fails until it is followed by hand",
       matchManagers: ["custom.regex"],
       matchPackageNames: ["obsidianmd/pele"],
       minimumReleaseAge: "1 day",
