@@ -13,20 +13,7 @@ priv enum Reply {
 fn reply(source : String, options : String) -> Reply {
   try {
     let options = @util.parse_json(options)
-    let result = @core.render(
-      [
-        @agentflow.agentflow, @architecture.architecture, @block.block, @c4.c4, @class.class,
-        @cynefin.cynefin, @er.er, @eventmodeling.eventmodeling, @flowchart.flowchart,
-        @gantt.gantt, @git.git, @info.info, @ishikawa.ishikawa, @journey.journey,
-        @kanban.kanban, @mindmap.mindmap, @packet.packet, @pie.pie, @quadrant.quadrant,
-        @radar.radar, @railroad.railroad, @requirement.requirement, @sankey.sankey,
-        @sequence.sequence, @state.state, @swimlane.swimlane, @timeline.timeline,
-        @treemap.treemap, @treeview.treeview, @usecase.usecase, @venn.venn, @wardley.wardley,
-        @xychart.xychart,
-      ],
-      source,
-      decode_options(options),
-    )
+    let result = @pele.render(source, options=decode_options(options))
     Drawn(result, decode_theme(options))
   } catch {
     @errors.PeleError(failure) => Refused(failure)
