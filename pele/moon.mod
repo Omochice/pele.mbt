@@ -6,6 +6,8 @@ repository = "https://github.com/Omochice/pele.mbt"
 
 license = "Zlib"
 
+readme = "README.md"
+
 keywords = [ "mermaid", "svg" ]
 
 description = "A MoonBit port of pele, a Mermaid to SVG renderer"

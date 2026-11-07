@@ -1,0 +1,41 @@
+# pele
+
+A MoonBit port of [pele](https://github.com/obsidianmd/pele), which renders Mermaid diagrams to SVG.
+
+The port draws the same SVG as pele byte for byte, or fails with the same error.
+
+## Usage
+
+```sh
+moon add Omochice/pele
+```
+
+`@core.render` recognizes only the diagram types it is given.\
+Each type is the value of the same name in its package under `Omochice/pele/diagrams/`.
+
+```moonbit
+let result = @core.render(
+  [@flowchart.flowchart, @pie.pie],
+  "graph TD\n  A --> B",
+  @types.RenderOptions::default(),
+)
+println(result.svg)
+```
+
+`@core`, `@types`, `@flowchart` and `@pie` used in the above example each require import in `moon.pkg`.
+
+```text
+import {
+  "Omochice/pele/core",
+  "Omochice/pele/diagrams/flowchart",
+  "Omochice/pele/diagrams/pie",
+  "Omochice/pele/types",
+}
+```
+
+## License
+
+The port is licensed under the zlib License in [LICENSE](https://github.com/Omochice/pele.mbt/blob/main/LICENSE).
+
+It is derived from pele.
+pele's MIT License is kept in [LICENSE-PELE](https://github.com/Omochice/pele.mbt/blob/main/LICENSE-PELE).
