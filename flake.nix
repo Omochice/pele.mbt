@@ -62,6 +62,57 @@
             runHook postInstall
           '';
         };
+        typstPackage = pkgs.stdenvNoCC.mkDerivation {
+          pname = "pele-typst";
+          version = (fromTOML (builtins.readFile ./typst/package/typst.toml)).package.version;
+          src = pkgs.lib.fileset.toSource {
+            root = ./.;
+            fileset = pkgs.lib.fileset.unions [
+              ./moon.work
+              ./pele/moon.mod
+              ./pele/src
+              ./typst/moon.mod
+              ./typst/src
+              ./typst/package
+              ./scripts/build-typst.mjs
+              ./scripts/allocator.mjs
+            ];
+          };
+          nativeBuildInputs = [
+            pkgs.moonbit-bin.latest
+            pkgs.nodejs_24
+          ];
+          buildPhase = ''
+            runHook preBuild
+            export HOME=$TMPDIR
+            node scripts/build-typst.mjs
+            runHook postBuild
+          '';
+          # typst.toml excludes the examples and the tests from the published package, so they are left out here too.
+          installPhase = ''
+            runHook preInstall
+            mkdir -p $out
+            cp typst/package/{README.md,lib.typ,typst.toml,plugin.wasm} $out/
+            runHook postInstall
+          '';
+        };
+        typstExamples =
+          pkgs.runCommand "pele-typst-examples"
+            {
+              nativeBuildInputs = [ pkgs.typst ];
+              examples = ./typst/package/examples;
+            }
+            ''
+              export HOME=$TMPDIR
+              # The examples import ../lib.typ, so they are compiled from inside a copy of the package.
+              cp -r ${typstPackage} package
+              chmod -R u+w package
+              cp -r $examples package/examples
+              mkdir -p $out
+              for file in package/examples/*.typ; do
+                typst compile --root package "$file" "$out/$(basename "$file" .typ).pdf"
+              done
+            '';
         treefmt = treefmt-nix.lib.evalModule pkgs (
           { ... }:
           let
@@ -236,6 +287,13 @@
           ))
         ];
         formatter = treefmt.config.build.wrapper;
+        packages = {
+          # keep-sorted start
+          default = typstPackage;
+          typst-examples = typstExamples;
+          typst-package = typstPackage;
+          # keep-sorted end
+        };
         # keep-sorted end
       }
     );
