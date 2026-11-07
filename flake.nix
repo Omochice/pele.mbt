@@ -117,20 +117,26 @@
         mooncakes = pkgs.stdenvNoCC.mkDerivation {
           name = "pele-mooncakes";
           src = pkgs.lib.fileset.toSource {
-            root = ./pele;
-            fileset = ./pele;
+            root = ./.;
+            fileset = pkgs.lib.fileset.unions [
+              ./pele
+              ./LICENSE
+              ./LICENSE-PELE
+            ];
           };
           nativeBuildInputs = [ pkgs.moonbit-bin.latest ];
+          # The licenses stay at the repository root, where GitHub reads them, and are copied into the module only for the archive.
           buildPhase = ''
             runHook preBuild
             export HOME=$TMPDIR
-            moon package --target-dir $TMPDIR/build
+            cp LICENSE LICENSE-PELE pele/
+            (cd pele && moon package --target-dir $TMPDIR/build)
             runHook postBuild
           '';
           installPhase = ''
             runHook preInstall
             mkdir -p $out
-            cp -r $src $out/source
+            cp -r pele $out/source
             cp $TMPDIR/build/publish/*.zip $out/
             runHook postInstall
           '';
