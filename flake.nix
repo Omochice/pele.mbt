@@ -113,6 +113,49 @@
                 typst compile --root package "$file" "$out/$(basename "$file" .typ).pdf"
               done
             '';
+        # moon publish packs whatever lies in the module directory, so the module is packed from git-tracked files alone, in the sandbox, rather than from a working tree that may hold builds or stray files.
+        mooncakes = pkgs.stdenvNoCC.mkDerivation {
+          name = "pele-mooncakes";
+          src = pkgs.lib.fileset.toSource {
+            root = ./.;
+            fileset = pkgs.lib.fileset.unions [
+              ./pele
+              ./LICENSE
+              ./LICENSE-PELE
+            ];
+          };
+          nativeBuildInputs = [ pkgs.moonbit-bin.latest ];
+          # The licenses stay at the repository root, where GitHub reads them, and are copied into the module only for the archive.
+          buildPhase = ''
+            runHook preBuild
+            export HOME=$TMPDIR
+            cp LICENSE LICENSE-PELE pele/
+            (cd pele && moon package --target-dir $TMPDIR/build)
+            runHook postBuild
+          '';
+          installPhase = ''
+            runHook preInstall
+            mkdir -p $out
+            cp -r pele $out/source
+            cp $TMPDIR/build/publish/*.zip $out/
+            runHook postInstall
+          '';
+        };
+        publish = pkgs.writeShellApplication {
+          name = "publish";
+          runtimeInputs = [
+            pkgs.coreutils
+            pkgs.moonbit-bin.latest
+          ];
+          text = ''
+            work=$(mktemp -d)
+            trap 'rm -rf "$work"' EXIT
+            cp -r ${mooncakes}/source/. "$work"
+            chmod -R u+w "$work"
+            cd "$work"
+            moon publish --target-dir "$work/_build"
+          '';
+        };
         treefmt = treefmt-nix.lib.evalModule pkgs (
           { ... }:
           let
@@ -235,6 +278,11 @@
       in
       {
         # keep-sorted start block=yes
+        apps.publish = {
+          type = "app";
+          program = pkgs.lib.getExe publish;
+          meta.description = "Publish pele to mooncakes from git-tracked files";
+        };
         checks = {
           # keep-sorted start
           actions =
@@ -290,6 +338,7 @@
         packages = {
           # keep-sorted start
           default = typstPackage;
+          mooncakes = mooncakes;
           typst-examples = typstExamples;
           typst-package = typstPackage;
           # keep-sorted end

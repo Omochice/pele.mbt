@@ -4,7 +4,9 @@ version = "0.1.0"
 
 repository = "https://github.com/Omochice/pele.mbt"
 
-license = "Zlib"
+license = "Zlib AND MIT"
+
+readme = "README.md"
 
 keywords = [ "mermaid", "svg" ]
 
