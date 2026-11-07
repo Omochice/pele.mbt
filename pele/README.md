@@ -10,6 +10,24 @@ The port draws the same SVG as pele byte for byte, or fails with the same error.
 moon add Omochice/pele
 ```
 
+`@pele.render` recognizes every diagram type.
+
+```moonbit
+let result = @pele.render("graph TD\n  A --> B")
+println(result.svg)
+```
+
+`@pele` used in the above example requires import in `moon.pkg`.
+
+```text
+import {
+  "Omochice/pele",
+}
+```
+
+### Picking diagram types
+
+Linking every diagram type makes a program larger, which matters for a wasm build.
 `@core.render` recognizes only the diagram types it is given.\
 Each type is the value of the same name in its package under `Omochice/pele/diagrams/`.
 
