@@ -4,3 +4,5 @@ _build/
 .moonagent/
 typst/package/plugin.wasm
 .direnv/
+result
+result-*
