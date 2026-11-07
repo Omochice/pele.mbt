@@ -1,0 +1,21 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "include-component-in-tag": false,
+  "packages": {
+    ".": {
+      "release-type": "simple",
+      "extra-files": [
+        { "type": "generic", "path": "pele/moon.mod" },
+        { "type": "generic", "path": "typst/moon.mod" },
+        {
+          "type": "toml",
+          "path": "typst/package/typst.toml",
+          "jsonpath": "$.package.version"
+        }
+      ],
+      "initial-version": "0.1.0",
+      "draft": true,
+      "force-tag-creation": true
+    }
+  }
+}

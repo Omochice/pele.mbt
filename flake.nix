@@ -178,7 +178,7 @@
           {
             # .git is a file in a linked worktree, so the default .git/config would make treefmt format the main checkout instead.
             projectRootFile = "flake.nix";
-            settings.global.excludes = [ ];
+            settings.global.excludes = [ "CHANGELOG.md" ];
             # moon fmt formats each package a file it is given belongs to, so its output matches moon fmt run by hand.
             settings.formatter.moon-fmt = {
               command = "${pkgs.moonbit-bin.latest}/bin/moon";
