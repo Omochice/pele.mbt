@@ -13,6 +13,15 @@
       datasourceTemplate: "custom.mooncakes",
       versioningTemplate: "semver",
     },
+    {
+      customType: "regex",
+      // The nix manager never bumps the tag in flake.nix.
+      description: "The pele release the port follows",
+      managerFilePatterns: ["/^flake\\.nix$/"],
+      matchStrings: ['"github:(?<depName>obsidianmd/pele)/(?<currentValue>[^"]+)"'],
+      datasourceTemplate: "github-tags",
+      versioningTemplate: "semver",
+    },
   ],
   customDatasources: {
     mooncakes: {
@@ -35,6 +44,11 @@
       matchManagers: ["nix"],
       matchPackageNames: ["https://github.com/obsidianmd/pele"],
       enabled: false,
+    },
+    {
+      matchManagers: ["custom.regex"],
+      matchPackageNames: ["obsidianmd/pele"],
+      minimumReleaseAge: "1 day",
     },
   ],
 }
