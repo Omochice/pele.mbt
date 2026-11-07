@@ -40,7 +40,7 @@
       enabled: false,
     },
     {
-      description: "The pele lock is updated by hand together with npmDepsHash, the goldens and the port",
+      description: "The pele the port is compared against moves only by hand, because a new commit also needs its npmDepsHash, regenerated goldens and the port's changes to match them",
       matchManagers: ["nix"],
       matchPackageNames: ["https://github.com/obsidianmd/pele"],
       enabled: false,
