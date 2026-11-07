@@ -13,6 +13,15 @@
       datasourceTemplate: "custom.mooncakes",
       versioningTemplate: "semver",
     },
+    {
+      customType: "regex",
+      // The nix manager only re-locks the ref already written in flake.nix, so it never proposes a newer pele tag.
+      description: "The pele release the port is compared against",
+      managerFilePatterns: ["/^flake\\.nix$/"],
+      matchStrings: ['"github:(?<depName>obsidianmd/pele)/(?<currentValue>[^"]+)"'],
+      datasourceTemplate: "github-tags",
+      versioningTemplate: "semver",
+    },
   ],
   customDatasources: {
     mooncakes: {
@@ -31,10 +40,16 @@
       enabled: false,
     },
     {
-      description: "The pele the port is compared against moves only by hand, because a new commit also needs its npmDepsHash, regenerated goldens and the port's changes to match them",
+      description: "The pele the port is compared against is locked by hand, because a new release also needs its npmDepsHash, regenerated goldens and the port's changes to match them",
       matchManagers: ["nix"],
       matchPackageNames: ["https://github.com/obsidianmd/pele"],
       enabled: false,
+    },
+    {
+      description: "A new pele release is proposed only to announce it; the pull request fails CI until flake.lock, npmDepsHash, the goldens and the port are updated by hand",
+      matchManagers: ["custom.regex"],
+      matchPackageNames: ["obsidianmd/pele"],
+      minimumReleaseAge: "1 day",
     },
   ],
 }
