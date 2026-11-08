@@ -13,7 +13,10 @@ moon add Omochice/pele
 `@pele.render` recognizes every diagram type.
 
 ```moonbit
-let result = @pele.render("graph TD\n  A --> B")
+let source =
+  #|graph TD
+  #|  A --> B
+let result = @pele.render(source)
 println(result.svg)
 ```
 
@@ -32,9 +35,12 @@ Linking every diagram type makes a program larger, which matters for a wasm buil
 Each type is the value of the same name in its package under `Omochice/pele/diagrams/`.
 
 ```moonbit
+let source =
+  #|graph TD
+  #|  A --> B
 let result = @core.render(
   [@flowchart.flowchart, @pie.pie],
-  "graph TD\n  A --> B",
+  source,
   @types.RenderOptions::default(),
 )
 println(result.svg)
