@@ -147,7 +147,13 @@
             pkgs.coreutils
             pkgs.moonbit-bin.latest
           ];
+          # A dirty flake still packs the uncommitted contents of tracked files, so the check reads the flake's own revision rather than the git status of whatever directory the app runs in.
           text = ''
+            rev="${self.rev or ""}"
+            if [ -z "$rev" ]; then
+              echo "publish: the flake has uncommitted changes; commit or stash them first" >&2
+              exit 1
+            fi
             work=$(mktemp -d)
             trap 'rm -rf "$work"' EXIT
             cp -r ${mooncakes}/source/. "$work"
