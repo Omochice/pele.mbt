@@ -22,3 +22,4 @@ nix run .#publish
 
 `nix build .#mooncakes` packs pele in the nix sandbox and leaves the archive that would be uploaded, so its contents can be read first.
 `nix run .#publish` publishes that same tree with the credentials `moon login` saved under `~/.moon`.
+It refuses to run while tracked files have uncommitted changes, because the flake would pack those changes too.
