@@ -3,6 +3,24 @@
 This package draws Mermaid diagrams in typst documents with pele, a Mermaid to SVG renderer, ported to MoonBit and compiled to a WebAssembly plugin.
 It needs no network access and no external program.
 
+## Installation
+
+The package is distributed through GitHub releases rather than Typst Universe, so it is installed as a local package.
+Each [release](https://github.com/Omochice/pele.mbt/releases) has a zip whose contents go in `{data-dir}/typst/packages/local/pele/{version}`.
+`{data-dir}` is `$XDG_DATA_HOME` or `~/.local/share` on Linux, `~/Library/Application Support` on macOS and `%APPDATA%` on Windows.
+
+<!-- x-release-please-start-version -->
+
+```sh
+curl -fLO https://github.com/Omochice/pele.mbt/releases/download/v0.2.0/pele-typst-v0.2.0.zip
+mkdir -p "{data-dir}/typst/packages/local/pele/0.2.0"
+unzip pele-typst-v0.2.0.zip -d "{data-dir}/typst/packages/local/pele/0.2.0"
+```
+
+<!-- x-release-please-end -->
+
+The web app does not read local packages, so there the contents of the zip are uploaded to the project and `lib.typ` is imported by its relative path.
+
 ## Building
 
 The plugin is not tracked by the repository, so it is built from the sources and copied next to `lib.typ`.
@@ -21,20 +39,24 @@ nix build .#typst-package
 nix build .#typst-examples
 ```
 
-`typst-package` is also the flake's default package, and holds what `typst.toml` publishes: `lib.typ`, `typst.toml`, this README and the plugin.
+`typst-package` is also the flake's default package, and holds what `typst.toml` publishes: `lib.typ`, `typst.toml`, this README, the plugin and the licenses.
 
 ## Usage
 
 `mermaid` renders Mermaid text and places it as an image.
 Without a `width` or `height`, a diagram keeps its own size but shrinks to fit the space it is placed in.
 
+<!-- x-release-please-start-version -->
+
 ```typ
-#import "typst/package/lib.typ": mermaid
+#import "@local/pele:0.2.0": mermaid
 
 #mermaid("graph TD\n  A --> B")
 
 #show raw.where(lang: "mermaid"): it => mermaid(it)
 ```
+
+<!-- x-release-please-end -->
 
 `render` takes the same arguments and returns pele's whole result as a dictionary of `svg`, `width`, `height`, `links`, `type` and `mermaidType`.
 When pele cannot render the text, both panic with pele's message.
@@ -77,8 +99,10 @@ pele sizes every box from the widths of its labels, and without a measurer it ta
 Text drawn in a font with other metrics then overflows its box or leaves a gap.
 `font-measurer` measures a font's advances with typst and returns them in the form the `measurer` option takes, so labels are laid out in the font they are drawn in.
 
+<!-- x-release-please-start-version -->
+
 ```typ
-#import "typst/package/lib.typ": font-measurer, mermaid
+#import "@local/pele:0.2.0": font-measurer, mermaid
 
 #context mermaid(
   fontFamily: "Libertinus Serif",
@@ -86,6 +110,8 @@ Text drawn in a font with other metrics then overflows its box or leaves a gap.
   "graph LR\n  A[Measured in its own font] --> B",
 )
 ```
+
+<!-- x-release-please-end -->
 
 It reads the fonts, so it is called inside `context`.
 The font is named twice because `fontFamily` is the CSS font list the SVG is drawn with, while `font-measurer` takes a font as `text` does.
@@ -143,7 +169,7 @@ It maps each TeX string, then the font size in pixels written as a number such a
 Node labels ask for the diagram's font size, while edge labels and class cardinalities ask for smaller ones.
 TeX the map does not hold at the size asked for stays as its text, and so does TeX in diagram titles and in the diagram types pele does not typeset math in.
 pele also takes `html` markup in place of `svg`, but typst warns about the `foreignObject` that holds it and draws nothing there.
-[golden/README.md](https://github.com/Omochice/pele.mbt/blob/main/golden/README.md#math) states the exact rules.
+[golden/README.md](https://github.com/Omochice/pele.mbt/blob/v0.2.0/golden/README.md#math) states the exact rules. <!-- x-release-please-version -->
 
 ## Why the SVG is rewritten
 
@@ -166,7 +192,7 @@ A diagram that fits to its width is also drawn several times so their widths can
 So the plugin stops at 400000000 code units of SVG: a drawing larger than that fails with the `limit` error "Diagram output is too large for the wasm port: it would hold more than 400000000 code units, the most the port can hold at once.", tagged with the diagram's type, where pele would still draw it.
 The several-render fit path at that ceiling peaks at about 3.1 GiB, inside wasm's 4 GiB.
 
-This ceiling is the one intentional, platform-imposed difference from pele: every input whose SVG is at most 400000000 code units is drawn byte for byte as pele draws it, apart from the few enormous inputs that [Known constraints](https://github.com/Omochice/pele.mbt/blob/main/doc/known-constraints.md) lists.
+This ceiling is the one intentional, platform-imposed difference from pele: every input whose SVG is at most 400000000 code units is drawn byte for byte as pele draws it, apart from the few enormous inputs that [Known constraints](https://github.com/Omochice/pele.mbt/blob/v0.2.0/doc/known-constraints.md) lists. <!-- x-release-please-version -->
 pele's own output limit is checked first, so the error appears only for a drawing that limit allows, apart from a Gantt axis label or a use case label whose text alone passes the ceiling, as Known constraints lists.
 A second guard covers a response whose bytes, rather than code units, would not fit one of wasm's memory blocks: a JSON response over 1000000000 bytes fails with a `limit` error naming that byte limit.
 It covers a failure as well as a drawing, since a failure's message can quote a whole line of the source; a drawing under the code-unit ceiling reaches it only when it is almost all non-ASCII text.
@@ -178,9 +204,14 @@ The plugin does not reproduce those failures, and draws such an input whenever i
 
 - The outline of a cluster title is not drawn when `surface-alt` or `bg` is a color the plugin cannot mix, as listed under [Theme](#theme).
 - A diagram whose SVG would be longer than 400000000 code units fails with a `limit` error rather than being drawn, as described under [Output ceiling](#output-ceiling).
-- A few inputs of tens to hundreds of millions of characters trap the plugin where pele draws or rejects them, as [Known constraints](https://github.com/Omochice/pele.mbt/blob/main/doc/known-constraints.md) lists.
+- A few inputs of tens to hundreds of millions of characters trap the plugin where pele draws or rejects them, as [Known constraints](https://github.com/Omochice/pele.mbt/blob/v0.2.0/doc/known-constraints.md) lists. <!-- x-release-please-version -->
 
 ## Checking
 
 `node scripts/check-typst.mjs` compiles every document under `examples` and `tests` with the `typst` found on `PATH`, or the one `$TYPST` names.
 A document passes when it compiles without an error or a warning, and a test named `*.fail.typ` passes when it fails with the message its first line names after `// error:`.
+
+## License
+
+The port is licensed under the zlib License in `LICENSE`.
+It is derived from pele, whose MIT License is kept in `LICENSE-PELE`.

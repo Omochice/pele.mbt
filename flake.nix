@@ -68,6 +68,8 @@
           src = pkgs.lib.fileset.toSource {
             root = ./.;
             fileset = pkgs.lib.fileset.unions [
+              ./LICENSE
+              ./LICENSE-PELE
               ./moon.work
               ./pele/moon.mod
               ./pele/src
@@ -92,7 +94,7 @@
           installPhase = ''
             runHook preInstall
             mkdir -p $out
-            cp typst/package/{README.md,lib.typ,typst.toml,plugin.wasm} $out/
+            cp LICENSE LICENSE-PELE typst/package/{README.md,lib.typ,typst.toml,plugin.wasm} $out/
             runHook postInstall
           '';
         };
