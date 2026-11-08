@@ -8,6 +8,7 @@
       "extra-files": [
         { "type": "generic", "path": "pele/moon.mod" },
         { "type": "generic", "path": "typst/moon.mod" },
+        { "type": "generic", "path": "typst/package/README.md" },
         {
           "type": "toml",
           "path": "typst/package/typst.toml",
