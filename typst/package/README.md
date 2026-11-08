@@ -13,6 +13,7 @@ Each [release](https://github.com/Omochice/pele.mbt/releases) has a zip whose co
 
 ```sh
 curl -fLO https://github.com/Omochice/pele.mbt/releases/download/v0.2.0/pele-typst-v0.2.0.zip
+mkdir -p "{data-dir}/typst/packages/local/pele/0.2.0"
 unzip pele-typst-v0.2.0.zip -d "{data-dir}/typst/packages/local/pele/0.2.0"
 ```
 
