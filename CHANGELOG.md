@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/Omochice/pele.mbt/compare/v0.1.0...v0.2.0) (2026-11-08)
+
+
+### Features
+
+* render any Mermaid text without listing the diagram types ([#25](https://github.com/Omochice/pele.mbt/issues/25)) ([5714139](https://github.com/Omochice/pele.mbt/commit/571413918c638747ff1b1bc61358865081a786dd))
+
 ## 0.1.0 (2026-11-07)
 
 
