@@ -107,23 +107,18 @@ fn Parser::text(self : Parser) -> QuadrantText raise @errors.PeleError {
   if !is_text(first) {
     raise self.error(TEXT_TOKENS)
   }
-  // The run is measured before it is copied, because a label of hundreds of millions of
-  // characters copied into a doubling builder would need a block past what wasm allocates.
   let start = self.at
-  let mut length = self.tokens.texts[self.at].length()
   self.at += 1
   while word_tokens[self.kind()] || self.kind() == SPACE || self.kind() == MINUS {
-    length += self.tokens.texts[self.at].length()
     self.at += 1
   }
   if self.at == start + 1 {
     return { text: self.tokens.texts[start], markdown: first == MD_STR, }
   }
-  let text = StringBuilder(size_hint=length)
-  for i in start..<self.at {
-    text.write_string(self.tokens.texts[i])
-  }
-  { text: text.to_string(), markdown: first == MD_STR, }
+  // The run is joined at its final size, because a label of hundreds of millions of characters
+  // copied into a doubling builder would need a block past what wasm allocates.
+  let text = self.tokens.texts[start:self.at].join("")
+  { text, markdown: first == MD_STR, }
 }
 
 ///|

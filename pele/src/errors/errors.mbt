@@ -150,16 +150,10 @@ pub fn locate(src : String, offset : Int32) -> (Int32, Int32, String) {
   let column = offset - line_start + 1
   let text = src.unsafe_view(start=line_start, end=line_end)
   // A line of a hundred million characters copied once for each piece added to it would be held
-  // several times over, so the snippet is built at its final size and copied only once at the end.
+  // several times over, so the snippet is joined at its final size.
   let dashes = if column > 1 { column - 1 } else { 0 }
-  let snippet = StringBuilder(size_hint=text.length() + 1 + dashes + 1)
-  snippet.write_view(text)
-  snippet.write_char('\n')
-  for _ in 0..<dashes {
-    snippet.write_char('-')
-  }
-  snippet.write_char('^')
-  (line, column, snippet.to_string())
+  let snippet = [text, "\n", String::make(dashes, '-'), "^"].join("")
+  (line, column, snippet)
 }
 
 ///|
@@ -177,12 +171,6 @@ pub fn syntax_error(
   } else {
     ("Parse error on line \{line}:\n", "\n\{detail}")
   }
-  let message = StringBuilder(
-    size_hint=head.length() + snippet.length() + tail.length(),
-  )
-  message.write_string(head)
-  message.write_string(snippet)
-  message.write_string(tail)
-  let message = message.to_string()
+  let message = [head, snippet, tail].join("")
   pele_error(message, code=Syntax, kind~, line~, column~, snippet~)
 }
