@@ -15,20 +15,24 @@ fn length_outcome(source : String) -> String {
 }
 
 ///|
-#skip("slow: escapes 54 million characters into over 268 million code units")
-test "a leaf named by tens of millions of entities is drawn as pele draws it" {
+#skip("slow: escapes 54 million characters into over 268 million code units, twice")
+test "a leaf named by tens of millions of entities, written as its id and its tooltip, passes the hold limit" {
   inspect(
     length_outcome("treemap-beta\n\"\{"&".repeat(54000000)}\": 1\n"),
-    content="270001553",
+    content=(
+      #|limit: Diagram output is too large for the wasm port: it would hold more than 400000000 code units, the most the port can hold at once. treemap treemap
+    ),
   )
 }
 
 ///|
-#skip("slow: escapes 54 million characters into over 268 million code units")
-test "a section named by tens of millions of entities is drawn as pele draws it" {
+#skip("slow: escapes 54 million characters into over 268 million code units, twice")
+test "a section named by tens of millions of entities, written as its id and its tooltip, passes the hold limit" {
   inspect(
     length_outcome("treemap-beta\n\"\{"&".repeat(54000000)}\"\n  \"b\": 1\n"),
-    content="270001778",
+    content=(
+      #|limit: Diagram output is too large for the wasm port: it would hold more than 400000000 code units, the most the port can hold at once. treemap treemap
+    ),
   )
 }
 
