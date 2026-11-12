@@ -191,7 +191,7 @@ fn Parser::joined(self : Parser, belongs : (Int32) -> Bool) -> String {
     length += part.length()
     parts.push(part)
   }
-  let out = StringBuilder(size_hint=length * 2)
+  let out = StringBuilder(size_hint=length)
   for part in parts {
     out.write_string(part)
   }

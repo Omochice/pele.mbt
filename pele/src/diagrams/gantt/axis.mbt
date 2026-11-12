@@ -429,7 +429,7 @@ pub fn time_format(
   })
   // Sized to the text, because a doubling builder past 2^28 code units asks wasm for a block of
   // 1 GiB that it refuses, and a format of millions of `%c` makes a text past that.
-  let out = StringBuilder(size_hint=length * 2)
+  let out = StringBuilder(size_hint=length)
   each_part(
     specifier,
     date,

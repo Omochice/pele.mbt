@@ -119,7 +119,7 @@ fn Parser::text(self : Parser) -> QuadrantText raise @errors.PeleError {
   if self.at == start + 1 {
     return { text: self.tokens.texts[start], markdown: first == MD_STR, }
   }
-  let text = StringBuilder(size_hint=length * 2)
+  let text = StringBuilder(size_hint=length)
   for i in start..<self.at {
     text.write_string(self.tokens.texts[i])
   }

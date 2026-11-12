@@ -37,7 +37,7 @@ fn plain_text(text : String) -> String {
   }
   // Sized to the escaped text, because a doubling builder past 2^28 code units asks wasm for a
   // block of 1 GiB that it refuses, and a title of tens of millions of `<` escapes past that.
-  let out = StringBuilder(size_hint=length * 2)
+  let out = StringBuilder(size_hint=length)
   let mut last = 0
   for i in 0..<text.length() {
     let c = text.unsafe_get(i)

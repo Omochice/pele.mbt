@@ -129,7 +129,7 @@ fn evaluate_mixes(value : String) -> String {
   for mix in mixes {
     length += mix.2.length() - (mix.1 + 1 - mix.0)
   }
-  let out = StringBuilder(size_hint=length * 2)
+  let out = StringBuilder(size_hint=length)
   let mut copied = 0
   for mix in mixes {
     @util.write_range(out, value, copied, mix.0)

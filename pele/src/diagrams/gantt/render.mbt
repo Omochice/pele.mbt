@@ -64,7 +64,7 @@ fn breaks_to_spaces(raw : String) -> String {
   if breaks.is_empty() {
     return raw
   }
-  let out = StringBuilder(size_hint=length * 2)
+  let out = StringBuilder(size_hint=length)
   let mut last = 0
   for brk in breaks {
     @util.write_range(out, raw, last, brk.0)

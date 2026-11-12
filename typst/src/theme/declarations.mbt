@@ -54,7 +54,7 @@ fn rebuild(css : String, decide : (Int32, Int32) -> Kept) -> String {
   if kept > 1 {
     length += kept - 1
   }
-  let out = StringBuilder(size_hint=length * 2)
+  let out = StringBuilder(size_hint=length)
   let mut next = 0
   let mut first = true
   start = 0

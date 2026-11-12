@@ -85,7 +85,7 @@ pub fn prepare_text_for_parsing(
   // Positions in the text with the row edges removed, where line breaks are collapsed.
   let mut at = 0
   let mut run = 0
-  let out = StringBuilder(size_hint=length * 2)
+  let out = StringBuilder(size_hint=length)
   in_break = false
   r = 0
   i = 0

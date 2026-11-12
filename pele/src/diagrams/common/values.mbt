@@ -34,7 +34,7 @@ fn collapse_runs(
   for run in runs {
     length += replacement.length() - (run.1 - run.0)
   }
-  let out = StringBuilder(size_hint=length * 2)
+  let out = StringBuilder(size_hint=length)
   let mut last = from
   for run in runs {
     @util.write_range(out, text, last, run.0)

@@ -140,10 +140,9 @@ fn Markup::write_to(self : Markup, out : StringBuilder) -> Unit {
 }
 
 ///|
-/// A builder that holds exactly `length` code units, which turns into a string without a copy
-/// once it is full.
+/// A builder that holds exactly `length` code units, so that it never doubles its buffer.
 fn exact_builder(length : Int32) -> StringBuilder {
-  StringBuilder(size_hint=length * 2)
+  StringBuilder(size_hint=length)
 }
 
 ///|

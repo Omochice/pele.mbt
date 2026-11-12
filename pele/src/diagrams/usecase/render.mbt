@@ -105,7 +105,7 @@ fn literal(text : String) -> String raise @errors.PeleError {
   }
   // Sized to the escaped text, because a doubling builder past 2^28 code units asks wasm for a
   // block of 1 GiB that it refuses, and a label of tens of millions of `&` escapes past that.
-  let out = StringBuilder(size_hint=length * 2)
+  let out = StringBuilder(size_hint=length)
   for i in 0..<text.length() {
     let c = @util.code_at(text, i)
     if c == 38 || c == 60 || c == 62 || c == 92 {
