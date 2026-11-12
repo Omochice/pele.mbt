@@ -22,11 +22,14 @@ pub fn turn_to_fit(
   if available >= breakpoint {
     return across
   }
+  // The drawing across is not held while the one down is drawn, but drawn again when it is the one kept.
+  // Held, it stands beside the pieces of the drawing down and the string made of them, which outgrows wasm's memory for a drawing near the hold limit.
+  let across_width = across.width
   let down = draw(true)
-  if down.width < across.width {
+  if down.width < across_width {
     down
   } else {
-    across
+    draw(false)
   }
 }
 
