@@ -58,10 +58,10 @@ test "draws subgraphs as clusters behind their members" {
 /// The rectangle drawn for the cluster `id`.
 fn cluster_rect(svg : String, id : String) -> String {
   let from = svg.find("data-id=\"\{id}\"><rect ").unwrap()
-  let rest = svg.view(start_offset=from)
+  let rest = svg.exact_view(start=from)
   let at = rest.find("<rect ").unwrap()
   let end = rest.find("/>").unwrap()
-  rest.view(start_offset=at, end_offset=end + 2).to_owned()
+  rest.exact_view(start=at, end=end + 2).to_owned()
 }
 
 ///|

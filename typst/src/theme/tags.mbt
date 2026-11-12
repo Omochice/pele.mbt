@@ -95,7 +95,11 @@ fn each_tag(svg : String, visit : (Tag) -> Unit) -> Unit {
 ///|
 fn write_range(out : &Logger, text : String, from : Int32, to : Int32) -> Unit {
   if from < to {
-    out.write_view(text.view(start_offset=from, end_offset=to))
+    guard from >= 0 && to <= text.length() else {
+      abort("Invalid index for View")
+    }
+    // The SVG carries the diagram's text as given, and `exact_view` would abort on a lone surrogate in it.
+    out.write_view(text.unsafe_view(start=from, end=to))
   }
 }
 

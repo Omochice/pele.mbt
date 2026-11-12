@@ -148,7 +148,7 @@ pub fn locate(src : String, offset : Int32) -> (Int32, Int32, String) {
   let found_end = @util.index_of(src, "\n", from=offset)
   let line_end = if found_end == -1 { src.length() } else { found_end }
   let column = offset - line_start + 1
-  let text = src.view(start_offset=line_start, end_offset=line_end)
+  let text = src.unsafe_view(start=line_start, end=line_end)
   // A line of a hundred million characters copied once for each piece added to it would be held
   // several times over, so the snippet is built at its final size, which needs no copy at the end.
   let dashes = if column > 1 { column - 1 } else { 0 }

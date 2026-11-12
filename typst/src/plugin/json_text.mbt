@@ -110,7 +110,7 @@ impl Logger for JsonText with fn write_view(self, view) {
 
 ///|
 impl Logger for JsonText with fn write_string(self, text) {
-  Logger::write_view(self, text.view())
+  Logger::write_view(self, text.unsafe_view(start=0, end=text.length()))
 }
 
 ///|
