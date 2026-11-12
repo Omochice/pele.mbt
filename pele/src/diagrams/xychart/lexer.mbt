@@ -1,4 +1,5 @@
 ///|
+#derive(Eq)
 priv enum State {
   Initial
   AxisData
@@ -9,7 +10,7 @@ priv enum State {
   AccTitle
   AccDescr
   AccDescrMultiline
-} derive(Eq)
+}
 
 ///|
 /// The token each state gives for the empty rest of the input.

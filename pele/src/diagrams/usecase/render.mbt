@@ -44,13 +44,14 @@ const PORT_GAP : Double = 14
 const SHAPE_ATTRS : String = " fill=\"var(--_s)\" stroke=\"var(--_b)\""
 
 ///|
+#derive(Eq)
 priv enum Kind {
   Actor
   Ellipse
   Box
   Json
   Boundary
-} derive(Eq)
+}
 
 ///|
 priv struct View {
