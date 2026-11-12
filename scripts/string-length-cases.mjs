@@ -86,9 +86,10 @@ export const CASES = [
   lazy('c4', 'one link of many &', () => `C4Context\nPerson(p, "x", "d", "s", "t", "https://x/${'&'.repeat(54000000)}")\n`, RAISED),
   // A system's fill goes once into its box; a person's text color into each of its labels.
   lazy('c4', 'one system filled by many &', () => `C4Context\nSystem(s, "x")\nUpdateElementStyle(s, "${'&'.repeat(54000000)}")\n`, RAISED),
-  // A leaf's or a section's name is its data-id; its label is cut to fit its box.
-  lazy('treemap', 'one leaf named by many &', () => `treemap-beta\n"${'&'.repeat(54000000)}": 1\n`, RAISED),
-  lazy('treemap', 'one section named by many &', () => `treemap-beta\n"${'&'.repeat(54000000)}"\n  "b": 1\n`, RAISED),
+  // A leaf's or a section's name is its data-id and its tooltip, so half as many & make a drawing as long;
+  // its label is cut to fit its box.
+  lazy('treemap', 'one leaf named by many &', () => `treemap-beta\n"${'&'.repeat(27000000)}": 1\n`, RAISED),
+  lazy('treemap', 'one section named by many &', () => `treemap-beta\n"${'&'.repeat(27000000)}"\n  "b": 1\n`, RAISED),
   // A fill goes once into the box, whose tint it also turns off; a color into the name and the value.
   lazy('treemap', 'one leaf filled by many &', () => `treemap-beta\n"a": 1:::cc\nclassDef cc fill:${'&'.repeat(54000000)};\n`, RAISED),
   lazy('treemap', 'one section filled by many &', () => `treemap-beta\n"s":::cc\n  "a": 1\nclassDef cc fill:${'&'.repeat(54000000)};\n`, RAISED),

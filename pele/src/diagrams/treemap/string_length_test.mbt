@@ -37,6 +37,24 @@ test "a section named by tens of millions of entities, written as its id and its
 }
 
 ///|
+#skip("slow: escapes 27 million characters into 135 million code units, twice")
+test "a leaf named by tens of millions of entities is drawn with its name as its id and its tooltip" {
+  inspect(
+    length_outcome("treemap-beta\n\"\{"&".repeat(27000000)}\": 1\n"),
+    content="270001568",
+  )
+}
+
+///|
+#skip("slow: escapes 27 million characters into 135 million code units, twice")
+test "a section named by tens of millions of entities is drawn with its name as its id and its tooltip" {
+  inspect(
+    length_outcome("treemap-beta\n\"\{"&".repeat(27000000)}\"\n  \"b\": 1\n"),
+    content="270001793",
+  )
+}
+
+///|
 #skip("slow: escapes 54 million characters into over 268 million code units")
 test "a leaf filled by tens of millions of entities is drawn as pele draws it" {
   inspect(
