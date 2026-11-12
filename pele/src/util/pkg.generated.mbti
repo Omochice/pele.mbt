@@ -1,6 +1,10 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "Omochice/pele/util"
 
+import {
+  "moonbitlang/core/json",
+}
+
 // Values
 pub fn code_at(String, Int32) -> Int32
 
@@ -34,11 +38,11 @@ pub fn js_max(Double, Double) -> Double
 
 pub fn js_min(Double, Double) -> Double
 
-pub fn js_number(Json) -> Double
+pub fn js_number(@json.Json) -> Double
 
-pub fn js_string(Json) -> String
+pub fn js_string(@json.Json) -> String
 
-pub fn js_truthy(Json) -> Bool
+pub fn js_truthy(@json.Json) -> Bool
 
 pub fn last_index_of(String, String, from? : Int32) -> Int32
 
@@ -46,9 +50,9 @@ pub fn normalize_line_breaks(String) -> String
 
 pub fn parse_float(String) -> Double
 
-pub fn parse_json(String) -> Json raise JsonError
+pub fn parse_json(String) -> @json.Json raise JsonError
 
-pub fn parse_yaml(String) -> Json raise YamlError
+pub fn parse_yaml(String) -> @json.Json raise YamlError
 
 pub fn slice(String, Int32, end? : Int32) -> String
 

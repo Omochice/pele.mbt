@@ -6,6 +6,7 @@ import {
   "Omochice/pele/layout",
   "Omochice/pele/text",
   "Omochice/pele/types",
+  "moonbitlang/core/json",
 }
 
 // Values
@@ -93,7 +94,7 @@ pub fn over_fills(String, Array[Double], Array[Fill], line? : String, tokens? : 
 
 pub fn paints(String) -> Bool
 
-pub fn palette(String, Map[String, Json]) -> Palette
+pub fn palette(String, Map[String, @json.Json]) -> Palette
 
 pub fn plain_color(String) -> Bool
 

@@ -7,6 +7,7 @@ import {
   "Omochice/pele/svg",
   "Omochice/pele/text",
   "Omochice/pele/types",
+  "moonbitlang/core/json",
 }
 
 // Values
@@ -46,17 +47,17 @@ pub fn keyword_punct_end(String, Int32, String, Int32) -> Int32
 
 pub fn keyword_space_end(String, Int32, String) -> Int32
 
-pub fn label_type_of(Json?) -> LabelType
+pub fn label_type_of(@json.Json?) -> LabelType
 
 pub fn nodir_end(String, Int32) -> Int32
 
-pub fn number_option(Map[String, Json], String, Double) -> Double
+pub fn number_option(Map[String, @json.Json], String, Double) -> Double
 
 pub fn parse_flowchart(String, FlowDb) -> Unit raise @errors.PeleError
 
-pub fn parse_model(String, Map[String, Json], String?, @types.ParseLimits) -> FlowDb raise @errors.PeleError
+pub fn parse_model(String, Map[String, @json.Json], String?, @types.ParseLimits) -> FlowDb raise @errors.PeleError
 
-pub fn render_flowchart(FlowDb, Map[String, Json], @types.RenderOptions, variant? : FlowVariant) -> @types.Rendered raise @errors.PeleError
+pub fn render_flowchart(FlowDb, Map[String, @json.Json], @types.RenderOptions, variant? : FlowVariant) -> @types.Rendered raise @errors.PeleError
 
 pub let token_names : Array[String]
 
@@ -125,9 +126,9 @@ pub(all) struct FlowEdge {
   classes : Array[String]
   mut id : String
   mut is_user_defined_id : Bool
-  mut interpolate : Json?
-  mut animate : Json?
-  mut animation : Json?
+  mut interpolate : @json.Json?
+  mut animate : @json.Json?
+  mut animation : @json.Json?
 }
 
 pub(all) struct FlowGraph {
@@ -162,7 +163,7 @@ pub(all) struct FlowSubgraph {
   classes : Array[String]
   dir : String?
   label_type : LabelType
-  mut metadata : Map[String, Json]?
+  mut metadata : Map[String, @json.Json]?
 }
 
 pub(all) struct FlowText {
@@ -194,9 +195,9 @@ pub(all) struct GraphEdge {
   css_compiled_styles : Array[String]
   style : Array[String]
   classes : String
-  animate : Json?
-  animation : Json?
-  curve : Json?
+  animate : @json.Json?
+  animation : @json.Json?
+  curve : @json.Json?
 }
 
 pub(all) struct GraphNode {
@@ -220,7 +221,7 @@ pub(all) struct GraphNode {
   asset_height : Double?
   constraint : String?
   color_index : Int32?
-  metadata : Map[String, Json]?
+  metadata : Map[String, @json.Json]?
 }
 
 pub(all) enum LabelType {

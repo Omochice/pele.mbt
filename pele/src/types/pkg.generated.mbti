@@ -4,6 +4,7 @@ package "Omochice/pele/types"
 import {
   "Omochice/pele/errors",
   "Omochice/pele/text",
+  "moonbitlang/core/json",
 }
 
 // Values
@@ -16,7 +17,7 @@ pub(all) struct Diagram {
   section : String?
   keep_comments : Bool
   math : Bool
-  parse : (String, Map[String, Json], String?, Int32, ParseLimits) -> Parsed raise @errors.PeleError
+  parse : (String, Map[String, @json.Json], String?, Int32, ParseLimits) -> Parsed raise @errors.PeleError
 }
 
 pub(all) struct LinkInfo {
@@ -30,7 +31,7 @@ pub(all) struct ParseLimits {
 }
 
 pub(all) struct Parsed {
-  render : (Map[String, Json], RenderOptions) -> Rendered raise @errors.PeleError
+  render : (Map[String, @json.Json], RenderOptions) -> Rendered raise @errors.PeleError
 }
 
 pub(all) struct RenderOptions {
@@ -52,11 +53,11 @@ pub(all) struct RenderOptions {
   link_rel : String?
   link_schemes : Array[String]?
   image_schemes : Array[String]?
-  config : Map[String, Json]?
+  config : Map[String, @json.Json]?
   now : Double?
   measurer : @text.TextMeasurer?
   icons : ((String) -> String?)?
-  math : ((String, Double) -> Json?)?
+  math : ((String, Double) -> @json.Json?)?
 }
 pub fn RenderOptions::default() -> Self
 pub fn RenderOptions::monospaces(Self, String) -> Bool
@@ -79,7 +80,7 @@ pub(all) struct Rendered {
 }
 
 // Type aliases
-pub type Config = Map[String, Json]
+pub type Config = Map[String, @json.Json]
 
 pub type IconResolver = (String) -> String?
 

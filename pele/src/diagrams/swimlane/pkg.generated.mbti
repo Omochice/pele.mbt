@@ -5,12 +5,13 @@ import {
   "Omochice/pele/diagrams/flowchart",
   "Omochice/pele/errors",
   "Omochice/pele/types",
+  "moonbitlang/core/json",
 }
 
 // Values
-pub fn parse_swimlane(String, Map[String, Json], String?, @types.ParseLimits) -> @flowchart.FlowDb raise @errors.PeleError
+pub fn parse_swimlane(String, Map[String, @json.Json], String?, @types.ParseLimits) -> @flowchart.FlowDb raise @errors.PeleError
 
-pub fn render_swimlane(@flowchart.FlowDb, Map[String, Json], @types.RenderOptions) -> @types.Rendered raise @errors.PeleError
+pub fn render_swimlane(@flowchart.FlowDb, Map[String, @json.Json], @types.RenderOptions) -> @types.Rendered raise @errors.PeleError
 
 pub let swimlane : @types.Diagram
 

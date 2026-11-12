@@ -4,6 +4,7 @@ package "Omochice/pele/diagrams/usecase"
 import {
   "Omochice/pele/errors",
   "Omochice/pele/types",
+  "moonbitlang/core/json",
 }
 
 // Values
@@ -23,13 +24,13 @@ pub const SOLID_ARROW : Int32 = 0
 
 pub fn build_usecase_graph(UsecaseModel) -> UsecaseGraph
 
-pub fn flatten_json_rows(Map[String, Json]) -> Array[JsonRow]
+pub fn flatten_json_rows(Map[String, @json.Json]) -> Array[JsonRow]
 
-pub fn parse_ordered_json(String, () -> (Int32, Int32)) -> Map[String, Json] raise @errors.PeleError
+pub fn parse_ordered_json(String, () -> (Int32, Int32)) -> Map[String, @json.Json] raise @errors.PeleError
 
 pub fn parse_usecase(String, title? : String) -> UsecaseModel raise @errors.PeleError
 
-pub fn render_usecase(UsecaseModel, Map[String, Json], @types.RenderOptions) -> @types.Rendered raise @errors.PeleError
+pub fn render_usecase(UsecaseModel, Map[String, @json.Json], @types.RenderOptions) -> @types.Rendered raise @errors.PeleError
 
 pub fn token_name(Int32) -> String
 
@@ -155,7 +156,7 @@ pub(all) struct UsecaseGraphNode {
 
 pub(all) struct UsecaseJsonNode {
   id : String
-  value : Map[String, Json]
+  value : Map[String, @json.Json]
   classes : Array[String]
   styles : Array[String]
 }
