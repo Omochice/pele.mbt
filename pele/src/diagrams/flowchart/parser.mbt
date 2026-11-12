@@ -185,10 +185,17 @@ fn Parser::joined(self : Parser, belongs : (Int32) -> Bool) -> String {
   // The texts are joined at their final size, because a run holding a token of hundreds of
   // millions of characters would need a doubling builder's block past what wasm allocates.
   let parts = [first]
+  let mut length = first.length()
   while belongs(self.kind()) {
-    parts.push(self.take())
+    let part = self.take()
+    length += part.length()
+    parts.push(part)
   }
-  parts.join("")
+  let out = StringBuilder(size_hint=length)
+  for part in parts {
+    out.write_string(part)
+  }
+  out.to_string()
 }
 
 ///|
