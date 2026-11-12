@@ -5,6 +5,7 @@ import {
   "Omochice/pele/errors",
   "Omochice/pele/text",
   "Omochice/pele/types",
+  "moonbitlang/core/json",
 }
 
 // Values
@@ -28,7 +29,7 @@ pub fn parse_c4(String, C4Db) -> Unit raise @errors.PeleError
 
 pub fn queue_rx(Double) -> Double
 
-pub fn render_c4(C4Db, Map[String, Json], @types.RenderOptions) -> @types.Rendered raise @errors.PeleError
+pub fn render_c4(C4Db, Map[String, @json.Json], @types.RenderOptions) -> @types.Rendered raise @errors.PeleError
 
 pub fn route(Box, Box, Double, Array[Box]?, Lanes, Double, Double) -> Route
 

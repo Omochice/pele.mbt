@@ -8,7 +8,7 @@ const ROOT : String =
 fn resolve_body(body : String, theme~ : Map[String, String] = {}) -> String {
   let out = @theme.resolve_vars(ROOT + body + "</svg>", theme)
   let start = out.find(">").unwrap() + 1
-  out.view(start_offset=start, end_offset=out.length() - 6).to_owned()
+  out.exact_view(start~, end=out.length() - 6).to_owned()
 }
 
 ///|

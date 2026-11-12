@@ -59,7 +59,7 @@ pub fn index_of(text : String, needle : String, from~ : Int32 = 0) -> Int32 {
   if start > text.length() {
     return if needle.length() == 0 { text.length() } else { -1 }
   }
-  match text.view(start_offset=start).find(needle) {
+  match text.unsafe_view(start~, end=text.length()).find(needle) {
     Some(at) => start + at
     None => -1
   }
@@ -73,7 +73,7 @@ pub fn last_index_of(text : String, needle : String, from? : Int32) -> Int32 {
     None => text.length()
   }
   let end = @cmp.minimum(limit + needle.length(), text.length())
-  match text.view(end_offset=end).rev_find(needle) {
+  match text.unsafe_view(start=0, end~).rev_find(needle) {
     Some(at) => at
     None => -1
   }
@@ -148,6 +148,10 @@ pub fn write_range(
   to : Int32,
 ) -> Unit {
   if from < to {
-    out.write_view(text.view(start_offset=from, end_offset=to))
+    guard from >= 0 && to <= text.length() else {
+      abort("Invalid index for View")
+    }
+    // `exact_view` and `clamped_view` refuse or move an offset inside a surrogate pair, but callers copy one code unit at a time and so split every pair they meet.
+    out.write_view(text.unsafe_view(start=from, end=to))
   }
 }

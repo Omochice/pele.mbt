@@ -4,12 +4,13 @@ package "Omochice/pele/diagrams/xychart"
 import {
   "Omochice/pele/errors",
   "Omochice/pele/types",
+  "moonbitlang/core/json",
 }
 
 // Values
 pub fn parse_xychart(String, XyChartDb) -> Unit raise @errors.PeleError
 
-pub fn render_xychart(XyChartDb, Map[String, Json], @types.RenderOptions) -> @types.Rendered raise @errors.PeleError
+pub fn render_xychart(XyChartDb, Map[String, @json.Json], @types.RenderOptions) -> @types.Rendered raise @errors.PeleError
 
 pub fn tick_index(Double, Double) -> Double
 

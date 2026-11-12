@@ -4,6 +4,7 @@ package "Omochice/pele/diagrams/treeview"
 import {
   "Omochice/pele/errors",
   "Omochice/pele/types",
+  "moonbitlang/core/json",
 }
 
 // Values
@@ -15,7 +16,7 @@ pub fn detect_icon(String, Map[String, String], Map[String, String]) -> String?
 
 pub fn glyph(String) -> String?
 
-pub fn icon_config(Map[String, Json]) -> IconConfig
+pub fn icon_config(Map[String, @json.Json]) -> IconConfig
 
 pub fn is_box_drawing_format(Array[String]) -> Bool
 
@@ -33,9 +34,9 @@ pub fn read_treeview(String) -> TreeViewAst raise @errors.PeleError
 
 pub fn remap_error_lines(String, Map[Int32, Int32]) -> String
 
-pub fn render_treeview(TreeViewModel, Map[String, Json], @types.RenderOptions) -> @types.Rendered raise @errors.PeleError
+pub fn render_treeview(TreeViewModel, Map[String, @json.Json], @types.RenderOptions) -> @types.Rendered raise @errors.PeleError
 
-pub fn tree_settings(Map[String, Json]) -> TreeSettings
+pub fn tree_settings(Map[String, @json.Json]) -> TreeSettings
 
 pub let treeview : @types.Diagram
 

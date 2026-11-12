@@ -211,6 +211,16 @@ test "a section drawn without a header is named in the tooltips of what covers i
 }
 
 ///|
+test "a tooltip trims a name again once its unprintable characters are dropped" {
+  let svg = drawn(
+      with_config(
+        "    nodeHeight: 3", "treemap\n\"#1; A & B #1;\"\n  \"Leaf #1;\": 1",
+      ),
+    ).svg
+  inspect(svg.contains("<title>A &amp; B › Leaf</title>"), content="true")
+}
+
+///|
 test "a crowded treemap is spaced more tightly, with one gap throughout" {
   let boxes = drawn_boxes(drawn(deep_tree()).svg)
   let named = (prefix : String) => boxes.filter(b => b.id.has_prefix(prefix))

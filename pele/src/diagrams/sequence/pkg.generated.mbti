@@ -6,6 +6,7 @@ import {
   "Omochice/pele/svg",
   "Omochice/pele/text",
   "Omochice/pele/types",
+  "moonbitlang/core/json",
 }
 
 // Values
@@ -129,7 +130,7 @@ pub fn number_messages(Array[SeqMessage], Bool) -> Numbering
 
 pub fn parse_sequence(String, SeqDb) -> Unit raise @errors.PeleError
 
-pub fn render_sequence(SeqDb, Map[String, Json], @types.RenderOptions) -> @types.Rendered raise @errors.PeleError
+pub fn render_sequence(SeqDb, Map[String, @json.Json], @types.RenderOptions) -> @types.Rendered raise @errors.PeleError
 
 pub let sequence : @types.Diagram
 
@@ -158,8 +159,8 @@ pub(all) struct SeqActor {
   wrap : Bool
   prev_actor : String?
   mut next_actor : String?
-  links : Map[String, Json]
-  properties : Map[String, Json]
+  links : Map[String, @json.Json]
+  properties : Map[String, @json.Json]
   mut details : String?
   kind : String
 }

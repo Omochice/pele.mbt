@@ -646,8 +646,8 @@ test "wraps disconnected classes to fit maxWidth, keeping each relation as it wa
       assert_eq(count_of(narrow.svg, "class=\"pele-node pele-class"), 16)
       assert_eq(count_of(narrow.svg, "class=\"pele-edge pele-relation"), 8)
       for pair in ["AB", "CD", "EF", "GH", "IJ", "KL", "MN", "OP"] {
-        let a = "class" + pair.view(end_offset=1).to_owned()
-        let b = "class" + pair.view(start_offset=1).to_owned()
+        let a = "class" + pair.exact_view(end=1).to_owned()
+        let b = "class" + pair.exact_view(start=1).to_owned()
         let (fx, fy) = place_of(narrow.svg, a)
         let (tx, ty) = place_of(narrow.svg, b)
         let (ofx, ofy) = place_of(natural.svg, a)

@@ -2,7 +2,7 @@
 fn family(list : String?) -> String {
   let style = @svg.font_style(16, list, list)
   let at = style.find("font-family:").unwrap_or(0)
-  style.view(start_offset=at).to_owned()
+  style.exact_view(start=at).to_owned()
 }
 
 ///|

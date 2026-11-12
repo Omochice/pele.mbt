@@ -64,10 +64,17 @@ fn write_text(
 }
 
 ///|
-/// A node's name as it goes into a tooltip, escaped.
+/// A node's name as it goes into a tooltip, before it is escaped.
 fn title_part(raw : String) -> String {
-  // Escaping drops characters XML forbids, which can leave blanks at either end.
-  @util.trim(@svg.esc(@util.trim(@text.decode_entities(raw))))
+  let name = @util.trim(@text.decode_entities(raw))
+  // The name is not escaped here but as it is written, because escaped whole it can be five times as long, past what a doubling `StringBuilder` holds.
+  // Escaping drops characters XML forbids, which can leave blanks at either end, so they are dropped here for those blanks to be trimmed.
+  // A name without any is kept as it is, since dropping them copies the name into a doubling `StringBuilder` as well.
+  if @svg.has_invalid_xml(name) {
+    @util.trim(@svg.without_invalid_xml(name))
+  } else {
+    name
+  }
 }
 
 ///|
@@ -79,8 +86,7 @@ fn write_tooltip(
   name : String,
   drawn : String?,
 ) -> Unit {
-  let own = title_part(b.node.name)
-  let path = if own == "" { [] } else { [own] }
+  let path = []
   let mut parent = b.parent
   while parent is Some(p) && !p.headed {
     let section = title_part(p.node.name)
@@ -89,12 +95,21 @@ fn write_tooltip(
     }
     parent = p.parent
   }
-  let full = path.join(" › ")
-  if full == "" || (drawn is Some(drawn) && drawn == name && full == own) {
+  let own = title_part(b.node.name)
+  let shown = drawn is Some(drawn) && drawn == name
+  if path.is_empty() && (own == "" || shown) {
     return
   }
+  if own != "" {
+    path.push(own)
+  }
   out.write("<title>")
-  out.write(full)
+  for i, part in path {
+    if i > 0 {
+      out.write(" › ")
+    }
+    out.write_esc(part)
+  }
   out.write("</title>")
 }
 

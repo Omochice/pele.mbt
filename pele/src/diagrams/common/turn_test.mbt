@@ -38,7 +38,7 @@ test "a diagram that runs across stays across when it fits or nothing limits it"
 ///|
 test "a diagram too wide for a host under the breakpoint is turned when down is narrower" {
   inspect(turns(narrow(400), 900, 300), content="across down -> 300")
-  inspect(turns(narrow(400), 900, 950), content="across down -> 900")
+  inspect(turns(narrow(400), 900, 950), content="across down across -> 900")
 }
 
 ///|

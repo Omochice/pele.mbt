@@ -72,7 +72,7 @@ fn replace_controls(text : String) -> String {
     return text
   }
   // Built at its final size, which can be twice the text's, past what a doubling builder reaches.
-  let out = StringBuilder(size_hint=(text.length() + controls) * 2)
+  let out = StringBuilder(size_hint=text.length() + controls)
   for i in 0..<text.length() {
     let c = @util.code_at(text, i)
     if c == '\n'.to_int() {

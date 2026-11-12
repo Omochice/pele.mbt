@@ -3,6 +3,7 @@ package "Omochice/pele/preprocess"
 
 import {
   "Omochice/pele/errors",
+  "moonbitlang/core/json",
 }
 
 // Values
@@ -18,7 +19,7 @@ pub fn preprocess(String, steps? : Array[Array[(Int32, Int32, Int32)]]) -> Prepr
 pub(all) struct Preprocessed {
   text : String
   title : String?
-  config : Map[String, Json]
+  config : Map[String, @json.Json]
   with_comments : String
   line_offset : Int32
 }

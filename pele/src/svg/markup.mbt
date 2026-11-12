@@ -130,20 +130,20 @@ pub fn Markup::write_group(
 }
 
 ///|
-fn Markup::write_to(self : Markup, out : StringBuilder) -> Unit {
+/// The pieces as one string, between `start` and `end`.
+fn Markup::joined(self : Markup, start : String, end : String) -> String {
+  let parts = Array(capacity=self.pieces.length() + 3)
+  parts.push(start)
   for piece in self.pieces {
-    out.write_string(piece)
+    parts.push(piece)
   }
   if self.tail_length > 0 {
-    out.write_string(self.tail.to_string())
+    parts.push(self.tail.to_string())
   }
-}
-
-///|
-/// A builder that holds exactly `length` code units, which turns into a string without a copy
-/// once it is full.
-fn exact_builder(length : Int32) -> StringBuilder {
-  StringBuilder(size_hint=length * 2)
+  parts.push(end)
+  // Not a `StringBuilder` of the final size, because its `to_string` copies the buffer.
+  // A drawing at the hold limit would then be held three times over, as its pieces, the buffer and the copy.
+  parts.join("")
 }
 
 ///|
@@ -151,9 +151,7 @@ fn exact_builder(length : Int32) -> StringBuilder {
 /// Aborts for markup the port no longer holds, which `markup_document` leaves as a stand-in instead.
 pub fn Markup::to_string(self : Markup) -> String {
   guard self.held else { abort("SVG markup past the port's hold limit") }
-  let out = exact_builder(self.length.to_int())
-  self.write_to(out)
-  out.to_string()
+  self.joined("", "")
 }
 
 ///|
@@ -231,13 +229,10 @@ pub fn markup_document(
   let end = "</svg>"
   // Failing here would refuse a drawing that is only measured, as a diagram drawn again to fit a
   // narrow host measures its first drawing, where pele goes on to draw the next one.
-  let length = start.length().to_int64() + body.length + end.length().to_int64()
   if !body.held {
-    return unheld_document(length)
+    return unheld_document(
+      start.length().to_int64() + body.length + end.length().to_int64(),
+    )
   }
-  let out = exact_builder(length.to_int())
-  out.write_string(start)
-  body.write_to(out)
-  out.write_string(end)
-  out.to_string()
+  body.joined(start, end)
 }

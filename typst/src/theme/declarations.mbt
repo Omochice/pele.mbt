@@ -25,22 +25,25 @@ fn declaration_end(css : String, start : Int32) -> Int32 {
 /// tens of millions of escaped `&` has as many declarations, each ended by its entity's `;`, and
 /// splitting it would hold each of them as a string of its own.
 fn rebuild(css : String, decide : (Int32, Int32) -> Kept) -> String {
-  let changes : Array[(Int32, Kept)] = []
-  let mut length = 0
-  let mut kept = 0
+  let pieces : Array[StringView] = []
+  let mut changed = false
+  let mut run_start = -1
   let mut start = 0
   while true {
     let end = declaration_end(css, start)
-    match decide(start, end) {
-      Keep => {
-        length += end - start
-        kept += 1
+    let decision = decide(start, end)
+    if decision is Keep {
+      if run_start < 0 {
+        run_start = start
       }
-      Drop => changes.push((start, Drop))
-      Replace(text) => {
-        length += text.length()
-        kept += 1
-        changes.push((start, Replace(text)))
+    } else {
+      changed = true
+      if run_start >= 0 {
+        pieces.push(css.unsafe_view(start=run_start, end=start - 1))
+        run_start = -1
+      }
+      if decision is Replace(text) {
+        pieces.push(text.unsafe_view(start=0, end=text.length()))
       }
     }
     if end >= css.length() {
@@ -48,47 +51,23 @@ fn rebuild(css : String, decide : (Int32, Int32) -> Kept) -> String {
     }
     start = end + 1
   }
-  if changes.is_empty() {
+  if !changed {
     return css
   }
-  if kept > 1 {
-    length += kept - 1
+  if run_start >= 0 {
+    pieces.push(css.unsafe_view(start=run_start, end=css.length()))
   }
-  let out = StringBuilder(size_hint=length * 2)
-  let mut next = 0
-  let mut first = true
-  start = 0
-  while true {
-    let end = declaration_end(css, start)
-    let decision = if next < changes.length() && changes[next].0 == start {
-      next += 1
-      changes[next - 1].1
-    } else {
-      Keep
-    }
-    match decision {
-      Drop => ()
-      Keep => {
-        if !first {
-          out.write_char(';')
-        }
-        first = false
-        @util.write_range(out, css, start, end)
-      }
-      Replace(text) => {
-        if !first {
-          out.write_char(';')
-        }
-        first = false
-        out.write_string(text)
-      }
-    }
-    if end >= css.length() {
-      break
-    }
-    start = end + 1
+  // Not a `StringBuilder` of the final size, because its `to_string` copies the buffer.
+  // A style near the port's hold limit would then be held three times over, as the style, the buffer and the copy.
+  // A lone piece is joined as its two halves, because `join` copies a lone piece through a buffer of bytes, which holds it three times over as well.
+  if pieces is [piece] {
+    let half = piece.length() / 2
+    return [
+      piece.unsafe_view(start=0, end=half),
+      piece.unsafe_view(start=half, end=piece.length()),
+    ].join("")
   }
-  out.to_string()
+  pieces.join(";")
 }
 
 ///|

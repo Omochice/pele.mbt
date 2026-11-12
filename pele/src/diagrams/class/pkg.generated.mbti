@@ -4,6 +4,7 @@ package "Omochice/pele/diagrams/class"
 import {
   "Omochice/pele/errors",
   "Omochice/pele/types",
+  "moonbitlang/core/json",
 }
 
 // Values
@@ -17,7 +18,7 @@ pub fn class_marker_trim(String) -> Double
 
 pub fn parse_class(String, ClassDb) -> Unit raise @errors.PeleError
 
-pub fn render_class(ClassDb, Map[String, Json], @types.RenderOptions) -> @types.Rendered raise @errors.PeleError
+pub fn render_class(ClassDb, Map[String, @json.Json], @types.RenderOptions) -> @types.Rendered raise @errors.PeleError
 
 pub fn tokenize(String) -> Tokens
 

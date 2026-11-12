@@ -4,8 +4,8 @@
 fn stroke(value : String) -> String {
   let out = @theme.mix_colors("<text stroke=\"\{value}\">t</text>")
   let start = out.find("stroke=\"").unwrap() + 8
-  let end = start + out.view(start_offset=start).find("\"").unwrap()
-  out.view(start_offset=start, end_offset=end).to_owned()
+  let end = start + out.exact_view(start~).find("\"").unwrap()
+  out.exact_view(start~, end~).to_owned()
 }
 
 ///|

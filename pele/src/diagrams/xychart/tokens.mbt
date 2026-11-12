@@ -1,5 +1,6 @@
 ///|
 /// The tokens of Mermaid's XY chart lexer, in the order its grammar numbers them.
+#derive(Eq)
 priv enum Tok {
   End
   Error
@@ -35,7 +36,7 @@ priv enum Tok {
   Num
   Semi
   Eof
-} derive(Eq)
+}
 
 ///|
 /// The name the grammar gives the token in its error messages.

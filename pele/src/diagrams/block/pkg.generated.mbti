@@ -4,6 +4,7 @@ package "Omochice/pele/diagrams/block"
 import {
   "Omochice/pele/errors",
   "Omochice/pele/types",
+  "moonbitlang/core/json",
 }
 
 // Values
@@ -33,7 +34,7 @@ pub fn layout(Cell, Double) -> (Double, Double) raise @errors.PeleError
 
 pub fn parse_block(String, BlockDb) -> Unit raise @errors.PeleError
 
-pub fn render_block(BlockDb, Map[String, Json], @types.RenderOptions) -> @types.Rendered raise @errors.PeleError
+pub fn render_block(BlockDb, Map[String, @json.Json], @types.RenderOptions) -> @types.Rendered raise @errors.PeleError
 
 pub fn tokenize(String) -> Tokens
 

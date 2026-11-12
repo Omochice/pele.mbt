@@ -75,7 +75,7 @@ fn halo_strokes(theme : String?) -> String {
   let strokes = []
   for part in svg.split("<text fill=\"none\" stroke=\"").drop(1) {
     let part = part.to_owned()
-    strokes.push(part.view(end_offset=part.find("\"").unwrap()).to_owned())
+    strokes.push(part.exact_view(end=part.find("\"").unwrap()).to_owned())
   }
   strokes.join(" ")
 }

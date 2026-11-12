@@ -31,7 +31,7 @@ Both `moon.mod` files name wasm as the preferred target, so no target has to be 
 
 ### Skipped tests
 
-90 tests are marked `#skip`, all but three of them in the `string_length_test.mbt` of each diagram under `pele/src/diagrams/`.
+92 tests are marked `#skip`, all but three of them in the `string_length_test.mbt` of each diagram under `pele/src/diagrams/`.
 The argument of each `#skip` states why, and the reasons are the two below.
 
 - Every one is slow, because it lexes, escapes or draws tens to hundreds of millions of code units, as an input past what a doubling `StringBuilder` holds takes.

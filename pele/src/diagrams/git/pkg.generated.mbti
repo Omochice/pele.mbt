@@ -4,10 +4,11 @@ package "Omochice/pele/diagrams/git"
 import {
   "Omochice/pele/errors",
   "Omochice/pele/types",
+  "moonbitlang/core/json",
 }
 
 // Values
-pub fn build_git(GitGraphAst, Map[String, Json], String?) -> GitModel raise @errors.PeleError
+pub fn build_git(GitGraphAst, Map[String, @json.Json], String?) -> GitModel raise @errors.PeleError
 
 pub let git : @types.Diagram
 
@@ -17,7 +18,7 @@ pub fn[Db : GitDbParseProvider] parse_statement(StatementAst, Db) -> Unit raise 
 
 pub fn[Db : GitDbParseProvider] populate(GitGraphAst, Db) -> Unit raise @errors.PeleError
 
-pub fn render_git(GitModel, Map[String, Json], @types.RenderOptions) -> @types.Rendered raise @errors.PeleError
+pub fn render_git(GitModel, Map[String, @json.Json], @types.RenderOptions) -> @types.Rendered raise @errors.PeleError
 
 // Errors
 
