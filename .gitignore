@@ -6,4 +6,4 @@ typst/package/plugin.wasm
 .direnv/
 result
 result-*
-.envrc
+.envrc.local
