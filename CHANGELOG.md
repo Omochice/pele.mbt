@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/Omochice/pele.mbt/compare/v0.2.0...v0.2.1) (2026-11-14)
+
+
+### Bug Fixes
+
+* keep drawing large diagrams on moon 0.1.20261104 ([#35](https://github.com/Omochice/pele.mbt/issues/35)) ([54c97db](https://github.com/Omochice/pele.mbt/commit/54c97db6001b71136385a6a0a0f85c350e0b7ce8))
+
 ## [0.2.0](https://github.com/Omochice/pele.mbt/compare/v0.1.0...v0.2.0) (2026-11-08)
 
 
